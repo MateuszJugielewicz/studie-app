@@ -5,7 +5,7 @@ export type BookingStatus =
   | "awaiting_payment" | "pending_approval" | "confirmed" | "declined"
   | "cancelled" | "completed" | "disputed" | "expired";
 export type PaymentStatus =
-  | "unpaid" | "authorized" | "deposit_paid" | "paid" | "partially_refunded" | "refunded" | "failed";
+  | "unpaid" | "authorized" | "deposit_paid" | "paid" | "partially_refunded" | "refunded" | "failed" | "pay_at_studio";
 export type CancellationPolicy = "flexible" | "moderate" | "strict";
 
 export interface SessionType {
@@ -40,6 +40,7 @@ export interface BookingPolicy {
   max_advance_days?: number;
   buffer_minutes?: number;
   terms?: string;
+  accepts_cash?: boolean;
 }
 
 export interface Studio {
@@ -102,7 +103,7 @@ export interface Booking {
   has_review: boolean;
   payment_intent_id: string | null;
   balance_payment_intent_id: string | null;
-  payment_method: "card" | "apple_pay" | "google_pay" | null;
+  payment_method: "card" | "apple_pay" | "google_pay" | "cash" | null;
   changed_by: string | null;
   created_at: string;
 }

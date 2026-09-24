@@ -32,6 +32,9 @@ targets:
     platform: iOS
     sources:
       - path: Sonora
+      - path: ../legal
+        type: folder
+        buildPhase: resources
     dependencies:
       - package: Supabase
         product: Supabase

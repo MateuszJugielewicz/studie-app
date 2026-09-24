@@ -24,6 +24,7 @@ final class MockBackend: Backend {
     private var reports: [Report] = []
     private var disputes: [Dispute] = []
     private var notificationsById: [UUID: AppNotification] = [:]
+    private var feeLedgerById: [UUID: FeeLedgerEntry] = [:]
     private var streams: [UUID: [UUID: AsyncStream<ChatMessage>.Continuation]] = [:]
     private var currentUserId: UUID?
 
@@ -44,7 +45,9 @@ final class MockBackend: Backend {
         let seededBookings = MockData.bookings(studios: seededStudios)
         for booking in seededBookings {
             bookings[booking.id] = booking
-            recordCharge(for: booking, amount: booking.price.total, method: .applePay, at: booking.createdAt)
+            if !booking.isCash {
+                recordCharge(for: booking, amount: booking.price.total, method: .applePay, at: booking.createdAt)
+            }
         }
         for review in MockData.reviews(studios: seededStudios, bookings: seededBookings) { reviewsById[review.id] = review }
         seedConversations()
@@ -71,6 +74,16 @@ final class MockBackend: Backend {
         return (user, studio)
     }
 
+    /// Studio-side features require an admin-approved studio (mirrors `owns_approved_studio` in SQL).
+    @discardableResult
+    private func requireApprovedOwner(of studioId: UUID) throws -> (UserAccount, Studio) {
+        let (user, studio) = try requireOwner(of: studioId)
+        guard user.role == .admin || (user.role == .studioOwner && studio.status == .approved) else {
+            throw BackendError.validation("Your studio must be approved by Sonora before you can do this.")
+        }
+        return (user, studio)
+    }
+
     private func notify(_ userId: UUID, _ kind: NotificationKind, _ title: String, _ body: String, booking: UUID? = nil, conversation: UUID? = nil, studio: UUID? = nil) {
         let note = AppNotification(id: UUID(), userId: userId, kind: kind, title: title, body: body, isRead: false, bookingId: booking, conversationId: conversation, studioId: studio, createdAt: .now)
         notificationsById[note.id] = note
@@ -85,7 +98,7 @@ final class MockBackend: Backend {
 
     @discardableResult
     private func recordCharge(for booking: Booking, amount: Int, method: PaymentMethod, kind: TransactionKind = .charge, at date: Date = .now) -> PaymentTransaction {
-        let fee = kind == .charge ? booking.price.serviceFee : 0
+        let fee = kind == .charge ? booking.price.platformRevenue : 0
         let transaction = PaymentTransaction(
             id: UUID(), bookingId: booking.id, studioId: booking.studioId, artistId: booking.artistId,
             kind: kind, method: method, status: .succeeded, amount: amount, platformFee: fee,
@@ -136,6 +149,14 @@ final class MockBackend: Backend {
                 recordCharge(for: booking, amount: booking.price.dueLater, method: .card, kind: .balance, at: booking.endsAt)
                 booking.paymentStatus = .paid
             }
+            if booking.isCash {
+                // The studio collected the money; Sonora's 10% becomes payable by the studio.
+                let entry = FeeLedgerEntry(id: UUID(), studioId: booking.studioId, bookingId: booking.id, kind: .cashCommission, amount: booking.price.studioCommission, currency: booking.price.currency, note: "Cash booking \(booking.reference)", createdAt: now)
+                feeLedgerById[entry.id] = entry
+                if let owner = ownerId(ofStudio: booking.studioId) {
+                    notify(owner, .system, "Platform fee added", "\(Money.format(entry.amount, currency: entry.currency)) (10%) for a cash booking. It will be deducted from your next payout.", booking: booking.id, studio: booking.studioId)
+                }
+            }
             booking.updatedAt = now
             bookings[booking.id] = booking
             if !booking.hasReview {
@@ -143,11 +164,31 @@ final class MockBackend: Backend {
             }
         }
         let paidOut = Set(payoutsById.values.flatMap(\.bookingIds))
-        for booking in bookings.values where booking.status == .completed && !paidOut.contains(booking.id) {
+        for booking in bookings.values.sorted(by: { $0.endsAt < $1.endsAt }) where booking.status == .completed && !booking.isCash && !paidOut.contains(booking.id) {
             let date = booking.endsAt.adding(days: PlatformConfig.payoutDelayDays)
-            let payout = Payout(id: UUID(), studioId: booking.studioId, amount: booking.price.studioPayout, currency: booking.price.currency, status: date < now ? .paid : .scheduled, scheduledFor: date, paidAt: date < now ? date : nil, bookingIds: [booking.id])
+            var payout = Payout(id: UUID(), studioId: booking.studioId, amount: booking.price.studioPayout, currency: booking.price.currency, status: date < now ? .paid : .scheduled, scheduledFor: date, paidAt: date < now ? date : nil, bookingIds: [booking.id])
+            if payout.status == .paid {
+                // Net outstanding cash-booking fees against the payout.
+                let owed = feeBalance(studioId: payout.studioId, currency: payout.currency)
+                let offset = min(max(owed, 0), payout.amount)
+                if offset > 0 {
+                    let entry = FeeLedgerEntry(id: UUID(), studioId: payout.studioId, bookingId: nil, kind: .payoutOffset, amount: -offset, currency: payout.currency, note: "Deducted from payout", createdAt: date)
+                    feeLedgerById[entry.id] = entry
+                    payout.amount -= offset
+                }
+            }
             payoutsById[payout.id] = payout
         }
+        // Cash not confirmed by the studio counts as received 3 days after the session.
+        for var booking in bookings.values where booking.isCash && booking.paymentStatus == .payAtStudio && booking.status == .completed && booking.endsAt.adding(days: 3) < now {
+            booking.paymentStatus = .paid
+            booking.cashReceivedAt = now
+            bookings[booking.id] = booking
+        }
+    }
+
+    private func feeBalance(studioId: UUID, currency: String) -> Int {
+        feeLedgerById.values.filter { $0.studioId == studioId && $0.currency == currency }.reduce(0) { $0 + $1.amount }
     }
 
     private func seedConversations() {
@@ -204,10 +245,11 @@ final class MockBackend: Backend {
         await pause()
         let email = email.lowercased().trimmingCharacters(in: .whitespaces)
         guard email.contains("@"), email.contains(".") else { throw BackendError.validation("Enter a valid email address.") }
-        guard password.count >= 8 else { throw BackendError.validation("Use at least 8 characters for your password.") }
+        if let problem = PasswordPolicy.problem(password) { throw BackendError.validation(problem) }
         guard role != .admin else { throw BackendError.forbidden }
         guard passwords[email] == nil else { throw BackendError.emailInUse }
-        let account = UserAccount(id: UUID(), email: email, role: role, status: .active, isVerified: false, settings: UserSettings(), createdAt: .now)
+        // Sign-up requires accepting the terms, so the consent is recorded with the account.
+        let account = UserAccount(id: UUID(), email: email, role: role, status: .active, isVerified: false, settings: UserSettings(), createdAt: .now, acceptedTermsVersion: LegalDocument.currentVersion, acceptedTermsAt: .now)
         accounts[account.id] = account
         passwords[email] = password
         if role == .artist { artistProfiles[account.id] = .empty(id: account.id) }
@@ -258,6 +300,41 @@ final class MockBackend: Backend {
         passwords[user.email] = nil
         artistProfiles[user.id] = nil
         currentUserId = nil
+    }
+
+    func acceptTerms(version: String) async throws -> UserAccount {
+        var user = try requireUser()
+        user.acceptedTermsVersion = version
+        user.acceptedTermsAt = .now
+        accounts[user.id] = user
+        return user
+    }
+
+    func exportPersonalData() async throws -> Data {
+        let user = try requireUser()
+        let ownedStudios = studios.values.filter { $0.ownerId == user.id }
+        let studioIds = Set(ownedStudios.map(\.id))
+        let relevantBookings = bookings.values.filter { $0.artistId == user.id || studioIds.contains($0.studioId) }
+        let bookingIds = Set(relevantBookings.map(\.id))
+        let export = PersonalDataExport(
+            exportedAt: .now,
+            account: user,
+            artistProfile: artistProfiles[user.id],
+            studios: ownedStudios,
+            bookings: relevantBookings.sorted { $0.startsAt < $1.startsAt },
+            payments: transactionsById.values.filter { bookingIds.contains($0.bookingId) },
+            payouts: payoutsById.values.filter { studioIds.contains($0.studioId) },
+            platformFees: feeLedgerById.values.filter { studioIds.contains($0.studioId) },
+            messagesSent: messagesById.values.filter { $0.senderId == user.id },
+            reviewsWritten: reviewsById.values.filter { $0.artistId == user.id },
+            reportsMade: reports.filter { $0.reporterId == user.id },
+            notifications: notificationsById.values.filter { $0.userId == user.id }
+        )
+        let encoder = JSONEncoder()
+        encoder.keyEncodingStrategy = .convertToSnakeCase
+        encoder.dateEncodingStrategy = .iso8601
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        return try encoder.encode(export)
     }
 
     func updateSettings(_ settings: UserSettings) async throws -> UserAccount {
@@ -393,12 +470,12 @@ final class MockBackend: Backend {
     }
 
     func blockedSlots(studioId: UUID) async throws -> [BlockedSlot] {
-        _ = try requireOwner(of: studioId)
+        try requireApprovedOwner(of: studioId)
         return blocked.values.filter { $0.studioId == studioId }.sorted { $0.startsAt < $1.startsAt }
     }
 
     func addBlockedSlot(_ slot: BlockedSlot) async throws -> BlockedSlot {
-        _ = try requireOwner(of: slot.studioId)
+        try requireApprovedOwner(of: slot.studioId)
         guard slot.endsAt > slot.startsAt else { throw BackendError.validation("End time must be after start time.") }
         blocked[slot.id] = slot
         return slot
@@ -406,7 +483,7 @@ final class MockBackend: Backend {
 
     func removeBlockedSlot(id: UUID) async throws {
         guard let slot = blocked[id] else { return }
-        _ = try requireOwner(of: slot.studioId)
+        try requireApprovedOwner(of: slot.studioId)
         blocked[id] = nil
     }
 
@@ -475,6 +552,44 @@ final class MockBackend: Backend {
         return booking
     }
 
+    func confirmCashBooking(bookingId: UUID) async throws -> Booking {
+        await pause()
+        let user = try requireUser()
+        guard var booking = bookings[bookingId], booking.artistId == user.id, let studio = studios[booking.studioId] else { throw BackendError.notFound }
+        guard booking.status == .awaitingPayment else { return booking }
+        guard PricingEngine.acceptsCash(studio) else { throw BackendError.validation("This studio only accepts payment in the app.") }
+        booking.paymentMethod = .cash
+        booking.paymentStatus = .payAtStudio
+        booking.status = studio.bookingPolicy.instantBook ? .confirmed : .pendingApproval
+        booking.updatedAt = .now
+        bookings[booking.id] = booking
+        let when = booking.startsAt.formatted(date: .abbreviated, time: .shortened)
+        if booking.status == .confirmed {
+            notify(user.id, .bookingConfirmed, "Booking confirmed ✅", "\(studio.name) · \(when). Pay cash at the studio.", booking: booking.id)
+            notify(studio.ownerId, .bookingRequested, "New cash booking", "\(booking.artistName) booked \(booking.hours)h on \(when) and pays cash.", booking: booking.id)
+        } else {
+            notify(studio.ownerId, .bookingRequested, "New booking request (cash)", "\(booking.artistName) wants to book \(booking.hours)h on \(when) and pay cash.", booking: booking.id)
+        }
+        var updatedStudio = studio
+        updatedStudio.bookingCount += 1
+        studios[studio.id] = updatedStudio
+        return booking
+    }
+
+    func markCashReceived(bookingId: UUID) async throws -> Booking {
+        await pause()
+        guard var booking = bookings[bookingId] else { throw BackendError.notFound }
+        try requireApprovedOwner(of: booking.studioId)
+        guard booking.isCash else { throw BackendError.validation("This booking was paid by card.") }
+        guard [.confirmed, .completed].contains(booking.status), booking.startsAt <= .now else {
+            throw BackendError.validation("You can confirm cash once the session has started.")
+        }
+        booking.paymentStatus = .paid
+        booking.cashReceivedAt = .now
+        bookings[bookingId] = booking
+        return booking
+    }
+
     func booking(id: UUID) async throws -> Booking {
         let user = try requireUser()
         guard let booking = bookings[id] else { throw BackendError.notFound }
@@ -501,10 +616,20 @@ final class MockBackend: Backend {
         let user = try requireUser()
         guard var booking = bookings[id], let studio = studios[booking.studioId] else { throw BackendError.notFound }
         let role: UserRole
-        if booking.artistId == user.id { role = .artist } else if studio.ownerId == user.id { role = .studioOwner } else { throw BackendError.forbidden }
+        if booking.artistId == user.id {
+            role = .artist
+        } else if studio.ownerId == user.id {
+            try requireApprovedOwner(of: studio.id)
+            role = .studioOwner
+        } else {
+            throw BackendError.forbidden
+        }
         guard booking.canCancel else { throw BackendError.validation("This booking can no longer be cancelled.") }
 
-        if booking.paymentStatus == .authorized {
+        if booking.isCash {
+            // Nothing was charged in the app.
+            booking.paymentStatus = .unpaid
+        } else if booking.paymentStatus == .authorized {
             // Not captured yet: release the hold in full.
             booking.refundAmount = booking.price.dueNow
             booking.paymentStatus = .refunded
@@ -543,6 +668,7 @@ final class MockBackend: Backend {
         let user = try requireUser()
         guard var booking = bookings[id], let studio = studios[booking.studioId] else { throw BackendError.notFound }
         guard booking.artistId == user.id || studio.ownerId == user.id else { throw BackendError.forbidden }
+        if booking.artistId != user.id { try requireApprovedOwner(of: studio.id) }
         guard booking.canReschedule else { throw BackendError.validation("This booking can't be changed.") }
 
         var busy = try await busyIntervals(studioIds: [studio.id], from: newStart.adding(days: -1), to: newStart.adding(days: 2))[studio.id] ?? []
@@ -564,17 +690,20 @@ final class MockBackend: Backend {
     func respondToBooking(id: UUID, accept: Bool, message: String?) async throws -> Booking {
         await pause()
         guard var booking = bookings[id] else { throw BackendError.notFound }
-        let (_, studio) = try requireOwner(of: booking.studioId)
+        let (_, studio) = try requireApprovedOwner(of: booking.studioId)
         guard booking.status == .pendingApproval else { throw BackendError.validation("This request has already been handled.") }
-        if accept {
+        if accept && booking.isCash {
+            booking.status = .confirmed
+            notify(booking.artistId, .bookingConfirmed, "Booking confirmed ✅", "\(studio.name) accepted your request. Pay cash at the studio.", booking: id)
+        } else if accept {
             recordCharge(for: booking, amount: booking.price.dueNow, method: .card)
             booking.status = .confirmed
             booking.paymentStatus = booking.price.depositAmount > 0 ? .depositPaid : .paid
             notify(booking.artistId, .bookingConfirmed, "Booking confirmed ✅", "\(studio.name) accepted your request for \(booking.startsAt.formatted(date: .abbreviated, time: .shortened)).", booking: id)
         } else {
             booking.status = .declined
-            booking.paymentStatus = .refunded
-            booking.refundAmount = booking.price.dueNow
+            booking.paymentStatus = booking.isCash ? .unpaid : .refunded
+            booking.refundAmount = booking.isCash ? 0 : booking.price.dueNow
             booking.cancellationReason = message
             notify(booking.artistId, .bookingDeclined, "Request declined", "\(studio.name) couldn't take your session. Your card was not charged.\(message.map { " “\($0)”" } ?? "")", booking: id)
         }
@@ -601,6 +730,12 @@ final class MockBackend: Backend {
         return transactionsById.values.filter { $0.bookingId == bookingId }.sorted { $0.createdAt < $1.createdAt }
     }
 
+    func feeLedger(studioId: UUID) async throws -> [FeeLedgerEntry] {
+        _ = try requireOwner(of: studioId)
+        advanceTime()
+        return feeLedgerById.values.filter { $0.studioId == studioId }.sorted { $0.createdAt > $1.createdAt }
+    }
+
     func payouts(studioId: UUID) async throws -> [Payout] {
         _ = try requireOwner(of: studioId)
         advanceTime()
@@ -623,7 +758,7 @@ final class MockBackend: Backend {
         let artistId: UUID
         if user.role == .artist {
             artistId = user.id
-        } else if studio.ownerId == user.id, let bookingId, let booking = bookings[bookingId], booking.studioId == studioId {
+        } else if studio.ownerId == user.id, studio.status == .approved, let bookingId, let booking = bookings[bookingId], booking.studioId == studioId {
             // Studios can only start a chat about an existing booking.
             artistId = booking.artistId
         } else {
@@ -653,6 +788,7 @@ final class MockBackend: Backend {
 
     func sendMessage(conversationId: UUID, body: String) async throws -> ChatMessage {
         let (user, conversation) = try requireParticipant(conversationId)
+        if user.id != conversation.artistId { try requireApprovedOwner(of: conversation.studioId) }
         let text = body.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty else { throw BackendError.validation("Message is empty.") }
         guard text.count <= 2000 else { throw BackendError.validation("Messages can be at most 2000 characters.") }
@@ -724,7 +860,7 @@ final class MockBackend: Backend {
 
     func replyToReview(id: UUID, reply: String) async throws -> Review {
         guard var review = reviewsById[id] else { throw BackendError.notFound }
-        _ = try requireOwner(of: review.studioId)
+        try requireApprovedOwner(of: review.studioId)
         review.studioReply = reply.trimmingCharacters(in: .whitespacesAndNewlines)
         review.studioRepliedAt = .now
         reviewsById[id] = review

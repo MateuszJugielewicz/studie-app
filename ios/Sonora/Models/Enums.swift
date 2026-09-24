@@ -246,9 +246,11 @@ enum PaymentStatus: String, Codable, CaseIterable, Hashable {
     case partiallyRefunded = "partially_refunded"
     case refunded
     case failed
+    case payAtStudio = "pay_at_studio"
 
     var title: String {
         switch self {
+        case .payAtStudio: "Pay cash at studio"
         case .unpaid: "Unpaid"
         case .authorized: "Card authorised"
         case .depositPaid: "Deposit paid"
@@ -264,11 +266,13 @@ enum PaymentMethod: String, Codable, CaseIterable, Identifiable, Hashable {
     case card
     case applePay = "apple_pay"
     case googlePay = "google_pay"
+    case cash
 
     var id: String { rawValue }
 
     var title: String {
         switch self {
+        case .cash: "Cash at the studio"
         case .card: "Card"
         case .applePay: "Apple Pay"
         case .googlePay: "Google Pay"

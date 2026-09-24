@@ -1,5 +1,6 @@
 import type { AdminApi, StudioDecision } from "./api";
 import type {
+  FeeBalance, FeeInvoice, MfaState,
   AccountStatus, AdminUser, Booking, BookingStatus, DashboardStats, Dispute, Payout, Report, ReportStatus,
   ReportTargetDetails, Review, Studio, StudioEvent, StudioStatus, Transaction,
 } from "./types";
@@ -70,6 +71,8 @@ class DemoStore {
   disputes: Dispute[] = [];
   reports: Report[] = [];
   reviews: Review[] = [];
+  ledger: { studio_id: string; currency: string; amount: number; kind: string; created_at: string }[] = [];
+  invoices: FeeInvoice[] = [];
 
   constructor() {
     const artistNames = ["Nova Lykke", "Kostas K", "The Salt Flats", "MIRA", "Elena V", "Blue Harbour", "Yannis B", "Sofie Dahl"];
@@ -114,25 +117,34 @@ class DemoStore {
       const dayOffset = status === "completed" || status === "disputed" ? -1 - (i % 28) : status === "cancelled" || status === "declined" ? (i % 10) - 5 : 1 + (i % 14);
       const hours = 2 + (i % 4);
       const subtotal = studio.price_from * hours;
-      const fee = pct(subtotal, 8);
-      const commission = pct(subtotal, 5);
+      const fee = 0; // no artist fee – Sonora takes 10% from the studio
+      const commission = pct(subtotal, 10);
+      const cash = i % 4 === 1 && status !== "pending_approval";
       const refund = status === "cancelled" ? subtotal + fee : status === "declined" ? subtotal + fee : 0;
       const booking: Booking = {
         id: id(), reference: `SON-${(100000 + i * 7919).toString(36).toUpperCase().slice(-6)}`, artist_id: artist.id, studio_id: studio.id,
         artist_name: artist.artist_name!, studio_name: studio.name, session_type_name: "Recording",
         starts_at: iso(dayOffset, 10 + (i % 8)), ends_at: iso(dayOffset, 10 + (i % 8) + hours), hours, status,
-        payment_status: status === "pending_approval" ? "authorized" : status === "cancelled" || status === "declined" ? "refunded" : "paid",
+        payment_status: cash ? (status === "completed" ? "paid" : status === "confirmed" ? "pay_at_studio" : "unpaid")
+          : status === "pending_approval" ? "authorized" : status === "cancelled" || status === "declined" ? "refunded" : "paid",
+        payment_method: cash ? "cash" : i % 3 === 0 ? "card" : "apple_pay",
         price: { currency: studio.currency, subtotal, service_fee: fee, total: subtotal + fee, due_now: subtotal + fee, due_later: 0, studio_commission: commission, studio_payout: subtotal - commission },
         notes: "", cancellation_reason: status === "cancelled" ? "Change of plans" : null, cancelled_by: status === "cancelled" ? "artist" : null,
-        refund_amount: refund, created_at: iso(dayOffset - 5 - (i % 3)),
+        refund_amount: cash ? 0 : refund, created_at: iso(dayOffset - 5 - (i % 3)),
       };
       this.bookings.push(booking);
       studio.booking_count++;
       artist.booking_count++;
+      if (cash) {
+        if (status === "completed") {
+          this.ledger.push({ studio_id: studio.id, currency: studio.currency, amount: commission, kind: "cash_commission", created_at: booking.ends_at });
+        }
+        continue;
+      }
       if (status !== "pending_approval" && status !== "declined") {
         this.transactions.push({
           id: id(), booking_id: booking.id, studio_id: studio.id, artist_id: artist.id, kind: "charge", method: i % 3 === 0 ? "card" : "apple_pay",
-          status: "succeeded", amount: subtotal + fee, platform_fee: fee, currency: studio.currency, receipt_number: `RCPT-${1000 + i}`,
+          status: "succeeded", amount: subtotal + fee, platform_fee: fee + commission, currency: studio.currency, receipt_number: `RCPT-${1000 + i}`,
           failure_reason: null, provider_reference: `pi_demo_${i}`, created_at: booking.created_at,
         });
       }
@@ -199,6 +211,37 @@ export class DemoAdminApi implements AdminApi {
   async currentAdminEmail() {
     return this.signedIn ? "admin@sonora.app" : null;
   }
+  async mfaState(): Promise<MfaState> {
+    return { kind: "verified" }; // demo mode has no second factor
+  }
+  async verifyMfa() {}
+
+  async feeBalances(): Promise<FeeBalance[]> {
+    await wait();
+    const map = new Map<string, FeeBalance>();
+    for (const l of this.db.ledger) {
+      const key = `${l.studio_id}|${l.currency}`;
+      const studio = this.db.studios.find((s) => s.id === l.studio_id)!;
+      const row = map.get(key) ?? { studio_id: l.studio_id, studio_name: studio.name, currency: l.currency, balance: 0, last_commission_at: null };
+      row.balance += l.amount;
+      if (l.kind === "cash_commission" && (!row.last_commission_at || l.created_at > row.last_commission_at)) row.last_commission_at = l.created_at;
+      map.set(key, row);
+    }
+    return [...map.values()].sort((a, b) => b.balance - a.balance);
+  }
+  async feeInvoices() {
+    return structuredClone(this.db.invoices);
+  }
+  async recordFeeSettlement(studioId: string, amount: number, currency: string, kind: "manual_payment" | "waiver") {
+    if (amount <= 0) throw new Error("Amount must be positive.");
+    this.db.ledger.push({ studio_id: studioId, currency, amount: -amount, kind, created_at: new Date().toISOString() });
+  }
+  async sendFeeInvoice(studioId: string, currency: string) {
+    const owed = this.db.ledger.filter((l) => l.studio_id === studioId && l.currency === currency).reduce((s, l) => s + l.amount, 0)
+      - this.db.invoices.filter((i) => i.studio_id === studioId && i.currency === currency && i.status === "open").reduce((s, i) => s + i.amount, 0);
+    if (owed <= 0) throw new Error("Nothing to invoice – open invoices already cover the balance.");
+    this.db.invoices.push({ id: id(), studio_id: studioId, amount: owed, currency, status: "open", hosted_invoice_url: null, created_at: new Date().toISOString(), paid_at: null });
+  }
 
   async stats(days: number): Promise<DashboardStats> {
     await wait();
@@ -206,17 +249,18 @@ export class DemoAdminApi implements AdminApi {
     const inRange = this.db.bookings.filter((b) => new Date(b.created_at).getTime() >= from);
     const ok = inRange.filter((b) => ["confirmed", "completed", "disputed"].includes(b.status));
     const revenue: DashboardStats["revenue"] = {};
-    for (const t of this.db.transactions.filter((t) => new Date(t.created_at).getTime() >= from && t.status === "succeeded")) {
-      const r = (revenue[t.currency] ??= { gross: 0, platform: 0, refunds: 0 });
-      if (t.kind === "refund") r.refunds! += t.amount;
-      else {
-        r.gross! += t.amount;
-        r.platform! += t.platform_fee;
-      }
+    const bucket = (currency: string) => (revenue[currency] ??= { gross: 0, card: 0, cash: 0, platform: 0, refunds: 0, fees_owed: 0 });
+    for (const b of this.db.bookings.filter((b) => b.status === "completed" && new Date(b.ends_at).getTime() >= from)) {
+      const r = bucket(b.price.currency);
+      if (b.payment_method === "cash") r.cash += b.price.total;
+      else r.card += b.price.total;
+      r.gross += b.price.total;
+      r.platform += b.price.studio_commission + b.price.service_fee;
     }
-    for (const b of inRange.filter((b) => b.status === "completed")) {
-      (revenue[b.price.currency] ??= { gross: 0, platform: 0, refunds: 0 }).platform! += b.price.studio_commission;
+    for (const t of this.db.transactions.filter((t) => t.kind === "refund" && t.status === "succeeded" && new Date(t.created_at).getTime() >= from)) {
+      bucket(t.currency).refunds += t.amount;
     }
+    for (const l of this.db.ledger) bucket(l.currency).fees_owed += l.amount;
     const byStudio = new Map<string, number>();
     const byArea = new Map<string, number>();
     for (const b of ok) {

@@ -13,6 +13,10 @@ Deno.serve(handler(async (req) => {
   if (user.role === "studio_owner") {
     const { data: studio } = await admin.from("studios").select("id").eq("owner_id", user.id).maybeSingle();
     if (studio) {
+      const { data: fees } = await admin.from("studio_fee_ledger").select("amount").eq("studio_id", studio.id);
+      if ((fees ?? []).reduce((sum, f) => sum + f.amount, 0) > 0) {
+        throw new HttpError(409, "Please settle your outstanding platform fees before deleting your account.");
+      }
       const { count } = await admin.from("bookings").select("id", { count: "exact", head: true })
         .eq("studio_id", studio.id).in("status", ["pending_approval", "confirmed"]).gte("starts_at", new Date().toISOString());
       if ((count ?? 0) > 0) throw new HttpError(409, "Cancel or complete your upcoming bookings before deleting your account.");

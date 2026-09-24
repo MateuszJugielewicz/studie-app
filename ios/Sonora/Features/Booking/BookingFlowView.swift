@@ -206,7 +206,9 @@ struct PriceBreakdownView: View {
             if price.addOnsAmount > 0 {
                 PriceRow(title: "Add-ons", amount: price.addOnsAmount, currency: price.currency)
             }
-            PriceRow(title: "Service fee", amount: price.serviceFee, currency: price.currency)
+            if price.serviceFee > 0 {
+                PriceRow(title: "Service fee", amount: price.serviceFee, currency: price.currency)
+            }
             Divider()
             PriceRow(title: "Total", amount: price.total, currency: price.currency, emphasized: true)
             if price.depositAmount > 0 {
@@ -225,6 +227,7 @@ struct CheckoutView: View {
     let onFinish: () -> Void
 
     @State private var method: PaymentMethod = .applePay
+    @State private var payWithCash = false
     @State private var card = DemoCard()
     @State private var agreed = false
     @State private var isPaying = false
@@ -247,7 +250,26 @@ struct CheckoutView: View {
                 PriceBreakdownView(price: price)
             }
 
-            if app.isDemo {
+            if PricingEngine.acceptsCash(request.studio) {
+                Section {
+                    Picker("Payment", selection: $payWithCash) {
+                        Label("Pay now in the app", systemImage: "creditcard").tag(false)
+                        Label("Pay cash at the studio", systemImage: "banknote").tag(true)
+                    }
+                    .pickerStyle(.inline)
+                    .labelsHidden()
+                } header: {
+                    Text("How do you want to pay?")
+                } footer: {
+                    if payWithCash {
+                        Text("Bring \(Money.format(price.total, currency: price.currency)) in cash to your session. Paying in the app gives you automatic refunds under the cancellation policy.")
+                    }
+                }
+            }
+
+            if payWithCash {
+                EmptyView()
+            } else if app.isDemo {
                 Section {
                     Picker("Pay with", selection: $method) {
                         Label("Apple Pay", systemImage: "apple.logo").tag(PaymentMethod.applePay)
@@ -283,7 +305,7 @@ struct CheckoutView: View {
                     .font(.footnote)
                 }
             } footer: {
-                if !request.studio.bookingPolicy.instantBook {
+                if !request.studio.bookingPolicy.instantBook && !payWithCash {
                     Text("This studio confirms requests manually. Your card is authorised now and only charged if they accept.")
                 }
             }
@@ -294,7 +316,9 @@ struct CheckoutView: View {
                 if isPaying {
                     ProgressView().tint(.white)
                 } else {
-                    Text(request.studio.bookingPolicy.instantBook ? "Pay \(Money.format(price.dueNow, currency: price.currency))" : "Request to book · \(Money.format(price.dueNow, currency: price.currency))")
+                    Text(payWithCash
+                         ? (request.studio.bookingPolicy.instantBook ? "Book · pay cash at the studio" : "Request to book · pay cash")
+                         : (request.studio.bookingPolicy.instantBook ? "Pay \(Money.format(price.dueNow, currency: price.currency))" : "Request to book · \(Money.format(price.dueNow, currency: price.currency))"))
                 }
             }
             .buttonStyle(.primary)
@@ -314,6 +338,11 @@ struct CheckoutView: View {
             defer { isPaying = false }
             do {
                 let booking = try await app.backend.createBooking(request)
+                if payWithCash {
+                    confirmed = try await app.backend.confirmCashBooking(bookingId: booking.id)
+                    await app.refreshBadges()
+                    return
+                }
                 let intent = try await app.backend.preparePayment(bookingId: booking.id, method: method)
                 if app.isDemo {
                     try await DemoPayment.charge(method: method, card: card)
@@ -364,8 +393,8 @@ struct BookingConfirmationView: View {
                 Text(booking.status == .confirmed ? "You're booked!" : "Request sent")
                     .font(.largeTitle.bold())
                 Text(booking.status == .confirmed
-                     ? "We've sent a confirmation and receipt. We'll remind you before your session."
-                     : "\(booking.studioName) will respond within 24 hours. You're only charged if they accept.")
+                     ? (booking.isCash ? "Pay \(Money.format(booking.price.total, currency: booking.price.currency)) in cash at the studio. We'll remind you before your session." : "We've sent a confirmation and receipt. We'll remind you before your session.")
+                     : "\(booking.studioName) will respond within 24 hours." + (booking.isCash ? "" : " You're only charged if they accept."))
                     .multilineTextAlignment(.center)
                     .foregroundStyle(.secondary)
 
@@ -374,7 +403,7 @@ struct BookingConfirmationView: View {
                     InfoRow(symbol: "building.2", title: booking.studioName)
                     InfoRow(symbol: "calendar", title: booking.startsAt.formatted(date: .complete, time: .omitted))
                     InfoRow(symbol: "clock", title: "\(booking.startsAt.formatted(date: .omitted, time: .shortened)) – \(booking.endsAt.formatted(date: .omitted, time: .shortened))")
-                    InfoRow(symbol: "creditcard", title: booking.paymentStatus.title, value: Money.format(booking.price.dueNow, currency: booking.price.currency))
+                    InfoRow(symbol: booking.isCash ? "banknote" : "creditcard", title: booking.paymentStatus.title, value: Money.format(booking.isCash ? booking.price.total : booking.price.dueNow, currency: booking.price.currency))
                 }
                 .card()
 

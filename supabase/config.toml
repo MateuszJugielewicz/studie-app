@@ -4,6 +4,32 @@ project_id = "sonora"
 [auth]
 site_url = "sonora://auth-callback"
 additional_redirect_urls = ["sonora://auth-callback", "http://localhost:5173"]
+# Short-lived access tokens with refresh-token rotation.
+jwt_expiry = 3600
+enable_refresh_token_rotation = true
+refresh_token_reuse_interval = 10
+# Matches PasswordPolicy in the iOS app.
+minimum_password_length = 10
+password_requirements = "lower_upper_letters_digits"
+
+[auth.rate_limit]
+sign_in_sign_ups = 30
+token_verifications = 30
+email_sent = 4
+
+[auth.email]
+enable_signup = true
+enable_confirmations = true
+double_confirm_changes = true
+secure_password_change = true
+
+# Admins must use an authenticator app (enforced by is_admin() and the admin dashboard).
+[auth.mfa]
+max_enrolled_factors = 10
+
+[auth.mfa.totp]
+enroll_enabled = true
+verify_enabled = true
 
 [auth.external.apple]
 enabled = true

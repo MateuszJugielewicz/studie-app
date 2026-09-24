@@ -9,6 +9,9 @@ struct UserAccount: Codable, Identifiable, Hashable {
     var isVerified: Bool
     var settings: UserSettings
     var createdAt: Date
+    /// Version of the terms & privacy policy the user accepted (GDPR consent record).
+    var acceptedTermsVersion: String? = nil
+    var acceptedTermsAt: Date? = nil
 }
 
 struct UserSettings: Codable, Hashable {

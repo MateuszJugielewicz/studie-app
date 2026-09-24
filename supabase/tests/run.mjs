@@ -39,6 +39,18 @@ expect("review", (r) => r.studio_reply === null);
 expect("rating", (r) => r.rating_average === 4 && r.review_count === 1);
 expect("has_review", (r) => r.has_review === true);
 expect("stats", (r) => Number(r.rate) === 100 && r.live === 1);
+for (const label of ["unapproved block denied", "artist studio denied", "admin without mfa denied"]) {
+  if (!rows.some((r) => r.r === label)) {
+    console.error("FAILED:", label);
+    process.exitCode = 1;
+  } else console.log("ok:", label);
+}
+expect("fee balance", (r) => r.balance === 500);
+expect("cash received", (r) => r.status === "paid");
+expect("owner sees ledger", (r) => Number(r.n) === 1);
+expect("settled", (r) => r.amount === -500);
+expect("balance after", (r) => r.balance === 0);
+expect("terms", (r) => r.version === "2026-09-25");
 if (!rows.some((r) => r.r === "blocked ok")) {
   console.error("FAILED: overlapping booking was not blocked");
   process.exitCode = 1;

@@ -1,6 +1,6 @@
 // Stripe → Sonora. Configure the endpoint in Stripe with these events:
 // payment_intent.succeeded, payment_intent.amount_capturable_updated, payment_intent.payment_failed,
-// charge.refunded, account.updated
+// charge.refunded, account.updated, invoice.paid
 import Stripe from "stripe";
 import { admin } from "../_shared/supabase.ts";
 import { applyPaymentIntent, cryptoProvider, stripe } from "../_shared/stripe.ts";
@@ -31,6 +31,19 @@ Deno.serve(async (req) => {
           iban_last4: bank?.last4 ?? "",
           updated_at: new Date().toISOString(),
         }).eq("stripe_account_id", account.id);
+        break;
+      }
+
+      case "invoice.paid": {
+        // Studio paid its platform-fee invoice (cash bookings).
+        const invoice = event.data.object;
+        const { data: row } = await admin.from("studio_fee_invoices").select("*").eq("stripe_invoice_id", invoice.id).maybeSingle();
+        if (!row || row.status === "paid") break;
+        await admin.from("studio_fee_invoices").update({ status: "paid", paid_at: new Date().toISOString() }).eq("id", row.id);
+        await admin.from("studio_fee_ledger").insert({
+          studio_id: row.studio_id, invoice_id: row.id, kind: "invoice_payment", amount: -row.amount, currency: row.currency,
+          note: `Invoice ${invoice.number ?? invoice.id} paid`,
+        });
         break;
       }
 

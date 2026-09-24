@@ -12,3 +12,6 @@ create publication supabase_realtime;
 create schema vault; create view vault.decrypted_secrets as select ''::text as name, ''::text as decrypted_secret where false;
 create schema cron; create function cron.schedule(a text, b text, c text) returns bigint language sql as $$ select 1::bigint $$;
 create schema net; create function net.http_post(url text, headers jsonb, body jsonb) returns bigint language sql as $$ select 1::bigint $$;
+create function auth.jwt() returns jsonb language sql stable as $$
+  select coalesce(nullif(current_setting('request.jwt.claims', true), '')::jsonb, '{}'::jsonb)
+$$;

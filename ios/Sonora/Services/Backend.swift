@@ -56,6 +56,10 @@ protocol Backend: AnyObject {
     func signOut() async
     func deleteAccount() async throws
     func updateSettings(_ settings: UserSettings) async throws -> UserAccount
+    /// Records acceptance of the current terms & privacy policy (GDPR consent record).
+    func acceptTerms(version: String) async throws -> UserAccount
+    /// GDPR data export: everything stored about the signed-in user, as JSON.
+    func exportPersonalData() async throws -> Data
 
     // MARK: Profiles
     func artistProfile(id: UUID) async throws -> ArtistProfile?
@@ -84,6 +88,10 @@ protocol Backend: AnyObject {
     func preparePayment(bookingId: UUID, method: PaymentMethod) async throws -> PaymentIntentInfo
     /// Called after the payment sheet reports success. Returns the updated booking.
     func confirmPayment(bookingId: UUID, method: PaymentMethod) async throws -> Booking
+    /// Artist pays cash at the studio instead of in the app.
+    func confirmCashBooking(bookingId: UUID) async throws -> Booking
+    /// Studio confirms it received the cash for a session.
+    func markCashReceived(bookingId: UUID) async throws -> Booking
     func booking(id: UUID) async throws -> Booking
     func artistBookings() async throws -> [Booking]
     func studioBookings(studioId: UUID) async throws -> [Booking]
@@ -95,6 +103,8 @@ protocol Backend: AnyObject {
     // MARK: Payments
     func transactions(bookingId: UUID) async throws -> [PaymentTransaction]
     func payouts(studioId: UUID) async throws -> [Payout]
+    /// Platform fees owed for cash bookings and their settlements.
+    func feeLedger(studioId: UUID) async throws -> [FeeLedgerEntry]
 
     // MARK: Chat
     func conversations() async throws -> [Conversation]

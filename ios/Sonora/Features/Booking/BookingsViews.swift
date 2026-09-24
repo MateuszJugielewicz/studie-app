@@ -181,7 +181,7 @@ struct BookingDetailView: View {
     @State private var error: String?
 
     enum Sheet: Identifiable {
-        case cancel, reschedule, review, dispute, decline
+        case cancel, reschedule, review, dispute, decline, reportParty
         var id: Self { self }
     }
 
@@ -239,19 +239,42 @@ struct BookingDetailView: View {
                 if [.confirmed, .completed].contains(booking.status) {
                     Button { sheet = .dispute } label: { Label("Report a problem", systemImage: "exclamationmark.bubble") }
                 }
+                Button { sheet = .reportParty } label: {
+                    Label(isStudio ? "Report artist" : "Report studio", systemImage: "flag")
+                }
             }
 
-            Section("Payment") {
+            Section {
                 if isStudio {
-                    PriceRow(title: "Session subtotal", amount: booking.price.subtotal, currency: booking.price.currency)
-                    PriceRow(title: "Platform commission", amount: -booking.price.studioCommission, currency: booking.price.currency)
-                    PriceRow(title: "Your payout", amount: booking.price.studioPayout, currency: booking.price.currency, emphasized: true)
+                    PriceRow(title: "Session price", amount: booking.price.subtotal, currency: booking.price.currency)
+                    PriceRow(title: "Sonora platform fee (\(PlatformConfig.platformFeePercent)%)", amount: -booking.price.studioCommission, currency: booking.price.currency)
+                    PriceRow(title: booking.isCash ? "Yours to keep" : "Your payout", amount: booking.price.studioPayout, currency: booking.price.currency, emphasized: true)
                 } else {
                     PriceBreakdownView(price: booking.price)
                 }
-                InfoRow(symbol: "creditcard", title: "Status", value: booking.paymentStatus.title)
+                InfoRow(symbol: booking.isCash ? "banknote" : "creditcard", title: "Status", value: booking.paymentStatus.title)
+                if isStudio && booking.isCash && booking.paymentStatus == .payAtStudio && booking.startsAt <= .now && [.confirmed, .completed].contains(booking.status) {
+                    Button {
+                        isWorking = true
+                        Task {
+                            defer { isWorking = false }
+                            do { initial = try await app.backend.markCashReceived(bookingId: booking.id) }
+                            catch { self.error = error.userMessage }
+                        }
+                    } label: {
+                        Label("Mark cash as received", systemImage: "checkmark.circle")
+                    }
+                }
                 if booking.refundAmount > 0 {
                     InfoRow(symbol: "arrow.uturn.backward", title: "Refunded", value: Money.format(booking.refundAmount, currency: booking.price.currency))
+                }
+            } header: {
+                Text("Payment")
+            } footer: {
+                if booking.isCash {
+                    Text(isStudio
+                         ? "Cash booking: collect \(Money.format(booking.price.total, currency: booking.price.currency)) at the session. Sonora's \(PlatformConfig.platformFeePercent)% fee is deducted from your next payout or invoiced."
+                         : "Pay \(Money.format(booking.price.total, currency: booking.price.currency)) in cash at the studio.")
                 }
             }
 
@@ -294,6 +317,8 @@ struct BookingDetailView: View {
                     try await app.backend.openDispute(bookingId: booking.id, reason: text)
                     initial.status = .disputed
                 }
+            case .reportParty:
+                ReportSheet(target: isStudio ? .user : .studio, targetId: isStudio ? booking.artistId : booking.studioId)
             case .decline:
                 TextPromptSheet(title: "Decline request", placeholder: "Optional message to the artist", action: "Decline", allowEmpty: true) { text in
                     initial = try await app.backend.respondToBooking(id: booking.id, accept: false, message: text.isEmpty ? nil : text)

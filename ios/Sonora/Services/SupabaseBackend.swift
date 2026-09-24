@@ -120,8 +120,15 @@ final class SupabaseBackend: Backend {
     }
 
     func signUp(email: String, password: String, role: UserRole) async throws -> UserAccount {
+        if let problem = PasswordPolicy.problem(password) { throw BackendError.validation(problem) }
+        // The sign-up form requires accepting the terms; the version is stored as the consent record.
         let response = try await mapped {
-            try await client.auth.signUp(email: email, password: password, data: ["role": .string(role.rawValue)], redirectTo: AppConfig.redirectURL)
+            try await client.auth.signUp(
+                email: email,
+                password: password,
+                data: ["role": .string(role.rawValue), "terms_version": .string(LegalDocument.currentVersion)],
+                redirectTo: AppConfig.redirectURL
+            )
         }
         guard response.session != nil else {
             throw BackendError.validation("We sent you a confirmation email. Open the link, then sign in.")
@@ -167,6 +174,19 @@ final class SupabaseBackend: Backend {
     func deleteAccount() async throws {
         let _: [String: Bool] = try await invoke("delete-account", [:])
         try? await client.auth.signOut()
+    }
+
+    func acceptTerms(version: String) async throws -> UserAccount {
+        try await rpc("accept_terms", ["p_version": .string(version)])
+    }
+
+    func exportPersonalData() async throws -> Data {
+        let json: AnyJSON = try await mapped {
+            try await client.functions.invoke("export-data", options: FunctionInvokeOptions(body: [String: AnyJSON]()), decoder: JSONDecoder())
+        }
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        return try encoder.encode(json)
     }
 
     func updateSettings(_ settings: UserSettings) async throws -> UserAccount {
@@ -330,6 +350,14 @@ final class SupabaseBackend: Backend {
         try await invoke("confirm-payment", ["booking_id": .string(bookingId.uuidString)])
     }
 
+    func confirmCashBooking(bookingId: UUID) async throws -> Booking {
+        try await invoke("confirm-cash-booking", ["booking_id": .string(bookingId.uuidString)])
+    }
+
+    func markCashReceived(bookingId: UUID) async throws -> Booking {
+        try await rpc("mark_cash_received", ["p_booking_id": .string(bookingId.uuidString)])
+    }
+
     func booking(id: UUID) async throws -> Booking {
         try await mapped {
             try await client.from("bookings").select().eq("id", value: id.uuidString).single().execute().value
@@ -378,6 +406,12 @@ final class SupabaseBackend: Backend {
     func transactions(bookingId: UUID) async throws -> [PaymentTransaction] {
         try await mapped {
             try await client.from("transactions").select().eq("booking_id", value: bookingId.uuidString).order("created_at").execute().value
+        }
+    }
+
+    func feeLedger(studioId: UUID) async throws -> [FeeLedgerEntry] {
+        try await mapped {
+            try await client.from("studio_fee_ledger").select().eq("studio_id", value: studioId.uuidString).order("created_at", ascending: false).execute().value
         }
     }
 

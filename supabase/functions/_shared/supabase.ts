@@ -21,10 +21,30 @@ export async function requireUser(req: Request): Promise<Profile> {
   return profile as Profile;
 }
 
+/** Assurance level from the (already verified) access token: "aal2" = signed in with a second factor. */
+function tokenAal(req: Request): string {
+  const token = req.headers.get("Authorization")?.replace(/^Bearer\s+/i, "") ?? "";
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/")));
+    return payload.aal ?? "aal1";
+  } catch {
+    return "aal1";
+  }
+}
+
+/** Admins must be signed in with MFA. */
 export async function requireAdmin(req: Request): Promise<Profile> {
   const user = await requireUser(req);
   if (user.role !== "admin") throw new HttpError(403, "forbidden");
+  if (tokenAal(req) !== "aal2") throw new HttpError(403, "Admin actions require two-factor authentication.");
   return user;
+}
+
+/** Studio-side actions need an admin-approved studio owned by the caller. */
+export function requireApprovedStudio(user: Profile, studio: Studio) {
+  if (user.role !== "studio_owner" || studio.owner_id !== user.id || studio.status !== "approved") {
+    throw new HttpError(403, "Your studio must be approved by Sonora before you can do this.");
+  }
 }
 
 /** Only the service role (cron / database triggers) may call internal functions. */
@@ -55,7 +75,10 @@ export async function updateBooking(id: string, patch: Partial<Booking>): Promis
 export async function bookingRole(user: Profile, booking: Booking): Promise<"artist" | "studio_owner" | "admin"> {
   if (booking.artist_id === user.id) return "artist";
   const studio = await loadStudio(booking.studio_id);
-  if (studio.owner_id === user.id) return "studio_owner";
+  if (studio.owner_id === user.id) {
+    requireApprovedStudio(user, studio);
+    return "studio_owner";
+  }
   if (user.role === "admin") return "admin";
   throw new HttpError(403, "forbidden");
 }

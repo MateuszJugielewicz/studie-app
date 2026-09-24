@@ -58,11 +58,14 @@ npm run dev            # http://localhost:5173 (demo-data, bare tryk "Sign in")
 - **Booking:** vælg sessionstype, antal timer, dato, ledigt tidspunkt, tilvalg og note → se samlet pris → betal → bekræftelse (+ tilføj til kalender)
 - Bookingoversigt med kommende, **kalender** og historik; aflys (med refundering efter studiets politik), ændr tidspunkt, kvitteringer, anmeld problem
 
-### 💳 Betaling (Stripe)
+### 💳 Betaling
 - Kort og **Apple Pay** via Stripe PaymentSheet (Google Pay tilbydes af samme løsning på Android)
+- **Kontant betaling i studiet**, hvis studiet tillader det (ikke muligt, når studiet kræver depositum)
 - **Instant book:** betaling trækkes med det samme. **Request to book:** kortet reserveres og trækkes først, når studiet accepterer
 - **Depositum**, hvis studiet kræver det; restbeløbet trækkes automatisk efter sessionen
-- Platformens **servicegebyr** (8 % for artisten) og **kommission** (5 % fra studiet), styret ét sted
+- **Platform fee: 10 % af alt salg.** Artisten betaler studiets pris uden ekstra gebyr.
+  - **Kort:** Sonora modtager betalingen og udbetaler 90 % til studiet.
+  - **Kontant:** studiet modtager hele beløbet. De 10 % bogføres som gæld i studiets gebyr-regnskab (`studio_fee_ledger`), når sessionen er gennemført. Gælden modregnes automatisk i studiets næste kort-udbetalinger. Resten kan admin fakturere via Stripe (14 dages betaling), registrere som betalt eller eftergive.
 - Betalingsstatus, kvitteringer, automatiske refunderinger efter afbestillingspolitik (fleksibel / moderat / streng)
 - **Studieudbetaling** via Stripe Connect, 2 dage efter gennemført session
 
@@ -98,6 +101,40 @@ npm run dev            # http://localhost:5173 (demo-data, bare tryk "Sign in")
 
 ---
 
+## 🔐 Sikkerhed & juridisk
+
+| Krav | Hvor |
+| --- | --- |
+| Terms & Conditions | `legal/terms.md` |
+| Privacy Policy (GDPR) | `legal/privacy.md` |
+| Cookie policy | `legal/cookies.md` (appen bruger ingen cookies/tracking) |
+| Refund & Cancellation policy | `legal/refund-and-cancellation.md` |
+| Studieaftale (10 % fee, kontant, udbetaling) | `legal/studio-agreement.md` |
+| Community guidelines / rapportering | `legal/community-guidelines.md` |
+| Accept af vilkår | Ved oprettelse + blokerende skærm ved nye versioner. Version og tidspunkt gemmes (`profiles.accepted_terms_*`) |
+| Konto-sletning | Indstillinger → Slet konto (`delete-account`): aflyser med refundering, anonymiserer ved bogføringspligt |
+| Dataeksport (GDPR art. 15/20) | Indstillinger → Download my data (`export-data`) → JSON-fil |
+| Rapportering | Rapportér studie, anmeldelse, besked, artist/studie fra booking → admin-moderation |
+| Payment provider | Stripe (PCI-DSS); kortdata rører aldrig Sonoras servere |
+| Sikker login | Adgangskode ≥ 10 tegn med store/små bogstaver og tal, e-mailbekræftelse, rate limits, token-rotation, Keychain på iOS. **Admins skal bruge 2-faktor (TOTP)** – håndhæves i databasen (`is_admin()` kræver `aal2`), i edge functions og i admin-dashboardet |
+
+Dokumenterne vises i appen (Indstillinger → Legal) og er **udkast med pladsholdere** (`[COMPANY NAME]` osv.). De skal gennemgås af en advokat før lancering.
+
+### Rollebaserede rettigheder
+
+| | Artist | Studie (ikke godkendt) | Studie (godkendt) | Admin (med 2FA) |
+| --- | :-: | :-: | :-: | :-: |
+| Søge og booke studier | ✅ | – | – | – |
+| Oprette/redigere studie-ansøgning | ❌ | ✅ | ✅ | ✅ |
+| Synlig for artister | – | ❌ | ✅ | – |
+| Kalender, blokering af tider | – | ❌ | ✅ | – |
+| Acceptere/afvise/aflyse bookinger | – | ❌ | ✅ | – |
+| Chatte som studie, svare på anmeldelser | – | ❌ | ✅ | – |
+| Udbetalinger | – | opsætning | ✅ | – |
+| Godkende studier, moderere, refundere | ❌ | ❌ | ❌ | ✅ |
+
+**En artist kan aldrig oprette et studie.** Databasen afviser det (`guard_studios`), og studie-funktioner kræver et admin-godkendt studie (`owns_approved_studio()`). Det gælder både i RLS-politikker, RPC'er, edge functions og appen. Studiekonti er separate fra artistkonti.
+
 ## Sikkerhed og dataregler
 
 Reglerne ligger i databasen, så de gælder uanset hvilken klient der kalder:
@@ -124,14 +161,14 @@ Kør én gang i SQL-editoren, så cron-jobs og push kan kalde edge functions:
 select vault.create_secret('https://<ref>.supabase.co', 'project_url');
 select vault.create_secret('<service-role-key>', 'service_role_key');
 ```
-Opret den første admin: opret en konto og kør `update profiles set role = 'admin' where email = 'dig@firma.dk';`
+Opret den første admin: opret en konto og kør `update profiles set role = 'admin' where email = 'dig@firma.dk';`. Ved første login i admin-dashboardet sætter du 2-faktor op med en authenticator-app.
 
 Slå **Apple** og **Google** til under Auth → Providers, og tilføj `sonora://auth-callback` som redirect URL.
 
 ### 2. Stripe
 - Slå **Connect** (Express) til, så studier kan få udbetalinger
 - Opret en webhook til `https://<ref>.supabase.co/functions/v1/stripe-webhook` med events:
-  `payment_intent.succeeded`, `payment_intent.amount_capturable_updated`, `payment_intent.payment_failed`, `charge.refunded`, `account.updated`
+  `payment_intent.succeeded`, `payment_intent.amount_capturable_updated`, `payment_intent.payment_failed`, `charge.refunded`, `account.updated`, `invoice.paid`
 - Apple Pay: opret merchant ID `merchant.com.sonora.app` og upload Stripes certifikat
 
 ### 3. iOS
@@ -170,7 +207,9 @@ supabase/
   migrations/                skema, sikkerhed, app-logik, admin, cron
   functions/                 create-booking, create-payment-intent, confirm-payment, stripe-webhook,
                              cancel-booking, reschedule-booking, respond-booking, process-payouts,
-                             payout-account, send-push, delete-account, admin-refund
+                             payout-account, send-push, delete-account, admin-refund,
+                             confirm-cash-booking, studio-fee-invoice, export-data
   tests/                     database-tests (PGlite)
 admin/                       React admin-dashboard
+legal/                       vilkår, privatliv, cookies, refundering, studieaftale (vises i appen)
 ```

@@ -73,6 +73,7 @@ struct AuthView: View {
     @State private var error: String?
     @State private var info: String?
     @State private var currentNonce: String?
+    @State private var legalDocument: LegalDocument?
 
     var body: some View {
         Form {
@@ -85,8 +86,8 @@ struct AuthView: View {
                     .pickerStyle(.segmented)
                 } footer: {
                     Text(role == .artist
-                         ? "Find and book studios, pay in the app and chat with studios about your sessions."
-                         : "List your studio. Our team reviews every studio before it goes live.")
+                         ? "Find and book studios, pay in the app or cash, and chat with studios about your sessions."
+                         : "Studio accounts are separate from artist accounts. You get access to studio tools only after our team has reviewed and approved your studio.")
                 }
             }
 
@@ -123,9 +124,21 @@ struct AuthView: View {
                 SecureField("Password", text: $password)
                     .textContentType(mode == .signUp ? .newPassword : .password)
                 if mode == .signUp {
+                    if !password.isEmpty, let problem = PasswordPolicy.problem(password) {
+                        Text(problem).font(.caption).foregroundStyle(.orange)
+                    }
                     Toggle(isOn: $acceptedTerms) {
-                        Text("I accept the [Terms](\(AppConfig.termsURL.absoluteString)) and [Privacy Policy](\(AppConfig.privacyURL.absoluteString))")
+                        Text(role == .studioOwner
+                             ? "I accept the Terms, the Studio Agreement and the Privacy Policy"
+                             : "I accept the Terms and the Privacy Policy")
                             .font(.footnote)
+                    }
+                    HStack(spacing: 16) {
+                        ForEach(LegalDocument.required(for: role)) { document in
+                            Button(document.title) { legalDocument = document }
+                                .font(.caption)
+                                .buttonStyle(.borderless)
+                        }
                     }
                 }
             }
@@ -175,6 +188,9 @@ struct AuthView: View {
             }
         }
         .navigationTitle(mode == .signUp ? "Create account" : "Sign in")
+        .sheet(item: $legalDocument) { document in
+            NavigationStack { LegalDocumentView(document: document) }
+        }
         .errorAlert($error)
         .alert("Email sent", isPresented: Binding(get: { info != nil }, set: { if !$0 { info = nil } })) {
             Button("OK") {}
@@ -182,7 +198,8 @@ struct AuthView: View {
     }
 
     private var canSubmit: Bool {
-        !isWorking && email.contains("@") && password.count >= (mode == .signUp ? 8 : 1) && (mode == .signIn || acceptedTerms)
+        !isWorking && email.contains("@") && !password.isEmpty
+            && (mode == .signIn || (acceptedTerms && PasswordPolicy.problem(password) == nil))
     }
 
     private func fillDemo(_ address: String) {

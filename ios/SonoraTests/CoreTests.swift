@@ -20,12 +20,12 @@ final class PricingTests: XCTestCase {
         let s = studio()
         let price = PricingEngine.quote(studio: s, sessionType: s.sessionTypes[0], hours: 3)
         XCTAssertEqual(price.subtotal, 7500)
-        XCTAssertEqual(price.serviceFee, 600)
-        XCTAssertEqual(price.total, 8100)
-        XCTAssertEqual(price.dueNow, 8100)
-        XCTAssertEqual(price.studioCommission, 375)
-        XCTAssertEqual(price.studioPayout, 7125)
-        XCTAssertEqual(price.platformRevenue, 975)
+        XCTAssertEqual(price.serviceFee, 0)
+        XCTAssertEqual(price.total, 7500)
+        XCTAssertEqual(price.dueNow, 7500)
+        XCTAssertEqual(price.studioCommission, 750) // 10% platform fee
+        XCTAssertEqual(price.studioPayout, 6750)
+        XCTAssertEqual(price.platformRevenue, 750)
     }
 
     func testQuoteWithAddOnsAndDeposit() {
@@ -34,10 +34,11 @@ final class PricingTests: XCTestCase {
         XCTAssertEqual(price.sessionAmount, 5000)
         XCTAssertEqual(price.addOnsAmount, 20000)
         XCTAssertEqual(price.subtotal, 25000)
-        XCTAssertEqual(price.serviceFee, 2000)
+        XCTAssertEqual(price.serviceFee, 0)
         XCTAssertEqual(price.depositAmount, 7500)
-        XCTAssertEqual(price.dueNow, 9500)
+        XCTAssertEqual(price.dueNow, 7500)
         XCTAssertEqual(price.dueLater, 17500)
+        XCTAssertEqual(price.studioCommission, 2500)
     }
 
     func testPriceFromIsLowestSessionRate() {
@@ -59,7 +60,7 @@ final class PricingTests: XCTestCase {
         let now = Date(timeIntervalSince1970: 1_800_000_000)
         let start = now.addingTimeInterval(30 * 3600)
         XCTAssertEqual(RefundCalculator.refundAmount(price: price, amountPaid: price.total, policy: .moderate, startsAt: start, cancelledBy: .artist, now: now), 3750)
-        XCTAssertEqual(RefundCalculator.refundAmount(price: price, amountPaid: price.total, policy: .strict, startsAt: start, cancelledBy: .studioOwner, now: now), 8100)
+        XCTAssertEqual(RefundCalculator.refundAmount(price: price, amountPaid: price.total, policy: .strict, startsAt: start, cancelledBy: .studioOwner, now: now), 7500)
     }
 
     func testMoneyParsing() {
@@ -67,7 +68,21 @@ final class PricingTests: XCTestCase {
         XCTAssertEqual(Money.parse("15,50"), 1550)
         XCTAssertEqual(Money.parse("15.5"), 1550)
         XCTAssertNil(Money.parse("abc"))
-        XCTAssertEqual(Money.percent(7500, 8), 600)
+        XCTAssertEqual(Money.percent(7500, 10), 750)
+    }
+
+    func testCashOnlyWithoutDeposit() {
+        XCTAssertTrue(PricingEngine.acceptsCash(studio()))
+        XCTAssertFalse(PricingEngine.acceptsCash(studio(deposit: 30)))
+        var noCash = studio()
+        noCash.bookingPolicy.acceptsCash = false
+        XCTAssertFalse(PricingEngine.acceptsCash(noCash))
+    }
+
+    func testPasswordPolicy() {
+        XCTAssertNotNil(PasswordPolicy.problem("short1A"))
+        XCTAssertNotNil(PasswordPolicy.problem("alllowercase123"))
+        XCTAssertNil(PasswordPolicy.problem("Studio2026ok"))
     }
 }
 
@@ -207,7 +222,7 @@ final class MockBackendTests: XCTestCase {
 
     func testStudioApplicationNeedsApproval() async throws {
         let backend = MockBackend(latency: .zero)
-        let owner = try await backend.signUp(email: "new@studio.io", password: "password123", role: .studioOwner)
+        let owner = try await backend.signUp(email: "new@studio.io", password: "Password1234", role: .studioOwner)
         var studio = Studio.newDraft(ownerId: owner.id)
         studio = try await backend.saveStudio(studio)
         do {
@@ -232,9 +247,40 @@ final class MockBackendTests: XCTestCase {
         let visible = try await backend.publishedStudios()
         XCTAssertFalse(visible.contains { $0.id == studio.id })
 
+        // No studio tools before approval.
+        do {
+            _ = try await backend.addBlockedSlot(BlockedSlot(id: UUID(), studioId: studio.id, startsAt: .now, endsAt: .now.adding(hours: 1), reason: ""))
+            XCTFail("Unapproved studio must not use studio tools")
+        } catch {}
+
         backend.simulateAdminDecision(studioId: studio.id, approve: true)
         let published = try await backend.publishedStudios()
         XCTAssertTrue(published.contains { $0.id == studio.id })
+        _ = try await backend.addBlockedSlot(BlockedSlot(id: UUID(), studioId: studio.id, startsAt: .now, endsAt: .now.adding(hours: 1), reason: ""))
+    }
+
+    func testArtistCannotCreateStudio() async throws {
+        let backend = MockBackend(latency: .zero)
+        let artist = try await backend.signIn(email: "artist@demo.sonora", password: MockData.demoPassword)
+        do {
+            _ = try await backend.saveStudio(Studio.newDraft(ownerId: artist.id))
+            XCTFail("Artists must not be able to create studios")
+        } catch {
+            XCTAssertEqual(error as? BackendError, .forbidden)
+        }
+    }
+
+    func testCashBookingAccruesPlatformFee() async throws {
+        let backend = MockBackend(latency: .zero)
+        _ = try await backend.signIn(email: "studio@demo.sonora", password: MockData.demoPassword)
+        // Seed data contains a completed cash session: the studio owes 10% of it.
+        let ledger = try await backend.feeLedger(studioId: MockData.ownedStudioId)
+        let commission = try XCTUnwrap(ledger.first { $0.kind == .cashCommission })
+        let booking = try await backend.booking(id: XCTUnwrap(commission.bookingId))
+        XCTAssertTrue(booking.isCash)
+        XCTAssertEqual(commission.amount, booking.price.subtotal / 10)
+        let payouts = try await backend.payouts(studioId: MockData.ownedStudioId)
+        XCTAssertFalse(payouts.contains { $0.bookingIds.contains(booking.id) }, "Cash bookings never create payouts")
     }
 
     func testDecodesPostgresRows() throws {

@@ -61,7 +61,7 @@ export default function BookingsPage() {
                   <td>{b.studio_name}</td>
                   <td>{date(b.starts_at, true)} · {b.hours}h</td>
                   <td><Badge value={b.status} /></td>
-                  <td><Badge value={b.payment_status} /></td>
+                  <td><Badge value={b.payment_status} />{b.payment_method === "cash" && <span className="muted small"> 💵 cash</span>}</td>
                   <td>{money(b.price.total, b.price.currency)}</td>
                   <td>{b.refund_amount ? money(b.refund_amount, b.price.currency) : "–"}</td>
                 </tr>
@@ -104,9 +104,9 @@ function BookingModal({ booking, dispute, onClose, onChanged }: { booking: Booki
       <table>
         <tbody>
           <tr><td>Subtotal (studio price)</td><td>{money(p.subtotal, p.currency)}</td></tr>
-          <tr><td>Artist service fee</td><td>{money(p.service_fee, p.currency)}</td></tr>
+          <tr><td>Payment method</td><td>{label(booking.payment_method ?? "card")}</td></tr>
           <tr><td className="strong">Total paid by artist</td><td className="strong">{money(p.total, p.currency)}</td></tr>
-          <tr><td>Studio commission</td><td>{money(p.studio_commission, p.currency)}</td></tr>
+          <tr><td>Sonora platform fee (10%)</td><td>{money(p.studio_commission, p.currency)}</td></tr>
           <tr><td>Studio payout</td><td>{money(p.studio_payout, p.currency)}</td></tr>
           <tr><td>Refunded</td><td>{money(booking.refund_amount, p.currency)}</td></tr>
         </tbody>

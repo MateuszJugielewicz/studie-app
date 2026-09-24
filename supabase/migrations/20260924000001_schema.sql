@@ -11,8 +11,8 @@ create type public.user_role as enum ('artist', 'studio_owner', 'admin');
 create type public.account_status as enum ('active', 'suspended', 'banned');
 create type public.studio_status as enum ('draft', 'pending_review', 'changes_requested', 'approved', 'rejected', 'suspended');
 create type public.booking_status as enum ('awaiting_payment', 'pending_approval', 'confirmed', 'declined', 'cancelled', 'completed', 'disputed', 'expired');
-create type public.payment_status as enum ('unpaid', 'authorized', 'deposit_paid', 'paid', 'partially_refunded', 'refunded', 'failed');
-create type public.payment_method as enum ('card', 'apple_pay', 'google_pay');
+create type public.payment_status as enum ('unpaid', 'authorized', 'deposit_paid', 'paid', 'partially_refunded', 'refunded', 'failed', 'pay_at_studio');
+create type public.payment_method as enum ('card', 'apple_pay', 'google_pay', 'cash');
 create type public.transaction_kind as enum ('charge', 'balance', 'refund');
 create type public.transaction_status as enum ('pending', 'succeeded', 'failed');
 create type public.payout_status as enum ('scheduled', 'in_transit', 'paid', 'failed');
@@ -38,6 +38,9 @@ create table public.profiles (
   is_verified boolean not null default false,
   settings jsonb not null default '{}'::jsonb,
   stripe_customer_id text,
+  -- GDPR: which version of the terms/privacy policy the user accepted, and when.
+  accepted_terms_version text,
+  accepted_terms_at timestamptz,
   created_at timestamptz not null default now()
 );
 
@@ -164,6 +167,8 @@ create table public.bookings (
   payment_method public.payment_method,
   -- Who made the last change (set by edge functions) so triggers notify the other party.
   changed_by uuid,
+  -- Cash bookings: set when the studio confirms it received the money.
+  cash_received_at timestamptz,
   reminder_24h_sent_at timestamptz,
   reminder_2h_sent_at timestamptz,
   created_at timestamptz not null default now(),
@@ -311,6 +316,8 @@ create table public.platform_settings (
   value jsonb not null
 );
 insert into public.platform_settings (key, value) values
-  ('artist_service_fee_percent', '8'),
-  ('studio_commission_percent', '5'),
+  -- Sonora takes 10% of every sale. Card payments: deducted from the studio payout.
+  -- Cash payments: owed by the studio (see studio_fee_ledger).
+  ('artist_service_fee_percent', '0'),
+  ('platform_fee_percent', '10'),
   ('payout_delay_days', '2');

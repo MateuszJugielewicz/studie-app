@@ -3,10 +3,10 @@ import Foundation
 /// Platform-wide commercial settings. Mirrored server-side in `supabase/functions/_shared/pricing.ts`,
 /// which is the source of truth for anything that is actually charged.
 enum PlatformConfig {
-    /// Service fee added on top for the artist.
-    static let artistServiceFeePercent = 8
-    /// Commission deducted from the studio's payout.
-    static let studioCommissionPercent = 5
+    /// Extra fee on top for the artist (none: artists pay the studio's price).
+    static let artistServiceFeePercent = 0
+    /// Sonora takes 10% of every sale. Card: deducted from the studio payout. Cash: owed by the studio.
+    static let platformFeePercent = 10
     /// Days after a completed session before the studio payout is released.
     static let payoutDelayDays = 2
     static let maxSessionHours = 12
@@ -36,7 +36,7 @@ enum PricingEngine {
         let deposit = depositPercent > 0 && depositPercent < 100 ? Money.percent(subtotal, depositPercent) : 0
         let dueNow = deposit > 0 ? deposit + serviceFee : total
 
-        let commission = Money.percent(subtotal, PlatformConfig.studioCommissionPercent)
+        let commission = Money.percent(subtotal, PlatformConfig.platformFeePercent)
 
         return PriceBreakdown(
             currency: studio.currency,
@@ -61,6 +61,11 @@ enum PricingEngine {
         case .perSession: addOn.price
         case .perTrack: addOn.price * quantity
         }
+    }
+
+    /// Cash is offered when the studio allows it and no card deposit is required.
+    static func acceptsCash(_ studio: Studio) -> Bool {
+        studio.bookingPolicy.acceptsCash && studio.bookingPolicy.depositPercent == 0
     }
 
     static func bookedAddOns(studio: Studio, selected: [String: Int], hours: Int) -> [BookedAddOn] {

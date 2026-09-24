@@ -1,4 +1,5 @@
 import type {
+  FeeBalance, FeeInvoice, MfaState,
   AccountStatus, AdminUser, Booking, BookingStatus, DashboardStats, Dispute, Payout, Report, ReportStatus,
   ReportTargetDetails, Review, Studio, StudioEvent, Transaction,
 } from "./types";
@@ -11,6 +12,9 @@ export interface AdminApi {
   signIn(email: string, password: string): Promise<void>;
   signOut(): Promise<void>;
   currentAdminEmail(): Promise<string | null>;
+  /** Admins must use two-factor authentication (TOTP). */
+  mfaState(): Promise<MfaState>;
+  verifyMfa(factorId: string, code: string): Promise<void>;
 
   stats(days: number): Promise<DashboardStats>;
 
@@ -31,6 +35,10 @@ export interface AdminApi {
 
   transactions(): Promise<Transaction[]>;
   payouts(): Promise<Payout[]>;
+  feeBalances(): Promise<FeeBalance[]>;
+  feeInvoices(): Promise<FeeInvoice[]>;
+  recordFeeSettlement(studioId: string, amount: number, currency: string, kind: "manual_payment" | "waiver", note: string): Promise<void>;
+  sendFeeInvoice(studioId: string, currency: string): Promise<void>;
 
   reports(): Promise<Report[]>;
   reportTarget(report: Report): Promise<ReportTargetDetails>;

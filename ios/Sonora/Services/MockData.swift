@@ -15,8 +15,8 @@ enum MockData {
 
     static func accounts() -> [UserAccount] {
         [
-            UserAccount(id: artistUserId, email: "artist@demo.sonora", role: .artist, status: .active, isVerified: true, settings: UserSettings(), createdAt: .now.adding(days: -120)),
-            UserAccount(id: studioOwnerUserId, email: "studio@demo.sonora", role: .studioOwner, status: .active, isVerified: true, settings: UserSettings(), createdAt: .now.adding(days: -200)),
+            UserAccount(id: artistUserId, email: "artist@demo.sonora", role: .artist, status: .active, isVerified: true, settings: UserSettings(), createdAt: .now.adding(days: -120), acceptedTermsVersion: LegalDocument.currentVersion, acceptedTermsAt: .now.adding(days: -120)),
+            UserAccount(id: studioOwnerUserId, email: "studio@demo.sonora", role: .studioOwner, status: .active, isVerified: true, settings: UserSettings(), createdAt: .now.adding(days: -200), acceptedTermsVersion: LegalDocument.currentVersion, acceptedTermsAt: .now.adding(days: -200)),
         ] + otherArtistIds.enumerated().map { index, id in
             UserAccount(id: id, email: "artist\(index + 2)@demo.sonora", role: .artist, status: .active, isVerified: false, settings: UserSettings(), createdAt: .now.adding(days: -30))
         }
@@ -211,7 +211,16 @@ enum MockData {
             make(owned, artist: otherArtistIds[0], artistName: "Kostas K", day: -3, hour: 15, hours: 2, status: .completed, payment: .paid),
             make(owned, artist: otherArtistIds[2], artistName: "MIRA", day: -9, hour: 19, hours: 5, status: .completed, payment: .paid),
             make(owned, artist: otherArtistIds[1], artistName: "The Salt Flats", day: -20, hour: 13, hours: 3, status: .completed, payment: .paid),
+            // Cash bookings: the studio is paid at the session and owes Sonora 10%.
+            cash(make(owned, artist: otherArtistIds[2], artistName: "MIRA", day: -6, hour: 14, hours: 2, status: .confirmed, payment: .payAtStudio)),
+            cash(make(owned, artist: otherArtistIds[0], artistName: "Kostas K", day: 2, hour: 20, hours: 3, status: .confirmed, payment: .payAtStudio)),
         ]
+    }
+
+    private static func cash(_ booking: Booking) -> Booking {
+        var copy = booking
+        copy.paymentMethod = .cash
+        return copy
     }
 
     static func reviews(studios: [Studio], bookings: [Booking]) -> [Review] {

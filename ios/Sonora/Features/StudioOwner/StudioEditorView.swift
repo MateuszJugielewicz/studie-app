@@ -471,6 +471,14 @@ struct StudioPolicyEditor: View {
             } footer: {
                 Text("With a deposit, the rest is charged automatically after the session.")
             }
+            Section {
+                Toggle("Accept cash payments", isOn: $studio.bookingPolicy.acceptsCash)
+                    .disabled(studio.bookingPolicy.depositPercent > 0)
+            } footer: {
+                Text(studio.bookingPolicy.depositPercent > 0
+                     ? "Cash isn't available when you require a deposit."
+                     : "Artists can choose to pay you in cash at the session. Sonora's \(PlatformConfig.platformFeePercent)% platform fee on cash bookings is deducted from your next payout or invoiced monthly. Cash bookings have no card guarantee for no-shows.")
+            }
             Section("Scheduling") {
                 Stepper("Min. notice: \(studio.bookingPolicy.minimumNoticeHours) h", value: $studio.bookingPolicy.minimumNoticeHours, in: 0...72)
                 Stepper("Book up to \(studio.bookingPolicy.maxAdvanceDays) days ahead", value: $studio.bookingPolicy.maxAdvanceDays, in: 7...365, step: 7)
@@ -511,7 +519,7 @@ struct PayoutAccountEditor: View {
                         .autocorrectionDisabled()
                 }
             } footer: {
-                Text("Payouts are sent \(PlatformConfig.payoutDelayDays) days after each completed session, minus Sonora's \(PlatformConfig.studioCommissionPercent)% commission.")
+                Text("Payouts are sent \(PlatformConfig.payoutDelayDays) days after each completed session, minus Sonora's \(PlatformConfig.platformFeePercent)% platform fee. Platform fees for cash bookings are deducted from the same payouts.")
             }
             Section {
                 Button(saved ? "Saved ✓" : "Save") { save() }

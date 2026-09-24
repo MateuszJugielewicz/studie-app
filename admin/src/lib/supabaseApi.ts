@@ -1,6 +1,7 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { AdminApi, StudioDecision } from "./api";
 import type {
+  FeeBalance, FeeInvoice, MfaState,
   AccountStatus, AdminUser, Booking, BookingStatus, DashboardStats, Dispute, Payout, Report, ReportStatus,
   ReportTargetDetails, Review, Studio, StudioEvent, Transaction,
 } from "./types";
@@ -25,6 +26,26 @@ export class SupabaseAdminApi implements AdminApi {
       await this.client.auth.signOut();
       throw new Error("This account is not an admin.");
     }
+  }
+
+  async mfaState(): Promise<MfaState> {
+    const { data: aal } = await this.client.auth.mfa.getAuthenticatorAssuranceLevel();
+    if (aal?.currentLevel === "aal2") return { kind: "verified" };
+    const { data: factors } = await this.client.auth.mfa.listFactors();
+    const verified = factors?.totp.find((f) => f.status === "verified");
+    if (verified) return { kind: "verify", factorId: verified.id };
+    // Remove half-finished enrolments before starting a new one.
+    for (const factor of factors?.all ?? []) {
+      if (factor.status === "unverified") await this.client.auth.mfa.unenroll({ factorId: factor.id });
+    }
+    const { data, error } = await this.client.auth.mfa.enroll({ factorType: "totp", friendlyName: "Sonora admin" });
+    if (error || !data) throw new Error(error?.message ?? "Could not start two-factor setup.");
+    return { kind: "enroll", factorId: data.id, qrCode: data.totp.qr_code, secret: data.totp.secret };
+  }
+
+  async verifyMfa(factorId: string, code: string) {
+    const { error } = await this.client.auth.mfa.challengeAndVerify({ factorId, code });
+    if (error) throw new Error(error.message);
   }
 
   async signOut() {
@@ -104,6 +125,23 @@ export class SupabaseAdminApi implements AdminApi {
 
   async payouts(): Promise<Payout[]> {
     return unwrap(await this.client.from("payouts").select("*").order("scheduled_for", { ascending: false }).limit(1000));
+  }
+
+  async feeBalances(): Promise<FeeBalance[]> {
+    return unwrap(await this.client.from("studio_fee_balances").select("*").order("balance", { ascending: false }));
+  }
+
+  async feeInvoices(): Promise<FeeInvoice[]> {
+    return unwrap(await this.client.from("studio_fee_invoices").select("*").order("created_at", { ascending: false }));
+  }
+
+  async recordFeeSettlement(studioId: string, amount: number, currency: string, kind: "manual_payment" | "waiver", note: string) {
+    unwrap(await this.client.rpc("admin_record_fee_settlement", { p_studio_id: studioId, p_amount: amount, p_currency: currency, p_kind: kind, p_note: note }));
+  }
+
+  async sendFeeInvoice(studioId: string, currency: string) {
+    const { error } = await this.client.functions.invoke("studio-fee-invoice", { body: { studio_id: studioId, currency } });
+    if (error) throw new Error(error.message);
   }
 
   async reports(): Promise<Report[]> {

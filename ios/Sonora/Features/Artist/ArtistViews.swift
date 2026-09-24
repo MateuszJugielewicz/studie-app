@@ -94,6 +94,7 @@ struct ArtistProfileView: View {
                 Section {
                     NavigationLink { SettingsView() } label: { Label("Settings", systemImage: "gearshape") }
                     NavigationLink { BookingHistoryView() } label: { Label("Booking history & receipts", systemImage: "clock.arrow.circlepath") }
+                    NavigationLink { LegalListView() } label: { Label("Terms & privacy", systemImage: "doc.text") }
                     Link(destination: URL(string: "mailto:\(AppConfig.supportEmail)")!) { Label("Help & support", systemImage: "questionmark.circle") }
                 }
             }
@@ -291,9 +292,24 @@ struct SettingsView: View {
                 }
             }
 
-            Section("Legal") {
-                Link("Terms of service", destination: AppConfig.termsURL)
-                Link("Privacy policy", destination: AppConfig.privacyURL)
+            Section {
+                NavigationLink { LegalListView() } label: { Label("Terms, privacy & policies", systemImage: "doc.text") }
+                if let accepted = app.account?.acceptedTermsAt {
+                    InfoRow(symbol: "checkmark.seal", title: "Terms accepted", value: accepted.formatted(date: .abbreviated, time: .omitted))
+                }
+            } header: {
+                Text("Legal")
+            }
+
+            Section {
+                DataExportButton()
+                Link(destination: URL(string: "mailto:\(AppConfig.supportEmail)?subject=Privacy%20request")!) {
+                    Label("Contact us about your data", systemImage: "envelope")
+                }
+            } header: {
+                Text("Your data")
+            } footer: {
+                Text("Download a copy of everything Sonora stores about you (GDPR). Deleting your account removes your profile; receipts are kept as required by accounting law.")
             }
 
             Section {

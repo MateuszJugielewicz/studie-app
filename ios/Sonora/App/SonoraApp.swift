@@ -29,6 +29,8 @@ struct RootView: View {
         Group {
             if app.isBootstrapping {
                 SplashView()
+            } else if let account = app.account, account.role != .admin, account.acceptedTermsVersion != LegalDocument.currentVersion {
+                TermsAcceptanceView()
             } else if let account = app.account {
                 switch account.role {
                 case .artist:

@@ -1,15 +1,18 @@
 import { useState } from "react";
-import { Badge, PageState, Stat, Tabs } from "../components";
+import { ActionButton, Badge, PageState, Stat, Tabs } from "../components";
+import type { FeeBalance } from "../lib/types";
 import { useApi, useLoad } from "../lib/apiContext";
 import { date, label, money, moneyTotals, sumByCurrency } from "../lib/format";
 
-type Tab = "transactions" | "fees" | "payouts" | "refunds" | "failures";
+type Tab = "transactions" | "fees" | "payouts" | "cash" | "refunds" | "failures";
 
 export default function PaymentsPage() {
   const api = useApi();
   const transactions = useLoad(() => api.transactions());
   const payouts = useLoad(() => api.payouts());
   const studios = useLoad(() => api.studios());
+  const balances = useLoad(() => api.feeBalances());
+  const invoices = useLoad(() => api.feeInvoices());
   const [tab, setTab] = useState<Tab>("transactions");
 
   const tx = transactions.data ?? [];
@@ -38,13 +41,33 @@ export default function PaymentsPage() {
           { id: "transactions", title: "Transactions", count: tx.length },
           { id: "fees", title: "Platform fees" },
           { id: "payouts", title: "Studio payouts", count: po.length },
+          { id: "cash", title: "Cash & fees owed", count: (balances.data ?? []).filter((b) => b.balance > 0).length },
           { id: "refunds", title: "Refunds", count: refunds.length },
           { id: "failures", title: "Payment failures", count: failures.length },
         ]}
       />
       <PageState loading={transactions.loading && !transactions.data} error={transactions.error ?? payouts.error}>
         <div className="card flush">
-          {tab === "payouts" ? (
+          {tab === "cash" ? (
+            <>
+              <p className="muted small" style={{ padding: "12px 16px 0" }}>
+                For cash bookings the studio collects the money and owes Sonora 10%. Fees are deducted automatically from the studio's next card payout; invoice or record a payment for the rest.
+              </p>
+              <table>
+                <thead><tr><th>Studio</th><th>Owed</th><th>Last cash booking</th><th>Open invoices</th><th></th></tr></thead>
+                <tbody>
+                  {(balances.data ?? []).map((b) => (
+                    <FeeRow
+                      key={`${b.studio_id}-${b.currency}`}
+                      balance={b}
+                      openInvoices={(invoices.data ?? []).filter((i) => i.studio_id === b.studio_id && i.currency === b.currency && i.status === "open").reduce((s, i) => s + i.amount, 0)}
+                      onChanged={async () => { await balances.reload(); await invoices.reload(); }}
+                    />
+                  ))}
+                </tbody>
+              </table>
+            </>
+          ) : tab === "payouts" ? (
             <table>
               <thead><tr><th>Studio</th><th>Amount</th><th>Status</th><th>Scheduled</th><th>Paid</th><th>Bookings</th><th>Note</th></tr></thead>
               <tbody>
@@ -98,5 +121,35 @@ export default function PaymentsPage() {
         </div>
       </PageState>
     </>
+  );
+}
+
+function FeeRow({ balance, openInvoices, onChanged }: { balance: FeeBalance; openInvoices: number; onChanged: () => Promise<void> }) {
+  const api = useApi();
+  const [amount, setAmount] = useState("");
+  const minor = Math.round(Number(amount.replace(",", ".")) * 100);
+  return (
+    <tr>
+      <td className="strong">{balance.studio_name}</td>
+      <td className={balance.balance > 0 ? "strong" : "muted"}>{money(balance.balance, balance.currency)}</td>
+      <td>{date(balance.last_commission_at)}</td>
+      <td>{openInvoices ? money(openInvoices, balance.currency) : "–"}</td>
+      <td className="actions">
+        {balance.balance > 0 && (
+          <>
+            <ActionButton kind="secondary" confirm="Send an invoice for the outstanding fees (due in 14 days)?" onClick={async () => { await api.sendFeeInvoice(balance.studio_id, balance.currency); await onChanged(); }}>
+              Send invoice
+            </ActionButton>
+            <input style={{ width: 110 }} placeholder={`Amount ${balance.currency}`} value={amount} onChange={(e) => setAmount(e.target.value)} />
+            <ActionButton kind="secondary" disabled={!(minor > 0)} onClick={async () => { await api.recordFeeSettlement(balance.studio_id, minor, balance.currency, "manual_payment", "Bank transfer received"); setAmount(""); await onChanged(); }}>
+              Record payment
+            </ActionButton>
+            <ActionButton kind="danger" disabled={!(minor > 0)} confirm="Waive this amount?" onClick={async () => { await api.recordFeeSettlement(balance.studio_id, minor, balance.currency, "waiver", "Waived by admin"); setAmount(""); await onChanged(); }}>
+              Waive
+            </ActionButton>
+          </>
+        )}
+      </td>
+    </tr>
   );
 }

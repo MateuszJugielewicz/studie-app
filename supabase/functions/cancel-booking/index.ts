@@ -22,7 +22,10 @@ Deno.serve(handler(async (req, body) => {
   let refund = 0;
   let paymentStatus = booking.payment_status;
 
-  if (booking.payment_status === "authorized") {
+  if (booking.payment_method === "cash") {
+    // Nothing was charged; the cancellation policy is shown to the artist but there is no money to move.
+    paymentStatus = "unpaid";
+  } else if (booking.payment_status === "authorized") {
     await releaseAuthorization(booking);
     refund = booking.price.due_now;
     paymentStatus = "refunded";

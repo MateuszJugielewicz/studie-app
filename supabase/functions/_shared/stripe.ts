@@ -50,7 +50,7 @@ export async function applyPaymentIntent(pi: Stripe.PaymentIntent): Promise<Book
       method,
       status,
       amount: pi.amount_received || pi.amount,
-      platform_fee: isBalance ? 0 : booking.price.service_fee,
+      platform_fee: isBalance ? 0 : booking.price.service_fee + booking.price.studio_commission,
       currency: booking.price.currency,
       card_brand: brand,
       card_last4: last4,

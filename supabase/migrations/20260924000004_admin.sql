@@ -182,18 +182,25 @@ begin
     'open_reports', (select count(*) from public.reports where status = 'open'),
     'open_disputes', (select count(*) from public.disputes where status = 'open'),
     'failed_payments', (select count(*) from public.transactions where status = 'failed' and created_at between p_from and p_to),
+    -- Per currency. Platform earnings = 10% platform fee on completed sessions (card and cash).
     'revenue', coalesce((
-      select jsonb_object_agg(currency, jsonb_build_object('gross', gross, 'platform', platform, 'refunds', refunds))
+      select jsonb_object_agg(currency, jsonb_build_object(
+        'gross', card_volume + cash_volume, 'card', card_volume, 'cash', cash_volume,
+        'platform', platform, 'refunds', refunds, 'fees_owed', fees_owed))
       from (
-        select t.currency,
-          sum(t.amount) filter (where t.kind in ('charge', 'balance') and t.status = 'succeeded') as gross,
-          sum(t.platform_fee) filter (where t.kind in ('charge', 'balance') and t.status = 'succeeded')
-            + coalesce((select sum((b.price ->> 'studio_commission')::int) from public.bookings b
-                        where b.status = 'completed' and b.price ->> 'currency' = t.currency and b.ends_at between p_from and p_to), 0) as platform,
-          sum(t.amount) filter (where t.kind = 'refund' and t.status = 'succeeded') as refunds
-        from public.transactions t
-        where t.created_at between p_from and p_to
-        group by t.currency
+        select c.currency,
+          coalesce((select sum((b.price ->> 'total')::int) from public.bookings b
+                    where b.status = 'completed' and b.price ->> 'currency' = c.currency and b.ends_at between p_from and p_to
+                      and b.payment_method is distinct from 'cash'), 0) as card_volume,
+          coalesce((select sum((b.price ->> 'total')::int) from public.bookings b
+                    where b.status = 'completed' and b.price ->> 'currency' = c.currency and b.ends_at between p_from and p_to
+                      and b.payment_method = 'cash'), 0) as cash_volume,
+          coalesce((select sum((b.price ->> 'studio_commission')::int + (b.price ->> 'service_fee')::int) from public.bookings b
+                    where b.status = 'completed' and b.price ->> 'currency' = c.currency and b.ends_at between p_from and p_to), 0) as platform,
+          coalesce((select sum(t.amount) from public.transactions t
+                    where t.kind = 'refund' and t.status = 'succeeded' and t.currency = c.currency and t.created_at between p_from and p_to), 0) as refunds,
+          coalesce((select sum(l.amount) from public.studio_fee_ledger l where l.currency = c.currency), 0) as fees_owed
+        from (select distinct price ->> 'currency' as currency from public.bookings where status = 'completed') c
       ) x
     ), '{}'::jsonb),
     'top_studios', coalesce((

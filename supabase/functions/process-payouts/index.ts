@@ -61,7 +61,9 @@ async function chargeBalances(): Promise<number> {
 }
 
 async function schedulePayouts(): Promise<number> {
-  const { data: completed } = await admin.from("bookings").select("*").eq("status", "completed").in("payment_status", ["paid", "partially_refunded"]);
+  // Cash bookings are paid to the studio directly, so they never create payouts.
+  const { data: completed } = await admin.from("bookings").select("*").eq("status", "completed")
+    .in("payment_status", ["paid", "partially_refunded"]).or("payment_method.is.null,payment_method.neq.cash");
   const { data: existing } = await admin.from("payouts").select("booking_ids");
   const paidOut = new Set((existing ?? []).flatMap((p) => p.booking_ids as string[]));
   const rows = ((completed ?? []) as Booking[])
@@ -78,6 +80,22 @@ async function schedulePayouts(): Promise<number> {
   return rows.length;
 }
 
+/** Platform fees the studio owes (cash bookings), netted against this payout. Idempotent per payout. */
+async function feeOffset(payout: { id: string; studio_id: string; amount: number; currency: string }): Promise<number> {
+  const { data: existing } = await admin.from("studio_fee_ledger").select("amount").eq("payout_id", payout.id).eq("kind", "payout_offset").maybeSingle();
+  if (existing) return -existing.amount;
+  const { data: rows } = await admin.from("studio_fee_ledger").select("amount").eq("studio_id", payout.studio_id).eq("currency", payout.currency);
+  const owed = (rows ?? []).reduce((sum, r) => sum + r.amount, 0);
+  const offset = Math.min(Math.max(owed, 0), payout.amount);
+  if (offset > 0) {
+    await admin.from("studio_fee_ledger").insert({
+      studio_id: payout.studio_id, payout_id: payout.id, kind: "payout_offset", amount: -offset, currency: payout.currency,
+      note: "Platform fees for cash bookings deducted from payout",
+    });
+  }
+  return offset;
+}
+
 async function sendDuePayouts(): Promise<number> {
   const { data } = await admin.from("payouts").select("*").in("status", ["scheduled", "failed"]).lte("scheduled_for", new Date().toISOString());
   let count = 0;
@@ -85,14 +103,23 @@ async function sendDuePayouts(): Promise<number> {
     const destination = await studioAccountId(payout.studio_id);
     if (!destination) continue; // waits until the studio finishes payout onboarding
     try {
-      const transfer = await stripe.transfers.create({
-        amount: payout.amount,
-        currency: payout.currency.toLowerCase(),
-        destination,
-        transfer_group: payout.booking_ids[0],
-        metadata: { payout_id: payout.id },
-      }, { idempotencyKey: `payout-${payout.id}` });
-      await admin.from("payouts").update({ status: "paid", paid_at: new Date().toISOString(), provider_reference: transfer.id, failure_reason: null }).eq("id", payout.id);
+      const offset = await feeOffset(payout);
+      const amount = payout.amount - offset;
+      let reference: string | null = null;
+      if (amount > 0) {
+        const transfer = await stripe.transfers.create({
+          amount,
+          currency: payout.currency.toLowerCase(),
+          destination,
+          transfer_group: payout.booking_ids[0],
+          metadata: { payout_id: payout.id, fee_offset: String(offset) },
+        }, { idempotencyKey: `payout-${payout.id}` });
+        reference = transfer.id;
+      }
+      await admin.from("payouts").update({
+        status: "paid", paid_at: new Date().toISOString(), provider_reference: reference,
+        failure_reason: offset > 0 ? `Includes ${offset} deducted for cash-booking platform fees` : null,
+      }).eq("id", payout.id);
       count++;
     } catch (error) {
       await admin.from("payouts").update({ status: "failed", failure_reason: (error as Error).message }).eq("id", payout.id);

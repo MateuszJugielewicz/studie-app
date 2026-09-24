@@ -249,7 +249,7 @@ begin
     if p_booking_id is null and not (s.status = 'approved' and s.is_active) then raise exception 'not_found'; end if;
     if b.id is not null and b.artist_id <> me.id then raise exception 'forbidden' using errcode = '42501'; end if;
     artist := me.id;
-  elsif s.owner_id = me.id and b.id is not null then
+  elsif s.owner_id = me.id and b.id is not null and public.owns_approved_studio(s.id) then
     -- Studios can only start a conversation about one of their bookings.
     artist := b.artist_id;
   else
@@ -381,7 +381,7 @@ declare
 begin
   select * into r from public.reviews where id = p_review_id;
   if r.id is null then raise exception 'not_found'; end if;
-  if not public.owns_studio(r.studio_id) then raise exception 'forbidden' using errcode = '42501'; end if;
+  if not public.owns_approved_studio(r.studio_id) then raise exception 'forbidden' using errcode = '42501'; end if;
   if char_length(trim(p_reply)) = 0 then raise exception 'Write a reply first.'; end if;
   update public.reviews set studio_reply = trim(p_reply), studio_replied_at = now() where id = r.id returning * into r;
   return r;

@@ -1,8 +1,9 @@
 // Mirrors ios/Sonora/Core/PricingEngine.swift. The server is the source of truth for what is charged.
 import type { BookedAddOn, CancellationPolicy, PriceBreakdown, ServiceAddOn, SessionType, Studio, UserRole } from "./types.ts";
 
-export const ARTIST_SERVICE_FEE_PERCENT = 8;
-export const STUDIO_COMMISSION_PERCENT = 5;
+/** Sonora takes 10% of every sale; artists pay the studio's price with no extra fee. */
+export const ARTIST_SERVICE_FEE_PERCENT = 0;
+export const PLATFORM_FEE_PERCENT = 10;
 export const PAYOUT_DELAY_DAYS = 2;
 export const MAX_SESSION_HOURS = 12;
 
@@ -42,7 +43,7 @@ export function quote(
   const depositPercent = Math.min(Math.max(studio.booking_policy?.deposit_percent ?? 0, 0), 100);
   const deposit = depositPercent > 0 && depositPercent < 100 ? percent(subtotal, depositPercent) : 0;
   const dueNow = deposit > 0 ? deposit + serviceFee : total;
-  const commission = percent(subtotal, STUDIO_COMMISSION_PERCENT);
+  const commission = percent(subtotal, PLATFORM_FEE_PERCENT);
 
   return {
     currency: studio.currency,
@@ -94,4 +95,9 @@ export function refundAmount(
   const pct = refundPercent(policy, hours);
   if (pct === 100) return amountPaid;
   return percent(Math.max(amountPaid - price.service_fee, 0), pct);
+}
+
+/** Cash is offered when the studio allows it and no card deposit is required. */
+export function acceptsCash(studio: Studio): boolean {
+  return (studio.booking_policy?.accepts_cash ?? true) && (studio.booking_policy?.deposit_percent ?? 0) === 0;
 }

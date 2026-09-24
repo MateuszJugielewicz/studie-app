@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import type { MfaState } from "./lib/types";
 import { NavLink, Navigate, Route, Routes } from "react-router-dom";
 import { api, ApiContext } from "./lib/apiContext";
 import OverviewPage from "./pages/OverviewPage";
@@ -19,13 +20,24 @@ const nav = [
 
 export default function App() {
   const [email, setEmail] = useState<string | null | undefined>(undefined);
+  const [mfa, setMfa] = useState<MfaState | null>(null);
+
+  const refreshMfa = () => api.mfaState().then(setMfa).catch(() => setMfa(null));
 
   useEffect(() => {
     api.currentAdminEmail().then(setEmail).catch(() => setEmail(null));
   }, []);
 
+  useEffect(() => {
+    if (email) void refreshMfa();
+  }, [email]);
+
   if (email === undefined) return <div className="center muted">Loading…</div>;
   if (!email) return <Login onSignedIn={setEmail} />;
+  if (!mfa) return <div className="center muted">Checking two-factor authentication…</div>;
+  if (mfa.kind !== "verified") {
+    return <TwoFactor state={mfa} onVerified={refreshMfa} onCancel={async () => { await api.signOut(); setEmail(null); setMfa(null); }} />;
+  }
 
   return (
     <ApiContext.Provider value={api}>
@@ -91,6 +103,49 @@ function Login({ onSignedIn }: { onSignedIn: (email: string) => void }) {
         <label>Password<input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required /></label>
         {error && <p className="error-text">{error}</p>}
         <button className="primary" disabled={busy}>{busy ? "Signing in…" : "Sign in"}</button>
+      </form>
+    </div>
+  );
+}
+
+/** Admins must use an authenticator app (TOTP). First sign-in enrols, later sign-ins verify. */
+function TwoFactor({ state, onVerified, onCancel }: { state: Exclude<MfaState, { kind: "verified" }>; onVerified: () => void; onCancel: () => void }) {
+  const [code, setCode] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  return (
+    <div className="center">
+      <form
+        className="card login"
+        onSubmit={async (e) => {
+          e.preventDefault();
+          setBusy(true);
+          try {
+            await api.verifyMfa(state.factorId, code.replace(/\s/g, ""));
+            onVerified();
+          } catch (err) {
+            setError((err as Error).message);
+          } finally {
+            setBusy(false);
+          }
+        }}
+      >
+        <div className="logo big">〰 SONORA</div>
+        <h2>Two-factor authentication</h2>
+        {state.kind === "enroll" ? (
+          <>
+            <p className="muted">Admin accounts require an authenticator app. Scan the code with Google Authenticator, 1Password or similar, then enter the 6-digit code.</p>
+            <img src={state.qrCode} alt="Authenticator QR code" style={{ width: 200, height: 200, background: "white", borderRadius: 8, alignSelf: "center" }} />
+            <p className="muted small">Can't scan? Enter this key: <span className="mono">{state.secret}</span></p>
+          </>
+        ) : (
+          <p className="muted">Enter the 6-digit code from your authenticator app.</p>
+        )}
+        <label>Code<input inputMode="numeric" autoComplete="one-time-code" value={code} onChange={(e) => setCode(e.target.value)} required /></label>
+        {error && <p className="error-text">{error}</p>}
+        <button className="primary" disabled={busy || code.replace(/\s/g, "").length < 6}>{busy ? "Verifying…" : "Verify"}</button>
+        <button type="button" className="ghost" onClick={onCancel}>Cancel</button>
       </form>
     </div>
   );

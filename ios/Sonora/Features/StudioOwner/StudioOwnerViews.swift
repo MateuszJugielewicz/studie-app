@@ -170,15 +170,17 @@ final class StudioDashboardModel {
     var bookings: [Booking] = []
     var payouts: [Payout] = []
     var reviews: [Review] = []
+    var fees: [FeeLedgerEntry] = []
 
     func load(_ backend: Backend, studioId: UUID) async {
-        async let bookings = backend.studioBookings(studioId: studioId)
-        async let payouts = backend.payouts(studioId: studioId)
-        async let reviews = backend.reviews(studioId: studioId)
-        self.bookings = (try? await bookings) ?? self.bookings
-        self.payouts = (try? await payouts) ?? self.payouts
-        self.reviews = (try? await reviews) ?? self.reviews
+        bookings = (try? await backend.studioBookings(studioId: studioId)) ?? bookings
+        payouts = (try? await backend.payouts(studioId: studioId)) ?? payouts
+        reviews = (try? await backend.reviews(studioId: studioId)) ?? reviews
+        fees = (try? await backend.feeLedger(studioId: studioId)) ?? fees
     }
+
+    /// Platform fees owed for cash bookings, per currency.
+    var feesOwed: Int { fees.reduce(0) { $0 + $1.amount } }
 
     var requests: [Booking] { bookings.filter { $0.status == .pendingApproval }.sorted { $0.startsAt < $1.startsAt } }
     var upcoming: [Booking] { bookings.filter { $0.status == .confirmed && $0.endsAt > .now }.sorted { $0.startsAt < $1.startsAt } }
@@ -208,6 +210,11 @@ struct StudioDashboardView: View {
                             StatCard(title: "Upcoming sessions", value: "\(summary.upcomingSessions)", symbol: "calendar")
                             StatCard(title: "Rating", value: studio.reviewCount == 0 ? "–" : String(format: "%.1f ★", studio.ratingAverage), symbol: "star")
                         }
+                        if model.feesOwed > 0 {
+                            Label("You owe \(Money.format(model.feesOwed, currency: studio.currency)) in platform fees for cash bookings. It's deducted from your next payout.", systemImage: "banknote")
+                                .font(.footnote)
+                                .card()
+                        }
 
                         if !model.requests.isEmpty {
                             SectionHeader(title: "Requests (\(model.requests.count))")
@@ -229,7 +236,7 @@ struct StudioDashboardView: View {
                         SectionHeader(title: "Manage")
                         VStack(spacing: 0) {
                             ManageLink(title: "Earnings & payouts", symbol: "chart.bar.fill") {
-                                EarningsView(studio: studio, bookings: model.bookings, payouts: model.payouts)
+                                EarningsView(studio: studio, bookings: model.bookings, payouts: model.payouts, fees: model.fees)
                             }
                             ManageLink(title: "Past bookings", symbol: "clock.arrow.circlepath") {
                                 StudioBookingListView(title: "Past bookings", bookings: model.past)
@@ -521,6 +528,7 @@ struct EarningsView: View {
     let studio: Studio
     let bookings: [Booking]
     let payouts: [Payout]
+    var fees: [FeeLedgerEntry] = []
 
     var body: some View {
         let summary = EarningsCalculator.summary(bookings: bookings, payouts: payouts, currency: studio.currency)
@@ -529,7 +537,7 @@ struct EarningsView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Earned this month").font(.caption).foregroundStyle(.secondary)
                     Text(Money.format(summary.netThisMonth, currency: studio.currency)).font(.largeTitle.bold())
-                    Text("\(Money.format(summary.grossThisMonth, currency: studio.currency)) booked · \(PlatformConfig.studioCommissionPercent)% commission")
+                    Text("\(Money.format(summary.grossThisMonth, currency: studio.currency)) booked · \(PlatformConfig.platformFeePercent)% platform fee")
                         .font(.caption).foregroundStyle(.secondary)
                 }
                 Chart(summary.monthly) { item in
@@ -564,7 +572,28 @@ struct EarningsView: View {
             }
 
             Section {
+                let owed = fees.reduce(0) { $0 + $1.amount }
+                InfoRow(symbol: "banknote", title: "Platform fees owed", value: Money.format(max(owed, 0), currency: studio.currency))
+                ForEach(fees) { entry in
+                    HStack {
+                        VStack(alignment: .leading) {
+                            Text(entry.kind.title)
+                            Text(entry.createdAt.formatted(date: .abbreviated, time: .omitted)).font(.caption).foregroundStyle(.secondary)
+                        }
+                        Spacer()
+                        Text(Money.format(entry.amount, currency: entry.currency))
+                            .foregroundStyle(entry.amount < 0 ? .green : .primary)
+                    }
+                }
+            } header: {
+                Text("Cash bookings & platform fees")
+            } footer: {
+                Text("For cash bookings you collect the full price; Sonora's \(PlatformConfig.platformFeePercent)% fee is deducted from your next card payout. Anything left is invoiced monthly.")
+            }
+
+            Section {
                 NavigationLink { PayoutAccountEditor(studioId: studio.id) } label: { Label("Payout details", systemImage: "building.columns") }
+                NavigationLink { LegalDocumentView(document: .studioAgreement) } label: { Label("Studio agreement", systemImage: "doc.text") }
             }
         }
         .navigationTitle("Earnings")

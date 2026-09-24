@@ -5,7 +5,7 @@ export type AccountStatus = "active" | "suspended" | "banned";
 export type StudioStatus = "draft" | "pending_review" | "changes_requested" | "approved" | "rejected" | "suspended";
 export type BookingStatus =
   | "awaiting_payment" | "pending_approval" | "confirmed" | "declined" | "cancelled" | "completed" | "disputed" | "expired";
-export type PaymentStatus = "unpaid" | "authorized" | "deposit_paid" | "paid" | "partially_refunded" | "refunded" | "failed";
+export type PaymentStatus = "unpaid" | "authorized" | "deposit_paid" | "paid" | "partially_refunded" | "refunded" | "failed" | "pay_at_studio";
 export type ReportStatus = "open" | "resolved" | "dismissed";
 export type ReportTarget = "user" | "studio" | "review" | "message" | "booking";
 
@@ -95,8 +95,33 @@ export interface Booking {
   cancellation_reason: string | null;
   cancelled_by: UserRole | null;
   refund_amount: number;
+  payment_method: "card" | "apple_pay" | "google_pay" | "cash" | null;
   created_at: string;
 }
+
+export interface FeeBalance {
+  studio_id: string;
+  studio_name: string;
+  currency: string;
+  balance: number;
+  last_commission_at: string | null;
+}
+
+export interface FeeInvoice {
+  id: string;
+  studio_id: string;
+  amount: number;
+  currency: string;
+  status: "open" | "paid" | "void";
+  hosted_invoice_url: string | null;
+  created_at: string;
+  paid_at: string | null;
+}
+
+export type MfaState =
+  | { kind: "verified" }
+  | { kind: "verify"; factorId: string }
+  | { kind: "enroll"; factorId: string; qrCode: string; secret: string };
 
 export interface Transaction {
   id: string;
@@ -104,7 +129,7 @@ export interface Transaction {
   studio_id: string;
   artist_id: string;
   kind: "charge" | "balance" | "refund";
-  method: "card" | "apple_pay" | "google_pay";
+  method: "card" | "apple_pay" | "google_pay" | "cash";
   status: "pending" | "succeeded" | "failed";
   amount: number;
   platform_fee: number;
@@ -183,7 +208,7 @@ export interface DashboardStats {
   open_reports: number;
   open_disputes: number;
   failed_payments: number;
-  revenue: Record<string, { gross: number | null; platform: number | null; refunds: number | null }>;
+  revenue: Record<string, { gross: number; card: number; cash: number; platform: number; refunds: number; fees_owed: number }>;
   top_studios: { id: string; name: string; city: string; bookings: number; rating: number }[];
   top_areas: { city: string; area: string | null; bookings: number }[];
   bookings_per_day: { day: string; bookings: number }[];

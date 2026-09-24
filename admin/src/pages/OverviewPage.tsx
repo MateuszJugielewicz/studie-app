@@ -38,19 +38,22 @@ export default function OverviewPage() {
                 <h3>Revenue</h3>
                 {Object.keys(stats.revenue).length === 0 && <p className="muted">No payments in this period.</p>}
                 <table>
-                  <thead><tr><th>Currency</th><th>Gross volume</th><th>Platform earnings</th><th>Refunds</th></tr></thead>
+                  <thead><tr><th>Currency</th><th>Sales</th><th>Card</th><th>Cash</th><th>Platform (10%)</th><th>Refunds</th><th>Fees owed</th></tr></thead>
                   <tbody>
                     {Object.entries(stats.revenue).map(([currency, r]) => (
                       <tr key={currency}>
                         <td>{currency}</td>
                         <td>{money(r.gross, currency)}</td>
+                        <td>{money(r.card, currency)}</td>
+                        <td>{money(r.cash, currency)}</td>
                         <td className="strong">{money(r.platform, currency)}</td>
                         <td>{money(r.refunds, currency)}</td>
+                        <td>{money(r.fees_owed, currency)}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
-                <p className="muted small">Platform earnings = artist service fees + studio commission on completed sessions.</p>
+                <p className="muted small">Sales = completed sessions in the period. Sonora earns 10% of every sale; for cash sales the studio owes the fee ("Fees owed" is the current outstanding total).</p>
               </div>
               <div className="card">
                 <h3>Bookings per day</h3>

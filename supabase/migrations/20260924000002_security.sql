@@ -10,6 +10,21 @@ as $$
   select exists (
     select 1 from public.profiles
     where id = auth.uid() and role = 'admin' and status = 'active'
+  )
+  -- Admins must have signed in with a second factor (TOTP).
+  and coalesce(auth.jwt() ->> 'aal', 'aal1') = 'aal2';
+$$;
+
+-- Studio features (calendar blocks, replies, studio-side chat, payouts) require an approved studio.
+-- Signing up as a studio – or being an artist – never grants them on its own.
+create or replace function public.owns_approved_studio(p_studio_id uuid)
+returns boolean
+language sql stable security definer set search_path = public
+as $$
+  select exists (
+    select 1 from public.studios s join public.profiles p on p.id = s.owner_id
+    where s.id = p_studio_id and s.owner_id = auth.uid() and s.status = 'approved'
+      and p.role = 'studio_owner' and p.status = 'active'
   );
 $$;
 
@@ -66,7 +81,12 @@ declare
   requested text := coalesce(new.raw_user_meta_data ->> 'role', 'artist');
   assigned public.user_role := case when requested = 'studio_owner' then 'studio_owner'::public.user_role else 'artist'::public.user_role end;
 begin
-  insert into public.profiles (id, email, role) values (new.id, coalesce(new.email, ''), assigned);
+  insert into public.profiles (id, email, role, accepted_terms_version, accepted_terms_at)
+  values (
+    new.id, coalesce(new.email, ''), assigned,
+    new.raw_user_meta_data ->> 'terms_version',
+    case when new.raw_user_meta_data ? 'terms_version' then now() end
+  );
   if assigned = 'artist' then
     insert into public.artist_profiles (id, artist_name)
     values (new.id, coalesce(new.raw_user_meta_data ->> 'full_name', new.raw_user_meta_data ->> 'name', ''));
@@ -93,6 +113,7 @@ begin
   if me.role = p_role then return; end if;
   if me.created_at < now() - interval '1 hour'
      or exists (select 1 from public.bookings where artist_id = me.id)
+     or exists (select 1 from public.conversations where artist_id = me.id)
      or exists (select 1 from public.studios where owner_id = me.id) then
     raise exception 'This account already has a role. Contact support to change it.';
   end if;
@@ -119,6 +140,8 @@ begin
     new.status_reason := old.status_reason;
     new.is_verified := old.is_verified;
     new.stripe_customer_id := old.stripe_customer_id;
+    new.accepted_terms_version := old.accepted_terms_version;
+    new.accepted_terms_at := old.accepted_terms_at;
     new.created_at := old.created_at;
   end if;
   return new;
@@ -259,8 +282,12 @@ create policy "studio_status_events: read" on public.studio_status_events for se
 create policy "payout_accounts: owner read" on public.studio_payout_accounts for select
   using (public.owns_studio(studio_id) or public.is_admin());
 
-create policy "blocked_slots: owner" on public.blocked_slots for all
-  using (public.owns_studio(studio_id)) with check (public.owns_studio(studio_id));
+create policy "blocked_slots: owner read" on public.blocked_slots for select
+  using (public.owns_studio(studio_id));
+create policy "blocked_slots: approved owner write" on public.blocked_slots for insert
+  with check (public.owns_approved_studio(studio_id));
+create policy "blocked_slots: approved owner delete" on public.blocked_slots for delete
+  using (public.owns_approved_studio(studio_id));
 
 -- bookings & money: read-only for participants; all writes go through edge functions / RPCs
 create policy "bookings: participants read" on public.bookings for select
@@ -278,8 +305,16 @@ create policy "conversations: participants read" on public.conversations for sel
   using (artist_id = auth.uid() or public.owns_studio(studio_id) or public.is_admin());
 create policy "messages: participants read" on public.messages for select
   using (public.is_conversation_participant(conversation_id) or public.is_admin());
+-- Artists can write in their own threads; the studio side only once the studio is approved.
 create policy "messages: participants send" on public.messages for insert
-  with check (sender_id = auth.uid() and kind = 'text' and public.is_active_user() and public.is_conversation_participant(conversation_id));
+  with check (
+    sender_id = auth.uid() and kind = 'text' and public.is_active_user()
+    and exists (
+      select 1 from public.conversations c
+      where c.id = conversation_id
+        and (c.artist_id = auth.uid() or public.owns_approved_studio(c.studio_id))
+    )
+  );
 
 -- notifications
 create policy "notifications: own read" on public.notifications for select using (user_id = auth.uid());

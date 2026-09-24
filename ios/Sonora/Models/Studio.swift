@@ -228,6 +228,8 @@ struct BookingPolicy: Codable, Hashable {
     var maxAdvanceDays: Int = 90
     var bufferMinutes: Int = 0
     var terms: String = ""
+    /// Artists may choose to pay cash at the session (only without a card deposit).
+    var acceptsCash: Bool = true
 }
 
 extension BookingPolicy {
@@ -241,6 +243,7 @@ extension BookingPolicy {
         maxAdvanceDays = try c.decodeIfPresent(Int.self, forKey: .maxAdvanceDays) ?? d.maxAdvanceDays
         bufferMinutes = try c.decodeIfPresent(Int.self, forKey: .bufferMinutes) ?? d.bufferMinutes
         terms = try c.decodeIfPresent(String.self, forKey: .terms) ?? d.terms
+        acceptsCash = try c.decodeIfPresent(Bool.self, forKey: .acceptsCash) ?? d.acceptsCash
     }
 }
 
