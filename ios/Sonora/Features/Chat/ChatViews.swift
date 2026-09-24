@@ -142,9 +142,10 @@ struct ChatView: View {
             TextField("Message", text: $draft, axis: .vertical)
                 .lineLimit(1...5)
                 .padding(.horizontal, 14).padding(.vertical, 10)
-                .background(Theme.card, in: RoundedRectangle(cornerRadius: 20))
+                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: 22, style: .continuous).strokeBorder(Color.primary.opacity(0.1)))
             Button { send() } label: {
-                Image(systemName: "arrow.up.circle.fill").font(.system(size: 32)).foregroundStyle(Theme.accent)
+                Image(systemName: "arrow.up.circle.fill").font(.system(size: 32)).foregroundStyle(Theme.neon).neonGlow(Theme.magenta, radius: 8)
             }
             .disabled(draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             .accessibilityLabel("Send")
@@ -202,7 +203,7 @@ struct MessageBubble: View {
                 VStack(alignment: isMine ? .trailing : .leading, spacing: 2) {
                     Text(message.body)
                         .padding(.horizontal, 14).padding(.vertical, 9)
-                        .background(isMine ? Theme.accent : Theme.card, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+                        .background(isMine ? AnyShapeStyle(Theme.neon) : AnyShapeStyle(Theme.card), in: RoundedRectangle(cornerRadius: 20, style: .continuous))
                         .foregroundStyle(isMine ? Theme.onAccent : Color.primary)
                     Text(message.createdAt.formatted(date: .omitted, time: .shortened)).font(.caption2).foregroundStyle(.secondary)
                 }

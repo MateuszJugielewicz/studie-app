@@ -125,24 +125,20 @@ struct StudioTabView: View {
 
     var body: some View {
         @Bindable var app = app
-        TabView(selection: $app.selectedTab) {
-            StudioDashboardView()
-                .tabItem { Label("Dashboard", systemImage: "square.grid.2x2") }
-                .tag(AppTab.dashboard)
-            StudioCalendarView()
-                .tabItem { Label("Calendar", systemImage: "calendar") }
-                .tag(AppTab.calendar)
-            ConversationsView()
-                .tabItem { Label("Messages", systemImage: "bubble.left.and.bubble.right") }
-                .badge(app.unreadMessages)
-                .tag(AppTab.messages)
-            NotificationsView()
-                .tabItem { Label("Inbox", systemImage: "bell") }
-                .badge(app.unreadNotifications)
-                .tag(AppTab.notifications)
-            StudioSettingsView()
-                .tabItem { Label("Studio", systemImage: "building.2") }
-                .tag(AppTab.profile)
+        SonoraTabContainer(selection: $app.selectedTab, tabs: [
+            TabSpec(tab: .dashboard, title: "Dashboard", symbol: "square.grid.2x2"),
+            TabSpec(tab: .calendar, title: "Calendar", symbol: "calendar"),
+            TabSpec(tab: .messages, title: "Messages", symbol: "bubble.left.and.bubble.right", badge: app.unreadMessages),
+            TabSpec(tab: .notifications, title: "Inbox", symbol: "bell", badge: app.unreadNotifications),
+            TabSpec(tab: .profile, title: "Studio", symbol: "building.2"),
+        ]) { tab in
+            switch tab {
+            case .calendar: StudioCalendarView()
+            case .messages: ConversationsView()
+            case .notifications: NotificationsView()
+            case .profile: StudioSettingsView()
+            default: StudioDashboardView()
+            }
         }
     }
 }
@@ -182,7 +178,7 @@ struct StudioDashboardView: View {
                     StudioDashboardContent(studio: studio, model: model)
                         .padding()
                 }
-                .background(Theme.background)
+                .auroraBackground()
                 .navigationTitle(studio.name)
                 .navigationDestination(for: Booking.self) { BookingDetailView(bookingId: $0.id, initial: $0) }
                 .refreshable { await reload(studio) }
@@ -660,7 +656,7 @@ struct StudioSettingsView: View {
                 }
                 Section {
                     NavigationLink { SettingsView() } label: { Label("Account & notifications", systemImage: "gearshape") }
-                    Link(destination: URL(string: "mailto:\(AppConfig.supportEmail)")!) { Label("Studio support", systemImage: "questionmark.circle") }
+                    NavigationLink { SupportCenterView() } label: { Label("Help & support", systemImage: "questionmark.circle") }
                 }
             }
             .navigationTitle("Studio")

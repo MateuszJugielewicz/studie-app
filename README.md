@@ -91,6 +91,7 @@ Gør en konto til admin i Supabase → SQL Editor: `update profiles set role = '
 - **Bookinger:** alle, aktive, gennemførte, aflyste, refunderinger, problemer/tvister (løs tvist, refundér helt eller delvist)
 - **Betalinger:** transaktioner, platform fees, studieudbetalinger, refunderinger, fejlede betalinger
 - **Moderation:** rapporterede brugere, anmeldelser, studier og chatbeskeder (skjul anmeldelse, suspendér bruger/studie, afvis rapport)
+- **Support:** indbakke med henvendelser fra appen ("Help & support"). Svar sendes som push-notifikation til brugeren; luk/genåbn sager
 
 ---
 
@@ -174,6 +175,10 @@ npm run build                      # deploy dist/ til fx Vercel, Netlify eller C
 ```
 
 ---
+
+## Opdatering af en eksisterende database
+
+Har du allerede kørt `supabase/setup.sql`, så kør kun de nye filer i `supabase/updates/` (SQL Editor → New query → indsæt → Run). De bevarer dine data og kan køres flere gange. `setup.sql` er kun til en helt ny database – den sletter alt.
 
 ## Tests
 

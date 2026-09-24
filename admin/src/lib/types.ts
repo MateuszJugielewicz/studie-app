@@ -222,3 +222,33 @@ export interface ReportTargetDetails {
   studioId?: string;
   reviewId?: string;
 }
+
+export type SupportStatus = "open" | "answered" | "closed";
+
+export interface SupportTicket {
+  id: string;
+  user_id: string;
+  subject: string;
+  category: string;
+  booking_id: string | null;
+  status: SupportStatus;
+  user_unread: number;
+  admin_unread: number;
+  last_message_preview: string;
+  last_message_at: string;
+  created_at: string;
+  closed_at: string | null;
+  user_email: string;
+  user_role: UserRole;
+  user_name: string;
+  booking_reference: string | null;
+}
+
+export interface SupportMessage {
+  id: string;
+  ticket_id: string;
+  sender_id: string | null;
+  from_admin: boolean;
+  body: string;
+  created_at: string;
+}

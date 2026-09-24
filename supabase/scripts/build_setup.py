@@ -65,7 +65,7 @@ grant select, insert, update, delete on all tables in schema public to authentic
 grant select on public.platform_settings to anon;
 grant execute on all functions in schema public to authenticated, service_role;
 revoke execute on function public.notify, public.booking_system_message, public.call_edge_function,
-  public.notify_payment_problem from anon, authenticated;
+  public.notify_payment_problem, public.add_support_message from anon, authenticated;
 """
 
 out = ["""-- =====================================================================

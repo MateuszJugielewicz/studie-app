@@ -71,3 +71,70 @@ struct Report: Codable, Identifiable, Hashable {
     var status: ReportStatus
     var createdAt: Date
 }
+
+// MARK: - Support
+
+enum SupportCategory: String, Codable, CaseIterable, Identifiable, Hashable {
+    case account, booking, payment, studio, bug, other
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .account: "Account & login"
+        case .booking: "A booking"
+        case .payment: "Payments & refunds"
+        case .studio: "My studio listing"
+        case .bug: "Something isn't working"
+        case .other: "Something else"
+        }
+    }
+
+    var symbol: String {
+        switch self {
+        case .account: "person.crop.circle"
+        case .booking: "calendar"
+        case .payment: "creditcard"
+        case .studio: "music.mic"
+        case .bug: "ladybug"
+        case .other: "questionmark.bubble"
+        }
+    }
+}
+
+enum SupportTicketStatus: String, Codable, Hashable {
+    /// Waiting for Sonora.
+    case open
+    /// Sonora replied; waiting for the user.
+    case answered
+    case closed
+
+    var title: String {
+        switch self {
+        case .open: "Waiting for Sonora"
+        case .answered: "Sonora replied"
+        case .closed: "Closed"
+        }
+    }
+}
+
+struct SupportTicket: Codable, Identifiable, Hashable {
+    let id: UUID
+    var userId: UUID
+    var subject: String
+    var category: SupportCategory
+    var bookingId: UUID?
+    var status: SupportTicketStatus
+    var userUnread: Int
+    var lastMessagePreview: String
+    var lastMessageAt: Date
+    var createdAt: Date
+}
+
+struct SupportMessage: Codable, Identifiable, Hashable {
+    let id: UUID
+    var ticketId: UUID
+    var senderId: UUID?
+    var fromAdmin: Bool
+    var body: String
+    var createdAt: Date
+}

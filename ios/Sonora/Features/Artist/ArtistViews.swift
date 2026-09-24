@@ -6,24 +6,20 @@ struct ArtistTabView: View {
 
     var body: some View {
         @Bindable var app = app
-        TabView(selection: $app.selectedTab) {
-            DiscoverView()
-                .tabItem { Label("Discover", systemImage: "magnifyingglass") }
-                .tag(AppTab.discover)
-            ArtistBookingsView()
-                .tabItem { Label("Bookings", systemImage: "calendar") }
-                .tag(AppTab.bookings)
-            ConversationsView()
-                .tabItem { Label("Messages", systemImage: "bubble.left.and.bubble.right") }
-                .badge(app.unreadMessages)
-                .tag(AppTab.messages)
-            NotificationsView()
-                .tabItem { Label("Inbox", systemImage: "bell") }
-                .badge(app.unreadNotifications)
-                .tag(AppTab.notifications)
-            ArtistProfileView()
-                .tabItem { Label("Profile", systemImage: "person.crop.circle") }
-                .tag(AppTab.profile)
+        SonoraTabContainer(selection: $app.selectedTab, tabs: [
+            TabSpec(tab: .discover, title: "Discover", symbol: "sparkle.magnifyingglass"),
+            TabSpec(tab: .bookings, title: "Sessions", symbol: "calendar"),
+            TabSpec(tab: .messages, title: "Messages", symbol: "bubble.left.and.bubble.right", badge: app.unreadMessages),
+            TabSpec(tab: .notifications, title: "Inbox", symbol: "bell", badge: app.unreadNotifications),
+            TabSpec(tab: .profile, title: "Profile", symbol: "person.crop.circle"),
+        ]) { tab in
+            switch tab {
+            case .bookings: ArtistBookingsView()
+            case .messages: ConversationsView()
+            case .notifications: NotificationsView()
+            case .profile: ArtistProfileView()
+            default: DiscoverView()
+            }
         }
     }
 }
@@ -95,7 +91,7 @@ struct ArtistProfileView: View {
                     NavigationLink { SettingsView() } label: { Label("Settings", systemImage: "gearshape") }
                     NavigationLink { BookingHistoryView() } label: { Label("Booking history & receipts", systemImage: "clock.arrow.circlepath") }
                     NavigationLink { LegalListView() } label: { Label("Terms & privacy", systemImage: "doc.text") }
-                    Link(destination: URL(string: "mailto:\(AppConfig.supportEmail)")!) { Label("Help & support", systemImage: "questionmark.circle") }
+                    NavigationLink { SupportCenterView() } label: { Label("Help & support", systemImage: "questionmark.circle") }
                 }
             }
             .navigationTitle("Profile")
@@ -303,9 +299,7 @@ struct SettingsView: View {
 
             Section {
                 DataExportButton()
-                Link(destination: URL(string: "mailto:\(AppConfig.supportEmail)?subject=Privacy%20request")!) {
-                    Label("Contact us about your data", systemImage: "envelope")
-                }
+                NavigationLink { SupportCenterView() } label: { Label("Contact us about your data", systemImage: "envelope") }
             } header: {
                 Text("Your data")
             } footer: {

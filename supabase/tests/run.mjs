@@ -40,7 +40,7 @@ expect("review", (r) => r.studio_reply === null);
 expect("rating", (r) => r.rating_average === 4 && r.review_count === 1);
 expect("has_review", (r) => r.has_review === true);
 expect("stats", (r) => Number(r.rate) === 100 && r.live === 1);
-for (const label of ["unapproved block denied", "second studio denied", "artist studio denied", "admin without mfa denied"]) {
+for (const label of ["unapproved block denied", "support forge denied", "support other denied", "second studio denied", "artist studio denied", "admin without mfa denied"]) {
   if (!rows.some((r) => r.r === label)) {
     console.error("FAILED:", label);
     process.exitCode = 1;
@@ -52,6 +52,12 @@ expect("owner sees ledger", (r) => Number(r.n) === 1);
 expect("settled", (r) => r.amount === -500);
 expect("balance after", (r) => r.balance === 0);
 expect("terms", (r) => r.version === "2026-09-25");
+expect("ticket created", (r) => r.status === "open");
+expect("owner sees tickets", (r) => Number(r.n) === 0);
+expect("admin inbox", (r) => !!r.user_name && r.admin_unread === 1);
+expect("ticket answered", (r) => r.status === "answered" && r.user_unread === 1 && Number(r.n) === 2);
+expect("support notified", (r) => Number(r.n) === 1);
+expect("ticket closed", (r) => r.status === "closed");
 if (!rows.some((r) => r.r === "blocked ok")) {
   console.error("FAILED: overlapping booking was not blocked");
   process.exitCode = 1;

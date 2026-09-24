@@ -142,3 +142,33 @@ select 'settled' as label, (admin_record_fee_settlement((select id from studios)
 select 'balance after' as label, balance from studio_fee_balances;
 select 'terms' as label, (accept_terms('2026-09-25')).accepted_terms_version as version;
 reset role;
+
+-- support: artist opens a ticket, admin answers, other users can't see or post
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
+set request.jwt.claims = '{}';
+select 'ticket created' as label, (create_support_ticket('Refund question', 'payment', 'Where is my refund?', null)).status as status;
+do $$ begin
+  insert into support_messages (ticket_id, body, from_admin) select id, 'fake admin', true from support_tickets;
+  create temp table support_forge as select 'NOT BLOCKED' r;
+exception when others then create temp table support_forge as select 'support forge denied' r;
+end $$;
+select * from support_forge;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000b';
+select 'owner sees tickets' as label, count(*) as n from support_tickets;
+do $$ begin
+  perform send_support_message((select id from admin_support_tickets limit 1), 'hi');
+  create temp table support_other as select 'NOT BLOCKED' r;
+exception when others then create temp table support_other as select 'support other denied' r;
+end $$;
+select * from support_other;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000c';
+set request.jwt.claims = '{"aal":"aal2"}';
+select 'admin inbox' as label, user_name, admin_unread from admin_support_tickets;
+select (send_support_message((select id from support_tickets), 'Refund sent today.')).from_admin;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
+set request.jwt.claims = '{}';
+select 'ticket answered' as label, status, user_unread, (select count(*) from support_messages) as n from support_tickets;
+select 'support notified' as label, count(*) as n from notifications where title = 'Sonora support replied';
+select 'ticket closed' as label, (set_support_ticket_status((select id from support_tickets), 'closed')).status as status;
+reset role;

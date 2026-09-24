@@ -439,6 +439,41 @@ final class SupabaseBackend: Backend {
         }
     }
 
+    // MARK: Support
+
+    func supportTickets() async throws -> [SupportTicket] {
+        try await mapped {
+            try await client.from("support_tickets").select().order("last_message_at", ascending: false).execute().value
+        }
+    }
+
+    func createSupportTicket(subject: String, category: SupportCategory, body: String, bookingId: UUID?) async throws -> SupportTicket {
+        try await rpc("create_support_ticket", [
+            "p_subject": .string(subject.trimmingCharacters(in: .whitespacesAndNewlines)),
+            "p_category": .string(category.rawValue),
+            "p_body": .string(body),
+            "p_booking_id": bookingId.map { AnyJSON.string($0.uuidString) } ?? AnyJSON.null,
+        ])
+    }
+
+    func supportMessages(ticketId: UUID) async throws -> [SupportMessage] {
+        try await mapped {
+            try await client.from("support_messages").select().eq("ticket_id", value: ticketId.uuidString).order("created_at").execute().value
+        }
+    }
+
+    func sendSupportMessage(ticketId: UUID, body: String) async throws -> SupportMessage {
+        try await rpc("send_support_message", ["p_ticket_id": .string(ticketId.uuidString), "p_body": .string(body)])
+    }
+
+    func markSupportTicketRead(id: UUID) async throws {
+        try await rpcVoid("mark_support_ticket_read", ["p_ticket_id": .string(id.uuidString)])
+    }
+
+    func closeSupportTicket(id: UUID) async throws -> SupportTicket {
+        try await rpc("set_support_ticket_status", ["p_ticket_id": .string(id.uuidString), "p_status": .string("closed")])
+    }
+
     func markConversationRead(id: UUID) async throws {
         try await rpcVoid("mark_conversation_read", ["p_conversation_id": .string(id.uuidString)])
     }

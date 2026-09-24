@@ -119,6 +119,14 @@ protocol Backend: AnyObject {
     func replyToReview(id: UUID, reply: String) async throws -> Review
     func report(target: ReportTarget, targetId: UUID, reason: ReportReason, details: String) async throws
 
+    // MARK: Support
+    func supportTickets() async throws -> [SupportTicket]
+    func createSupportTicket(subject: String, category: SupportCategory, body: String, bookingId: UUID?) async throws -> SupportTicket
+    func supportMessages(ticketId: UUID) async throws -> [SupportMessage]
+    func sendSupportMessage(ticketId: UUID, body: String) async throws -> SupportMessage
+    func markSupportTicketRead(id: UUID) async throws
+    func closeSupportTicket(id: UUID) async throws -> SupportTicket
+
     // MARK: Notifications
     func notifications() async throws -> [AppNotification]
     func markNotificationRead(id: UUID) async throws

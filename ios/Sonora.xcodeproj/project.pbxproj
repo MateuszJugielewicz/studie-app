@@ -27,6 +27,7 @@
 		608ADAAC226C75614DC04DC9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5CE9C3955D350F753740356E /* Assets.xcassets */; };
 		6622B72D17E9886F7A8498DA /* PostgresCoding.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D0F7804A9C2C6CB4F550FE4 /* PostgresCoding.swift */; };
 		76594F5488804A06FF12089A /* Enums.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD1BBC0076C68AA6B1EE6CAD /* Enums.swift */; };
+		782D179B7FC62DC54E60D1A8 /* SupportViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31CD6CD4C0E25A4203172536 /* SupportViews.swift */; };
 		78575B27227CE830A1D143E6 /* Components.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C3EC5029EFF93BBA3E076CA /* Components.swift */; };
 		78EC697A50D0CD8C50474FBF /* SearchEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3108B196FE1AEBE835B634E0 /* SearchEngine.swift */; };
 		79B4E33FB29F6EF73AAB4431 /* ChatViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9CA86A39011659B6951499A2 /* ChatViews.swift */; };
@@ -37,6 +38,7 @@
 		BA3EC075C02A42AC5D2FE93B /* AuthViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E697103620660AE57F6688C /* AuthViews.swift */; };
 		BBA51995C062126410BCE53E /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 316E0EAD9341447D4414096E /* Supabase */; };
 		BCA4D39E63107383B923F1DD /* ArtistViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84189E59CE39C29801BFF603 /* ArtistViews.swift */; };
+		BE4CF1BE1684D384308A0E7F /* Effects.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B03C58A986E60B092B33FB1 /* Effects.swift */; };
 		C11D7C91F6A06D319C7F3130 /* MockBackend.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51173BB47417E630CF387CE4 /* MockBackend.swift */; };
 		C4E41CD96B6B680491729FE3 /* Backend.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40569250BDA19339F1DFA520 /* Backend.swift */; };
 		C735B19E8F3BBEB0B31BAEC9 /* BookingFlowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6A6AA83F99904527FE16B0B /* BookingFlowView.swift */; };
@@ -67,6 +69,7 @@
 		268B3A5CBBD2C0804FFCFED6 /* LegalViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegalViews.swift; sourceTree = "<group>"; };
 		2C625DD5076FE07F1D72281B /* AppConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConfig.swift; sourceTree = "<group>"; };
 		3108B196FE1AEBE835B634E0 /* SearchEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchEngine.swift; sourceTree = "<group>"; };
+		31CD6CD4C0E25A4203172536 /* SupportViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupportViews.swift; sourceTree = "<group>"; };
 		363D79B05A8B7A1569ABB782 /* Studio.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Studio.swift; sourceTree = "<group>"; };
 		3C3EC5029EFF93BBA3E076CA /* Components.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Components.swift; sourceTree = "<group>"; };
 		40569250BDA19339F1DFA520 /* Backend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Backend.swift; sourceTree = "<group>"; };
@@ -86,6 +89,7 @@
 		841396F7569B17984FB35BE3 /* MockData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockData.swift; sourceTree = "<group>"; };
 		84189E59CE39C29801BFF603 /* ArtistViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistViews.swift; sourceTree = "<group>"; };
 		872A08ADFCDEE91F0211C5E1 /* StudioDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StudioDetailView.swift; sourceTree = "<group>"; };
+		8B03C58A986E60B092B33FB1 /* Effects.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Effects.swift; sourceTree = "<group>"; };
 		8BE73D6F433FD0A89C726B21 /* EarningsCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EarningsCalculator.swift; sourceTree = "<group>"; };
 		959F99494DD16682E5FCEEC3 /* ReviewViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewViews.swift; sourceTree = "<group>"; };
 		9CA86A39011659B6951499A2 /* ChatViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatViews.swift; sourceTree = "<group>"; };
@@ -132,6 +136,7 @@
 			isa = PBXGroup;
 			children = (
 				3C3EC5029EFF93BBA3E076CA /* Components.swift */,
+				8B03C58A986E60B092B33FB1 /* Effects.swift */,
 				60C1EFAAD689D6D5B159868B /* Theme.swift */,
 			);
 			path = Components;
@@ -191,6 +196,7 @@
 				B1C352715B43D456B4237C56 /* Reviews */,
 				79921DADA45B0FC4A3E7E0A7 /* StudioDetail */,
 				2E17DCE5C5B2F897F9358D11 /* StudioOwner */,
+				CF3AB256924DF55EEF096561 /* Support */,
 			);
 			path = Features;
 			sourceTree = "<group>";
@@ -247,6 +253,14 @@
 				D02C4FAEF68314D9F14F23C7 /* App.xcconfig */,
 			);
 			path = Config;
+			sourceTree = "<group>";
+		};
+		CF3AB256924DF55EEF096561 /* Support */ = {
+			isa = PBXGroup;
+			children = (
+				31CD6CD4C0E25A4203172536 /* SupportViews.swift */,
+			);
+			path = Support;
 			sourceTree = "<group>";
 		};
 		DF9842D6AAC6282C3C27ED8A /* Services */ = {
@@ -446,6 +460,7 @@
 				78575B27227CE830A1D143E6 /* Components.swift in Sources */,
 				5FD9D188CD1D481C55DCB643 /* DiscoverViews.swift in Sources */,
 				4139ECAB7BB26D8716FE3C3C /* EarningsCalculator.swift in Sources */,
+				BE4CF1BE1684D384308A0E7F /* Effects.swift in Sources */,
 				76594F5488804A06FF12089A /* Enums.swift in Sources */,
 				0778E1454ED2357FC7CA7681 /* LegalDocs.swift in Sources */,
 				0C7605B4EEE1879924DD1F07 /* LegalViews.swift in Sources */,
@@ -465,6 +480,7 @@
 				F3309BC3CA5297A5EBD7F520 /* StudioOwnerViews.swift in Sources */,
 				3B9F28CC54AAFDCB369A676A /* StudioValidator.swift in Sources */,
 				2C7FB54A49752A503B711C36 /* SupabaseBackend.swift in Sources */,
+				782D179B7FC62DC54E60D1A8 /* SupportViews.swift in Sources */,
 				02B24CF8A97394C1D567BB97 /* Theme.swift in Sources */,
 				803BB6715FBEAB4FFB789694 /* User.swift in Sources */,
 			);

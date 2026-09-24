@@ -47,7 +47,7 @@ struct RootView: View {
                 WelcomeView()
             }
         }
-        .animation(.default, value: app.account?.id)
+        .animation(.smooth(duration: 0.45), value: app.account?.id)
     }
 }
 
@@ -55,6 +55,7 @@ struct SplashView: View {
     var body: some View {
         ZStack {
             Theme.background.ignoresSafeArea()
+            AuroraBackground().ignoresSafeArea()
             SonoraLogo(size: 44)
         }
     }

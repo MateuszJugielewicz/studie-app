@@ -3,7 +3,7 @@ import type { AdminApi, StudioDecision } from "./api";
 import type {
   FeeBalance, FeeInvoice, MfaState,
   AccountStatus, AdminUser, Booking, BookingStatus, DashboardStats, Dispute, Payout, Report, ReportStatus,
-  ReportTargetDetails, Review, Studio, StudioEvent, Transaction,
+  ReportTargetDetails, Review, Studio, StudioEvent, SupportMessage, SupportStatus, SupportTicket, Transaction,
 } from "./types";
 
 function unwrap<T>(result: { data: T | null; error: { message: string } | null }): T {
@@ -182,5 +182,25 @@ export class SupabaseAdminApi implements AdminApi {
 
   async setReviewHidden(reviewId: string, hidden: boolean) {
     unwrap(await this.client.rpc("admin_set_review_hidden", { p_review_id: reviewId, p_hidden: hidden }));
+  }
+
+  async supportTickets(): Promise<SupportTicket[]> {
+    return unwrap(await this.client.from("admin_support_tickets").select("*").order("last_message_at", { ascending: false }).limit(1000));
+  }
+
+  async supportMessages(ticketId: string): Promise<SupportMessage[]> {
+    return unwrap(await this.client.from("support_messages").select("*").eq("ticket_id", ticketId).order("created_at"));
+  }
+
+  async replyToSupport(ticketId: string, body: string) {
+    unwrap(await this.client.rpc("send_support_message", { p_ticket_id: ticketId, p_body: body }));
+  }
+
+  async markSupportRead(ticketId: string) {
+    unwrap(await this.client.rpc("mark_support_ticket_read", { p_ticket_id: ticketId }));
+  }
+
+  async setSupportStatus(ticketId: string, status: SupportStatus) {
+    unwrap(await this.client.rpc("set_support_ticket_status", { p_ticket_id: ticketId, p_status: status }));
   }
 }

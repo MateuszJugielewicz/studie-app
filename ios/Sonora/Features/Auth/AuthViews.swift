@@ -50,7 +50,7 @@ struct WelcomeView: View {
             }
             .padding(.horizontal, 24)
             .padding(.bottom, 12)
-            .background(Theme.background.ignoresSafeArea())
+            .auroraBackground(height: 560)
             .navigationDestination(item: $route) { route in
                 AuthView(mode: route.mode, role: route.role)
             }
@@ -58,20 +58,29 @@ struct WelcomeView: View {
     }
 }
 
-/// A still "VU meter": the one piece of illustration in the app.
+/// A live "VU meter": bars breathe like a signal on a mixing desk. Static when Reduce Motion is on.
 struct LevelMeter: View {
     private let levels: [CGFloat] = [0.22, 0.35, 0.3, 0.52, 0.44, 0.7, 0.62, 0.9, 0.78, 1.0, 0.84, 0.66, 0.74, 0.5, 0.58, 0.4, 0.46, 0.28, 0.34, 0.18]
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        GeometryReader { proxy in
-            HStack(alignment: .bottom, spacing: 5) {
-                ForEach(levels.indices, id: \.self) { index in
-                    RoundedRectangle(cornerRadius: 2, style: .continuous)
-                        .fill(index == 9 ? Theme.accent : Color.primary.opacity(0.12 + levels[index] * 0.5))
-                        .frame(height: proxy.size.height * levels[index])
+        TimelineView(.animation(minimumInterval: 1 / 30, paused: reduceMotion)) { context in
+            let t: CGFloat = reduceMotion ? 0 : CGFloat(context.date.timeIntervalSinceReferenceDate.truncatingRemainder(dividingBy: 10_000))
+            GeometryReader { proxy in
+                HStack(alignment: .bottom, spacing: 5) {
+                    ForEach(levels.indices, id: \.self) { index in
+                        let i = CGFloat(index)
+                        let wobble: CGFloat = (sin(t * 2.1 + i * 0.7) + sin(t * 3.3 + i * 1.3)) * 0.12
+                        let level: CGFloat = min(1, max(0.08, levels[index] + wobble))
+                        RoundedRectangle(cornerRadius: 3, style: .continuous)
+                            .fill(LinearGradient(colors: [Theme.violet, Theme.magenta, Theme.accent], startPoint: .bottom, endPoint: .top))
+                            .opacity(0.35 + level * 0.65)
+                            .frame(height: proxy.size.height * level)
+                    }
                 }
+                .frame(maxHeight: .infinity, alignment: .bottom)
+                .neonGlow(Theme.magenta, radius: 18)
             }
-            .frame(maxHeight: .infinity, alignment: .bottom)
         }
         .accessibilityHidden(true)
     }

@@ -125,7 +125,8 @@ struct StatusPill: View {
             .font(.caption.weight(.semibold))
             .padding(.horizontal, 8)
             .padding(.vertical, 3)
-            .background(color.opacity(0.14), in: RoundedRectangle(cornerRadius: 6, style: .continuous))
+            .background(color.opacity(0.14), in: Capsule())
+            .overlay(Capsule().strokeBorder(color.opacity(0.35), lineWidth: 0.8))
             .foregroundStyle(color)
     }
 }
@@ -204,9 +205,16 @@ struct Chip: View {
         .font(.subheadline.weight(isSelected ? .semibold : .regular))
         .padding(.horizontal, 12)
         .padding(.vertical, 7)
-        .background(isSelected ? Color.primary : Theme.card, in: Capsule())
-        .overlay(Capsule().strokeBorder(isSelected ? Color.clear : Color.primary.opacity(0.12)))
-        .foregroundStyle(isSelected ? Theme.background : Color.primary)
+        .background {
+            if isSelected {
+                Capsule().fill(Theme.neon).neonGlow(Theme.magenta, radius: 8)
+            } else {
+                Capsule().fill(.ultraThinMaterial)
+            }
+        }
+        .overlay(Capsule().strokeBorder(isSelected ? Color.white.opacity(0.25) : Color.primary.opacity(0.12)))
+        .foregroundStyle(isSelected ? Theme.onAccent : Color.primary)
+        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isSelected)
     }
 }
 

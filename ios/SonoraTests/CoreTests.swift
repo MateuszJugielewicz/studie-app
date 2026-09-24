@@ -270,6 +270,20 @@ final class MockBackendTests: XCTestCase {
         }
     }
 
+    func testSupportTicketFlow() async throws {
+        let backend = MockBackend(latency: .zero)
+        _ = try await backend.signIn(email: "artist@demo.sonora", password: MockData.demoPassword)
+        let ticket = try await backend.createSupportTicket(subject: "Refund", category: .payment, body: "Where is my refund?", bookingId: nil)
+        XCTAssertEqual(ticket.status, .open)
+        _ = try await backend.sendSupportMessage(ticketId: ticket.id, body: "Any news?")
+        let messages = try await backend.supportMessages(ticketId: ticket.id)
+        XCTAssertEqual(messages.map(\.body), ["Where is my refund?", "Any news?"])
+        let closed = try await backend.closeSupportTicket(id: ticket.id)
+        XCTAssertEqual(closed.status, .closed)
+        let tickets = try await backend.supportTickets()
+        XCTAssertEqual(tickets.count, 1)
+    }
+
     func testCashBookingAccruesPlatformFee() async throws {
         let backend = MockBackend(latency: .zero)
         _ = try await backend.signIn(email: "studio@demo.sonora", password: MockData.demoPassword)
@@ -296,5 +310,17 @@ final class PostgresCodingTests: XCTestCase {
         XCTAssertTrue(account.settings.messages) // missing keys fall back to defaults
         XCTAssertNotNil(PostgresDate.parse("2026-09-24 10:00:00+00"))
         XCTAssertNotNil(PostgresDate.parse("2026-09-24T10:00:00"))
+    }
+
+    func testDecodesSupportRows() throws {
+        let json = """
+        {"id":"11111111-1111-1111-1111-111111111111","user_id":"22222222-2222-2222-2222-222222222222","subject":"Refund","category":"payment",
+         "booking_id":null,"status":"answered","user_unread":1,"admin_unread":0,"last_message_preview":"Sent","last_message_at":"2026-09-26T10:00:00.5+00:00",
+         "created_at":"2026-09-26T09:00:00+00:00","closed_at":null}
+        """
+        let ticket = try PostgresCoding.decoder().decode(SupportTicket.self, from: Data(json.utf8))
+        XCTAssertEqual(ticket.category, .payment)
+        XCTAssertEqual(ticket.status, .answered)
+        XCTAssertEqual(ticket.userUnread, 1)
     }
 }

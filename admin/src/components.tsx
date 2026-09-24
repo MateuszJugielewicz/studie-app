@@ -2,11 +2,11 @@ import { useState, type ReactNode } from "react";
 import { label } from "./lib/format";
 
 const tone: Record<string, string> = {
-  approved: "green", active: "green", confirmed: "green", completed: "blue", paid: "green", succeeded: "green", resolved: "green",
+  approved: "green", answered: "green", active: "green", confirmed: "green", completed: "blue", paid: "green", succeeded: "green", resolved: "green",
   pending_review: "orange", pending_approval: "orange", scheduled: "orange", open: "orange", authorized: "orange", in_transit: "orange", deposit_paid: "orange", pending: "orange",
   changes_requested: "yellow", partially_refunded: "yellow",
   rejected: "red", suspended: "red", banned: "red", failed: "red", disputed: "red",
-  cancelled: "gray", declined: "gray", expired: "gray", dismissed: "gray", draft: "gray", refunded: "gray", unpaid: "gray",
+  cancelled: "gray", closed: "gray", declined: "gray", expired: "gray", dismissed: "gray", draft: "gray", refunded: "gray", unpaid: "gray",
 };
 
 export function Badge({ value, text }: { value: string; text?: string }) {

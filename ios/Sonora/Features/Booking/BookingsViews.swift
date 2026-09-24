@@ -289,6 +289,9 @@ struct BookingDetailView: View {
             Button { sheet = .reportParty } label: {
                 Label(isStudio ? "Report artist" : "Report studio", systemImage: "flag")
             }
+            NavigationLink { SupportCenterView(booking: booking) } label: {
+                Label("Contact Sonora support", systemImage: "questionmark.circle")
+            }
         }
     }
 

@@ -24,6 +24,8 @@ final class MockBackend: Backend {
     private var disputes: [Dispute] = []
     private var notificationsById: [UUID: AppNotification] = [:]
     private var feeLedgerById: [UUID: FeeLedgerEntry] = [:]
+    private var supportTicketsById: [UUID: SupportTicket] = [:]
+    private var supportMessagesById: [UUID: SupportMessage] = [:]
     private var streams: [UUID: [UUID: AsyncStream<ChatMessage>.Continuation]] = [:]
     private var currentUserId: UUID?
 
@@ -813,6 +815,56 @@ final class MockBackend: Backend {
         var updated = conversation
         if user.id == conversation.artistId { updated.artistUnread = 0 } else { updated.studioUnread = 0 }
         conversationsById[id] = updated
+    }
+
+    // MARK: Support
+
+    func supportTickets() async throws -> [SupportTicket] {
+        let user = try requireUser()
+        return supportTicketsById.values.filter { $0.userId == user.id }.sorted { $0.lastMessageAt > $1.lastMessageAt }
+    }
+
+    func createSupportTicket(subject: String, category: SupportCategory, body: String, bookingId: UUID?) async throws -> SupportTicket {
+        let user = try requireUser()
+        let title = subject.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard title.count >= 3 else { throw BackendError.validation("Add a short subject.") }
+        let ticket = SupportTicket(id: UUID(), userId: user.id, subject: title, category: category, bookingId: bookingId, status: .open,
+                                   userUnread: 0, lastMessagePreview: "", lastMessageAt: .now, createdAt: .now)
+        supportTicketsById[ticket.id] = ticket
+        _ = try await sendSupportMessage(ticketId: ticket.id, body: body)
+        return supportTicketsById[ticket.id]!
+    }
+
+    func supportMessages(ticketId: UUID) async throws -> [SupportMessage] {
+        let user = try requireUser()
+        guard supportTicketsById[ticketId]?.userId == user.id else { throw BackendError.notFound }
+        return supportMessagesById.values.filter { $0.ticketId == ticketId }.sorted { $0.createdAt < $1.createdAt }
+    }
+
+    func sendSupportMessage(ticketId: UUID, body: String) async throws -> SupportMessage {
+        let user = try requireUser()
+        guard var ticket = supportTicketsById[ticketId], ticket.userId == user.id else { throw BackendError.notFound }
+        let text = body.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !text.isEmpty else { throw BackendError.validation("Write a message first.") }
+        let message = SupportMessage(id: UUID(), ticketId: ticketId, senderId: user.id, fromAdmin: false, body: text, createdAt: .now)
+        supportMessagesById[message.id] = message
+        ticket.status = .open
+        ticket.lastMessagePreview = String(text.prefix(140))
+        ticket.lastMessageAt = message.createdAt
+        supportTicketsById[ticketId] = ticket
+        return message
+    }
+
+    func markSupportTicketRead(id: UUID) async throws {
+        supportTicketsById[id]?.userUnread = 0
+    }
+
+    func closeSupportTicket(id: UUID) async throws -> SupportTicket {
+        let user = try requireUser()
+        guard var ticket = supportTicketsById[id], ticket.userId == user.id else { throw BackendError.notFound }
+        ticket.status = .closed
+        supportTicketsById[id] = ticket
+        return ticket
     }
 
     func messageStream(conversationId: UUID) -> AsyncStream<ChatMessage> {

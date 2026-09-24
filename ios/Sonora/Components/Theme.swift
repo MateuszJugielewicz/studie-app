@@ -1,7 +1,7 @@
 import SwiftUI
 import UIKit
 
-/// Sonora design tokens. Warm neutrals, one signal colour (the "REC" light), no gradients.
+/// Sonora design tokens. Neutral surfaces, one signal colour (the "REC" light) that glows into a neon gradient.
 /// Every colour adapts to light and dark mode.
 enum Theme {
     /// Signal red-orange, used sparingly: primary actions, selection, the logo dot.
@@ -19,7 +19,7 @@ enum Theme {
     static let positive = Color(light: 0x2F7D4F, dark: 0x5CC98A)
     static let warning = Color(light: 0xB86E00, dark: 0xF2A93B)
 
-    static let corner: CGFloat = 14
+    static let corner: CGFloat = 18
     static let spacing: CGFloat = 16
 }
 
@@ -77,8 +77,9 @@ struct SonoraLogo: View {
                 .font(.system(size: size, weight: .heavy))
                 .tracking(-size * 0.03)
             Circle()
-                .fill(Theme.accent)
+                .fill(Theme.neon)
                 .frame(width: size * 0.26, height: size * 0.26)
+                .neonGlow(Theme.accent, radius: size * 0.25)
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Sonora")
@@ -94,7 +95,10 @@ struct CardBackground: ViewModifier {
         content
             .padding(padding)
             .background(Theme.card, in: RoundedRectangle(cornerRadius: Theme.corner, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: Theme.corner, style: .continuous).strokeBorder(Theme.stroke))
+            .overlay(
+                RoundedRectangle(cornerRadius: Theme.corner, style: .continuous)
+                    .strokeBorder(LinearGradient(colors: [Color.primary.opacity(0.12), Color.primary.opacity(0.03)], startPoint: .topLeading, endPoint: .bottomTrailing))
+            )
     }
 }
 
@@ -106,15 +110,25 @@ struct PrimaryButtonStyle: ButtonStyle {
     @Environment(\.isEnabled) private var isEnabled
 
     func makeBody(configuration: Configuration) -> some View {
+        let shape = RoundedRectangle(cornerRadius: 16, style: .continuous)
         configuration.label
             .font(.body.weight(.semibold))
-            .frame(maxWidth: .infinity, minHeight: 52)
+            .frame(maxWidth: .infinity, minHeight: 54)
             .padding(.horizontal, 16)
-            .background(isEnabled ? Theme.accent : Theme.fill, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .background {
+                if isEnabled {
+                    shape.fill(Theme.neon)
+                        .overlay(shape.fill(LinearGradient(colors: [.white.opacity(0.22), .clear], startPoint: .top, endPoint: .center)))
+                } else {
+                    shape.fill(Theme.fill)
+                }
+            }
+            .overlay(shape.strokeBorder(Color.white.opacity(isEnabled ? 0.2 : 0), lineWidth: 0.8))
             .foregroundStyle(isEnabled ? Theme.onAccent : Color.secondary)
-            .opacity(configuration.isPressed ? 0.85 : 1)
-            .scaleEffect(configuration.isPressed ? 0.99 : 1)
-            .animation(.easeOut(duration: 0.12), value: configuration.isPressed)
+            .neonGlow(Theme.magenta, radius: configuration.isPressed ? 6 : 16, active: isEnabled)
+            .scaleEffect(configuration.isPressed ? 0.97 : 1)
+            .animation(.spring(response: 0.25, dampingFraction: 0.6), value: configuration.isPressed)
+            .sensoryFeedback(.impact(weight: .light), trigger: configuration.isPressed) { _, pressed in pressed }
     }
 }
 
@@ -122,12 +136,14 @@ struct SecondaryButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.body.weight(.semibold))
-            .frame(maxWidth: .infinity, minHeight: 52)
+            .frame(maxWidth: .infinity, minHeight: 54)
             .padding(.horizontal, 16)
-            .background(Theme.card, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(Color.primary.opacity(0.15)))
+            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(Color.primary.opacity(0.14)))
             .foregroundStyle(.primary)
-            .opacity(configuration.isPressed ? 0.7 : 1)
+            .scaleEffect(configuration.isPressed ? 0.97 : 1)
+            .opacity(configuration.isPressed ? 0.8 : 1)
+            .animation(.spring(response: 0.25, dampingFraction: 0.6), value: configuration.isPressed)
     }
 }
 

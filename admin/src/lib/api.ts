@@ -1,7 +1,7 @@
 import type {
   FeeBalance, FeeInvoice, MfaState,
   AccountStatus, AdminUser, Booking, BookingStatus, DashboardStats, Dispute, Payout, Report, ReportStatus,
-  ReportTargetDetails, Review, Studio, StudioEvent, Transaction,
+  ReportTargetDetails, Review, Studio, StudioEvent, SupportMessage, SupportStatus, SupportTicket, Transaction,
 } from "./types";
 
 export type StudioDecision = "approve" | "reject" | "request_changes";
@@ -44,4 +44,10 @@ export interface AdminApi {
   resolveReport(reportId: string, status: ReportStatus, note?: string): Promise<void>;
   reviews(): Promise<Review[]>;
   setReviewHidden(reviewId: string, hidden: boolean): Promise<void>;
+
+  supportTickets(): Promise<SupportTicket[]>;
+  supportMessages(ticketId: string): Promise<SupportMessage[]>;
+  replyToSupport(ticketId: string, body: string): Promise<void>;
+  markSupportRead(ticketId: string): Promise<void>;
+  setSupportStatus(ticketId: string, status: SupportStatus): Promise<void>;
 }

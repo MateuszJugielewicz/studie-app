@@ -28,6 +28,7 @@ Deno.serve(handler(async (req) => {
   );
   const messages = await admin.from("messages").select("conversation_id, kind, body, created_at").eq("sender_id", id);
   const payouts = studioIds.length ? await admin.from("payouts").select("*").in("studio_id", studioIds) : { data: [] };
+  const support = await admin.from("support_tickets").select("*, support_messages(from_admin, body, created_at)").eq("user_id", id);
   const fees = studioIds.length ? await admin.from("studio_fee_ledger").select("*").in("studio_id", studioIds) : { data: [] };
 
   return json({
@@ -43,6 +44,7 @@ Deno.serve(handler(async (req) => {
     platform_fees: fees.data,
     conversations: conversations.data,
     messages_sent: messages.data,
+    support_requests: support.data,
     reviews_written: reviews.data,
     reports_made: reports.data,
     notifications: notifications.data,

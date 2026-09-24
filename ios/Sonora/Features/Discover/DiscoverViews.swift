@@ -69,7 +69,8 @@ struct DiscoverView: View {
                                 NavigationLink(value: result.studio) {
                                     StudioCard(result: result, metric: metric)
                                 }
-                                .buttonStyle(.plain)
+                                .buttonStyle(PressableCardStyle())
+                                .scrollReveal()
                             }
                         }
                         .padding()
@@ -77,7 +78,7 @@ struct DiscoverView: View {
                     .refreshable { await model.load(app.backend) }
                 }
             }
-            .background(Theme.background)
+            .auroraBackground()
             .navigationTitle("Find a studio")
             .searchable(text: $model.filters.query, prompt: "Studio, area or city")
             .safeAreaInset(edge: .top) { toolbarRow(count: results.count) }
@@ -173,14 +174,23 @@ struct StudioCard: View {
                 .clipShape(RoundedRectangle(cornerRadius: Theme.corner, style: .continuous))
                 .overlay(alignment: .topLeading) {
                     if studio.bookingPolicy.instantBook {
-                        Text("Instant book")
-                            .font(.caption.weight(.semibold))
-                            .padding(.horizontal, 8).padding(.vertical, 4)
-                            .background(Theme.card, in: RoundedRectangle(cornerRadius: 6, style: .continuous))
-                            .foregroundStyle(.primary)
-                            .padding(10)
+                        HStack(spacing: 4) {
+                            Image(systemName: "bolt.fill").foregroundStyle(Theme.neon)
+                            Text("Instant book")
+                        }
+                        .font(.caption.weight(.semibold))
+                        .padding(.horizontal, 10).padding(.vertical, 6)
+                        .background(.ultraThinMaterial, in: Capsule())
+                        .overlay(Capsule().strokeBorder(Theme.glassEdge, lineWidth: 0.8))
+                        .foregroundStyle(.primary)
+                        .padding(10)
                     }
                 }
+                .overlay(
+                    RoundedRectangle(cornerRadius: Theme.corner, style: .continuous)
+                        .strokeBorder(Theme.glassEdge, lineWidth: 0.8)
+                )
+                .shadow(color: .black.opacity(0.14), radius: 16, y: 8)
 
             VStack(alignment: .leading, spacing: 3) {
                 HStack(alignment: .firstTextBaseline, spacing: 4) {
@@ -222,10 +232,18 @@ struct StudioMapView: View {
                     Text(Money.format(result.studio.priceFrom, currency: result.studio.currency))
                         .font(.caption.bold())
                         .padding(.horizontal, 8).padding(.vertical, 5)
-                        .background(selectedId == result.id ? Color.primary : Theme.card, in: Capsule())
-                        .foregroundStyle(selectedId == result.id ? Theme.background : Color.primary)
-                        .overlay(Capsule().strokeBorder(Color.primary.opacity(0.15)))
-                        .shadow(color: .black.opacity(0.12), radius: 3, y: 1)
+                        .background {
+                            if selectedId == result.id {
+                                Capsule().fill(Theme.neon)
+                            } else {
+                                Capsule().fill(.regularMaterial)
+                            }
+                        }
+                        .foregroundStyle(selectedId == result.id ? Theme.onAccent : Color.primary)
+                        .overlay(Capsule().strokeBorder(Color.white.opacity(0.3), lineWidth: 0.8))
+                        .neonGlow(selectedId == result.id ? Theme.magenta : Color.black, radius: selectedId == result.id ? 10 : 4)
+                        .scaleEffect(selectedId == result.id ? 1.12 : 1)
+                        .animation(.spring(response: 0.3, dampingFraction: 0.6), value: selectedId)
                 }
                 .tag(result.id)
             }
