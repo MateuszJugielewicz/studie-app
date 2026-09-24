@@ -14,10 +14,41 @@ struct Conversation: Codable, Identifiable, Hashable {
     var lastMessageAt: Date
     var artistUnread: Int
     var studioUnread: Int
+    /// nil on databases that predate message requests (treated as accepted).
+    var requestStatus: ConversationRequestStatus?
+    var startedByStudio: Bool?
+    var artistAvatarUrl: String?
 
     func unread(for role: UserRole) -> Int { role == .artist ? artistUnread : studioUnread }
 
+    var status: ConversationRequestStatus { requestStatus ?? .accepted }
+    /// A studio wrote first and the artist hasn't accepted yet.
+    var isPendingRequest: Bool { status == .pending }
+    var isDeclined: Bool { status == .declined }
+
+    /// Unread messages that count towards the tab badge. Requests and declined threads don't.
+    func badgeCount(for role: UserRole) -> Int {
+        if role == .artist && status != .accepted { return 0 }
+        return unread(for: role)
+    }
+
     func title(for role: UserRole) -> String { role == .artist ? studioName : artistName }
+}
+
+enum ConversationRequestStatus: String, Codable, Hashable {
+    case accepted, pending, declined
+}
+
+/// Artist found by a studio when starting a new conversation.
+struct ArtistSearchResult: Codable, Identifiable, Hashable {
+    let id: UUID
+    var artistName: String
+    var city: String
+    var genres: [String]
+    var avatarUrl: String?
+    var isVerified: Bool
+    /// Has booked this studio before (skips the message request).
+    var hasBooked: Bool
 }
 
 struct ChatMessage: Codable, Identifiable, Hashable {
@@ -110,8 +141,8 @@ enum SupportTicketStatus: String, Codable, Hashable {
 
     var title: String {
         switch self {
-        case .open: "Waiting for Sonora"
-        case .answered: "Sonora replied"
+        case .open: "Waiting for EasySesh"
+        case .answered: "EasySesh replied"
         case .closed: "Closed"
         }
     }

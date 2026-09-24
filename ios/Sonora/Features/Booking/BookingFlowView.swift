@@ -418,7 +418,7 @@ enum CalendarExporter {
         event.title = "\(booking.sessionTypeName) · \(booking.studioName)"
         event.startDate = booking.startsAt
         event.endDate = booking.endsAt
-        event.notes = "Sonora booking \(booking.reference)"
+        event.notes = "EasySesh booking \(booking.reference)"
         event.calendar = store.defaultCalendarForNewEvents
         event.addAlarm(EKAlarm(relativeOffset: -3600))
         try store.save(event, span: .thisEvent)

@@ -1,10 +1,10 @@
 <!-- DRAFT – must be reviewed by a qualified lawyer before launch. Replace every [PLACEHOLDER]. -->
 # Terms & Conditions
 
-Version 2026-09-25 · Operated by [COMPANY NAME], [ADDRESS], company no. [CVR/VAT NO.] ("Sonora", "we").
+Version 2026-09-25 · Operated by [COMPANY NAME], [ADDRESS], company no. [CVR/VAT NO.] ("EasySesh", "we").
 
-## 1. What Sonora is
-Sonora is an online marketplace that connects music artists ("Artists") with recording studios ("Studios"). Sonora is not a party to the session agreement between an Artist and a Studio. The Studio provides the session and is responsible for it. Sonora provides the platform, payment handling and customer support.
+## 1. What EasySesh is
+EasySesh is an online marketplace that connects music artists ("Artists") with recording studios ("Studios"). EasySesh is not a party to the session agreement between an Artist and a Studio. The Studio provides the session and is responsible for it. EasySesh provides the platform, payment handling and customer support.
 
 ## 2. Accounts
 - You must be at least 18 years old, or have permission from a parent or guardian, to create an account.
@@ -13,7 +13,7 @@ Sonora is an online marketplace that connects music artists ("Artists") with rec
 - One person or company may hold only one studio account unless we agree otherwise in writing.
 
 ## 3. Studios must be approved
-Studios apply by creating a studio listing. Sonora reviews every application and may approve it, reject it or request changes. A studio is only visible to Artists, and the owner only gets access to studio tools (bookings, calendar, payouts, messaging with artists), once Sonora has approved it. We may suspend or remove a studio at any time if it breaks these terms, the Studio Agreement or the law.
+Studios apply by creating a studio listing. EasySesh reviews every application and may approve it, reject it or request changes. A studio is only visible to Artists, and the owner only gets access to studio tools (bookings, calendar, payouts, messaging with artists), once EasySesh has approved it. We may suspend or remove a studio at any time if it breaks these terms, the Studio Agreement or the law.
 
 ## 4. Bookings
 - A booking is made when the Artist completes checkout (instant booking) or when the Studio accepts a request (request to book).
@@ -22,10 +22,10 @@ Studios apply by creating a studio listing. Sonora reviews every application and
 - Changes of date or time require an available slot and are confirmed in the app.
 
 ## 5. Payments
-- Card and Apple Pay payments are processed by our payment provider, Stripe. Sonora never stores full card numbers.
-- Sonora collects card payments on behalf of the Studio as a limited payment collection agent. When you pay Sonora, your payment obligation to the Studio is fulfilled.
-- Where a Studio allows it, the Artist may choose to **pay cash at the studio**. The Artist then pays the Studio directly, and Sonora does not handle the money.
-- Sonora charges a **platform fee of 10%** of the price of every booking, paid by the Studio. For card payments it is deducted from the Studio's payout. For cash payments the Studio owes it to Sonora (see the Studio Agreement).
+- Card and Apple Pay payments are processed by our payment provider, Stripe. EasySesh never stores full card numbers.
+- EasySesh collects card payments on behalf of the Studio as a limited payment collection agent. When you pay EasySesh, your payment obligation to the Studio is fulfilled.
+- Where a Studio allows it, the Artist may choose to **pay cash at the studio**. The Artist then pays the Studio directly, and EasySesh does not handle the money.
+- EasySesh charges a **platform fee of 10%** of the price of every booking, paid by the Studio. For card payments it is deducted from the Studio's payout. For cash payments the Studio owes it to EasySesh (see the Studio Agreement).
 - Some Studios require a deposit. The rest is charged automatically to the same card after the session.
 
 ## 6. Cancellations and refunds
@@ -35,11 +35,11 @@ Because sessions are leisure services booked for a specific date, the EU 14-day 
 
 ## 7. Reviews and content
 - Only Artists with a completed booking can review a Studio. Reviews must be honest and based on your own experience.
-- You keep the rights to content you upload (photos, texts). You give Sonora a non-exclusive, worldwide, royalty-free licence to show it on the platform and in marketing of the platform for as long as it is on Sonora.
+- You keep the rights to content you upload (photos, texts). You give EasySesh a non-exclusive, worldwide, royalty-free licence to show it on the platform and in marketing of the platform for as long as it is on EasySesh.
 - We may remove content that breaks our Community Guidelines.
 
 ## 8. Messaging
-Messages are for arranging bookings. Don't use Sonora's chat to move a booking made on Sonora outside the platform, or to avoid the platform fee.
+Messages are for arranging bookings. Don't use EasySesh's chat to move a booking made on EasySesh outside the platform, or to avoid the platform fee.
 
 ## 9. Prohibited conduct
 You must not break the law, harass others, post false information or fake reviews, try to get around payments or the platform fee, misuse other people's data, or interfere with the security of the service.
@@ -49,7 +49,7 @@ You can report users, studios, reviews and messages in the app. We review report
 
 ## 11. Liability
 - The Studio is responsible for the session, its premises and its equipment. The Artist is responsible for any damage they cause at the Studio.
-- Sonora is not liable for indirect losses or lost profits, or for the acts of Artists or Studios. Our total liability to you is limited to the fees Sonora received in connection with the booking in question. Nothing in these terms limits liability that cannot be limited by law, including your statutory rights as a consumer.
+- EasySesh is not liable for indirect losses or lost profits, or for the acts of Artists or Studios. Our total liability to you is limited to the fees EasySesh received in connection with the booking in question. Nothing in these terms limits liability that cannot be limited by law, including your statutory rights as a consumer.
 
 ## 12. Disputes
 Contact us first at [SUPPORT EMAIL], or report a problem on the booking in the app. We try to resolve disputes between Artists and Studios within 14 days. EU consumers can also use the EU complaints portal: https://ec.europa.eu/consumers/odr.

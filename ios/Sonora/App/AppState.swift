@@ -100,7 +100,7 @@ final class AppState {
         guard account != nil else { return }
         notifications = (try? await backend.notifications()) ?? notifications
         if let conversations = try? await backend.conversations() {
-            unreadMessages = conversations.reduce(0) { $0 + $1.unread(for: role) }
+            unreadMessages = conversations.reduce(0) { $0 + $1.badgeCount(for: role) }
         }
         push.setBadge(unreadNotifications)
     }

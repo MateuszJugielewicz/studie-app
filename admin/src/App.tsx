@@ -33,7 +33,7 @@ function Icon({ name }: { name: string }) {
 export function Logo({ big = false, tag }: { big?: boolean; tag?: string }) {
   return (
     <div className={big ? "logo big" : "logo"}>
-      sonora<span className="dot" />
+      easysesh<span className="dot" />
       {tag && <span className="tag">{tag}</span>}
     </div>
   );

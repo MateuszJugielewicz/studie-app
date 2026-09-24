@@ -169,6 +169,42 @@ select (send_support_message((select id from support_tickets), 'Refund sent toda
 set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
 set request.jwt.claims = '{}';
 select 'ticket answered' as label, status, user_unread, (select count(*) from support_messages) as n from support_tickets;
-select 'support notified' as label, count(*) as n from notifications where title = 'Sonora support replied';
+select 'support notified' as label, count(*) as n from notifications where title = 'EasySesh support replied';
 select 'ticket closed' as label, (set_support_ticket_status((select id from support_tickets), 'closed')).status as status;
+reset role;
+
+-- message requests: studio writes to a new artist → request; artist declines → studio blocked
+insert into auth.users (id, email, raw_user_meta_data) values ('00000000-0000-0000-0000-00000000000d', 'new@x.io', '{"role":"artist"}');
+update artist_profiles set artist_name = 'Luna Beats' where id = '00000000-0000-0000-0000-00000000000d';
+update artist_profiles set artist_name = 'Nova' where id = '00000000-0000-0000-0000-00000000000a';
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000b';
+set request.jwt.claims = '{}';
+select 'artist search' as label, count(*) as n from search_artists('luna');
+select 'known artist' as label, (studio_start_conversation('00000000-0000-0000-0000-00000000000a', 'Hi again!')).request_status as status;
+select 'cold request' as label, (studio_start_conversation('00000000-0000-0000-0000-00000000000d', 'Want to record with us?')).request_status as status;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000d';
+select 'request notified' as label, count(*) as n from notifications where title like 'Message request%';
+select 'declined' as label, (respond_message_request((select id from conversations where artist_id = auth.uid()), false)).request_status as status;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000b';
+do $$ begin
+  perform studio_start_conversation('00000000-0000-0000-0000-00000000000d', 'Hello??');
+  create temp table declined_block as select 'NOT BLOCKED' r;
+exception when others then create temp table declined_block as select 'declined request blocks studio' r;
+end $$;
+select * from declined_block;
+do $$ begin
+  insert into messages (conversation_id, sender_id, kind, body)
+  select id, auth.uid(), 'text', 'sneaky' from conversations where artist_id = '00000000-0000-0000-0000-00000000000d';
+  create temp table declined_insert as select 'NOT BLOCKED' r;
+exception when others then create temp table declined_insert as select 'declined direct insert blocked' r;
+end $$;
+select * from declined_insert;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
+do $$ begin
+  perform search_artists('luna');
+  create temp table artist_search as select 'NOT BLOCKED' r;
+exception when others then create temp table artist_search as select 'artist cannot search artists' r;
+end $$;
+select * from artist_search;
 reset role;

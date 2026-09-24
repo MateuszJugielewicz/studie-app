@@ -53,7 +53,7 @@ export default function OverviewPage() {
                     ))}
                   </tbody>
                 </table>
-                <p className="muted small">Sales = completed sessions in the period. Sonora earns 10% of every sale; for cash sales the studio owes the fee ("Fees owed" is the current outstanding total).</p>
+                <p className="muted small">Sales = completed sessions in the period. EasySesh earns 10% of every sale; for cash sales the studio owes the fee ("Fees owed" is the current outstanding total).</p>
               </div>
               <div className="card">
                 <h3>Bookings per day</h3>

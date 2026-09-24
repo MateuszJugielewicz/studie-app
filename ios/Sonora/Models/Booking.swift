@@ -169,7 +169,7 @@ struct Dispute: Codable, Identifiable, Hashable {
 
 /// GDPR data export (art. 15 / 20).
 struct PersonalDataExport: Encodable {
-    var notice = "This file contains the personal data Sonora holds about you. Card numbers are held by our payment provider (Stripe) and never stored by Sonora."
+    var notice = "This file contains the personal data EasySesh holds about you. Card numbers are held by our payment provider (Stripe) and never stored by EasySesh."
     var exportedAt: Date
     var account: UserAccount
     var artistProfile: ArtistProfile?

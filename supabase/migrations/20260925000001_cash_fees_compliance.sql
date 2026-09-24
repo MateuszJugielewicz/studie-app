@@ -1,12 +1,12 @@
--- Sonora: cash payments, platform-fee ledger for studios, terms acceptance (GDPR) and approval gating.
+-- EasySesh: cash payments, platform-fee ledger for studios, terms acceptance (GDPR) and approval gating.
 --
--- Money model: Sonora takes 10% of every sale (price ->> 'studio_commission').
---  * Card:  the artist pays Sonora, Sonora pays the studio 90% (payouts).
---  * Cash:  the artist pays the studio at the session; the studio owes Sonora 10%.
+-- Money model: EasySesh takes 10% of every sale (price ->> 'studio_commission').
+--  * Card:  the artist pays EasySesh, EasySesh pays the studio 90% (payouts).
+--  * Cash:  the artist pays the studio at the session; the studio owes EasySesh 10%.
 --           Owed fees are netted against the studio's next card payouts, invoiced, or paid manually.
 
 -- ---------------------------------------------------------------------------
--- Fee ledger: positive = studio owes Sonora, negative = settled.
+-- Fee ledger: positive = studio owes EasySesh, negative = settled.
 -- ---------------------------------------------------------------------------
 create table public.studio_fee_ledger (
   id uuid primary key default gen_random_uuid(),

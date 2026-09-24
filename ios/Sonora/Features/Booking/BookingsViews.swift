@@ -109,53 +109,83 @@ struct MonthCalendar: View {
     var markedDays: Set<Date>
     var blockedDays: Set<Date> = []
     @State private var month = Date.now
+    @Namespace private var selection
 
     private var calendar: Calendar { .current }
 
     var body: some View {
-        VStack(spacing: 10) {
+        VStack(spacing: 12) {
             HStack {
-                Button { shift(-1) } label: { Image(systemName: "chevron.left") }
+                GlassIconButton(symbol: "chevron.left", label: "Previous month") { shift(-1) }
                 Spacer()
-                Text(month.formatted(.dateTime.month(.wide).year())).font(.headline)
+                Text(month.formatted(.dateTime.month(.wide).year()))
+                    .font(.headline.weight(.bold))
+                    .contentTransition(.numericText())
                 Spacer()
-                Button { shift(1) } label: { Image(systemName: "chevron.right") }
+                GlassIconButton(symbol: "chevron.right", label: "Next month") { shift(1) }
             }
-            .buttonStyle(.plain)
 
             let symbols = calendar.veryShortWeekdaySymbols
             let ordered = Array(symbols[(calendar.firstWeekday - 1)...] + symbols[..<(calendar.firstWeekday - 1)])
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 7), spacing: 8) {
-                ForEach(Array(ordered.enumerated()), id: \.offset) { Text($0.element).font(.caption).foregroundStyle(.secondary) }
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 7), spacing: 6) {
+                ForEach(Array(ordered.enumerated()), id: \.offset) { Text($0.element).font(.caption2.weight(.bold)).foregroundStyle(.secondary) }
                 ForEach(Array(days().enumerated()), id: \.offset) { _, day in
                     if let day {
-                        let isSelected = calendar.isDate(day, inSameDayAs: selectedDay)
-                        Button { selectedDay = day } label: {
-                            VStack(spacing: 3) {
-                                Text(day.formatted(.dateTime.day()))
-                                    .font(.subheadline.weight(calendar.isDateInToday(day) ? .bold : .regular))
-                                    .frame(width: 32, height: 32)
-                                    .foregroundStyle(isSelected ? Theme.onAccent : Color.primary)
-                                    .background(isSelected ? Theme.accent : Color.clear, in: Circle())
-                                HStack(spacing: 2) {
-                                    Circle().fill(markedDays.contains(day) ? Theme.accent : .clear).frame(width: 5, height: 5)
-                                    Circle().fill(blockedDays.contains(day) ? Color.red : Color.clear).frame(width: 5, height: 5)
-                                }
-                            }
-                        }
-                        .buttonStyle(.plain)
+                        dayCell(day)
                     } else {
-                        Color.clear.frame(height: 40)
+                        Color.clear.frame(height: 42)
                     }
                 }
             }
+            .id(month)
+            .transition(.opacity.combined(with: .scale(scale: 0.97)))
         }
-        .card()
+        .glassCard(padding: 14, cornerRadius: 24)
+        .haptic(.selection, trigger: selectedDay)
         .onAppear { month = selectedDay }
     }
 
+    private func dayCell(_ day: Date) -> some View {
+        let isSelected = calendar.isDate(day, inSameDayAs: selectedDay)
+        let isToday = calendar.isDateInToday(day)
+        return Button {
+            withAnimation(.spring(response: 0.35, dampingFraction: 0.7)) { selectedDay = day }
+        } label: {
+            VStack(spacing: 3) {
+                Text(day.formatted(.dateTime.day()))
+                    .font(.subheadline.weight(isSelected || isToday ? .bold : .regular))
+                    .frame(width: 34, height: 34)
+                    .foregroundStyle(isSelected ? Theme.onAccent : Color.primary)
+                    .background {
+                        if isSelected {
+                            Circle().fill(Theme.neon)
+                                .neonGlow(Theme.magenta, radius: 8)
+                                .matchedGeometryEffect(id: "selectedDay", in: selection)
+                        } else if isToday {
+                            Circle().strokeBorder(Theme.neon, lineWidth: 1.5)
+                        }
+                    }
+                HStack(spacing: 3) {
+                    if markedDays.contains(day) {
+                        Circle().fill(Theme.neon).frame(width: 5, height: 5)
+                    }
+                    if blockedDays.contains(day) {
+                        Circle().fill(Color.red).frame(width: 5, height: 5)
+                    }
+                }
+                .frame(height: 5)
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(day.formatted(date: .complete, time: .omitted))
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
+    }
+
     private func shift(_ months: Int) {
-        month = calendar.date(byAdding: .month, value: months, to: month) ?? month
+        withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) {
+            month = calendar.date(byAdding: .month, value: months, to: month) ?? month
+        }
     }
 
     private func days() -> [Date?] {
@@ -290,7 +320,7 @@ struct BookingDetailView: View {
                 Label(isStudio ? "Report artist" : "Report studio", systemImage: "flag")
             }
             NavigationLink { SupportCenterView(booking: booking) } label: {
-                Label("Contact Sonora support", systemImage: "questionmark.circle")
+                Label("Contact EasySesh support", systemImage: "questionmark.circle")
             }
         }
     }
@@ -299,7 +329,7 @@ struct BookingDetailView: View {
         Section {
             if isStudio {
                 PriceRow(title: "Session price", amount: booking.price.subtotal, currency: booking.price.currency)
-                PriceRow(title: "Sonora platform fee (\(PlatformConfig.platformFeePercent)%)", amount: -booking.price.studioCommission, currency: booking.price.currency)
+                PriceRow(title: "EasySesh platform fee (\(PlatformConfig.platformFeePercent)%)", amount: -booking.price.studioCommission, currency: booking.price.currency)
                 PriceRow(title: booking.isCash ? "Yours to keep" : "Your payout", amount: booking.price.studioPayout, currency: booking.price.currency, emphasized: true)
             } else {
                 PriceBreakdownView(price: booking.price)
@@ -325,7 +355,7 @@ struct BookingDetailView: View {
         } footer: {
             if booking.isCash {
                 Text(isStudio
-                     ? "Cash booking: collect \(Money.format(booking.price.total, currency: booking.price.currency)) at the session. Sonora's \(PlatformConfig.platformFeePercent)% fee is deducted from your next payout or invoiced."
+                     ? "Cash booking: collect \(Money.format(booking.price.total, currency: booking.price.currency)) at the session. EasySesh's \(PlatformConfig.platformFeePercent)% fee is deducted from your next payout or invoiced."
                      : "Pay \(Money.format(booking.price.total, currency: booking.price.currency)) in cash at the studio.")
             }
         }
@@ -576,7 +606,7 @@ struct ReceiptView: View {
             Section {
                 ShareLink(item: receiptText) { Label("Share receipt", systemImage: "square.and.arrow.up") }
             } footer: {
-                Text("Sonora acts as payment agent for the studio. The service fee includes VAT where applicable.")
+                Text("EasySesh acts as payment agent for the studio. The service fee includes VAT where applicable.")
             }
         }
         .navigationTitle("Receipt")

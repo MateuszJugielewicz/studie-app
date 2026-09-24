@@ -42,7 +42,7 @@ struct ApplicationStatusView: View {
                     Text(statusText).foregroundStyle(.secondary)
                     if let note = studio.adminNote, !note.isEmpty {
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("Message from the Sonora team").font(.caption.bold())
+                            Text("Message from the EasySesh team").font(.caption.bold())
                             Text(note)
                         }
                         .padding()
@@ -56,7 +56,7 @@ struct ApplicationStatusView: View {
             Section {
                 ApplicationStep(title: "Create your listing", done: true)
                 ApplicationStep(title: "Submit for review", done: studio.status != .draft)
-                ApplicationStep(title: "Sonora reviews your studio", done: studio.status == .approved, active: studio.status == .pendingReview)
+                ApplicationStep(title: "EasySesh reviews your studio", done: studio.status == .approved, active: studio.status == .pendingReview)
                 ApplicationStep(title: "Go live – artists can find, book and pay", done: studio.status == .approved)
             }
 
@@ -122,10 +122,17 @@ struct ApplicationStep: View {
 
 struct StudioTabView: View {
     @Environment(AppState.self) private var app
+    @Environment(AppPreferences.self) private var preferences
+
+    /// The walkthrough plays once, the first time an approved studio opens the app.
+    private var tour: TabTour? {
+        guard let studio = app.ownedStudio, studio.status == .approved, !preferences.hasCompletedTour(studioId: studio.id) else { return nil }
+        return .studioApproved { preferences.completeTour(studioId: studio.id) }
+    }
 
     var body: some View {
         @Bindable var app = app
-        SonoraTabContainer(selection: $app.selectedTab, tabs: [
+        SonoraTabContainer(selection: $app.selectedTab, tour: tour, tabs: [
             TabSpec(tab: .dashboard, title: "Dashboard", symbol: "square.grid.2x2"),
             TabSpec(tab: .calendar, title: "Calendar", symbol: "calendar"),
             TabSpec(tab: .messages, title: "Messages", symbol: "bubble.left.and.bubble.right", badge: app.unreadMessages),
@@ -174,14 +181,14 @@ struct StudioDashboardView: View {
     var body: some View {
         NavigationStack(path: $path) {
             if let studio = app.ownedStudio {
-                ScrollView {
+                SonoraScreen(studio.name, eyebrow: Date.now.greeting, refresh: { await reload(studio) }) {
+                    NavigationLink { StudioDetailView(studioId: studio.id, initial: studio) } label: { GlassIcon(symbol: "eye") }
+                        .buttonStyle(PressableCardStyle())
+                        .accessibilityLabel("Preview public profile")
+                } content: {
                     StudioDashboardContent(studio: studio, model: model)
-                        .padding()
                 }
-                .auroraBackground()
-                .navigationTitle(studio.name)
                 .navigationDestination(for: Booking.self) { BookingDetailView(bookingId: $0.id, initial: $0) }
-                .refreshable { await reload(studio) }
                 .task { await reload(studio) }
                 .onChange(of: path.count) {
                     if path.isEmpty { Task { await reload(studio) } }
@@ -205,18 +212,24 @@ private struct StudioDashboardContent: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 24) {
+        VStack(alignment: .leading, spacing: 16) {
             if studio.status == .suspended {
-                Label("Your studio is suspended and hidden from artists. Contact support.", systemImage: "exclamationmark.octagon.fill")
-                    .foregroundStyle(.red)
-                    .card()
+                HStack(spacing: 12) {
+                    IconTile(symbol: "exclamationmark.octagon.fill", colors: [Color.red, Theme.magenta])
+                    Text("Your studio is suspended and hidden from artists. Contact support.").font(.subheadline)
+                }
+                .glassCard()
             }
             LiveToggleCard(studio: studio)
+            EarningsHeroCard(studio: studio, summary: summary)
             stats
             if model.feesOwed > 0 {
-                Label("You owe \(Money.format(model.feesOwed, currency: studio.currency)) in platform fees for cash bookings. It's deducted from your next payout.", systemImage: "banknote")
-                    .font(.footnote)
-                    .card()
+                HStack(spacing: 12) {
+                    IconTile(symbol: "banknote", colors: TilePalette.violet)
+                    Text("You owe \(Money.format(model.feesOwed, currency: studio.currency)) in platform fees for cash bookings. It's deducted from your next payout.")
+                        .font(.footnote)
+                }
+                .glassCard()
             }
             requests
             upcoming
@@ -225,21 +238,27 @@ private struct StudioDashboardContent: View {
     }
 
     private var stats: some View {
-        LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)], spacing: 12) {
-            StatCard(title: "Earned this month", value: Money.format(summary.netThisMonth, currency: studio.currency), symbol: "chart.line.uptrend.xyaxis")
-            StatCard(title: "Next payouts", value: Money.format(summary.pendingPayout, currency: studio.currency), symbol: "banknote")
-            StatCard(title: "Upcoming sessions", value: "\(summary.upcomingSessions)", symbol: "calendar")
-            StatCard(title: "Rating", value: studio.reviewCount == 0 ? "–" : String(format: "%.1f", studio.ratingAverage), symbol: "star")
+        HStack(spacing: 10) {
+            StatCard(title: "Upcoming", value: "\(summary.upcomingSessions)", symbol: "calendar", colors: TilePalette.ocean)
+            StatCard(title: "Requests", value: "\(model.requests.count)", symbol: "tray.and.arrow.down", colors: TilePalette.signal)
+            StatCard(title: "Rating", value: studio.reviewCount == 0 ? "–" : String(format: "%.1f", studio.ratingAverage), symbol: "star.fill", colors: TilePalette.violet)
         }
     }
 
     @ViewBuilder private var requests: some View {
         if !model.requests.isEmpty {
             VStack(alignment: .leading, spacing: 10) {
-                SectionHeader(title: "Requests · \(model.requests.count)")
+                GlowSectionHeader(title: "Requests", count: model.requests.count)
                 ForEach(model.requests) { booking in
-                    NavigationLink(value: booking) { BookingRow(booking: booking, perspective: .studioOwner).card(padding: 12) }
-                        .buttonStyle(.plain)
+                    NavigationLink(value: booking) {
+                        BookingRow(booking: booking, perspective: .studioOwner)
+                            .glassCard(padding: 12)
+                            .overlay(alignment: .leading) {
+                                Capsule().fill(Theme.neon).frame(width: 3).padding(.vertical, 14)
+                            }
+                    }
+                    .buttonStyle(PressableCardStyle())
+                    .scrollReveal()
                 }
             }
         }
@@ -247,43 +266,92 @@ private struct StudioDashboardContent: View {
 
     private var upcoming: some View {
         VStack(alignment: .leading, spacing: 10) {
-            SectionHeader(title: "Upcoming")
+            GlowSectionHeader(title: "Upcoming")
             if model.upcoming.isEmpty {
-                Text("No upcoming bookings yet.").foregroundStyle(.secondary)
+                GlassEmptyState(title: "No upcoming sessions", symbol: "calendar.badge.clock", message: "New bookings show up here the moment artists book.")
             }
             ForEach(model.upcoming.prefix(5)) { booking in
-                NavigationLink(value: booking) { BookingRow(booking: booking, perspective: .studioOwner).card(padding: 12) }
-                    .buttonStyle(.plain)
+                NavigationLink(value: booking) { BookingRow(booking: booking, perspective: .studioOwner).glassCard(padding: 12) }
+                    .buttonStyle(PressableCardStyle())
+                    .scrollReveal()
             }
         }
     }
 
     private var manage: some View {
         VStack(alignment: .leading, spacing: 10) {
-            SectionHeader(title: "Manage")
+            GlowSectionHeader(title: "Manage")
             VStack(spacing: 0) {
-                ManageLink(title: "Earnings & payouts", symbol: "chart.bar") {
+                ManageLink(title: "Earnings & payouts", symbol: "chart.bar.fill", colors: TilePalette.mint) {
                     EarningsView(studio: studio, bookings: model.bookings, payouts: model.payouts, fees: model.fees)
                 }
-                Divider().padding(.leading, 48)
-                ManageLink(title: "Past bookings", symbol: "clock.arrow.circlepath") {
+                Divider().padding(.leading, 60)
+                ManageLink(title: "Past bookings", symbol: "clock.arrow.circlepath", colors: TilePalette.ocean) {
                     StudioBookingListView(title: "Past bookings", bookings: model.past)
                 }
-                Divider().padding(.leading, 48)
-                ManageLink(title: "Prices & services", symbol: "tag") {
+                Divider().padding(.leading, 60)
+                ManageLink(title: "Prices & services", symbol: "tag.fill", colors: TilePalette.signal) {
                     StudioSectionEditor(title: "Prices & services") { StudioPricingEditor(studio: $0) }
                 }
-                Divider().padding(.leading, 48)
-                ManageLink(title: "Opening hours", symbol: "clock") {
+                Divider().padding(.leading, 60)
+                ManageLink(title: "Opening hours", symbol: "clock.fill", colors: TilePalette.violet) {
                     StudioSectionEditor(title: "Opening hours") { OpeningHoursEditor(hours: $0.openingHours) }
                 }
-                Divider().padding(.leading, 48)
-                ManageLink(title: "Reviews · \(model.reviews.count)", symbol: "star") {
+                Divider().padding(.leading, 60)
+                ManageLink(title: "Reviews", symbol: "star.bubble.fill", colors: [Theme.warning, Theme.accent], badge: model.reviews.count) {
                     ReviewsListView(studio: studio, reviews: model.reviews, canReply: true)
                 }
             }
-            .background(Theme.card, in: RoundedRectangle(cornerRadius: Theme.corner, style: .continuous))
+            .glassCard(padding: 0)
         }
+    }
+}
+
+/// Neon card with this month's earnings and a six-month trend line.
+private struct EarningsHeroCard: View {
+    let studio: Studio
+    let summary: EarningsSummary
+
+    var body: some View {
+        let shape = RoundedRectangle(cornerRadius: 26, style: .continuous)
+        VStack(alignment: .leading, spacing: 14) {
+            HStack {
+                Text("Earned this month").font(.subheadline.weight(.semibold)).opacity(0.85)
+                Spacer()
+                Image(systemName: "waveform").font(.subheadline.weight(.bold)).opacity(0.8)
+            }
+            Text(Money.format(summary.netThisMonth, currency: studio.currency))
+                .font(.system(size: 40, weight: .heavy))
+                .monospacedDigit()
+                .contentTransition(.numericText())
+                .lineLimit(1)
+                .minimumScaleFactor(0.6)
+            Chart(summary.monthly) { item in
+                AreaMark(x: .value("Month", item.month, unit: .month), y: .value("Earnings", Double(item.amount) / 100))
+                    .interpolationMethod(.catmullRom)
+                    .foregroundStyle(LinearGradient(colors: [.white.opacity(0.45), .white.opacity(0)], startPoint: .top, endPoint: .bottom))
+                LineMark(x: .value("Month", item.month, unit: .month), y: .value("Earnings", Double(item.amount) / 100))
+                    .interpolationMethod(.catmullRom)
+                    .lineStyle(StrokeStyle(lineWidth: 2.5, lineCap: .round))
+                    .foregroundStyle(.white)
+            }
+            .chartXAxis(.hidden)
+            .chartYAxis(.hidden)
+            .frame(height: 64)
+            HStack {
+                Label("Next payout \(Money.format(summary.pendingPayout, currency: studio.currency))", systemImage: "arrow.down.circle.fill")
+                Spacer()
+                Text("\(PlatformConfig.platformFeePercent)% platform fee").opacity(0.75)
+            }
+            .font(.caption.weight(.semibold))
+        }
+        .foregroundStyle(.white)
+        .padding(18)
+        .background(Theme.neon, in: shape)
+        .overlay(shape.fill(LinearGradient(colors: [.white.opacity(0.22), .clear], startPoint: .top, endPoint: .center)))
+        .overlay(shape.strokeBorder(Color.white.opacity(0.3), lineWidth: 0.8))
+        .neonGlow(Theme.magenta, radius: 20)
+        .accessibilityElement(children: .combine)
     }
 }
 
@@ -325,21 +393,26 @@ struct StudioSectionEditor<Content: View>: View {
 struct ManageLink<Destination: View>: View {
     let title: String
     let symbol: String
+    var colors: [Color] = TilePalette.signal
+    var badge: Int = 0
     @ViewBuilder let destination: () -> Destination
 
     var body: some View {
         NavigationLink(destination: destination) {
             HStack(spacing: 14) {
-                Image(systemName: symbol).frame(width: 20).foregroundStyle(.secondary)
-                Text(title)
+                IconTile(symbol: symbol, size: 32, colors: colors)
+                Text(localized: title).font(.body.weight(.medium))
                 Spacer()
+                if badge > 0 {
+                    Text("\(badge)").font(.subheadline).monospacedDigit().foregroundStyle(.secondary)
+                }
                 Image(systemName: "chevron.right").font(.caption.weight(.semibold)).foregroundStyle(.tertiary)
             }
             .padding(.horizontal, 14)
-            .padding(.vertical, 13)
+            .padding(.vertical, 11)
             .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(PressableCardStyle())
     }
 }
 
@@ -351,18 +424,26 @@ struct LiveToggleCard: View {
     var body: some View {
         Toggle(isOn: Binding(get: { studio.isActive }, set: { newValue in
             Task {
-                do { app.ownedStudio = try await app.backend.setStudioActive(id: studio.id, isActive: newValue) }
-                catch { self.error = error.userMessage }
+                do {
+                    let updated = try await app.backend.setStudioActive(id: studio.id, isActive: newValue)
+                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) { app.ownedStudio = updated }
+                } catch { self.error = error.userMessage }
             }
         })) {
-            VStack(alignment: .leading) {
-                Text(studio.isActive ? "Live on Sonora" : "Paused").font(.headline)
-                Text(studio.isActive ? "Artists can find and book you." : "Hidden from search. Existing bookings are kept.")
-                    .font(.caption).foregroundStyle(.secondary)
+            HStack(spacing: 12) {
+                PulseDot(color: Theme.positive, isActive: studio.isActive)
+                    .id(studio.isActive)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(studio.isActive ? "Live on EasySesh" : "Paused").font(.headline)
+                    Text(studio.isActive ? "Artists can find and book you." : "Hidden from search. Existing bookings are kept.")
+                        .font(.caption).foregroundStyle(.secondary)
+                }
             }
         }
+        .tint(Theme.positive)
         .disabled(studio.status != .approved)
-        .card()
+        .glassCard()
+        .haptic(.success, trigger: studio.isActive)
         .errorAlert($error)
     }
 }
@@ -371,21 +452,24 @@ struct StatCard: View {
     let title: String
     let value: String
     let symbol: String
+    var colors: [Color] = TilePalette.signal
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Image(systemName: symbol).font(.subheadline).foregroundStyle(.secondary)
-            VStack(alignment: .leading, spacing: 2) {
+        VStack(alignment: .leading, spacing: 12) {
+            IconTile(symbol: symbol, size: 30, colors: colors)
+            VStack(alignment: .leading, spacing: 1) {
                 Text(value)
-                    .font(.system(size: 24, weight: .bold))
+                    .font(.system(size: 24, weight: .heavy))
                     .monospacedDigit()
+                    .contentTransition(.numericText())
                     .lineLimit(1)
                     .minimumScaleFactor(0.6)
-                Text(title).font(.caption).foregroundStyle(.secondary)
+                Text(localized: title).font(.caption.weight(.medium)).foregroundStyle(.secondary)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .card(padding: 14)
+        .glassCard(padding: 14, cornerRadius: 20)
+        .accessibilityElement(children: .combine)
     }
 }
 
@@ -419,55 +503,86 @@ struct StudioCalendarView: View {
 
     var body: some View {
         NavigationStack(path: $path) {
-            List {
+            SonoraScreen("Calendar", eyebrow: selectedDay.formatted(.dateTime.weekday(.wide).day().month(.wide)), refresh: { await load() }) {
+                GlassIconButton(symbol: "nosign", label: "Block time") { showBlock = true }
+            } content: {
                 MonthCalendar(
                     selectedDay: $selectedDay,
                     markedDays: Set(bookings.filter { $0.status.isActive || $0.status == .completed }.map { $0.startsAt.startOfDay }),
                     blockedDays: Set(blocked.map { $0.startsAt.startOfDay })
                 )
-                .listRowBackground(Color.clear)
-
                 if let studio = app.ownedStudio {
-                    let window = AvailabilityEngine().openingWindow(for: studio, on: selectedDay)
-                    Section(selectedDay.formatted(date: .complete, time: .omitted)) {
-                        if let window {
-                            Label("Open \(window.start.formatted(date: .omitted, time: .shortened)) – \(window.end.formatted(date: .omitted, time: .shortened))", systemImage: "clock")
-                                .foregroundStyle(.secondary)
-                        } else {
-                            Label("Closed", systemImage: "moon.zzz").foregroundStyle(.secondary)
-                        }
-                        ForEach(bookings.filter { Calendar.current.isDate($0.startsAt, inSameDayAs: selectedDay) && $0.status != .expired }) { booking in
-                            NavigationLink(value: booking) { BookingRow(booking: booking, perspective: .studioOwner) }
-                        }
-                        ForEach(blocked.filter { Calendar.current.isDate($0.startsAt, inSameDayAs: selectedDay) }) { slot in
-                            HStack {
-                                Image(systemName: "nosign").foregroundStyle(.red)
-                                VStack(alignment: .leading) {
-                                    Text("Blocked · \(slot.reason.isEmpty ? "Unavailable" : slot.reason)")
-                                    Text("\(slot.startsAt.formatted(date: .omitted, time: .shortened)) – \(slot.endsAt.formatted(date: .omitted, time: .shortened))").font(.caption).foregroundStyle(.secondary)
-                                }
-                            }
-                            .swipeActions {
-                                Button("Unblock", role: .destructive) { unblock(slot) }
-                            }
-                        }
-                    }
+                    dayAgenda(studio)
+                        .id(selectedDay)
+                        .transition(.opacity.combined(with: .move(edge: .bottom)))
                 }
             }
-            .navigationTitle("Calendar")
+            .animation(.spring(response: 0.4, dampingFraction: 0.85), value: selectedDay)
             .navigationDestination(for: Booking.self) { BookingDetailView(bookingId: $0.id, initial: $0) }
-            .toolbar {
-                Button { showBlock = true } label: { Label("Block time", systemImage: "nosign") }
-            }
             .sheet(isPresented: $showBlock) {
                 if let studio = app.ownedStudio {
                     BlockTimeSheet(studioId: studio.id, day: selectedDay) { blocked.append($0) }
                 }
             }
             .task { await load() }
-            .refreshable { await load() }
             .onChange(of: app.pendingDeepLink) { openDeepLink() }
             .errorAlert($error)
+        }
+    }
+
+    @ViewBuilder private func dayAgenda(_ studio: Studio) -> some View {
+        let window = AvailabilityEngine().openingWindow(for: studio, on: selectedDay)
+        let dayBookings = bookings.filter { Calendar.current.isDate($0.startsAt, inSameDayAs: selectedDay) && $0.status != .expired }
+        let dayBlocks = blocked.filter { Calendar.current.isDate($0.startsAt, inSameDayAs: selectedDay) }
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                GlowSectionHeader(title: selectedDay.formatted(.dateTime.weekday(.wide).day()), count: dayBookings.count)
+                if let window {
+                    Label("\(window.start.formatted(date: .omitted, time: .shortened))–\(window.end.formatted(date: .omitted, time: .shortened))", systemImage: "clock")
+                        .font(.caption.weight(.semibold))
+                        .padding(.horizontal, 10).padding(.vertical, 5)
+                        .background(.ultraThinMaterial, in: Capsule())
+                        .fixedSize()
+                } else {
+                    Label("Closed", systemImage: "moon.zzz.fill")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                        .padding(.horizontal, 10).padding(.vertical, 5)
+                        .background(.ultraThinMaterial, in: Capsule())
+                        .fixedSize()
+                }
+            }
+            if dayBookings.isEmpty && dayBlocks.isEmpty {
+                GlassEmptyState(title: "Nothing booked", symbol: "sparkles", message: window == nil ? "The studio is closed this day." : "This day is wide open for sessions.")
+            }
+            ForEach(dayBookings) { booking in
+                NavigationLink(value: booking) {
+                    HStack(spacing: 12) {
+                        Capsule().fill(Theme.neon).frame(width: 4)
+                        BookingRow(booking: booking, perspective: .studioOwner)
+                    }
+                    .glassCard(padding: 12)
+                }
+                .buttonStyle(PressableCardStyle())
+                .scrollReveal()
+            }
+            ForEach(dayBlocks) { slot in
+                HStack(spacing: 12) {
+                    IconTile(symbol: "nosign", size: 34, colors: [Color.red, Theme.magenta])
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(slot.reason.isEmpty ? "Blocked" : slot.reason).font(.subheadline.weight(.semibold))
+                        Text("\(slot.startsAt.formatted(date: .omitted, time: .shortened)) – \(slot.endsAt.formatted(date: .omitted, time: .shortened))")
+                            .font(.caption).foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                    Button("Unblock") { unblock(slot) }
+                        .font(.caption.weight(.semibold))
+                        .buttonStyle(.bordered)
+                        .tint(.red)
+                }
+                .glassCard(padding: 12)
+                .scrollReveal()
+            }
         }
     }
 
@@ -613,7 +728,7 @@ struct EarningsView: View {
             } header: {
                 Text("Cash bookings & platform fees")
             } footer: {
-                Text("For cash bookings you collect the full price; Sonora's \(PlatformConfig.platformFeePercent)% fee is deducted from your next card payout. Anything left is invoiced monthly.")
+                Text("For cash bookings you collect the full price; EasySesh's \(PlatformConfig.platformFeePercent)% fee is deducted from your next card payout. Anything left is invoiced monthly.")
             }
 
             Section {
@@ -629,37 +744,114 @@ struct EarningsView: View {
 
 struct StudioSettingsView: View {
     @Environment(AppState.self) private var app
-    @State private var editing = false
+
+    private let columns = [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)]
 
     var body: some View {
         NavigationStack {
-            List {
+            SonoraScreen("Studio", eyebrow: "Your listing", refresh: { app.ownedStudio = (try? await app.backend.ownedStudio()) ?? app.ownedStudio }) {
                 if let studio = app.ownedStudio {
-                    Section {
-                        HStack(spacing: 12) {
-                            RemoteImage(url: studio.photoUrls.first).frame(width: 64, height: 64).clipShape(RoundedRectangle(cornerRadius: 12))
-                            VStack(alignment: .leading) {
-                                HStack {
-                                    Text(studio.name).font(.headline)
-                                    if studio.isVerified { VerifiedBadge() }
-                                }
-                                Text(studio.address.publicArea).font(.subheadline).foregroundStyle(.secondary)
-                                StatusPill(text: studio.isActive ? "Live" : studio.status.title, color: studio.isActive ? Theme.positive : studio.status.color)
-                            }
+                    cover(studio)
+                    quickStats(studio)
+                    LazyVGrid(columns: columns, spacing: 12) {
+                        tile("Edit profile", "Photos, gear, rooms", "pencil", TilePalette.signal) { StudioEditorView(studio: studio, isApplication: false) }
+                        tile("Prices", "Sessions & add-ons", "tag.fill", TilePalette.violet) {
+                            StudioSectionEditor(title: "Prices & services") { StudioPricingEditor(studio: $0) }
                         }
+                        tile("Opening hours", "When you're bookable", "clock.fill", TilePalette.ocean) {
+                            StudioSectionEditor(title: "Opening hours") { OpeningHoursEditor(hours: $0.openingHours) }
+                        }
+                        tile("Payouts", "Bank details", "building.columns.fill", TilePalette.mint) { PayoutAccountEditor(studioId: studio.id) }
+                        tile("Account", "Notifications & data", "person.crop.circle.fill", TilePalette.muted) { SettingsView() }
+                        tile("App settings", "Language, look, storage", "slider.horizontal.3", TilePalette.ocean) { AppSettingsView() }
+                        tile("Support", "Talk to EasySesh", "questionmark.bubble.fill", [Theme.warning, Theme.accent]) { SupportCenterView() }
+                        tile("Agreement", "Studio terms", "doc.text.fill", TilePalette.muted) { LegalDocumentView(document: .studioAgreement) }
                     }
-                    Section {
-                        NavigationLink { StudioDetailView(studioId: studio.id, initial: studio) } label: { Label("Preview public profile", systemImage: "eye") }
-                        NavigationLink { StudioEditorView(studio: studio, isApplication: false) } label: { Label("Edit studio profile", systemImage: "pencil") }
-                        NavigationLink { PayoutAccountEditor(studioId: studio.id) } label: { Label("Payout details", systemImage: "building.columns") }
-                    }
+                } else {
+                    NavigationLink { SettingsView() } label: { Label("Account & notifications", systemImage: "gearshape").glassCard() }
+                        .buttonStyle(PressableCardStyle())
                 }
-                Section {
-                    NavigationLink { SettingsView() } label: { Label("Account & notifications", systemImage: "gearshape") }
-                    NavigationLink { SupportCenterView() } label: { Label("Help & support", systemImage: "questionmark.circle") }
+                SignOutButton()
+            }
+        }
+    }
+
+    private func cover(_ studio: Studio) -> some View {
+        NavigationLink { StudioDetailView(studioId: studio.id, initial: studio) } label: {
+            let shape = RoundedRectangle(cornerRadius: 26, style: .continuous)
+            Color.clear
+                .aspectRatio(16 / 10, contentMode: .fit)
+                .overlay { RemoteImage(url: studio.photoUrls.first) }
+                .overlay {
+                    LinearGradient(colors: [.clear, .black.opacity(0.75)], startPoint: .center, endPoint: .bottom)
+                }
+                .overlay(alignment: .bottomLeading) {
+                    VStack(alignment: .leading, spacing: 6) {
+                        HStack(spacing: 6) {
+                            PulseDot(color: Theme.positive, isActive: studio.isActive)
+                            Text(studio.isActive ? "Live" : studio.status.title).font(.caption.weight(.bold)).textCase(.uppercase).tracking(0.8)
+                        }
+                        .padding(.horizontal, 10).padding(.vertical, 5)
+                        .background(.ultraThinMaterial, in: Capsule())
+                        HStack(spacing: 6) {
+                            Text(studio.name).font(.title2.weight(.heavy)).lineLimit(1)
+                            if studio.isVerified { VerifiedBadge() }
+                        }
+                        Text(studio.address.publicArea).font(.subheadline).opacity(0.85)
+                    }
+                    .foregroundStyle(.white)
+                    .padding(16)
+                }
+                .overlay(alignment: .topTrailing) {
+                    Label("Preview", systemImage: "eye.fill")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 10).padding(.vertical, 6)
+                        .background(.ultraThinMaterial, in: Capsule())
+                        .environment(\.colorScheme, .dark)
+                        .padding(12)
+                }
+                .clipShape(shape)
+                .overlay(shape.strokeBorder(Theme.glassEdge, lineWidth: 0.8))
+                .shadow(color: .black.opacity(0.2), radius: 20, y: 10)
+        }
+        .buttonStyle(PressableCardStyle())
+    }
+
+    private func quickStats(_ studio: Studio) -> some View {
+        HStack(spacing: 0) {
+            stat(studio.reviewCount == 0 ? "–" : String(format: "%.1f", studio.ratingAverage), "Rating")
+            Divider().frame(height: 30)
+            stat("\(studio.reviewCount)", "Reviews")
+            Divider().frame(height: 30)
+            stat("\(studio.bookingCount)", "Bookings")
+            Divider().frame(height: 30)
+            stat(Money.format(studio.priceFrom, currency: studio.currency), "From / h")
+        }
+        .glassCard(padding: 12)
+    }
+
+    private func stat(_ value: String, _ title: String) -> some View {
+        VStack(spacing: 2) {
+            Text(value).font(.headline.weight(.heavy)).monospacedDigit().lineLimit(1).minimumScaleFactor(0.7)
+            Text(title).font(.caption2.weight(.medium)).foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    private func tile<Destination: View>(_ title: LocalizedStringKey, _ subtitle: LocalizedStringKey, _ symbol: String, _ colors: [Color], @ViewBuilder destination: @escaping () -> Destination) -> some View {
+        NavigationLink(destination: destination) {
+            VStack(alignment: .leading, spacing: 14) {
+                IconTile(symbol: symbol, size: 38, colors: colors)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title).font(.subheadline.weight(.bold)).foregroundStyle(.primary)
+                    Text(subtitle).font(.caption).foregroundStyle(.secondary).lineLimit(1)
                 }
             }
-            .navigationTitle("Studio")
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .glassCard(padding: 14, cornerRadius: 20)
         }
+        .buttonStyle(PressableCardStyle())
+        .scrollReveal()
     }
 }

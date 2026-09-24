@@ -106,7 +106,7 @@ function BookingModal({ booking, dispute, onClose, onChanged }: { booking: Booki
           <tr><td>Subtotal (studio price)</td><td>{money(p.subtotal, p.currency)}</td></tr>
           <tr><td>Payment method</td><td>{label(booking.payment_method ?? "card")}</td></tr>
           <tr><td className="strong">Total paid by artist</td><td className="strong">{money(p.total, p.currency)}</td></tr>
-          <tr><td>Sonora platform fee (10%)</td><td>{money(p.studio_commission, p.currency)}</td></tr>
+          <tr><td>EasySesh platform fee (10%)</td><td>{money(p.studio_commission, p.currency)}</td></tr>
           <tr><td>Studio payout</td><td>{money(p.studio_payout, p.currency)}</td></tr>
           <tr><td>Refunded</td><td>{money(booking.refund_amount, p.currency)}</td></tr>
         </tbody>

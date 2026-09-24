@@ -37,7 +37,7 @@ export class SupabaseAdminApi implements AdminApi {
     for (const factor of factors?.all ?? []) {
       if (factor.status === "unverified") await this.client.auth.mfa.unenroll({ factorId: factor.id });
     }
-    const { data, error } = await this.client.auth.mfa.enroll({ factorType: "totp", friendlyName: "Sonora admin" });
+    const { data, error } = await this.client.auth.mfa.enroll({ factorType: "totp", friendlyName: "EasySesh admin" });
     if (error || !data) throw new Error(error?.message ?? "Could not start two-factor setup.");
     return { kind: "enroll", factorId: data.id, qrCode: data.totp.qr_code, secret: data.totp.secret };
   }

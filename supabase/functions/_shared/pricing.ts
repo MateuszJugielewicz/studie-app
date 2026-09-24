@@ -1,7 +1,7 @@
 // Mirrors ios/Sonora/Core/PricingEngine.swift. The server is the source of truth for what is charged.
 import type { BookedAddOn, CancellationPolicy, PriceBreakdown, ServiceAddOn, SessionType, Studio, UserRole } from "./types.ts";
 
-/** Sonora takes 10% of every sale; artists pay the studio's price with no extra fee. */
+/** EasySesh takes 10% of every sale; artists pay the studio's price with no extra fee. */
 export const ARTIST_SERVICE_FEE_PERCENT = 0;
 export const PLATFORM_FEE_PERCENT = 10;
 export const PAYOUT_DELAY_DAYS = 2;

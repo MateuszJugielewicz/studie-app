@@ -1,0 +1,130 @@
+# en | da | de | pl | el | fr | es | it | sv | nl
+About | Om | Über | O aplikacji | Σχετικά | À propos | Acerca de | Informazioni | Om | Over
+Accept | Accepter | Annehmen | Akceptuj | Αποδοχή | Accepter | Aceptar | Accetta | Acceptera | Accepteren
+Account | Konto | Konto | Konto | Λογαριασμός | Compte | Cuenta | Account | Konto | Account
+Actions | Handlinger | Aktionen | Działania | Ενέργειες | Actions | Acciones | Azioni | Åtgärder | Acties
+Add | Tilføj | Hinzufügen | Dodaj | Προσθήκη | Ajouter | Añadir | Aggiungi | Lägg till | Toevoegen
+Address | Adresse | Adresse | Adres | Διεύθυνση | Adresse | Dirección | Indirizzo | Adress | Adres
+All | Alle | Alle | Wszystkie | Όλα | Tout | Todo | Tutti | Alla | Alles
+Any | Alle | Beliebig | Dowolne | Οποιοδήποτε | Tous | Cualquiera | Qualsiasi | Alla | Alle
+Approved | Godkendt | Genehmigt | Zatwierdzone | Εγκρίθηκε | Approuvé | Aprobado | Approvato | Godkänd | Goedgekeurd
+Artist | Kunstner | Künstler:in | Artysta | Καλλιτέχνης | Artiste | Artista | Artista | Artist | Artiest
+Artists | Kunstnere | Künstler:innen | Artyści | Καλλιτέχνες | Artistes | Artistas | Artisti | Artister | Artiesten
+Awaiting payment | Afventer betaling | Zahlung ausstehend | Oczekuje na płatność | Αναμονή πληρωμής | En attente de paiement | Pendiente de pago | In attesa di pagamento | Väntar på betalning | Wacht op betaling
+Awaiting studio | Afventer studiet | Wartet auf Studio | Oczekuje na studio | Αναμονή στούντιο | En attente du studio | Esperando al estudio | In attesa dello studio | Väntar på studion | Wacht op studio
+Back | Tilbage | Zurück | Wstecz | Πίσω | Retour | Atrás | Indietro | Tillbaka | Terug
+Book | Book | Buchen | Zarezerwuj | Κράτηση | Réserver | Reservar | Prenota | Boka | Boeken
+Booking | Booking | Buchung | Rezerwacja | Κράτηση | Réservation | Reserva | Prenotazione | Bokning | Boeking
+Bookings | Bookinger | Buchungen | Rezerwacje | Κρατήσεις | Réservations | Reservas | Prenotazioni | Bokningar | Boekingen
+Calendar | Kalender | Kalender | Kalendarz | Ημερολόγιο | Calendrier | Calendario | Calendario | Kalender | Agenda
+Cancel | Annuller | Abbrechen | Anuluj | Ακύρωση | Annuler | Cancelar | Annulla | Avbryt | Annuleren
+Cancel booking | Annuller booking | Buchung stornieren | Anuluj rezerwację | Ακύρωση κράτησης | Annuler la réservation | Cancelar reserva | Annulla prenotazione | Avboka | Boeking annuleren
+Cancelled | Annulleret | Storniert | Anulowane | Ακυρώθηκε | Annulé | Cancelado | Annullato | Avbokad | Geannuleerd
+Changes requested | Ændringer ønsket | Änderungen angefragt | Wymagane zmiany | Ζητήθηκαν αλλαγές | Modifications demandées | Cambios solicitados | Modifiche richieste | Ändringar begärda | Wijzigingen gevraagd
+Close | Luk | Schließen | Zamknij | Κλείσιμο | Fermer | Cerrar | Chiudi | Stäng | Sluiten
+Closed | Lukket | Geschlossen | Zamknięte | Κλειστό | Fermé | Cerrado | Chiuso | Stängd | Gesloten
+Completed | Gennemført | Abgeschlossen | Zakończone | Ολοκληρώθηκε | Terminé | Completado | Completato | Genomförd | Voltooid
+Confirmed | Bekræftet | Bestätigt | Potwierdzone | Επιβεβαιώθηκε | Confirmé | Confirmado | Confermato | Bekräftad | Bevestigd
+Continue | Fortsæt | Weiter | Dalej | Συνέχεια | Continuer | Continuar | Continua | Fortsätt | Doorgaan
+Copy | Kopiér | Kopieren | Kopiuj | Αντιγραφή | Copier | Copiar | Copia | Kopiera | Kopiëren
+Dashboard | Oversigt | Übersicht | Pulpit | Πίνακας | Tableau de bord | Panel | Dashboard | Översikt | Overzicht
+Date | Dato | Datum | Data | Ημερομηνία | Date | Fecha | Data | Datum | Datum
+Decline | Afvis | Ablehnen | Odrzuć | Απόρριψη | Refuser | Rechazar | Rifiuta | Avböj | Weigeren
+Declined | Afvist | Abgelehnt | Odrzucone | Απορρίφθηκε | Refusé | Rechazado | Rifiutato | Avböjd | Geweigerd
+Delete | Slet | Löschen | Usuń | Διαγραφή | Supprimer | Eliminar | Elimina | Radera | Verwijderen
+Deposit | Depositum | Anzahlung | Zaliczka | Προκαταβολή | Acompte | Depósito | Acconto | Handpenning | Aanbetaling
+Deposit paid | Depositum betalt | Anzahlung bezahlt | Zaliczka wpłacona | Προκαταβολή πληρώθηκε | Acompte payé | Depósito pagado | Acconto pagato | Handpenning betald | Aanbetaling betaald
+Description | Beskrivelse | Beschreibung | Opis | Περιγραφή | Description | Descripción | Descrizione | Beskrivning | Beschrijving
+Directions | Rutevejledning | Route | Wskazówki dojazdu | Οδηγίες | Itinéraire | Cómo llegar | Indicazioni | Vägbeskrivning | Route
+Discover | Opdag | Entdecken | Odkrywaj | Ανακάλυψη | Découvrir | Descubrir | Scopri | Upptäck | Ontdekken
+Done | Færdig | Fertig | Gotowe | Τέλος | Terminé | Listo | Fine | Klar | Gereed
+Draft | Kladde | Entwurf | Szkic | Πρόχειρο | Brouillon | Borrador | Bozza | Utkast | Concept
+Duration | Varighed | Dauer | Czas trwania | Διάρκεια | Durée | Duración | Durata | Längd | Duur
+Earlier | Tidligere | Früher | Wcześniej | Παλαιότερα | Plus tôt | Anteriores | Precedenti | Tidigare | Eerder
+Earnings | Indtjening | Einnahmen | Zarobki | Έσοδα | Revenus | Ingresos | Guadagni | Intäkter | Inkomsten
+Edit | Redigér | Bearbeiten | Edytuj | Επεξεργασία | Modifier | Editar | Modifica | Redigera | Bewerken
+Edit profile | Redigér profil | Profil bearbeiten | Edytuj profil | Επεξεργασία προφίλ | Modifier le profil | Editar perfil | Modifica profilo | Redigera profil | Profiel bewerken
+Email | E-mail | E-Mail | E-mail | Email | E-mail | Correo | Email | E-post | E-mail
+Engineer | Tekniker | Toningenieur:in | Realizator | Ηχολήπτης | Ingé son | Técnico | Fonico | Tekniker | Technicus
+Equipment | Udstyr | Ausstattung | Sprzęt | Εξοπλισμός | Équipement | Equipo | Attrezzatura | Utrustning | Apparatuur
+Expired | Udløbet | Abgelaufen | Wygasło | Έληξε | Expiré | Caducado | Scaduto | Utgången | Verlopen
+Failed | Mislykkedes | Fehlgeschlagen | Nieudane | Απέτυχε | Échoué | Fallido | Non riuscito | Misslyckades | Mislukt
+Filters | Filtre | Filter | Filtry | Φίλτρα | Filtres | Filtros | Filtri | Filter | Filters
+From | Fra | Von | Od | Από | De | Desde | Da | Från | Van
+Genres | Genrer | Genres | Gatunki | Είδη | Genres | Géneros | Generi | Genrer | Genres
+History | Historik | Verlauf | Historia | Ιστορικό | Historique | Historial | Cronologia | Historik | Geschiedenis
+Inbox | Indbakke | Posteingang | Skrzynka | Εισερχόμενα | Boîte de réception | Bandeja | Posta in arrivo | Inkorg | Inbox
+Language | Sprog | Sprache | Język | Γλώσσα | Langue | Idioma | Lingua | Språk | Taal
+Later | Senere | Später | Później | Αργότερα | Plus tard | Más tarde | Più tardi | Senare | Later
+Legal | Juridisk | Rechtliches | Informacje prawne | Νομικά | Mentions légales | Legal | Note legali | Juridiskt | Juridisch
+Live | Live | Live | Na żywo | Live | En ligne | En directo | Live | Live | Live
+Location | Placering | Standort | Lokalizacja | Τοποθεσία | Emplacement | Ubicación | Posizione | Plats | Locatie
+Manage | Administrér | Verwalten | Zarządzaj | Διαχείριση | Gérer | Gestionar | Gestisci | Hantera | Beheren
+Message | Besked | Nachricht | Wiadomość | Μήνυμα | Message | Mensaje | Messaggio | Meddelande | Bericht
+Messages | Beskeder | Nachrichten | Wiadomości | Μηνύματα | Messages | Mensajes | Messaggi | Meddelanden | Berichten
+Name | Navn | Name | Nazwa | Όνομα | Nom | Nombre | Nome | Namn | Naam
+New | Ny | Neu | Nowe | Νέα | Nouveau | Nuevo | Nuovi | Nya | Nieuw
+Next | Næste | Weiter | Dalej | Επόμενο | Suivant | Siguiente | Avanti | Nästa | Volgende
+Notifications | Notifikationer | Mitteilungen | Powiadomienia | Ειδοποιήσεις | Notifications | Notificaciones | Notifiche | Aviseringar | Meldingen
+OK | OK | OK | OK | OK | OK | OK | OK | OK | OK
+Open | Åben | Geöffnet | Otwarte | Ανοιχτό | Ouvert | Abierto | Aperto | Öppen | Open
+Opening hours | Åbningstider | Öffnungszeiten | Godziny otwarcia | Ωράριο | Horaires | Horario | Orari | Öppettider | Openingstijden
+Optional | Valgfrit | Optional | Opcjonalnie | Προαιρετικό | Facultatif | Opcional | Facoltativo | Valfritt | Optioneel
+Other | Andet | Sonstiges | Inne | Άλλο | Autre | Otro | Altro | Annat | Overig
+Paid | Betalt | Bezahlt | Opłacone | Πληρώθηκε | Payé | Pagado | Pagato | Betald | Betaald
+Partially refunded | Delvist refunderet | Teilweise erstattet | Częściowo zwrócone | Μερική επιστροφή | Remboursé partiellement | Reembolso parcial | Rimborsato in parte | Delvis återbetald | Gedeeltelijk terugbetaald
+Password | Adgangskode | Passwort | Hasło | Κωδικός | Mot de passe | Contraseña | Password | Lösenord | Wachtwoord
+Past | Tidligere | Vergangen | Minione | Παλαιότερες | Passées | Pasadas | Passate | Tidigare | Afgelopen
+Paused | På pause | Pausiert | Wstrzymane | Σε παύση | En pause | En pausa | In pausa | Pausad | Gepauzeerd
+Payment | Betaling | Zahlung | Płatność | Πληρωμή | Paiement | Pago | Pagamento | Betalning | Betaling
+Payment failed | Betaling mislykkedes | Zahlung fehlgeschlagen | Płatność nieudana | Η πληρωμή απέτυχε | Échec du paiement | Pago fallido | Pagamento non riuscito | Betalningen misslyckades | Betaling mislukt
+Payouts | Udbetalinger | Auszahlungen | Wypłaty | Πληρωμές | Versements | Pagos | Pagamenti | Utbetalningar | Uitbetalingen
+Pending review | Afventer godkendelse | Wird geprüft | Oczekuje na weryfikację | Υπό έλεγχο | En cours d'examen | En revisión | In revisione | Granskas | Wordt beoordeeld
+Phone | Telefon | Telefon | Telefon | Τηλέφωνο | Téléphone | Teléfono | Telefono | Telefon | Telefoon
+Price | Pris | Preis | Cena | Τιμή | Prix | Precio | Prezzo | Pris | Prijs
+Prices | Priser | Preise | Ceny | Τιμές | Tarifs | Precios | Prezzi | Priser | Prijzen
+Profile | Profil | Profil | Profil | Προφίλ | Profil | Perfil | Profilo | Profil | Profiel
+Rating | Bedømmelse | Bewertung | Ocena | Βαθμολογία | Note | Valoración | Valutazione | Betyg | Beoordeling
+Reason | Årsag | Grund | Powód | Λόγος | Motif | Motivo | Motivo | Anledning | Reden
+Receipt | Kvittering | Beleg | Paragon | Απόδειξη | Reçu | Recibo | Ricevuta | Kvitto | Bon
+Receipts | Kvitteringer | Belege | Paragony | Αποδείξεις | Reçus | Recibos | Ricevute | Kvitton | Bonnen
+Refund | Refusion | Erstattung | Zwrot | Επιστροφή χρημάτων | Remboursement | Reembolso | Rimborso | Återbetalning | Terugbetaling
+Refunded | Refunderet | Erstattet | Zwrócone | Επιστράφηκε | Remboursé | Reembolsado | Rimborsato | Återbetald | Terugbetaald
+Rejected | Afvist | Abgelehnt | Odrzucone | Απορρίφθηκε | Refusé | Rechazado | Respinto | Avvisad | Afgewezen
+Reply | Svar | Antworten | Odpowiedz | Απάντηση | Répondre | Responder | Rispondi | Svara | Antwoorden
+Report | Anmeld | Melden | Zgłoś | Αναφορά | Signaler | Denunciar | Segnala | Rapportera | Melden
+Request | Anmodning | Anfrage | Prośba | Αίτημα | Demande | Solicitud | Richiesta | Förfrågan | Verzoek
+Requests | Anmodninger | Anfragen | Prośby | Αιτήματα | Demandes | Solicitudes | Richieste | Förfrågningar | Verzoeken
+Reset | Nulstil | Zurücksetzen | Resetuj | Επαναφορά | Réinitialiser | Restablecer | Reimposta | Återställ | Herstellen
+Reviews | Anmeldelser | Bewertungen | Opinie | Κριτικές | Avis | Reseñas | Recensioni | Recensioner | Beoordelingen
+Save | Gem | Sichern | Zapisz | Αποθήκευση | Enregistrer | Guardar | Salva | Spara | Opslaan
+Saved | Gemt | Gesichert | Zapisano | Αποθηκεύτηκε | Enregistré | Guardado | Salvato | Sparad | Opgeslagen
+Saving… | Gemmer… | Wird gesichert… | Zapisywanie… | Αποθήκευση… | Enregistrement… | Guardando… | Salvataggio… | Sparar… | Opslaan…
+Scheduled | Planlagt | Geplant | Zaplanowane | Προγραμματισμένο | Planifié | Programado | Programmato | Planerad | Gepland
+Search | Søg | Suchen | Szukaj | Αναζήτηση | Rechercher | Buscar | Cerca | Sök | Zoeken
+Send | Send | Senden | Wyślij | Αποστολή | Envoyer | Enviar | Invia | Skicka | Verzenden
+Sending… | Sender… | Wird gesendet… | Wysyłanie… | Αποστολή… | Envoi… | Enviando… | Invio… | Skickar… | Verzenden…
+Sessions | Sessions | Sessions | Sesje | Συνεδρίες | Sessions | Sesiones | Sessioni | Sessioner | Sessies
+Settings | Indstillinger | Einstellungen | Ustawienia | Ρυθμίσεις | Réglages | Ajustes | Impostazioni | Inställningar | Instellingen
+Sign in | Log ind | Anmelden | Zaloguj się | Σύνδεση | Se connecter | Iniciar sesión | Accedi | Logga in | Inloggen
+Sign out | Log ud | Abmelden | Wyloguj się | Αποσύνδεση | Se déconnecter | Cerrar sesión | Esci | Logga ut | Uitloggen
+Skip | Spring over | Überspringen | Pomiń | Παράλειψη | Passer | Omitir | Salta | Hoppa över | Overslaan
+Sort | Sortér | Sortieren | Sortuj | Ταξινόμηση | Trier | Ordenar | Ordina | Sortera | Sorteren
+Status | Status | Status | Status | Κατάσταση | Statut | Estado | Stato | Status | Status
+Studio | Studie | Studio | Studio | Στούντιο | Studio | Estudio | Studio | Studio | Studio
+Submit | Indsend | Einreichen | Wyślij | Υποβολή | Envoyer | Enviar | Invia | Skicka in | Indienen
+Support | Support | Support | Pomoc | Υποστήριξη | Assistance | Soporte | Assistenza | Support | Support
+Suspended | Suspenderet | Gesperrt | Zawieszone | Σε αναστολή | Suspendu | Suspendido | Sospeso | Avstängd | Geschorst
+Terms | Vilkår | Bedingungen | Regulamin | Όροι | Conditions | Condiciones | Termini | Villkor | Voorwaarden
+To | Til | Bis | Do | Έως | À | Hasta | A | Till | Tot
+Total | I alt | Gesamt | Razem | Σύνολο | Total | Total | Totale | Totalt | Totaal
+Type | Type | Typ | Typ | Τύπος | Type | Tipo | Tipo | Typ | Type
+Unblock | Fjern blokering | Freigeben | Odblokuj | Άρση αποκλεισμού | Débloquer | Desbloquear | Sblocca | Avblockera | Deblokkeren
+Unpaid | Ubetalt | Unbezahlt | Nieopłacone | Απλήρωτο | Non payé | No pagado | Non pagato | Obetald | Onbetaald
+Unread | Ulæst | Ungelesen | Nieprzeczytane | Μη αναγνωσμένα | Non lus | No leídos | Non letti | Olästa | Ongelezen
+Upcoming | Kommende | Anstehend | Nadchodzące | Επερχόμενες | À venir | Próximas | In arrivo | Kommande | Aankomend
+Verified | Verificeret | Verifiziert | Zweryfikowany | Επαληθευμένο | Vérifié | Verificado | Verificato | Verifierad | Geverifieerd
+Version | Version | Version | Wersja | Έκδοση | Version | Versión | Versione | Version | Versie
+View | Vis | Ansehen | Zobacz | Προβολή | Voir | Ver | Vedi | Visa | Bekijken
+Website | Hjemmeside | Website | Strona www | Ιστότοπος | Site web | Sitio web | Sito web | Webbplats | Website
+Welcome | Velkommen | Willkommen | Witaj | Καλώς ήρθατε | Bienvenue | Bienvenido | Benvenuto | Välkommen | Welkom

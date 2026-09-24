@@ -18,7 +18,7 @@ enum StripePaymentProcessor {
         STPAPIClient.shared.publishableKey = key
 
         var configuration = PaymentSheet.Configuration()
-        configuration.merchantDisplayName = "Sonora"
+        configuration.merchantDisplayName = "EasySesh"
         configuration.applePay = .init(merchantId: AppConfig.applePayMerchantId, merchantCountryCode: "GR")
         configuration.returnURL = "sonora://stripe-redirect"
         configuration.style = .alwaysDark

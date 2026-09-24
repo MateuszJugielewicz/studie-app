@@ -24,7 +24,7 @@ Deno.serve(handler(async (req, body) => {
         type: "express",
         country,
         email: full?.contact?.email || user.email,
-        business_profile: { name: studio.name, mcc: "7929", product_description: "Recording studio sessions booked via Sonora" },
+        business_profile: { name: studio.name, mcc: "7929", product_description: "Recording studio sessions booked via EasySesh" },
         capabilities: { transfers: { requested: true } },
         metadata: { studio_id: studio.id },
       });

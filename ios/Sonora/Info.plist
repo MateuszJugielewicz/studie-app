@@ -5,13 +5,26 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Sonora</string>
+	<string>EasySesh</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
 	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>en</string>
+		<string>da</string>
+		<string>de</string>
+		<string>pl</string>
+		<string>el</string>
+		<string>fr</string>
+		<string>es</string>
+		<string>it</string>
+		<string>sv</string>
+		<string>nl</string>
+	</array>
 	<key>CFBundleName</key>
 	<string>$(PRODUCT_NAME)</string>
 	<key>CFBundlePackageType</key>
@@ -40,7 +53,7 @@
 	<key>NSCameraUsageDescription</key>
 	<string>Take photos for your artist or studio profile.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Sonora uses your location to show recording studios near you and the distance to them.</string>
+	<string>EasySesh uses your location to show recording studios near you and the distance to them.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Choose photos for your artist or studio profile.</string>
 	<key>SonoraApplePayMerchantId</key>

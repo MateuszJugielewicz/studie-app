@@ -25,7 +25,7 @@ If a studio requires a deposit, the refund rules apply to the amount you have pa
 When you choose to pay cash at the studio, nothing is charged in the app, so there is nothing to refund if the booking is cancelled. Please cancel in the app as early as you can. Studios may stop accepting cash from artists who repeatedly don't show up.
 
 ## No-shows and problems
-If the session didn't happen as booked (for example, the studio was closed or double-booked, or the equipment described wasn't there), report a problem on the booking within 48 hours. Sonora reviews the case and can issue a full or partial refund. Artists who don't show up are not refunded under the studio's policy.
+If the session didn't happen as booked (for example, the studio was closed or double-booked, or the equipment described wasn't there), report a problem on the booking within 48 hours. EasySesh reviews the case and can issue a full or partial refund. Artists who don't show up are not refunded under the studio's policy.
 
 ## Changing a booking
 You can move a confirmed booking to another free slot with the same length for free, as long as the session hasn't started.

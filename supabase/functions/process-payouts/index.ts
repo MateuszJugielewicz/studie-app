@@ -40,7 +40,7 @@ async function chargeBalances(): Promise<number> {
         payment_method: paymentMethod,
         off_session: true,
         confirm: true,
-        description: `Sonora ${booking.reference} · remaining balance`,
+        description: `EasySesh ${booking.reference} · remaining balance`,
         transfer_group: booking.id,
         metadata: { booking_id: booking.id, kind: "balance" },
       }, { idempotencyKey: `balance-${booking.id}` });

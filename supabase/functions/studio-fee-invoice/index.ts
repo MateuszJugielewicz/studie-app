@@ -22,7 +22,7 @@ Deno.serve(handler(async (req, body) => {
     currency: currency.toLowerCase(),
     collection_method: "send_invoice",
     days_until_due: 14,
-    description: `Sonora platform fees (10%) for cash bookings – ${studio.name}`,
+    description: `EasySesh platform fees (10%) for cash bookings – ${studio.name}`,
     metadata: { studio_id: studio.id, kind: "platform_fees" },
   });
   await stripe.invoiceItems.create({ customer, invoice: invoice.id, amount: owed, currency: currency.toLowerCase(), description: "Platform fees for cash bookings" });

@@ -89,6 +89,7 @@ struct ArtistProfileView: View {
 
                 Section {
                     NavigationLink { SettingsView() } label: { Label("Settings", systemImage: "gearshape") }
+                    NavigationLink { AppSettingsView() } label: { Label("App settings", systemImage: "slider.horizontal.3") }
                     NavigationLink { BookingHistoryView() } label: { Label("Booking history & receipts", systemImage: "clock.arrow.circlepath") }
                     NavigationLink { LegalListView() } label: { Label("Terms & privacy", systemImage: "doc.text") }
                     NavigationLink { SupportCenterView() } label: { Label("Help & support", systemImage: "questionmark.circle") }
@@ -248,6 +249,12 @@ struct SettingsView: View {
 
     var body: some View {
         Form {
+            Section {
+                NavigationLink { AppSettingsView() } label: { Label("App settings", systemImage: "slider.horizontal.3") }
+            } footer: {
+                Text("Language, appearance, effects and storage on this device.")
+            }
+
             if let account = app.account {
                 Section("Account") {
                     InfoRow(symbol: "envelope", title: "Email", value: account.email)
@@ -303,7 +310,7 @@ struct SettingsView: View {
             } header: {
                 Text("Your data")
             } footer: {
-                Text("Download a copy of everything Sonora stores about you (GDPR). Deleting your account removes your profile; receipts are kept as required by accounting law.")
+                Text("Download a copy of everything EasySesh stores about you (GDPR). Deleting your account removes your profile; receipts are kept as required by accounting law.")
             }
 
             Section {

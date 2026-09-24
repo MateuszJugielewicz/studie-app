@@ -1,4 +1,4 @@
--- Sonora: identity helpers, sign-up hook, column guards and row-level security.
+-- EasySesh: identity helpers, sign-up hook, column guards and row-level security.
 
 -- ---------------------------------------------------------------------------
 -- Helpers

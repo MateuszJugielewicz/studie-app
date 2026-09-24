@@ -73,7 +73,7 @@ struct SonoraLogo: View {
 
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: size * 0.12) {
-            Text("sonora")
+            Text("easysesh")
                 .font(.system(size: size, weight: .heavy))
                 .tracking(-size * 0.03)
             Circle()
@@ -82,7 +82,7 @@ struct SonoraLogo: View {
                 .neonGlow(Theme.accent, radius: size * 0.25)
         }
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("Sonora")
+        .accessibilityLabel("EasySesh")
     }
 }
 
@@ -128,7 +128,7 @@ struct PrimaryButtonStyle: ButtonStyle {
             .neonGlow(Theme.magenta, radius: configuration.isPressed ? 6 : 16, active: isEnabled)
             .scaleEffect(configuration.isPressed ? 0.97 : 1)
             .animation(.spring(response: 0.25, dampingFraction: 0.6), value: configuration.isPressed)
-            .sensoryFeedback(.impact(weight: .light), trigger: configuration.isPressed) { _, pressed in pressed }
+            .haptic(.impact(weight: .light), trigger: configuration.isPressed) { _, pressed in pressed }
     }
 }
 

@@ -80,7 +80,7 @@ final class MockBackend: Backend {
     private func requireApprovedOwner(of studioId: UUID) throws -> (UserAccount, Studio) {
         let (user, studio) = try requireOwner(of: studioId)
         guard user.role == .admin || (user.role == .studioOwner && studio.status == .approved) else {
-            throw BackendError.validation("Your studio must be approved by Sonora before you can do this.")
+            throw BackendError.validation("Your studio must be approved by EasySesh before you can do this.")
         }
         return (user, studio)
     }
@@ -212,7 +212,7 @@ final class MockBackend: Backend {
     private func seedNotifications() {
         let artistBooking = bookings.values.first { $0.artistId == MockData.artistUserId && $0.status == .confirmed }
         notify(MockData.artistUserId, .bookingConfirmed, "Booking confirmed", "Your session at \(artistBooking?.studioName ?? "the studio") is confirmed.", booking: artistBooking?.id)
-        notify(MockData.artistUserId, .system, "Welcome to Sonora", "Find a studio, book a session and pay securely in the app.")
+        notify(MockData.artistUserId, .system, "Welcome to EasySesh", "Find a studio, book a session and pay securely in the app.")
         if let request = bookings.values.first(where: { $0.status == .pendingApproval }) {
             notify(MockData.studioOwnerUserId, .bookingRequested, "New booking request", "\(request.artistName) wants to book \(request.hours)h on \(request.startsAt.formatted(date: .abbreviated, time: .shortened)).", booking: request.id)
         }
@@ -789,12 +789,16 @@ final class MockBackend: Backend {
 
     func sendMessage(conversationId: UUID, body: String) async throws -> ChatMessage {
         let (user, conversation) = try requireParticipant(conversationId)
-        if user.id != conversation.artistId { try requireApprovedOwner(of: conversation.studioId) }
+        if user.id != conversation.artistId {
+            try requireApprovedOwner(of: conversation.studioId)
+            if conversation.isDeclined { throw BackendError.validation("This artist isn't accepting messages from your studio.") }
+        }
         let text = body.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty else { throw BackendError.validation("Message is empty.") }
         guard text.count <= 2000 else { throw BackendError.validation("Messages can be at most 2000 characters.") }
         let message = ChatMessage(id: UUID(), conversationId: conversationId, senderId: user.id, kind: .text, body: text, createdAt: .now)
         appendMessage(message)
+        if user.id == conversation.artistId { conversationsById[conversationId]?.requestStatus = .accepted }
 
         let recipient = user.id == conversation.artistId ? ownerId(ofStudio: conversation.studioId) : conversation.artistId
         if let recipient {
@@ -815,6 +819,56 @@ final class MockBackend: Backend {
         var updated = conversation
         if user.id == conversation.artistId { updated.artistUnread = 0 } else { updated.studioUnread = 0 }
         conversationsById[id] = updated
+    }
+
+    // MARK: Message requests
+
+    func startConversation(artistId: UUID, body: String) async throws -> Conversation {
+        let user = try requireUser()
+        guard let studio = studios.values.first(where: { $0.ownerId == user.id }) else { throw BackendError.forbidden }
+        _ = try requireApprovedOwner(of: studio.id)
+        guard let artist = artistProfiles[artistId] else { throw BackendError.notFound }
+        let text = body.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !text.isEmpty else { throw BackendError.validation("Write a message first.") }
+        var conversation = conversationsById.values.first { $0.artistId == artistId && $0.studioId == studio.id && $0.bookingId == nil }
+        if conversation?.isDeclined == true {
+            throw BackendError.validation("This artist isn't accepting messages from your studio.")
+        }
+        if conversation == nil {
+            let known = bookings.values.contains { $0.artistId == artistId && $0.studioId == studio.id }
+            conversation = Conversation(id: UUID(), artistId: artistId, studioId: studio.id, bookingId: nil, artistName: artist.artistName,
+                                        studioName: studio.name, studioPhotoUrl: studio.photoUrls.first, lastMessagePreview: "",
+                                        lastMessageAt: .now, artistUnread: 0, studioUnread: 0,
+                                        requestStatus: known ? .accepted : .pending, startedByStudio: true)
+            conversationsById[conversation!.id] = conversation
+        }
+        appendMessage(ChatMessage(id: UUID(), conversationId: conversation!.id, senderId: user.id, kind: .text, body: text, createdAt: .now))
+        return conversationsById[conversation!.id]!
+    }
+
+    func respondToMessageRequest(conversationId: UUID, accept: Bool) async throws -> Conversation {
+        let user = try requireUser()
+        guard var conversation = conversationsById[conversationId], conversation.artistId == user.id else { throw BackendError.notFound }
+        conversation.requestStatus = accept ? .accepted : .declined
+        if !accept { conversation.artistUnread = 0 }
+        conversationsById[conversationId] = conversation
+        return conversation
+    }
+
+    func searchArtists(query: String) async throws -> [ArtistSearchResult] {
+        let user = try requireUser()
+        guard let studio = studios.values.first(where: { $0.ownerId == user.id }) else { throw BackendError.forbidden }
+        _ = try requireApprovedOwner(of: studio.id)
+        let q = query.trimmingCharacters(in: .whitespaces).lowercased()
+        return artistProfiles.values
+            .filter { !$0.artistName.isEmpty }
+            .map { profile in
+                ArtistSearchResult(id: profile.id, artistName: profile.artistName, city: profile.city, genres: profile.genres.map(\.rawValue),
+                                   avatarUrl: profile.avatarUrl, isVerified: profile.isVerified,
+                                   hasBooked: bookings.values.contains { $0.artistId == profile.id && $0.studioId == studio.id })
+            }
+            .filter { q.count < 2 ? $0.hasBooked : $0.artistName.lowercased().contains(q) }
+            .sorted { $0.artistName < $1.artistName }
     }
 
     // MARK: Support

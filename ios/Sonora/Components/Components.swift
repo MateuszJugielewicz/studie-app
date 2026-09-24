@@ -121,7 +121,7 @@ struct StatusPill: View {
     let color: Color
 
     var body: some View {
-        Text(text)
+        Text(localized: text)
             .font(.caption.weight(.semibold))
             .padding(.horizontal, 8)
             .padding(.vertical, 3)
@@ -200,7 +200,7 @@ struct Chip: View {
     var body: some View {
         HStack(spacing: 4) {
             if let symbol { Image(systemName: symbol) }
-            Text(title)
+            Text(localized: title)
         }
         .font(.subheadline.weight(isSelected ? .semibold : .regular))
         .padding(.horizontal, 12)
@@ -245,7 +245,7 @@ struct SectionHeader: View {
 
     var body: some View {
         HStack {
-            Text(title).font(.title3.weight(.bold))
+            Text(localized: title).font(.title3.weight(.bold))
             Spacer()
             if let action {
                 Button(action.title, action: action.run).font(.subheadline)
@@ -262,7 +262,7 @@ struct InfoRow: View {
     var body: some View {
         HStack(spacing: 12) {
             Image(systemName: symbol).frame(width: 24).foregroundStyle(.secondary)
-            Text(title)
+            Text(localized: title)
             Spacer()
             if let value { Text(value).foregroundStyle(.secondary).multilineTextAlignment(.trailing) }
         }
@@ -305,4 +305,12 @@ extension View {
 
 extension Error {
     var userMessage: String { (self as? LocalizedError)?.errorDescription ?? localizedDescription }
+}
+
+extension Text {
+    /// Looks the string up in the translations (falls back to the string itself), for components
+    /// that take titles as `String`, such as enum titles and section headers.
+    init(localized string: String) {
+        self.init(LocalizedStringKey(string))
+    }
 }

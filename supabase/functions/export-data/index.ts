@@ -1,4 +1,4 @@
-// GDPR art. 15/20: returns everything Sonora stores about the caller as JSON.
+// GDPR art. 15/20: returns everything EasySesh stores about the caller as JSON.
 import { handler, json } from "../_shared/http.ts";
 import { admin, requireUser } from "../_shared/supabase.ts";
 
@@ -33,7 +33,7 @@ Deno.serve(handler(async (req) => {
 
   return json({
     exported_at: new Date().toISOString(),
-    notice: "This file contains the personal data Sonora holds about you (GDPR art. 15 and 20). Card numbers are held by Stripe and never stored by Sonora.",
+    notice: "This file contains the personal data EasySesh holds about you (GDPR art. 15 and 20). Card numbers are held by Stripe and never stored by EasySesh.",
     account: profile.data,
     artist_profile: artist.data,
     studios: studios.data,

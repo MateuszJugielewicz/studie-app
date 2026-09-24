@@ -1,4 +1,4 @@
--- Sonora: core schema
+-- EasySesh: core schema
 -- Money is stored as integer minor units (cents). Timestamps are timestamptz.
 -- Nested listing data is jsonb with snake_case keys (matches the iOS encoder).
 
@@ -316,7 +316,7 @@ create table public.platform_settings (
   value jsonb not null
 );
 insert into public.platform_settings (key, value) values
-  -- Sonora takes 10% of every sale. Card payments: deducted from the studio payout.
+  -- EasySesh takes 10% of every sale. Card payments: deducted from the studio payout.
   -- Cash payments: owed by the studio (see studio_fee_ledger).
   ('artist_service_fee_percent', '0'),
   ('platform_fee_percent', '10'),

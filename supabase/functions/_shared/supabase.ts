@@ -43,7 +43,7 @@ export async function requireAdmin(req: Request): Promise<Profile> {
 /** Studio-side actions need an admin-approved studio owned by the caller. */
 export function requireApprovedStudio(user: Profile, studio: Studio) {
   if (user.role !== "studio_owner" || studio.owner_id !== user.id || studio.status !== "approved") {
-    throw new HttpError(403, "Your studio must be approved by Sonora before you can do this.");
+    throw new HttpError(403, "Your studio must be approved by EasySesh before you can do this.");
   }
 }
 

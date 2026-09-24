@@ -1,4 +1,4 @@
--- Sonora: scheduled jobs (pg_cron) and push delivery (pg_net → send-push edge function).
+-- EasySesh: scheduled jobs (pg_cron) and push delivery (pg_net → send-push edge function).
 --
 -- Setup (once per project), in the SQL editor:
 --   select vault.create_secret('https://<project-ref>.supabase.co', 'project_url');

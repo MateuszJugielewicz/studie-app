@@ -3,13 +3,13 @@
 
 Version 2026-09-25
 
-[COMPANY NAME], [ADDRESS], company no. [CVR/VAT NO.], is the **data controller** for personal data processed in Sonora. Contact: [PRIVACY EMAIL].
+[COMPANY NAME], [ADDRESS], company no. [CVR/VAT NO.], is the **data controller** for personal data processed in EasySesh. Contact: [PRIVACY EMAIL].
 
 ## What we collect
 - **Account data:** email, password (stored hashed by our authentication provider), role (artist/studio), sign-in method (email, Apple, Google).
 - **Profile data:** artist name, genres, city, bio, photo, links. For studios: studio details, address, contact details, photos, prices, opening hours.
 - **Booking data:** bookings, times, notes to the studio, cancellations, disputes.
-- **Payment data:** amounts, payment status, receipts, and the card brand and last 4 digits. Card numbers are processed by Stripe and never stored by Sonora. For studio payouts, bank details and identity checks are handled by Stripe Connect.
+- **Payment data:** amounts, payment status, receipts, and the card brand and last 4 digits. Card numbers are processed by Stripe and never stored by EasySesh. For studio payouts, bank details and identity checks are handled by Stripe Connect.
 - **Messages** between artists and studios, and **reviews** and **reports**.
 - **Device data:** push notification token, app version.
 - **Location:** only while you use the app and only if you allow it. It is used on your device to show nearby studios and distances, and is **not stored** on our servers.
@@ -47,7 +47,7 @@ You can complain to your data protection authority, e.g. Datatilsynet (Denmark, 
 Data is encrypted in transit (TLS) and at rest. Access is restricted by role and enforced by the database (row-level security). Administrator accounts require two-factor authentication. Card data is handled only by Stripe, which is PCI-DSS certified.
 
 ## Children
-Sonora is not directed at children under 13, and users under 18 need permission from a parent or guardian.
+EasySesh is not directed at children under 13, and users under 18 need permission from a parent or guardian.
 
 ## Changes
 We tell you in the app about material changes to this policy.

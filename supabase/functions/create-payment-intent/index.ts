@@ -26,8 +26,8 @@ Deno.serve(handler(async (req, body) => {
       // Save the card when a balance will be charged after the session.
       setup_future_usage: booking.price.due_later > 0 ? "off_session" : undefined,
       automatic_payment_methods: { enabled: true },
-      description: `Sonora ${booking.reference} · ${booking.studio_name}`,
-      statement_descriptor_suffix: "SONORA",
+      description: `EasySesh ${booking.reference} · ${booking.studio_name}`,
+      statement_descriptor_suffix: "EASYSESH",
       transfer_group: booking.id,
       metadata: { booking_id: booking.id, kind: "charge", studio_id: booking.studio_id },
     }, { idempotencyKey: `booking-${booking.id}-${amount}` });

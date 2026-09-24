@@ -1,0 +1,5 @@
+# en | da | de | pl | el | fr | es | it | sv | nl
+Step %lld of %lld | Trin %lld af %lld | Schritt %lld von %lld | Krok %lld z %lld | Βήμα %lld από %lld | Étape %lld sur %lld | Paso %lld de %lld | Passo %lld di %lld | Steg %lld av %lld | Stap %lld van %lld
+Page %lld of %lld | Side %lld af %lld | Seite %lld von %lld | Strona %lld z %lld | Σελίδα %lld από %lld | Page %lld sur %lld | Página %lld de %lld | Pagina %lld di %lld | Sida %lld av %lld | Pagina %lld van %lld
+%lld unread | %lld ulæste | %lld ungelesen | %lld nieprzeczytane | %lld μη αναγνωσμένα | %lld non lus | %lld sin leer | %lld non letti | %lld olästa | %lld ongelezen
+%lld new | %lld nye | %lld neu | %lld nowe | %lld νέα | %lld nouveaux | %lld nuevas | %lld nuove | %lld nya | %lld nieuw

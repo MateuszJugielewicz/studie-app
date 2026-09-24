@@ -1,4 +1,4 @@
--- Sonora: in-app support. Users open tickets from the app, admins answer them in the admin dashboard.
+-- EasySesh: in-app support. Users open tickets from the app, admins answer them in the admin dashboard.
 -- Tables are read-only for clients; every write goes through the RPCs below.
 
 create table public.support_tickets (
@@ -8,7 +8,7 @@ create table public.support_tickets (
   category text not null default 'other'
     check (category in ('account', 'booking', 'payment', 'studio', 'bug', 'other')),
   booking_id uuid references public.bookings (id) on delete set null,
-  -- open: waiting for Sonora · answered: waiting for the user · closed: done
+  -- open: waiting for EasySesh · answered: waiting for the user · closed: done
   status text not null default 'open' check (status in ('open', 'answered', 'closed')),
   user_unread integer not null default 0,
   admin_unread integer not null default 0,
@@ -81,7 +81,7 @@ begin
   where id = t.id;
 
   if p_from_admin then
-    perform public.notify(t.user_id, 'system', 'Sonora support replied', t.subject || ': ' || left(body, 120));
+    perform public.notify(t.user_id, 'system', 'EasySesh support replied', t.subject || ': ' || left(body, 120));
   end if;
   return m;
 end;

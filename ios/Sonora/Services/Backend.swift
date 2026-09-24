@@ -110,6 +110,11 @@ protocol Backend: AnyObject {
     func messages(conversationId: UUID) async throws -> [ChatMessage]
     func sendMessage(conversationId: UUID, body: String) async throws -> ChatMessage
     func markConversationRead(id: UUID) async throws
+    /// Studio → artist: starts (or continues) a conversation. New artists get it as a message request.
+    func startConversation(artistId: UUID, body: String) async throws -> Conversation
+    func respondToMessageRequest(conversationId: UUID, accept: Bool) async throws -> Conversation
+    /// Artists a studio can message. An empty query returns artists who booked the studio.
+    func searchArtists(query: String) async throws -> [ArtistSearchResult]
     /// Live stream of new messages in a conversation.
     func messageStream(conversationId: UUID) -> AsyncStream<ChatMessage>
 

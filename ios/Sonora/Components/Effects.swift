@@ -21,7 +21,9 @@ extension Theme {
 /// Static when Reduce Motion is on.
 struct AuroraBackground: View {
     var intensity: Double = 1
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
+    @Environment(\.reduceEffects) private var reduceEffects
+    private var reduceMotion: Bool { systemReduceMotion || reduceEffects }
     @Environment(\.colorScheme) private var scheme
     @State private var drift = false
 
@@ -113,10 +115,19 @@ struct TabSpec: Identifiable {
 struct SonoraTabContainer<Content: View>: View {
     @Binding var selection: AppTab
     let tabs: [TabSpec]
-    @ViewBuilder let content: (AppTab) -> Content
+    /// Spotlight tour over the tab bar, shown until finished or skipped.
+    var tour: TabTour?
+    let content: (AppTab) -> Content
 
     @State private var visited: Set<AppTab> = []
     @State private var keyboardVisible = false
+
+    init(selection: Binding<AppTab>, tour: TabTour? = nil, tabs: [TabSpec], @ViewBuilder content: @escaping (AppTab) -> Content) {
+        _selection = selection
+        self.tabs = tabs
+        self.tour = tour
+        self.content = content
+    }
 
     var body: some View {
         // The bar sits below the content (not on top of it) so no page, including pushed
@@ -145,6 +156,15 @@ struct SonoraTabContainer<Content: View>: View {
             }
         }
         .animation(.spring(response: 0.35, dampingFraction: 0.85), value: keyboardVisible)
+        .overlayPreferenceValue(TabItemAnchorKey.self) { anchors in
+            if let tour {
+                GeometryReader { proxy in
+                    TourOverlay(tour: tour, frames: anchors.mapValues { proxy[$0] }, selection: $selection)
+                }
+                .transition(.opacity)
+            }
+        }
+        .animation(.easeInOut(duration: 0.35), value: tour == nil)
         .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { _ in keyboardVisible = true }
         .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { _ in keyboardVisible = false }
     }
@@ -154,6 +174,8 @@ struct SonoraTabBar: View {
     @Binding var selection: AppTab
     let tabs: [TabSpec]
     @Namespace private var pill
+    @State private var width: CGFloat = 0
+    @State private var isDragging = false
 
     var body: some View {
         HStack(spacing: 2) {
@@ -162,12 +184,41 @@ struct SonoraTabBar: View {
             }
         }
         .padding(5)
+        .background {
+            GeometryReader { proxy in
+                Color.clear
+                    .onAppear { width = proxy.size.width }
+                    .onChange(of: proxy.size.width) { _, newValue in width = newValue }
+            }
+        }
         .background(.ultraThinMaterial, in: Capsule())
         .overlay(Capsule().strokeBorder(Theme.glassEdge, lineWidth: 0.8))
-        .shadow(color: .black.opacity(0.22), radius: 22, y: 10)
+        .scaleEffect(isDragging ? 1.03 : 1)
+        .shadow(color: .black.opacity(isDragging ? 0.3 : 0.22), radius: isDragging ? 28 : 22, y: 10)
+        // Slide a finger along the bar to scrub between tabs; the pill follows and stretches.
+        .gesture(
+            DragGesture(minimumDistance: 10)
+                .onChanged { value in
+                    if !isDragging { withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) { isDragging = true } }
+                    select(at: value.location.x)
+                }
+                .onEnded { value in
+                    select(at: value.predictedEndLocation.x)
+                    withAnimation(.spring(response: 0.4, dampingFraction: 0.65)) { isDragging = false }
+                }
+        )
         .padding(.horizontal, 14)
         .padding(.bottom, 2)
-        .sensoryFeedback(.selection, trigger: selection)
+        .haptic(.selection, trigger: selection)
+    }
+
+    private func select(at x: CGFloat) {
+        guard width > 0, !tabs.isEmpty else { return }
+        let index = min(max(Int(x / (width / CGFloat(tabs.count))), 0), tabs.count - 1)
+        let tab = tabs[index].tab
+        if tab != selection {
+            withAnimation(.spring(response: 0.32, dampingFraction: 0.72)) { selection = tab }
+        }
     }
 
     private func item(_ spec: TabSpec) -> some View {
@@ -182,7 +233,7 @@ struct SonoraTabBar: View {
                     .symbolVariant(isSelected ? .fill : .none)
                     .symbolEffect(.bounce.down, value: isSelected)
                     .frame(height: 22)
-                Text(spec.title)
+                Text(localized: spec.title)
                     .font(.system(size: 10, weight: .semibold))
                     .lineLimit(1)
                     .minimumScaleFactor(0.8)
@@ -193,8 +244,9 @@ struct SonoraTabBar: View {
                 if isSelected {
                     Capsule()
                         .fill(Theme.neon)
-                        .overlay(Capsule().strokeBorder(Color.white.opacity(0.25), lineWidth: 0.8))
-                        .neonGlow(Theme.magenta, radius: 12)
+                        .overlay(Capsule().strokeBorder(Color.white.opacity(isDragging ? 0.5 : 0.25), lineWidth: 0.8))
+                        .neonGlow(Theme.magenta, radius: isDragging ? 20 : 12)
+                        .scaleEffect(x: isDragging ? 1.14 : 1, y: isDragging ? 1.08 : 1)
                         .matchedGeometryEffect(id: "pill", in: pill)
                 }
             }
@@ -215,6 +267,7 @@ struct SonoraTabBar: View {
             }
             .animation(.spring(response: 0.3, dampingFraction: 0.6), value: spec.badge)
             .contentShape(Capsule())
+            .anchorPreference(key: TabItemAnchorKey.self, value: .bounds) { [spec.tab: $0] }
         }
         .buttonStyle(.plain)
         .accessibilityLabel(spec.badge > 0 ? "\(spec.title), \(spec.badge) unread" : spec.title)

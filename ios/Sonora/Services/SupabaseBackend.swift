@@ -439,6 +439,18 @@ final class SupabaseBackend: Backend {
         }
     }
 
+    func startConversation(artistId: UUID, body: String) async throws -> Conversation {
+        try await rpc("studio_start_conversation", ["p_artist_id": .string(artistId.uuidString), "p_body": .string(body)])
+    }
+
+    func respondToMessageRequest(conversationId: UUID, accept: Bool) async throws -> Conversation {
+        try await rpc("respond_message_request", ["p_conversation_id": .string(conversationId.uuidString), "p_accept": .bool(accept)])
+    }
+
+    func searchArtists(query: String) async throws -> [ArtistSearchResult] {
+        try await rpc("search_artists", ["p_query": .string(query)])
+    }
+
     // MARK: Support
 
     func supportTickets() async throws -> [SupportTicket] {

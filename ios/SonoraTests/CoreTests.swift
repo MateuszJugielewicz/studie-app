@@ -284,6 +284,36 @@ final class MockBackendTests: XCTestCase {
         XCTAssertEqual(tickets.count, 1)
     }
 
+    func testStudioMessageRequestFlow() async throws {
+        let backend = MockBackend(latency: .zero)
+        let artist = try await backend.signUp(email: "fresh@artist.io", password: "Password1234", role: .artist)
+        var profile = ArtistProfile.empty(id: artist.id)
+        profile.artistName = "Luna Beats"
+        profile.city = "Athens"
+        _ = try await backend.saveArtistProfile(profile)
+        await backend.signOut()
+
+        _ = try await backend.signIn(email: "studio@demo.sonora", password: MockData.demoPassword)
+        let found = try await backend.searchArtists(query: "luna")
+        XCTAssertEqual(found.map(\.id), [artist.id])
+        let request = try await backend.startConversation(artistId: artist.id, body: "Want to record with us?")
+        XCTAssertTrue(request.isPendingRequest)
+        await backend.signOut()
+
+        _ = try await backend.signIn(email: "fresh@artist.io", password: "Password1234")
+        let conversations = try await backend.conversations()
+        XCTAssertEqual(conversations.first?.badgeCount(for: .artist), 0, "Requests don't count towards the badge")
+        let declined = try await backend.respondToMessageRequest(conversationId: request.id, accept: false)
+        XCTAssertTrue(declined.isDeclined)
+        await backend.signOut()
+
+        _ = try await backend.signIn(email: "studio@demo.sonora", password: MockData.demoPassword)
+        do {
+            _ = try await backend.startConversation(artistId: artist.id, body: "Hello?")
+            XCTFail("Declined requests must block the studio")
+        } catch {}
+    }
+
     func testCashBookingAccruesPlatformFee() async throws {
         let backend = MockBackend(latency: .zero)
         _ = try await backend.signIn(email: "studio@demo.sonora", password: MockData.demoPassword)

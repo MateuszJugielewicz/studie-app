@@ -1,4 +1,4 @@
-# SONORA
+# EASYSESH
 
 En markedsplads, hvor artister finder og booker lydstudier, og betaler direkte i appen.
 
@@ -57,7 +57,7 @@ Gør en konto til admin i Supabase → SQL Editor: `update profiles set role = '
 - **Instant book:** betaling trækkes med det samme. **Request to book:** kortet reserveres og trækkes først, når studiet accepterer
 - **Depositum**, hvis studiet kræver det; restbeløbet trækkes automatisk efter sessionen
 - **Platform fee: 10 % af alt salg.** Artisten betaler studiets pris uden ekstra gebyr.
-  - **Kort:** Sonora modtager betalingen og udbetaler 90 % til studiet.
+  - **Kort:** EasySesh modtager betalingen og udbetaler 90 % til studiet.
   - **Kontant:** studiet modtager hele beløbet. De 10 % bogføres som gæld i studiets gebyr-regnskab (`studio_fee_ledger`), når sessionen er gennemført. Gælden modregnes automatisk i studiets næste kort-udbetalinger. Resten kan admin fakturere via Stripe (14 dages betaling), registrere som betalt eller eftergive.
 - Betalingsstatus, kvitteringer, automatiske refunderinger efter afbestillingspolitik (fleksibel / moderat / streng)
 - **Studieudbetaling** via Stripe Connect, 2 dage efter gennemført session
@@ -178,7 +178,15 @@ npm run build                      # deploy dist/ til fx Vercel, Netlify eller C
 
 ## Opdatering af en eksisterende database
 
-Har du allerede kørt `supabase/setup.sql`, så kør kun de nye filer i `supabase/updates/` (SQL Editor → New query → indsæt → Run). De bevarer dine data og kan køres flere gange. `setup.sql` er kun til en helt ny database – den sletter alt.
+Har du allerede kørt `supabase/setup.sql`, så kør `supabase/updates/latest.sql` (SQL Editor → New query → indsæt → Run). Den bringer databasen helt up to date, bevarer dine data og kan køres flere gange. `setup.sql` er kun til en helt ny database – den sletter alt.
+
+## Sprog
+
+Appen findes på engelsk, dansk, tysk, polsk, græsk, fransk, spansk, italiensk, svensk og hollandsk. Oversættelserne ligger i `ios/scripts/translations/*.txt` (én linje pr. tekst: `engelsk | da | de | pl | el | fr | es | it | sv | nl`). Kør `python3 ios/scripts/build_strings.py` for at bygge `Localizable.xcstrings`. Tekster uden oversættelse vises på engelsk.
+
+## Navn
+
+Appen hedder **EasySesh** for brugerne. Xcode-projektet, mapper og kode hedder stadig `Sonora` internt – det ser brugerne aldrig.
 
 ## Tests
 

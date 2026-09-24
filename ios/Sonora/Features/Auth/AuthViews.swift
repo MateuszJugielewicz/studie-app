@@ -61,7 +61,9 @@ struct WelcomeView: View {
 /// A live "VU meter": bars breathe like a signal on a mixing desk. Static when Reduce Motion is on.
 struct LevelMeter: View {
     private let levels: [CGFloat] = [0.22, 0.35, 0.3, 0.52, 0.44, 0.7, 0.62, 0.9, 0.78, 1.0, 0.84, 0.66, 0.74, 0.5, 0.58, 0.4, 0.46, 0.28, 0.34, 0.18]
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
+    @Environment(\.reduceEffects) private var reduceEffects
+    private var reduceMotion: Bool { systemReduceMotion || reduceEffects }
 
     var body: some View {
         TimelineView(.animation(minimumInterval: 1 / 30, paused: reduceMotion)) { context in

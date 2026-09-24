@@ -101,7 +101,7 @@ struct TermsAcceptanceView: View {
                         SonoraLogo(size: 22)
                         Text(app.account?.acceptedTermsVersion == nil ? "Before you start" : "We've updated our terms")
                             .font(.title2.bold())
-                        Text("Please read and accept the documents below to use Sonora.")
+                        Text("Please read and accept the documents below to use EasySesh.")
                             .foregroundStyle(.secondary)
                     }
                     .listRowBackground(Color.clear)

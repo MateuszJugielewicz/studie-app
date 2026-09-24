@@ -116,7 +116,7 @@ function TicketThread({ ticket, onChanged }: { ticket: SupportTicket; onChanged:
           {(messages.data ?? []).map((m) => (
             <div key={m.id} className={m.from_admin ? "bubble admin" : "bubble user"}>
               {m.body}
-              <div className="bubble-meta">{m.from_admin ? "Sonora" : ticket.user_name} · {date(m.created_at, true)}</div>
+              <div className="bubble-meta">{m.from_admin ? "EasySesh" : ticket.user_name} · {date(m.created_at, true)}</div>
             </div>
           ))}
           <div ref={end} />

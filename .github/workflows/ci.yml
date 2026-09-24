@@ -71,6 +71,8 @@ jobs:
       - run: npm test
       - name: setup.sql is up to date with the migrations
         run: python3 ../scripts/build_setup.py && git diff --exit-code -- ../setup.sql
+      - name: updates/latest.sql is up to date with the migrations
+        run: python3 ../scripts/build_update.py && git diff --exit-code -- ../updates/latest.sql
 
   edge-functions:
     name: Edge functions (type check + tests)

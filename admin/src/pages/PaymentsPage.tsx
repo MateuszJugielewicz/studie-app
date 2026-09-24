@@ -51,7 +51,7 @@ export default function PaymentsPage() {
           {tab === "cash" ? (
             <>
               <p className="muted small" style={{ padding: "12px 16px 0" }}>
-                For cash bookings the studio collects the money and owes Sonora 10%. Fees are deducted automatically from the studio's next card payout; invoice or record a payment for the rest.
+                For cash bookings the studio collects the money and owes EasySesh 10%. Fees are deducted automatically from the studio's next card payout; invoice or record a payment for the rest.
               </p>
               <table>
                 <thead><tr><th>Studio</th><th>Owed</th><th>Last cash booking</th><th>Open invoices</th><th></th></tr></thead>

@@ -1,4 +1,4 @@
-// Artist chooses to pay cash at the studio. No card is charged; Sonora's 10% platform fee is
+// Artist chooses to pay cash at the studio. No card is charged; EasySesh's 10% platform fee is
 // booked to the studio's fee ledger when the session is completed.
 import { handler, HttpError, json, requireString } from "../_shared/http.ts";
 import { loadBooking, loadStudio, requireUser, updateBooking } from "../_shared/supabase.ts";

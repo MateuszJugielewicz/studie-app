@@ -43,7 +43,7 @@ struct SupportCenterView: View {
                 }
             } else if !isLoading {
                 Section {
-                    Text("Questions about a booking, a payment or your account? Send us a message and the Sonora team will answer here.")
+                    Text("Questions about a booking, a payment or your account? Send us a message and the EasySesh team will answer here.")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
@@ -152,7 +152,7 @@ struct NewSupportTicketView: View {
                 TextField("Subject", text: $subject)
                 TextField("Describe what happened…", text: $message, axis: .vertical).lineLimit(6...14)
             } footer: {
-                Text("Please don't share card numbers or passwords. The Sonora team can see your account and bookings.")
+                Text("Please don't share card numbers or passwords. The EasySesh team can see your account and bookings.")
             }
         }
         .navigationTitle("Contact support")

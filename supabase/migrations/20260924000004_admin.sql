@@ -1,4 +1,4 @@
--- Sonora: admin dashboard RPCs. Every function checks public.is_admin().
+-- EasySesh: admin dashboard RPCs. Every function checks public.is_admin().
 
 create or replace function public.require_admin()
 returns void

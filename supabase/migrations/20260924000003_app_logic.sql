@@ -1,4 +1,4 @@
--- Sonora: RPCs used by the app and triggers that keep derived data + notifications in sync.
+-- EasySesh: RPCs used by the app and triggers that keep derived data + notifications in sync.
 
 -- ---------------------------------------------------------------------------
 -- Notifications helper
