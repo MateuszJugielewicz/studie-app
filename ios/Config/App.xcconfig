@@ -1,0 +1,11 @@
+// Shared build settings. Real keys go in Secrets.xcconfig (git-ignored).
+// Leave the values empty to run the app in demo mode with built-in sample data.
+//
+// Note: xcconfig treats "//" as a comment, so write URLs as https:/$()/xyz.supabase.co
+
+SONORA_SUPABASE_URL =
+SONORA_SUPABASE_ANON_KEY =
+SONORA_STRIPE_PUBLISHABLE_KEY =
+SONORA_APPLE_PAY_MERCHANT_ID = merchant.com.sonora.app
+
+#include? "Secrets.xcconfig"

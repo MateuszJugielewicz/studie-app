@@ -1,0 +1,21 @@
+# Xcode
+*.xcodeproj/
+*.xcworkspace/
+xcuserdata/
+DerivedData/
+build/
+*.ipa
+*.dSYM.zip
+ios/Config/Secrets.xcconfig
+
+# Node
+node_modules/
+dist/
+.env
+.env.local
+
+# Supabase
+supabase/.temp/
+supabase/.branches/
+
+.DS_Store
