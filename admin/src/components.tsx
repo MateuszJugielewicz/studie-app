@@ -17,7 +17,7 @@ export function Stat({ title, value, hint }: { title: string; value: ReactNode; 
   return (
     <div className="card stat">
       <div className="muted small">{title}</div>
-      <div className="stat-value">{value}</div>
+      <div className={typeof value === "string" && value.includes("\n") ? "stat-value multi" : "stat-value"}>{value}</div>
       {hint && <div className="muted small">{hint}</div>}
     </div>
   );
@@ -42,7 +42,7 @@ export function Modal({ title, onClose, children, footer }: { title: string; onC
       <div className="modal" onClick={(e) => e.stopPropagation()} role="dialog" aria-label={title}>
         <div className="modal-header">
           <h2>{title}</h2>
-          <button className="ghost" onClick={onClose} aria-label="Close">✕</button>
+          <button className="ghost" onClick={onClose} aria-label="Close">Close</button>
         </div>
         <div className="modal-body">{children}</div>
         {footer && <div className="modal-footer">{footer}</div>}
@@ -52,7 +52,7 @@ export function Modal({ title, onClose, children, footer }: { title: string; onC
 }
 
 export function PageState({ loading, error, empty, children }: { loading: boolean; error: string | null; empty?: boolean; children: ReactNode }) {
-  if (error) return <div className="card error">⚠️ {error}</div>;
+  if (error) return <div className="card error">{error}</div>;
   if (loading) return <div className="card muted">Loading…</div>;
   if (empty) return <div className="card muted">Nothing here.</div>;
   return <>{children}</>;

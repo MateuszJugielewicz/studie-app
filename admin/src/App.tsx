@@ -9,13 +9,40 @@ import BookingsPage from "./pages/BookingsPage";
 import PaymentsPage from "./pages/PaymentsPage";
 import ModerationPage from "./pages/ModerationPage";
 
+// Simple 24px stroke icons (Lucide-style paths).
+const icons: Record<string, string> = {
+  overview: "M3 3v18h18M7 15l4-4 3 3 5-6",
+  studios: "M4 21V8l8-5 8 5v13M9 21v-6h6v6",
+  users: "M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75",
+  bookings: "M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z",
+  payments: "M2 7h20v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2zM2 11h20M6 16h4",
+  moderation: "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z",
+};
+
+function Icon({ name }: { name: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d={icons[name]} />
+    </svg>
+  );
+}
+
+export function Logo({ big = false, tag }: { big?: boolean; tag?: string }) {
+  return (
+    <div className={big ? "logo big" : "logo"}>
+      sonora<span className="dot" />
+      {tag && <span className="tag">{tag}</span>}
+    </div>
+  );
+}
+
 const nav = [
-  { to: "/", title: "Overview", icon: "📊" },
-  { to: "/studios", title: "Studios", icon: "🎚️" },
-  { to: "/users", title: "Users", icon: "👥" },
-  { to: "/bookings", title: "Bookings", icon: "📅" },
-  { to: "/payments", title: "Payments", icon: "💳" },
-  { to: "/moderation", title: "Moderation", icon: "🛡️" },
+  { to: "/", title: "Overview", icon: "overview" },
+  { to: "/studios", title: "Studios", icon: "studios" },
+  { to: "/users", title: "Users", icon: "users" },
+  { to: "/bookings", title: "Bookings", icon: "bookings" },
+  { to: "/payments", title: "Payments", icon: "payments" },
+  { to: "/moderation", title: "Moderation", icon: "moderation" },
 ];
 
 export default function App() {
@@ -43,11 +70,11 @@ export default function App() {
     <ApiContext.Provider value={api}>
       <div className="layout">
         <aside className="sidebar">
-          <div className="logo">〰 SONORA <span className="muted small">admin</span></div>
+          <Logo tag="admin" />
           <nav>
             {nav.map((item) => (
               <NavLink key={item.to} to={item.to} end={item.to === "/"} className={({ isActive }) => (isActive ? "nav active" : "nav")}>
-                <span>{item.icon}</span> {item.title}
+                <Icon name={item.icon} /> {item.title}
               </NavLink>
             ))}
           </nav>
@@ -96,7 +123,7 @@ function Login({ onSignedIn }: { onSignedIn: (email: string) => void }) {
           }
         }}
       >
-        <div className="logo big">〰 SONORA</div>
+        <Logo big />
         <p className="muted">Admin dashboard</p>
         {api.isDemo && <p className="badge orange">Demo mode – no Supabase keys configured</p>}
         <label>Email<input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required /></label>
@@ -131,7 +158,7 @@ function TwoFactor({ state, onVerified, onCancel }: { state: Exclude<MfaState, {
           }
         }}
       >
-        <div className="logo big">〰 SONORA</div>
+        <Logo big />
         <h2>Two-factor authentication</h2>
         {state.kind === "enroll" ? (
           <>

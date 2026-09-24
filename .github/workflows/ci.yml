@@ -4,12 +4,21 @@ on:
   push:
     branches: [main, "claude/**"]
   pull_request:
+  workflow_dispatch:
 
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
+  ios-core:
+    name: iOS core logic (Swift tests on Linux)
+    runs-on: ubuntu-latest
+    container: swift:6.0
+    steps:
+      - uses: actions/checkout@v4
+      - run: ios/scripts/test-core.sh
+
   ios:
     name: iOS app (build + unit tests)
     runs-on: macos-15

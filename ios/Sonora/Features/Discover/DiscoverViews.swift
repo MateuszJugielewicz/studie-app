@@ -55,7 +55,7 @@ struct DiscoverView: View {
                     StudioMapView(results: results, metric: metric) { path.append($0.studio) }
                 } else {
                     ScrollView {
-                        LazyVStack(spacing: 16) {
+                        LazyVStack(spacing: 28) {
                             AreaSummaryCard(summary: model.summary(origin: origin, areaName: app.location.cityName ?? "Athens", radiusKm: app.account?.settings.searchRadiusKm ?? 5))
                             if model.isLoading {
                                 ProgressView().padding(40)
@@ -138,64 +138,71 @@ struct AreaSummaryCard: View {
     let summary: AreaSummary
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Label(summary.areaName, systemImage: "mappin.circle.fill").font(.headline)
-            Label("\(summary.studioCount) studios within \(Int(summary.radiusKm)) km", systemImage: "slider.vertical.3")
-            if let price = summary.priceFrom {
-                Label("From \(Money.format(price, currency: summary.currency))/hour", systemImage: "eurosign.circle")
+        VStack(alignment: .leading, spacing: 4) {
+            Text("Near you").eyebrow()
+            Text(summary.areaName)
+                .font(.display(30))
+                .tracking(-0.5)
+            HStack(spacing: 6) {
+                Text("\(summary.studioCount) studios within \(Int(summary.radiusKm)) km")
+                if let price = summary.priceFrom {
+                    Text("·")
+                    Text("from \(Money.format(price, currency: summary.currency))/h")
+                }
             }
+            .font(.subheadline)
+            .foregroundStyle(.secondary)
         }
-        .font(.subheadline)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding()
-        .background(Theme.gradient.opacity(0.25), in: RoundedRectangle(cornerRadius: Theme.corner))
+        .padding(.top, 4)
+        .padding(.bottom, 4)
     }
 }
 
+/// Photo-first listing card: image on top, facts underneath, no chrome.
 struct StudioCard: View {
     let result: StudioResult
     var metric = true
 
     var body: some View {
         let studio = result.studio
-        VStack(alignment: .leading, spacing: 0) {
-            RemoteImage(url: studio.photoUrls.first)
-                .frame(height: 180)
-                .frame(maxWidth: .infinity)
-                .clipped()
+        VStack(alignment: .leading, spacing: 10) {
+            Color.clear
+                .aspectRatio(4 / 3, contentMode: .fit)
+                .overlay { RemoteImage(url: studio.photoUrls.first) }
+                .clipShape(RoundedRectangle(cornerRadius: Theme.corner, style: .continuous))
                 .overlay(alignment: .topLeading) {
                     if studio.bookingPolicy.instantBook {
-                        Label("Instant book", systemImage: "bolt.fill")
-                            .font(.caption.bold())
-                            .padding(.horizontal, 8).padding(.vertical, 5)
-                            .background(.ultraThinMaterial, in: Capsule())
+                        Text("Instant book")
+                            .font(.caption.weight(.semibold))
+                            .padding(.horizontal, 8).padding(.vertical, 4)
+                            .background(Theme.card, in: RoundedRectangle(cornerRadius: 6, style: .continuous))
+                            .foregroundStyle(.primary)
                             .padding(10)
                     }
                 }
 
-            VStack(alignment: .leading, spacing: 6) {
-                HStack {
-                    Text(studio.name).font(.headline)
+            VStack(alignment: .leading, spacing: 3) {
+                HStack(alignment: .firstTextBaseline, spacing: 4) {
+                    Text(studio.name).font(.headline).lineLimit(1)
                     if studio.isVerified { VerifiedBadge() }
-                    Spacer()
+                    Spacer(minLength: 8)
                     RatingLabel(rating: studio.ratingAverage, count: studio.reviewCount, compact: true)
                 }
-                Text(studio.tagline).font(.subheadline).foregroundStyle(.secondary).lineLimit(1)
-                HStack {
-                    Label(studio.address.publicArea, systemImage: "mappin")
-                    if let distance = result.distance {
-                        Text("· \(Distance.format(meters: distance, metric: metric))")
-                    }
-                    Spacer()
-                    Text("From ").foregroundColor(.secondary) + Text(Money.format(studio.priceFrom, currency: studio.currency)).bold() + Text("/h").foregroundColor(.secondary)
-                }
-                .font(.footnote)
+                Text(areaLine(studio)).font(.subheadline).foregroundStyle(.secondary).lineLimit(1)
+                (Text(Money.format(studio.priceFrom, currency: studio.currency)).fontWeight(.semibold) + Text(" / hour").foregroundColor(.secondary))
+                    .font(.subheadline)
+                    .padding(.top, 2)
             }
-            .padding(12)
         }
-        .background(Theme.card)
-        .clipShape(RoundedRectangle(cornerRadius: Theme.corner, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: Theme.corner, style: .continuous).stroke(Theme.stroke))
+        .contentShape(Rectangle())
+        .accessibilityElement(children: .combine)
+    }
+
+    private func areaLine(_ studio: Studio) -> String {
+        var parts = [studio.address.publicArea]
+        if let distance = result.distance { parts.append(Distance.format(meters: distance, metric: metric)) }
+        return parts.joined(separator: " · ")
     }
 }
 
@@ -215,9 +222,10 @@ struct StudioMapView: View {
                     Text(Money.format(result.studio.priceFrom, currency: result.studio.currency))
                         .font(.caption.bold())
                         .padding(.horizontal, 8).padding(.vertical, 5)
-                        .background(selectedId == result.id ? AnyShapeStyle(Theme.accent) : AnyShapeStyle(Color.black.opacity(0.8)), in: Capsule())
-                        .foregroundStyle(.white)
-                        .overlay(Capsule().stroke(.white.opacity(0.3)))
+                        .background(selectedId == result.id ? Color.primary : Theme.card, in: Capsule())
+                        .foregroundStyle(selectedId == result.id ? Theme.background : Color.primary)
+                        .overlay(Capsule().strokeBorder(Color.primary.opacity(0.15)))
+                        .shadow(color: .black.opacity(0.12), radius: 3, y: 1)
                 }
                 .tag(result.id)
             }
@@ -230,7 +238,7 @@ struct StudioMapView: View {
         .safeAreaInset(edge: .bottom) {
             if let selected = results.first(where: { $0.id == selectedId }) {
                 Button { onOpen(selected) } label: {
-                    StudioCard(result: selected, metric: metric)
+                    StudioCard(result: selected, metric: metric).card(padding: 10)
                 }
                 .buttonStyle(.plain)
                 .padding()

@@ -61,7 +61,7 @@ export default function BookingsPage() {
                   <td>{b.studio_name}</td>
                   <td>{date(b.starts_at, true)} · {b.hours}h</td>
                   <td><Badge value={b.status} /></td>
-                  <td><Badge value={b.payment_status} />{b.payment_method === "cash" && <span className="muted small"> 💵 cash</span>}</td>
+                  <td><Badge value={b.payment_status} />{b.payment_method === "cash" && <span className="muted small"> · cash</span>}</td>
                   <td>{money(b.price.total, b.price.currency)}</td>
                   <td>{b.refund_amount ? money(b.refund_amount, b.price.currency) : "–"}</td>
                 </tr>

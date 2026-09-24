@@ -28,7 +28,7 @@ export default function PaymentsPage() {
       <header className="page-header"><h1>Payments</h1></header>
       <section className="grid stats">
         <Stat title="Payment volume" value={moneyTotals(sumByCurrency(charges, (t) => t.currency, (t) => t.amount))} />
-        <Stat title="Service fees" value={moneyTotals(sumByCurrency(charges, (t) => t.currency, (t) => t.platform_fee))} />
+        <Stat title="Platform fees (10%)" value={moneyTotals(sumByCurrency(charges, (t) => t.currency, (t) => t.platform_fee))} />
         <Stat title="Paid to studios" value={moneyTotals(sumByCurrency(po.filter((p) => p.status === "paid"), (p) => p.currency, (p) => p.amount))} />
         <Stat title="Upcoming payouts" value={moneyTotals(sumByCurrency(po.filter((p) => p.status === "scheduled" || p.status === "in_transit"), (p) => p.currency, (p) => p.amount))} />
         <Stat title="Refunded" value={moneyTotals(sumByCurrency(refunds, (t) => t.currency, (t) => t.amount))} />

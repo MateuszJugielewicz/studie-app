@@ -8,49 +8,73 @@ struct WelcomeView: View {
 
     var body: some View {
         NavigationStack {
-            ZStack {
-                Theme.background.ignoresSafeArea()
-                RadialGradient(colors: [Theme.accent.opacity(0.45), .clear], center: .top, startRadius: 10, endRadius: 420)
-                    .ignoresSafeArea()
-
-                VStack(spacing: 28) {
+            VStack(alignment: .leading, spacing: 0) {
+                HStack {
+                    SonoraLogo(size: 26)
                     Spacer()
-                    SonoraLogo(size: 40)
-                    Text("Find the studio.\nBook the session.\nMake the record.")
-                        .font(.title2.weight(.semibold))
-                        .multilineTextAlignment(.center)
-                        .foregroundStyle(.white.opacity(0.9))
-                    Spacer()
-
                     if app.isDemo { DemoBanner() }
+                }
+                .padding(.top, 8)
 
-                    VStack(spacing: 12) {
-                        Button { route = AuthRoute(mode: .signUp, role: .artist) } label: {
-                            Label("I'm an artist", systemImage: "music.mic")
-                        }
+                Spacer(minLength: 24)
+
+                LevelMeter()
+                    .frame(height: 120)
+                    .padding(.bottom, 28)
+
+                Text("Studio time,\nbooked in minutes.")
+                    .font(.display(40))
+                    .tracking(-0.8)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                Text("Find rooms, gear and engineers near you. See real prices and availability, book and pay in one place.")
+                    .font(.body)
+                    .foregroundStyle(.secondary)
+                    .padding(.top, 12)
+
+                Spacer(minLength: 32)
+
+                VStack(spacing: 10) {
+                    Button("Find a studio") { route = AuthRoute(mode: .signUp, role: .artist) }
                         .buttonStyle(.primary)
-
-                        Button { route = AuthRoute(mode: .signUp, role: .studioOwner) } label: {
-                            Label("I own a studio", systemImage: "slider.vertical.3")
-                                .font(.headline)
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 16)
-                                .background(Theme.card, in: RoundedRectangle(cornerRadius: 14))
-                                .overlay(RoundedRectangle(cornerRadius: 14).stroke(Theme.stroke))
-                        }
-                        .buttonStyle(.plain)
-
-                        Button("I already have an account") { route = AuthRoute(mode: .signIn, role: .artist) }
-                            .padding(.top, 4)
+                    Button("List your studio") { route = AuthRoute(mode: .signUp, role: .studioOwner) }
+                        .buttonStyle(.secondary)
+                    Button {
+                        route = AuthRoute(mode: .signIn, role: .artist)
+                    } label: {
+                        (Text("Already have an account? ").foregroundColor(.secondary) + Text("Sign in").fontWeight(.semibold))
+                            .font(.subheadline)
+                            .frame(maxWidth: .infinity, minHeight: 44)
                     }
-                    .padding(.horizontal, 24)
-                    .padding(.bottom, 24)
+                    .buttonStyle(.plain)
                 }
             }
+            .padding(.horizontal, 24)
+            .padding(.bottom, 12)
+            .background(Theme.background.ignoresSafeArea())
             .navigationDestination(item: $route) { route in
                 AuthView(mode: route.mode, role: route.role)
             }
         }
+    }
+}
+
+/// A still "VU meter": the one piece of illustration in the app.
+struct LevelMeter: View {
+    private let levels: [CGFloat] = [0.22, 0.35, 0.3, 0.52, 0.44, 0.7, 0.62, 0.9, 0.78, 1.0, 0.84, 0.66, 0.74, 0.5, 0.58, 0.4, 0.46, 0.28, 0.34, 0.18]
+
+    var body: some View {
+        GeometryReader { proxy in
+            HStack(alignment: .bottom, spacing: 5) {
+                ForEach(levels.indices, id: \.self) { index in
+                    RoundedRectangle(cornerRadius: 2, style: .continuous)
+                        .fill(index == 9 ? Theme.accent : Color.primary.opacity(0.12 + levels[index] * 0.5))
+                        .frame(height: proxy.size.height * levels[index])
+                }
+            }
+            .frame(maxHeight: .infinity, alignment: .bottom)
+        }
+        .accessibilityHidden(true)
     }
 }
 
@@ -74,6 +98,7 @@ struct AuthView: View {
     @State private var info: String?
     @State private var currentNonce: String?
     @State private var legalDocument: LegalDocument?
+    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         Form {
@@ -100,7 +125,7 @@ struct AuthView: View {
                 } onCompletion: { result in
                     handleApple(result)
                 }
-                .signInWithAppleButtonStyle(.white)
+                .signInWithAppleButtonStyle(colorScheme == .dark ? .white : .black)
                 .frame(height: 48)
                 .listRowInsets(EdgeInsets())
 
@@ -125,7 +150,7 @@ struct AuthView: View {
                     .textContentType(mode == .signUp ? .newPassword : .password)
                 if mode == .signUp {
                     if !password.isEmpty, let problem = PasswordPolicy.problem(password) {
-                        Text(problem).font(.caption).foregroundStyle(.orange)
+                        Text(problem).font(.caption).foregroundStyle(Theme.warning)
                     }
                     Toggle(isOn: $acceptedTerms) {
                         Text(role == .studioOwner
@@ -133,7 +158,7 @@ struct AuthView: View {
                              : "I accept the Terms and the Privacy Policy")
                             .font(.footnote)
                     }
-                    HStack(spacing: 16) {
+                    FlowLayout(spacing: 14) {
                         ForEach(LegalDocument.required(for: role)) { document in
                             Button(document.title) { legalDocument = document }
                                 .font(.caption)

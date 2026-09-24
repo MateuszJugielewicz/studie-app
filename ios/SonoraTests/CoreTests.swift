@@ -282,13 +282,15 @@ final class MockBackendTests: XCTestCase {
         let payouts = try await backend.payouts(studioId: MockData.ownedStudioId)
         XCTAssertFalse(payouts.contains { $0.bookingIds.contains(booking.id) }, "Cash bookings never create payouts")
     }
+}
 
+final class PostgresCodingTests: XCTestCase {
     func testDecodesPostgresRows() throws {
         let json = """
         {"id":"11111111-1111-1111-1111-111111111111","email":"a@b.c","role":"studio_owner","status":"active","is_verified":false,
          "settings":{"push_enabled":false},"created_at":"2026-09-24T10:00:00.123456+00:00","stripe_customer_id":null}
         """
-        let account = try SupabaseBackend.makeDecoder().decode(UserAccount.self, from: Data(json.utf8))
+        let account = try PostgresCoding.decoder().decode(UserAccount.self, from: Data(json.utf8))
         XCTAssertEqual(account.role, .studioOwner)
         XCTAssertFalse(account.settings.pushEnabled)
         XCTAssertTrue(account.settings.messages) // missing keys fall back to defaults

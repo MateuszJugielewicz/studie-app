@@ -199,7 +199,7 @@ final class MockBackend: Backend {
         let lines: [(UUID?, String, Int)] = [
             (nil, "Booking \(booking.reference) confirmed for \(booking.startsAt.formatted(date: .abbreviated, time: .shortened)).", -180),
             (booking.artistId, "Hi! Can I bring my own guitar for a couple of overdubs?", -120),
-            (studio.ownerId, "Of course! We have a Fender Deluxe amp you're welcome to use too 🎸", -95),
+            (studio.ownerId, "Of course! We have a Fender Deluxe amp you're welcome to use too.", -95),
         ]
         for (sender, text, minutes) in lines {
             appendMessage(ChatMessage(id: UUID(), conversationId: conversation.id, senderId: sender, kind: sender == nil ? .system : .text, body: text, createdAt: .now.adding(minutes: minutes)))
@@ -229,7 +229,7 @@ final class MockBackend: Backend {
         studio.adminNote = note
         studios[studioId] = studio
         if approve {
-            notify(studio.ownerId, .studioApproved, "Your studio is live 🎉", "\(studio.name) was approved and is now visible to artists.", studio: studioId)
+            notify(studio.ownerId, .studioApproved, "Your studio is live", "\(studio.name) was approved and is now visible to artists.", studio: studioId)
         } else {
             notify(studio.ownerId, .studioChangesRequested, "Changes requested", note ?? "Please update your listing and resubmit.", studio: studioId)
         }
@@ -537,7 +537,7 @@ final class MockBackend: Backend {
             recordCharge(for: booking, amount: booking.price.dueNow, method: method)
             booking.status = .confirmed
             booking.paymentStatus = booking.price.depositAmount > 0 ? .depositPaid : .paid
-            notify(user.id, .bookingConfirmed, "Booking confirmed ✅", "\(studio.name) · \(booking.startsAt.formatted(date: .abbreviated, time: .shortened))", booking: booking.id)
+            notify(user.id, .bookingConfirmed, "Booking confirmed", "\(studio.name) · \(booking.startsAt.formatted(date: .abbreviated, time: .shortened))", booking: booking.id)
             notify(studio.ownerId, .bookingRequested, "New booking", "\(booking.artistName) booked \(booking.hours)h on \(booking.startsAt.formatted(date: .abbreviated, time: .shortened)).", booking: booking.id)
         } else {
             booking.status = .pendingApproval
@@ -565,7 +565,7 @@ final class MockBackend: Backend {
         bookings[booking.id] = booking
         let when = booking.startsAt.formatted(date: .abbreviated, time: .shortened)
         if booking.status == .confirmed {
-            notify(user.id, .bookingConfirmed, "Booking confirmed ✅", "\(studio.name) · \(when). Pay cash at the studio.", booking: booking.id)
+            notify(user.id, .bookingConfirmed, "Booking confirmed", "\(studio.name) · \(when). Pay cash at the studio.", booking: booking.id)
             notify(studio.ownerId, .bookingRequested, "New cash booking", "\(booking.artistName) booked \(booking.hours)h on \(when) and pays cash.", booking: booking.id)
         } else {
             notify(studio.ownerId, .bookingRequested, "New booking request (cash)", "\(booking.artistName) wants to book \(booking.hours)h on \(when) and pay cash.", booking: booking.id)
@@ -694,12 +694,12 @@ final class MockBackend: Backend {
         guard booking.status == .pendingApproval else { throw BackendError.validation("This request has already been handled.") }
         if accept && booking.isCash {
             booking.status = .confirmed
-            notify(booking.artistId, .bookingConfirmed, "Booking confirmed ✅", "\(studio.name) accepted your request. Pay cash at the studio.", booking: id)
+            notify(booking.artistId, .bookingConfirmed, "Booking confirmed", "\(studio.name) accepted your request. Pay cash at the studio.", booking: id)
         } else if accept {
             recordCharge(for: booking, amount: booking.price.dueNow, method: .card)
             booking.status = .confirmed
             booking.paymentStatus = booking.price.depositAmount > 0 ? .depositPaid : .paid
-            notify(booking.artistId, .bookingConfirmed, "Booking confirmed ✅", "\(studio.name) accepted your request for \(booking.startsAt.formatted(date: .abbreviated, time: .shortened)).", booking: id)
+            notify(booking.artistId, .bookingConfirmed, "Booking confirmed", "\(studio.name) accepted your request for \(booking.startsAt.formatted(date: .abbreviated, time: .shortened)).", booking: id)
         } else {
             booking.status = .declined
             booking.paymentStatus = booking.isCash ? .unpaid : .refunded
@@ -803,7 +803,7 @@ final class MockBackend: Backend {
         if user.id == conversation.artistId, let ownerId = ownerId(ofStudio: conversation.studioId), ownerId != MockData.studioOwnerUserId || currentUserId != ownerId {
             Task { [weak self] in
                 try? await Task.sleep(for: .seconds(2))
-                self?.appendMessage(ChatMessage(id: UUID(), conversationId: conversationId, senderId: ownerId, kind: .text, body: "Thanks for reaching out! We'll get back to you shortly 🎧", createdAt: .now))
+                self?.appendMessage(ChatMessage(id: UUID(), conversationId: conversationId, senderId: ownerId, kind: .text, body: "Thanks for reaching out! We'll get back to you shortly.", createdAt: .now))
             }
         }
         return message

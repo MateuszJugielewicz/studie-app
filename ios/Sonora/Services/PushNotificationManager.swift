@@ -50,7 +50,7 @@ final class PushNotificationManager: NSObject, UNUserNotificationCenterDelegate 
                     let fireDate = booking.startsAt.addingTimeInterval(TimeInterval(-hoursBefore * 3600))
                     guard fireDate > .now else { continue }
                     let content = UNMutableNotificationContent()
-                    content.title = hoursBefore == 24 ? "Session tomorrow 🎙️" : "Session in 2 hours"
+                    content.title = hoursBefore == 24 ? "Session tomorrow" : "Session in 2 hours"
                     content.body = "\(booking.sessionTypeName) at \(booking.studioName), \(booking.startsAt.formatted(date: .omitted, time: .shortened))."
                     content.sound = .default
                     content.userInfo = ["booking_id": booking.id.uuidString]

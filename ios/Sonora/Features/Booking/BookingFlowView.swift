@@ -98,7 +98,7 @@ struct BookingFlowView: View {
                                         .frame(maxWidth: .infinity)
                                         .padding(.vertical, 10)
                                         .background(draft.selectedSlot == slot ? AnyShapeStyle(Theme.accent) : AnyShapeStyle(Theme.card), in: RoundedRectangle(cornerRadius: 10))
-                                        .foregroundStyle(draft.selectedSlot == slot ? .white : .primary)
+                                        .foregroundStyle(draft.selectedSlot == slot ? Theme.onAccent : Color.primary)
                                 }
                                 .buttonStyle(.plain)
                             }
@@ -388,7 +388,7 @@ struct BookingConfirmationView: View {
             VStack(spacing: 20) {
                 Image(systemName: booking.status == .confirmed ? "checkmark.circle.fill" : "clock.badge.checkmark.fill")
                     .font(.system(size: 72))
-                    .foregroundStyle(Theme.gradient)
+                    .foregroundStyle(booking.status == .confirmed ? Theme.positive : Theme.warning)
                     .padding(.top, 32)
                 Text(booking.status == .confirmed ? "You're booked!" : "Request sent")
                     .font(.largeTitle.bold())

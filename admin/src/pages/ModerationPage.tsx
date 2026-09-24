@@ -45,7 +45,7 @@ export default function ModerationPage() {
                   <tr key={r.id}>
                     <td>{date(r.created_at)}</td>
                     <td>{r.artist_name}</td>
-                    <td>{"★".repeat(r.rating)}</td>
+                    <td>{r.rating}/5</td>
                     <td>{r.text}{r.studio_reply && <div className="muted small">↳ {r.studio_reply}</div>}</td>
                     <td>{r.is_hidden ? "Hidden" : "Visible"}</td>
                     <td><ActionButton kind="secondary" onClick={async () => { await api.setReviewHidden(r.id, !r.is_hidden); await reviews.reload(); }}>{r.is_hidden ? "Show" : "Hide"}</ActionButton></td>

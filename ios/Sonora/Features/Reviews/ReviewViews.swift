@@ -8,7 +8,7 @@ struct ReviewSummaryView: View {
         HStack(spacing: 20) {
             VStack {
                 Text(studio.reviewCount == 0 ? "–" : String(format: "%.1f", studio.ratingAverage))
-                    .font(.system(size: 44, weight: .bold, design: .rounded))
+                    .font(.display(44))
                 StarRow(rating: Int(studio.ratingAverage.rounded()))
                 Text("\(studio.reviewCount) reviews").font(.caption).foregroundStyle(.secondary)
             }
@@ -34,7 +34,7 @@ struct ReviewSummaryView: View {
     private func bar(_ title: String, _ value: Double) -> some View {
         HStack {
             Text(title).font(.caption).frame(width: 72, alignment: .leading)
-            ProgressView(value: value, total: 5).tint(.yellow)
+            ProgressView(value: value, total: 5).tint(.primary)
             Text(String(format: "%.1f", value)).font(.caption.monospacedDigit())
         }
     }

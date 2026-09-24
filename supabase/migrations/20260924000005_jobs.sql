@@ -73,7 +73,7 @@ begin
     where status = 'confirmed' and reminder_24h_sent_at is null
       and starts_at between now() + interval '23 hours' and now() + interval '24 hours 15 minutes'
   loop
-    perform public.notify(b.artist_id, 'session_reminder', 'Session tomorrow 🎙️',
+    perform public.notify(b.artist_id, 'session_reminder', 'Session tomorrow',
       b.session_type_name || ' at ' || b.studio_name || ', ' || public.format_local(b.starts_at, b.studio_id) || '.', b.id);
     update public.bookings set reminder_24h_sent_at = now() where id = b.id;
   end loop;

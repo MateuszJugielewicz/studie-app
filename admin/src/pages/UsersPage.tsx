@@ -52,7 +52,7 @@ export default function UsersPage() {
                   <td>{u.email}</td>
                   <td>{label(u.role)}</td>
                   <td><Badge value={u.status} />{u.status_reason && <div className="muted small">{u.status_reason}</div>}</td>
-                  <td>{u.is_verified ? "✔︎" : ""}</td>
+                  <td>{u.is_verified ? "Yes" : <span className="muted">No</span>}</td>
                   <td>{u.booking_count}</td>
                   <td>{date(u.created_at)}</td>
                   <td className="actions">

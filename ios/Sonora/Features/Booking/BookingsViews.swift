@@ -135,10 +135,11 @@ struct MonthCalendar: View {
                                 Text(day.formatted(.dateTime.day()))
                                     .font(.subheadline.weight(calendar.isDateInToday(day) ? .bold : .regular))
                                     .frame(width: 32, height: 32)
-                                    .background(isSelected ? Theme.accent : .clear, in: Circle())
+                                    .foregroundStyle(isSelected ? Theme.onAccent : Color.primary)
+                                    .background(isSelected ? Theme.accent : Color.clear, in: Circle())
                                 HStack(spacing: 2) {
                                     Circle().fill(markedDays.contains(day) ? Theme.accent : .clear).frame(width: 5, height: 5)
-                                    Circle().fill(blockedDays.contains(day) ? .red : .clear).frame(width: 5, height: 5)
+                                    Circle().fill(blockedDays.contains(day) ? Color.red : Color.clear).frame(width: 5, height: 5)
                                 }
                             }
                         }
@@ -190,113 +191,11 @@ struct BookingDetailView: View {
 
     var body: some View {
         List {
-            Section {
-                VStack(alignment: .leading, spacing: 8) {
-                    StatusPill(text: booking.status.title, color: booking.status.color)
-                    Text(isStudio ? booking.artistName : booking.studioName).font(.title2.bold())
-                    Text("\(booking.sessionTypeName) · \(booking.hours) hours").foregroundStyle(.secondary)
-                }
-                InfoRow(symbol: "calendar", title: booking.startsAt.formatted(date: .complete, time: .omitted))
-                InfoRow(symbol: "clock", title: "\(booking.startsAt.formatted(date: .omitted, time: .shortened)) – \(booking.endsAt.formatted(date: .omitted, time: .shortened))")
-                InfoRow(symbol: "number", title: "Reference", value: booking.reference)
-                if let studio, !isStudio, booking.status == .confirmed {
-                    InfoRow(symbol: "mappin.and.ellipse", title: studio.address.singleLine)
-                }
-                if !booking.notes.isEmpty {
-                    InfoRow(symbol: "text.bubble", title: booking.notes)
-                }
-                ForEach(booking.addOns) { addOn in
-                    InfoRow(symbol: "plus.circle", title: addOn.quantity > 1 ? "\(addOn.name) × \(addOn.quantity)" : addOn.name, value: Money.format(addOn.amount, currency: booking.price.currency))
-                }
-                if let reason = booking.cancellationReason {
-                    InfoRow(symbol: "xmark.circle", title: "Reason", value: reason)
-                }
-            }
-
-            if isStudio && booking.status == .pendingApproval {
-                Section {
-                    Button { respond(accept: true) } label: { Label("Accept booking", systemImage: "checkmark.circle.fill") }
-                    Button(role: .destructive) { sheet = .decline } label: { Label("Decline", systemImage: "xmark.circle") }
-                } footer: {
-                    Text("The artist's card is authorised. Accepting charges it; declining releases the hold.")
-                }
-            }
-
-            Section("Actions") {
-                Button { openChat() } label: { Label(isStudio ? "Message artist" : "Message studio", systemImage: "bubble.left.and.bubble.right") }
-                if let studio, !isStudio, booking.status == .confirmed {
-                    Button { LocationService.openDirections(to: studio) } label: { Label("Directions", systemImage: "arrow.triangle.turn.up.right.diamond") }
-                }
-                if booking.canReschedule {
-                    Button { sheet = .reschedule } label: { Label("Change date or time", systemImage: "calendar.badge.clock") }
-                }
-                if !isStudio && booking.canReview {
-                    Button { sheet = .review } label: { Label("Write a review", systemImage: "star.bubble") }
-                }
-                if booking.canCancel {
-                    Button(role: .destructive) { sheet = .cancel } label: { Label("Cancel booking", systemImage: "xmark.octagon") }
-                }
-                if [.confirmed, .completed].contains(booking.status) {
-                    Button { sheet = .dispute } label: { Label("Report a problem", systemImage: "exclamationmark.bubble") }
-                }
-                Button { sheet = .reportParty } label: {
-                    Label(isStudio ? "Report artist" : "Report studio", systemImage: "flag")
-                }
-            }
-
-            Section {
-                if isStudio {
-                    PriceRow(title: "Session price", amount: booking.price.subtotal, currency: booking.price.currency)
-                    PriceRow(title: "Sonora platform fee (\(PlatformConfig.platformFeePercent)%)", amount: -booking.price.studioCommission, currency: booking.price.currency)
-                    PriceRow(title: booking.isCash ? "Yours to keep" : "Your payout", amount: booking.price.studioPayout, currency: booking.price.currency, emphasized: true)
-                } else {
-                    PriceBreakdownView(price: booking.price)
-                }
-                InfoRow(symbol: booking.isCash ? "banknote" : "creditcard", title: "Status", value: booking.paymentStatus.title)
-                if isStudio && booking.isCash && booking.paymentStatus == .payAtStudio && booking.startsAt <= .now && [.confirmed, .completed].contains(booking.status) {
-                    Button {
-                        isWorking = true
-                        Task {
-                            defer { isWorking = false }
-                            do { initial = try await app.backend.markCashReceived(bookingId: booking.id) }
-                            catch { self.error = error.userMessage }
-                        }
-                    } label: {
-                        Label("Mark cash as received", systemImage: "checkmark.circle")
-                    }
-                }
-                if booking.refundAmount > 0 {
-                    InfoRow(symbol: "arrow.uturn.backward", title: "Refunded", value: Money.format(booking.refundAmount, currency: booking.price.currency))
-                }
-            } header: {
-                Text("Payment")
-            } footer: {
-                if booking.isCash {
-                    Text(isStudio
-                         ? "Cash booking: collect \(Money.format(booking.price.total, currency: booking.price.currency)) at the session. Sonora's \(PlatformConfig.platformFeePercent)% fee is deducted from your next payout or invoiced."
-                         : "Pay \(Money.format(booking.price.total, currency: booking.price.currency)) in cash at the studio.")
-                }
-            }
-
-            if !transactions.isEmpty {
-                Section("Receipts") {
-                    ForEach(transactions) { transaction in
-                        NavigationLink {
-                            ReceiptView(booking: booking, transaction: transaction)
-                        } label: {
-                            HStack {
-                                VStack(alignment: .leading) {
-                                    Text(transaction.kind == .refund ? "Refund" : transaction.kind == .balance ? "Balance payment" : "Payment")
-                                    Text(transaction.createdAt.formatted(date: .abbreviated, time: .shortened)).font(.caption).foregroundStyle(.secondary)
-                                }
-                                Spacer()
-                                Text((transaction.kind == .refund ? "−" : "") + Money.format(transaction.amount, currency: transaction.currency))
-                                    .foregroundStyle(transaction.kind == .refund ? .green : .primary)
-                            }
-                        }
-                    }
-                }
-            }
+            summarySection
+            requestSection
+            actionsSection
+            paymentSection
+            receiptsSection
         }
         .navigationTitle("Booking")
         .navigationBarTitleDisplayMode(.inline)
@@ -326,6 +225,129 @@ struct BookingDetailView: View {
             }
         }
         .errorAlert($error)
+    }
+
+
+    // Sections are split out to keep type-checking fast.
+
+    @ViewBuilder private var summarySection: some View {
+        Section {
+            VStack(alignment: .leading, spacing: 8) {
+                StatusPill(text: booking.status.title, color: booking.status.color)
+                Text(isStudio ? booking.artistName : booking.studioName).font(.title2.bold())
+                Text("\(booking.sessionTypeName) · \(booking.hours) hours").foregroundStyle(.secondary)
+            }
+            InfoRow(symbol: "calendar", title: booking.startsAt.formatted(date: .complete, time: .omitted))
+            InfoRow(symbol: "clock", title: "\(booking.startsAt.formatted(date: .omitted, time: .shortened)) – \(booking.endsAt.formatted(date: .omitted, time: .shortened))")
+            InfoRow(symbol: "number", title: "Reference", value: booking.reference)
+            if let studio, !isStudio, booking.status == .confirmed {
+                InfoRow(symbol: "mappin.and.ellipse", title: studio.address.singleLine)
+            }
+            if !booking.notes.isEmpty {
+                InfoRow(symbol: "text.bubble", title: booking.notes)
+            }
+            ForEach(booking.addOns) { addOn in
+                InfoRow(symbol: "plus.circle", title: addOn.quantity > 1 ? "\(addOn.name) × \(addOn.quantity)" : addOn.name, value: Money.format(addOn.amount, currency: booking.price.currency))
+            }
+            if let reason = booking.cancellationReason {
+                InfoRow(symbol: "xmark.circle", title: "Reason", value: reason)
+            }
+        }
+    }
+
+    @ViewBuilder private var requestSection: some View {
+        if isStudio && booking.status == .pendingApproval {
+            Section {
+                Button { respond(accept: true) } label: { Label("Accept booking", systemImage: "checkmark.circle.fill") }
+                Button(role: .destructive) { sheet = .decline } label: { Label("Decline", systemImage: "xmark.circle") }
+            } footer: {
+                Text(booking.isCash
+                     ? "The artist will pay cash at the session."
+                     : "The artist's card is authorised. Accepting charges it; declining releases the hold.")
+            }
+        }
+    }
+
+    @ViewBuilder private var actionsSection: some View {
+        Section("Actions") {
+            Button { openChat() } label: { Label(isStudio ? "Message artist" : "Message studio", systemImage: "bubble.left.and.bubble.right") }
+            if let studio, !isStudio, booking.status == .confirmed {
+                Button { LocationService.openDirections(to: studio) } label: { Label("Directions", systemImage: "arrow.triangle.turn.up.right.diamond") }
+            }
+            if booking.canReschedule {
+                Button { sheet = .reschedule } label: { Label("Change date or time", systemImage: "calendar.badge.clock") }
+            }
+            if !isStudio && booking.canReview {
+                Button { sheet = .review } label: { Label("Write a review", systemImage: "star.bubble") }
+            }
+            if booking.canCancel {
+                Button(role: .destructive) { sheet = .cancel } label: { Label("Cancel booking", systemImage: "xmark.octagon") }
+            }
+            if [.confirmed, .completed].contains(booking.status) {
+                Button { sheet = .dispute } label: { Label("Report a problem", systemImage: "exclamationmark.bubble") }
+            }
+            Button { sheet = .reportParty } label: {
+                Label(isStudio ? "Report artist" : "Report studio", systemImage: "flag")
+            }
+        }
+    }
+
+    @ViewBuilder private var paymentSection: some View {
+        Section {
+            if isStudio {
+                PriceRow(title: "Session price", amount: booking.price.subtotal, currency: booking.price.currency)
+                PriceRow(title: "Sonora platform fee (\(PlatformConfig.platformFeePercent)%)", amount: -booking.price.studioCommission, currency: booking.price.currency)
+                PriceRow(title: booking.isCash ? "Yours to keep" : "Your payout", amount: booking.price.studioPayout, currency: booking.price.currency, emphasized: true)
+            } else {
+                PriceBreakdownView(price: booking.price)
+            }
+            InfoRow(symbol: booking.isCash ? "banknote" : "creditcard", title: "Status", value: booking.paymentStatus.title)
+            if isStudio && booking.isCash && booking.paymentStatus == .payAtStudio && booking.startsAt <= .now && [.confirmed, .completed].contains(booking.status) {
+                Button {
+                    isWorking = true
+                    Task {
+                        defer { isWorking = false }
+                        do { initial = try await app.backend.markCashReceived(bookingId: booking.id) }
+                        catch { self.error = error.userMessage }
+                    }
+                } label: {
+                    Label("Mark cash as received", systemImage: "checkmark.circle")
+                }
+            }
+            if booking.refundAmount > 0 {
+                InfoRow(symbol: "arrow.uturn.backward", title: "Refunded", value: Money.format(booking.refundAmount, currency: booking.price.currency))
+            }
+        } header: {
+            Text("Payment")
+        } footer: {
+            if booking.isCash {
+                Text(isStudio
+                     ? "Cash booking: collect \(Money.format(booking.price.total, currency: booking.price.currency)) at the session. Sonora's \(PlatformConfig.platformFeePercent)% fee is deducted from your next payout or invoiced."
+                     : "Pay \(Money.format(booking.price.total, currency: booking.price.currency)) in cash at the studio.")
+            }
+        }
+    }
+
+    @ViewBuilder private var receiptsSection: some View {
+        if !transactions.isEmpty {
+            Section("Receipts") {
+                ForEach(transactions) { transaction in
+                    NavigationLink {
+                        ReceiptView(booking: booking, transaction: transaction)
+                    } label: {
+                        HStack {
+                            VStack(alignment: .leading) {
+                                Text(transaction.kind == .refund ? "Refund" : transaction.kind == .balance ? "Balance payment" : "Payment")
+                                Text(transaction.createdAt.formatted(date: .abbreviated, time: .shortened)).font(.caption).foregroundStyle(.secondary)
+                            }
+                            Spacer()
+                            Text((transaction.kind == .refund ? "−" : "") + Money.format(transaction.amount, currency: transaction.currency))
+                                .foregroundStyle(transaction.kind == .refund ? Theme.positive : Color.primary)
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private var amountPaid: Int {
@@ -528,7 +550,7 @@ struct ReceiptView: View {
                 VStack(spacing: 6) {
                     SonoraLogo(size: 20)
                     Text(transaction.kind == .refund ? "Refund receipt" : "Payment receipt").font(.headline)
-                    Text(Money.format(transaction.amount, currency: transaction.currency)).font(.system(size: 40, weight: .bold, design: .rounded))
+                    Text(Money.format(transaction.amount, currency: transaction.currency)).font(.display(40))
                 }
                 .frame(maxWidth: .infinity)
                 .listRowBackground(Color.clear)

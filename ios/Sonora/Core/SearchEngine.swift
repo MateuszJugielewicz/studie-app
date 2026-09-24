@@ -125,7 +125,7 @@ struct SearchEngine {
         return results
     }
 
-    /// "📍 Athens · 12 studios within 5 km · From €15/hour"
+    /// "Athens · 12 studios within 5 km · from €15/hour"
     func areaSummary(results: [StudioResult], areaName: String, radiusKm: Double) -> AreaSummary {
         let inRadius = results.filter { ($0.distance ?? 0) <= radiusKm * 1000 }
         let cheapest = inRadius.min { $0.studio.priceFrom < $1.studio.priceFrom }

@@ -53,7 +53,7 @@ struct StudioEditorView: View {
             let problems = StudioValidator.problems(in: studio)
             if isApplication && !problems.isEmpty {
                 Section("Still missing") {
-                    ForEach(problems, id: \.self) { Label($0, systemImage: "exclamationmark.circle").foregroundStyle(.orange).font(.footnote) }
+                    ForEach(problems, id: \.self) { Label($0, systemImage: "exclamationmark.circle").foregroundStyle(Theme.warning).font(.footnote) }
                 }
             }
         }
@@ -73,7 +73,7 @@ struct StudioEditorView: View {
             HStack {
                 Label(title, systemImage: symbol)
                 Spacer()
-                Image(systemName: done ? "checkmark.circle.fill" : "circle").foregroundStyle(done ? .green : .secondary)
+                Image(systemName: done ? "checkmark.circle.fill" : "circle").foregroundStyle(done ? Theme.positive : Color.secondary)
             }
         }
     }
@@ -508,9 +508,9 @@ struct PayoutAccountEditor: View {
             Section {
                 if let account, account.payoutsEnabled {
                     Label(account.ibanLast4.isEmpty ? "Payouts enabled" : "Payouts enabled to •••• \(account.ibanLast4)", systemImage: "checkmark.seal.fill")
-                        .foregroundStyle(.green)
+                        .foregroundStyle(Theme.positive)
                 } else {
-                    Label("Payouts not set up yet", systemImage: "exclamationmark.triangle").foregroundStyle(.orange)
+                    Label("Payouts not set up yet", systemImage: "exclamationmark.triangle").foregroundStyle(Theme.warning)
                 }
                 TextField("Account holder / company name", text: $holder)
                 if app.isDemo {
@@ -522,7 +522,7 @@ struct PayoutAccountEditor: View {
                 Text("Payouts are sent \(PlatformConfig.payoutDelayDays) days after each completed session, minus Sonora's \(PlatformConfig.platformFeePercent)% platform fee. Platform fees for cash bookings are deducted from the same payouts.")
             }
             Section {
-                Button(saved ? "Saved ✓" : "Save") { save() }
+                Button(saved ? "Saved" : "Save") { save() }
                     .disabled(holder.isEmpty || (app.isDemo && account == nil && iban.isEmpty))
             }
             if !app.isDemo {

@@ -55,13 +55,13 @@ export default function StudiosPage() {
                   <td>
                     <div className="row">
                       <img className="thumb" src={s.photo_urls[0]} alt="" />
-                      <div><div className="strong">{s.name} {s.is_verified && <span title="Verified">✔︎</span>}</div><div className="muted small">{s.contact.email}</div></div>
+                      <div><div className="strong">{s.name} {s.is_verified && <span className="muted small"> · verified</span>}</div><div className="muted small">{s.contact.email}</div></div>
                     </div>
                   </td>
                   <td>{s.address.area}, {s.address.city}</td>
                   <td>{money(s.price_from, s.currency)}/h</td>
                   <td><Badge value={s.status} /></td>
-                  <td>{s.is_active ? "🟢" : "⚪️"}</td>
+                  <td>{s.is_active ? <Badge value="active" text="Live" /> : <span className="muted">Off</span>}</td>
                   <td>{s.review_count ? `★ ${s.rating_average.toFixed(1)} (${s.review_count})` : "–"}</td>
                   <td>{s.booking_count}</td>
                   <td>{date(s.submitted_at)}</td>
@@ -105,9 +105,9 @@ function StudioModal({ studio, onClose, onChanged }: { studio: Studio; onClose: 
         <>
           {(studio.status === "pending_review" || studio.status === "changes_requested" || studio.status === "rejected") && (
             <>
-              <ActionButton onClick={decide("approve")}>✅ Approve</ActionButton>
-              <ActionButton kind="secondary" onClick={decide("request_changes")} disabled={!note.trim()}>✏️ Request changes</ActionButton>
-              <ActionButton kind="danger" onClick={decide("reject")} disabled={!note.trim()} confirm="Reject this studio?">✖ Reject</ActionButton>
+              <ActionButton onClick={decide("approve")}>Approve</ActionButton>
+              <ActionButton kind="secondary" onClick={decide("request_changes")} disabled={!note.trim()}>Request changes</ActionButton>
+              <ActionButton kind="danger" onClick={decide("reject")} disabled={!note.trim()} confirm="Reject this studio?">Reject</ActionButton>
             </>
           )}
           {studio.status === "approved" && (
@@ -155,7 +155,7 @@ function StudioModal({ studio, onClose, onChanged }: { studio: Studio; onClose: 
         <>
           <p className="strong">{studio.tagline}</p>
           <p>{studio.description}</p>
-          <button className="ghost small" onClick={() => setEditing(true)}>✏️ Edit listing</button>
+          <button className="ghost small" onClick={() => setEditing(true)}>Edit listing</button>
         </>
       )}
 

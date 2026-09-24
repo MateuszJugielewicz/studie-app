@@ -399,7 +399,7 @@ export class DemoAdminApi implements AdminApi {
         return { title: r ? `${r.rating}★ review by ${r.artist_name}` : "Unknown review", body: r?.text, reviewId: report.target_id, userId: r?.artist_id };
       }
       case "message":
-        return { title: "Chat message", body: "Hey, pay me directly on Revolut and I'll give you 20% off 😉", userId: this.db.users[9].id };
+        return { title: "Chat message", body: "Hey, pay me directly on Revolut and I'll give you 20% off.", userId: this.db.users[9].id };
       case "booking":
         return { title: "Booking" };
     }

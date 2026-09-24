@@ -127,7 +127,7 @@ as $$
 begin
   if new.status is distinct from old.status then
     if new.status = 'approved' then
-      perform public.notify(new.owner_id, 'studio_approved', 'Your studio is live 🎉', new.name || ' was approved and is now visible to artists.', null, null, new.id);
+      perform public.notify(new.owner_id, 'studio_approved', 'Your studio is live', new.name || ' was approved and is now visible to artists.', null, null, new.id);
     elsif new.status = 'rejected' then
       perform public.notify(new.owner_id, 'studio_rejected', 'Application not approved', coalesce(new.admin_note, 'Your studio was not approved.'), null, null, new.id);
     elsif new.status = 'changes_requested' then
@@ -162,7 +162,7 @@ begin
         perform public.notify(owner, 'booking_requested', 'New booking request',
           new.artist_name || ' wants to book ' || new.hours || 'h on ' || when_text || '. Accept or decline.', new.id);
       when 'confirmed' then
-        perform public.notify(new.artist_id, 'booking_confirmed', 'Booking confirmed ✅', new.studio_name || ' · ' || when_text, new.id);
+        perform public.notify(new.artist_id, 'booking_confirmed', 'Booking confirmed', new.studio_name || ' · ' || when_text, new.id);
         if old.status = 'awaiting_payment' then
           perform public.notify(owner, 'booking_requested', 'New booking', new.artist_name || ' booked ' || new.hours || 'h on ' || when_text || '.', new.id);
         end if;
@@ -400,7 +400,7 @@ declare
 begin
   if new.status = 'paid' and old.status is distinct from 'paid' then
     select owner_id into owner from public.studios where id = new.studio_id;
-    perform public.notify(owner, 'payout_sent', 'Payout sent 💸', public.format_money(new.amount, new.currency) || ' is on its way to your bank.', null, null, new.studio_id);
+    perform public.notify(owner, 'payout_sent', 'Payout sent', public.format_money(new.amount, new.currency) || ' is on its way to your bank.', null, null, new.studio_id);
   end if;
   return new;
 end;

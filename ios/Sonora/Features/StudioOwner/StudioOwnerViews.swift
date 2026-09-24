@@ -45,7 +45,7 @@ struct ApplicationStatusView: View {
                         }
                         .padding()
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(Color.yellow.opacity(0.15), in: RoundedRectangle(cornerRadius: 12))
+                        .background(Theme.warning.opacity(0.12), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
                     }
                 }
                 .listRowBackground(Color.clear)
@@ -132,7 +132,7 @@ struct ApplicationStep: View {
             Text(title)
         } icon: {
             Image(systemName: done ? "checkmark.circle.fill" : active ? "clock.fill" : "circle")
-                .foregroundStyle(done ? .green : active ? .orange : .secondary)
+                .foregroundStyle(done ? Theme.positive : active ? Theme.warning : Color.secondary)
         }
     }
 }
@@ -195,72 +195,18 @@ struct StudioDashboardView: View {
     var body: some View {
         NavigationStack(path: $path) {
             if let studio = app.ownedStudio {
-                let summary = EarningsCalculator.summary(bookings: model.bookings, payouts: model.payouts, currency: studio.currency)
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 20) {
-                        if studio.status == .suspended {
-                            Label("Your studio is suspended and hidden from artists. Contact support.", systemImage: "exclamationmark.octagon.fill")
-                                .foregroundStyle(.red).card()
-                        }
-                        LiveToggleCard(studio: studio)
-
-                        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
-                            StatCard(title: "This month", value: Money.format(summary.netThisMonth, currency: studio.currency), symbol: "chart.line.uptrend.xyaxis")
-                            StatCard(title: "Upcoming payouts", value: Money.format(summary.pendingPayout, currency: studio.currency), symbol: "banknote")
-                            StatCard(title: "Upcoming sessions", value: "\(summary.upcomingSessions)", symbol: "calendar")
-                            StatCard(title: "Rating", value: studio.reviewCount == 0 ? "–" : String(format: "%.1f ★", studio.ratingAverage), symbol: "star")
-                        }
-                        if model.feesOwed > 0 {
-                            Label("You owe \(Money.format(model.feesOwed, currency: studio.currency)) in platform fees for cash bookings. It's deducted from your next payout.", systemImage: "banknote")
-                                .font(.footnote)
-                                .card()
-                        }
-
-                        if !model.requests.isEmpty {
-                            SectionHeader(title: "Requests (\(model.requests.count))")
-                            ForEach(model.requests) { booking in
-                                NavigationLink(value: booking) { BookingRow(booking: booking, perspective: .studioOwner).card() }
-                                    .buttonStyle(.plain)
-                            }
-                        }
-
-                        SectionHeader(title: "Upcoming bookings")
-                        if model.upcoming.isEmpty {
-                            Text("No upcoming bookings yet.").foregroundStyle(.secondary)
-                        }
-                        ForEach(model.upcoming.prefix(5)) { booking in
-                            NavigationLink(value: booking) { BookingRow(booking: booking, perspective: .studioOwner).card() }
-                                .buttonStyle(.plain)
-                        }
-
-                        SectionHeader(title: "Manage")
-                        VStack(spacing: 0) {
-                            ManageLink(title: "Earnings & payouts", symbol: "chart.bar.fill") {
-                                EarningsView(studio: studio, bookings: model.bookings, payouts: model.payouts, fees: model.fees)
-                            }
-                            ManageLink(title: "Past bookings", symbol: "clock.arrow.circlepath") {
-                                StudioBookingListView(title: "Past bookings", bookings: model.past)
-                            }
-                            ManageLink(title: "Prices & services", symbol: "eurosign.circle") {
-                                StudioSectionEditor(title: "Prices & services") { StudioPricingEditor(studio: $0) }
-                            }
-                            ManageLink(title: "Opening hours", symbol: "clock") {
-                                StudioSectionEditor(title: "Opening hours") { OpeningHoursEditor(hours: $0.openingHours) }
-                            }
-                            ManageLink(title: "Reviews (\(model.reviews.count))", symbol: "star.bubble") {
-                                ReviewsListView(studio: studio, reviews: model.reviews, canReply: true)
-                            }
-                        }
-                        .background(Theme.card, in: RoundedRectangle(cornerRadius: Theme.corner))
-                    }
-                    .padding()
+                    StudioDashboardContent(studio: studio, model: model)
+                        .padding()
                 }
                 .background(Theme.background)
                 .navigationTitle(studio.name)
                 .navigationDestination(for: Booking.self) { BookingDetailView(bookingId: $0.id, initial: $0) }
                 .refreshable { await reload(studio) }
                 .task { await reload(studio) }
-                .onChange(of: path.count) { if path.isEmpty { Task { await reload(studio) } } }
+                .onChange(of: path.count) {
+                    if path.isEmpty { Task { await reload(studio) } }
+                }
             }
         }
     }
@@ -268,6 +214,97 @@ struct StudioDashboardView: View {
     private func reload(_ studio: Studio) async {
         await model.load(app.backend, studioId: studio.id)
         app.ownedStudio = (try? await app.backend.ownedStudio()) ?? app.ownedStudio
+    }
+}
+
+private struct StudioDashboardContent: View {
+    let studio: Studio
+    let model: StudioDashboardModel
+
+    private var summary: EarningsSummary {
+        EarningsCalculator.summary(bookings: model.bookings, payouts: model.payouts, currency: studio.currency)
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 24) {
+            if studio.status == .suspended {
+                Label("Your studio is suspended and hidden from artists. Contact support.", systemImage: "exclamationmark.octagon.fill")
+                    .foregroundStyle(.red)
+                    .card()
+            }
+            LiveToggleCard(studio: studio)
+            stats
+            if model.feesOwed > 0 {
+                Label("You owe \(Money.format(model.feesOwed, currency: studio.currency)) in platform fees for cash bookings. It's deducted from your next payout.", systemImage: "banknote")
+                    .font(.footnote)
+                    .card()
+            }
+            requests
+            upcoming
+            manage
+        }
+    }
+
+    private var stats: some View {
+        LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)], spacing: 12) {
+            StatCard(title: "Earned this month", value: Money.format(summary.netThisMonth, currency: studio.currency), symbol: "chart.line.uptrend.xyaxis")
+            StatCard(title: "Next payouts", value: Money.format(summary.pendingPayout, currency: studio.currency), symbol: "banknote")
+            StatCard(title: "Upcoming sessions", value: "\(summary.upcomingSessions)", symbol: "calendar")
+            StatCard(title: "Rating", value: studio.reviewCount == 0 ? "–" : String(format: "%.1f", studio.ratingAverage), symbol: "star")
+        }
+    }
+
+    @ViewBuilder private var requests: some View {
+        if !model.requests.isEmpty {
+            VStack(alignment: .leading, spacing: 10) {
+                SectionHeader(title: "Requests · \(model.requests.count)")
+                ForEach(model.requests) { booking in
+                    NavigationLink(value: booking) { BookingRow(booking: booking, perspective: .studioOwner).card(padding: 12) }
+                        .buttonStyle(.plain)
+                }
+            }
+        }
+    }
+
+    private var upcoming: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            SectionHeader(title: "Upcoming")
+            if model.upcoming.isEmpty {
+                Text("No upcoming bookings yet.").foregroundStyle(.secondary)
+            }
+            ForEach(model.upcoming.prefix(5)) { booking in
+                NavigationLink(value: booking) { BookingRow(booking: booking, perspective: .studioOwner).card(padding: 12) }
+                    .buttonStyle(.plain)
+            }
+        }
+    }
+
+    private var manage: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            SectionHeader(title: "Manage")
+            VStack(spacing: 0) {
+                ManageLink(title: "Earnings & payouts", symbol: "chart.bar") {
+                    EarningsView(studio: studio, bookings: model.bookings, payouts: model.payouts, fees: model.fees)
+                }
+                Divider().padding(.leading, 48)
+                ManageLink(title: "Past bookings", symbol: "clock.arrow.circlepath") {
+                    StudioBookingListView(title: "Past bookings", bookings: model.past)
+                }
+                Divider().padding(.leading, 48)
+                ManageLink(title: "Prices & services", symbol: "tag") {
+                    StudioSectionEditor(title: "Prices & services") { StudioPricingEditor(studio: $0) }
+                }
+                Divider().padding(.leading, 48)
+                ManageLink(title: "Opening hours", symbol: "clock") {
+                    StudioSectionEditor(title: "Opening hours") { OpeningHoursEditor(hours: $0.openingHours) }
+                }
+                Divider().padding(.leading, 48)
+                ManageLink(title: "Reviews · \(model.reviews.count)", symbol: "star") {
+                    ReviewsListView(studio: studio, reviews: model.reviews, canReply: true)
+                }
+            }
+            .background(Theme.card, in: RoundedRectangle(cornerRadius: Theme.corner, style: .continuous))
+        }
     }
 }
 
@@ -313,12 +350,15 @@ struct ManageLink<Destination: View>: View {
 
     var body: some View {
         NavigationLink(destination: destination) {
-            HStack {
-                Label(title, systemImage: symbol)
+            HStack(spacing: 14) {
+                Image(systemName: symbol).frame(width: 20).foregroundStyle(.secondary)
+                Text(title)
                 Spacer()
-                Image(systemName: "chevron.right").foregroundStyle(.secondary).font(.caption)
+                Image(systemName: "chevron.right").font(.caption.weight(.semibold)).foregroundStyle(.tertiary)
             }
-            .padding()
+            .padding(.horizontal, 14)
+            .padding(.vertical, 13)
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
     }
@@ -354,13 +394,19 @@ struct StatCard: View {
     let symbol: String
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Image(systemName: symbol).foregroundStyle(Theme.accent)
-            Text(value).font(.title3.bold()).lineLimit(1).minimumScaleFactor(0.7)
-            Text(title).font(.caption).foregroundStyle(.secondary)
+        VStack(alignment: .leading, spacing: 10) {
+            Image(systemName: symbol).font(.subheadline).foregroundStyle(.secondary)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(value)
+                    .font(.system(size: 24, weight: .bold))
+                    .monospacedDigit()
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.6)
+                Text(title).font(.caption).foregroundStyle(.secondary)
+            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .card()
+        .card(padding: 14)
     }
 }
 
@@ -542,7 +588,7 @@ struct EarningsView: View {
                 }
                 Chart(summary.monthly) { item in
                     BarMark(x: .value("Month", item.month, unit: .month), y: .value("Earnings", Double(item.amount) / 100))
-                        .foregroundStyle(Theme.gradient)
+                        .foregroundStyle(Theme.accent)
                         .cornerRadius(4)
                 }
                 .chartXAxis { AxisMarks(values: .stride(by: .month)) { _ in AxisValueLabel(format: .dateTime.month(.abbreviated)) } }
@@ -566,7 +612,7 @@ struct EarningsView: View {
                                 .font(.caption).foregroundStyle(.secondary)
                         }
                         Spacer()
-                        StatusPill(text: payout.status.title, color: payout.status == .paid ? .green : payout.status == .failed ? .red : .orange)
+                        StatusPill(text: payout.status.title, color: payout.status == .paid ? Theme.positive : payout.status == .failed ? Color.red : Theme.warning)
                     }
                 }
             }
@@ -582,7 +628,7 @@ struct EarningsView: View {
                         }
                         Spacer()
                         Text(Money.format(entry.amount, currency: entry.currency))
-                            .foregroundStyle(entry.amount < 0 ? .green : .primary)
+                            .foregroundStyle(entry.amount < 0 ? Theme.positive : Color.primary)
                     }
                 }
             } header: {
@@ -619,7 +665,7 @@ struct StudioSettingsView: View {
                                     if studio.isVerified { VerifiedBadge() }
                                 }
                                 Text(studio.address.publicArea).font(.subheadline).foregroundStyle(.secondary)
-                                StatusPill(text: studio.isActive ? "Live" : studio.status.title, color: studio.isActive ? .green : studio.status.color)
+                                StatusPill(text: studio.isActive ? "Live" : studio.status.title, color: studio.isActive ? Theme.positive : studio.status.color)
                             }
                         }
                     }

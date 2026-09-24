@@ -23,8 +23,8 @@ struct RemoteImage: View {
 
     private var placeholder: some View {
         ZStack {
-            LinearGradient(colors: [Theme.accent.opacity(0.35), Theme.accentSecondary.opacity(0.25)], startPoint: .topLeading, endPoint: .bottomTrailing)
-            Image(systemName: "waveform").font(.title).foregroundStyle(.white.opacity(0.5))
+            Theme.fill
+            Image(systemName: "photo").font(.title2).foregroundStyle(.tertiary)
         }
     }
 }
@@ -39,8 +39,8 @@ struct Avatar: View {
             if url != nil {
                 RemoteImage(url: url)
             } else {
-                Theme.gradient
-                Text(initials).font(.system(size: size * 0.38, weight: .bold)).foregroundStyle(.white)
+                Theme.fill
+                Text(initials).font(.system(size: size * 0.36, weight: .semibold)).foregroundStyle(.primary)
             }
         }
         .frame(width: size, height: size)
@@ -59,7 +59,7 @@ struct RatingLabel: View {
 
     var body: some View {
         HStack(spacing: 3) {
-            Image(systemName: "star.fill").foregroundStyle(.yellow)
+            Image(systemName: "star.fill").font(.caption).foregroundStyle(.primary)
             if count == 0 {
                 Text("New").fontWeight(.semibold)
             } else {
@@ -80,7 +80,7 @@ struct StarRow: View {
             ForEach(1...5, id: \.self) { index in
                 Image(systemName: index <= rating ? "star.fill" : "star")
                     .font(.system(size: size))
-                    .foregroundStyle(index <= rating ? .yellow : .secondary)
+                    .foregroundStyle(index <= rating ? Color.primary : Color.secondary.opacity(0.5))
             }
         }
     }
@@ -98,7 +98,7 @@ struct StarPicker: View {
                 ForEach(1...5, id: \.self) { index in
                     Image(systemName: index <= rating ? "star.fill" : "star")
                         .font(.title3)
-                        .foregroundStyle(index <= rating ? .yellow : .secondary)
+                        .foregroundStyle(index <= rating ? Theme.accent : Color.secondary.opacity(0.5))
                         .onTapGesture { rating = index }
                         .accessibilityLabel("\(index) stars")
                 }
@@ -110,7 +110,8 @@ struct StarPicker: View {
 struct VerifiedBadge: View {
     var body: some View {
         Image(systemName: "checkmark.seal.fill")
-            .foregroundStyle(Theme.accent)
+            .font(.subheadline)
+            .foregroundStyle(.blue)
             .accessibilityLabel("Verified")
     }
 }
@@ -123,8 +124,8 @@ struct StatusPill: View {
         Text(text)
             .font(.caption.weight(.semibold))
             .padding(.horizontal, 8)
-            .padding(.vertical, 4)
-            .background(color.opacity(0.18), in: Capsule())
+            .padding(.vertical, 3)
+            .background(color.opacity(0.14), in: RoundedRectangle(cornerRadius: 6, style: .continuous))
             .foregroundStyle(color)
     }
 }
@@ -132,9 +133,9 @@ struct StatusPill: View {
 extension BookingStatus {
     var color: Color {
         switch self {
-        case .awaitingPayment, .pendingApproval: .orange
-        case .confirmed: .green
-        case .completed: .blue
+        case .awaitingPayment, .pendingApproval: Theme.warning
+        case .confirmed: Theme.positive
+        case .completed: .secondary
         case .declined, .cancelled, .expired: .gray
         case .disputed: .red
         }
@@ -145,9 +146,9 @@ extension StudioStatus {
     var color: Color {
         switch self {
         case .draft: .gray
-        case .pendingReview: .orange
-        case .changesRequested: .yellow
-        case .approved: .green
+        case .pendingReview: Theme.warning
+        case .changesRequested: Theme.warning
+        case .approved: Theme.positive
         case .rejected, .suspended: .red
         }
     }
@@ -200,12 +201,12 @@ struct Chip: View {
             if let symbol { Image(systemName: symbol) }
             Text(title)
         }
-        .font(.subheadline)
+        .font(.subheadline.weight(isSelected ? .semibold : .regular))
         .padding(.horizontal, 12)
         .padding(.vertical, 7)
-        .background(isSelected ? AnyShapeStyle(Theme.accent) : AnyShapeStyle(Theme.card), in: Capsule())
-        .overlay(Capsule().stroke(isSelected ? Color.clear : Theme.stroke))
-        .foregroundStyle(isSelected ? .white : .primary)
+        .background(isSelected ? Color.primary : Theme.card, in: Capsule())
+        .overlay(Capsule().strokeBorder(isSelected ? Color.clear : Color.primary.opacity(0.12)))
+        .foregroundStyle(isSelected ? Theme.background : Color.primary)
     }
 }
 
@@ -236,7 +237,7 @@ struct SectionHeader: View {
 
     var body: some View {
         HStack {
-            Text(title).font(.title3.bold())
+            Text(title).font(.title3.weight(.bold))
             Spacer()
             if let action {
                 Button(action.title, action: action.run).font(.subheadline)
@@ -252,7 +253,7 @@ struct InfoRow: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            Image(systemName: symbol).frame(width: 24).foregroundStyle(Theme.accent)
+            Image(systemName: symbol).frame(width: 24).foregroundStyle(.secondary)
             Text(title)
             Spacer()
             if let value { Text(value).foregroundStyle(.secondary).multilineTextAlignment(.trailing) }
@@ -273,7 +274,7 @@ struct PriceRow: View {
             Text(Money.format(amount, currency: currency))
         }
         .font(emphasized ? .headline : .body)
-        .foregroundStyle(emphasized ? .primary : .secondary)
+        .foregroundStyle(emphasized ? Color.primary : Color.secondary)
     }
 }
 
@@ -300,11 +301,11 @@ extension Error {
 
 struct DemoBanner: View {
     var body: some View {
-        Label("Demo mode – sample data, no real payments", systemImage: "sparkles")
+        Text("Demo mode · sample data, no real payments")
             .font(.caption.weight(.medium))
-            .padding(.horizontal, 12)
-            .padding(.vertical, 6)
-            .background(.orange.opacity(0.2), in: Capsule())
-            .foregroundStyle(.orange)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 5)
+            .background(Theme.fill, in: Capsule())
+            .foregroundStyle(.secondary)
     }
 }

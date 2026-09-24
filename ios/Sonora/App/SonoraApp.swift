@@ -10,7 +10,6 @@ struct SonoraApp: App {
             RootView()
                 .environment(appState)
                 .tint(Theme.accent)
-                .preferredColorScheme(.dark)
                 .task {
                     AppDelegate.push = appState.push
                     await appState.bootstrap()

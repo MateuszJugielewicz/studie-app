@@ -144,7 +144,7 @@ struct ChatView: View {
                 .padding(.horizontal, 14).padding(.vertical, 10)
                 .background(Theme.card, in: RoundedRectangle(cornerRadius: 20))
             Button { send() } label: {
-                Image(systemName: "arrow.up.circle.fill").font(.system(size: 34)).foregroundStyle(Theme.gradient)
+                Image(systemName: "arrow.up.circle.fill").font(.system(size: 32)).foregroundStyle(Theme.accent)
             }
             .disabled(draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             .accessibilityLabel("Send")
@@ -202,8 +202,8 @@ struct MessageBubble: View {
                 VStack(alignment: isMine ? .trailing : .leading, spacing: 2) {
                     Text(message.body)
                         .padding(.horizontal, 14).padding(.vertical, 9)
-                        .background(isMine ? AnyShapeStyle(Theme.gradient) : AnyShapeStyle(Theme.card), in: RoundedRectangle(cornerRadius: 18))
-                        .foregroundStyle(isMine ? .white : .primary)
+                        .background(isMine ? Theme.accent : Theme.card, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+                        .foregroundStyle(isMine ? Theme.onAccent : Color.primary)
                     Text(message.createdAt.formatted(date: .omitted, time: .shortened)).font(.caption2).foregroundStyle(.secondary)
                 }
                 if !isMine { Spacer(minLength: 48) }

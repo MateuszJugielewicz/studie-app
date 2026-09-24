@@ -23,5 +23,5 @@ export function sumByCurrency<T>(items: T[], currency: (t: T) => string, amount:
 
 export function moneyTotals(totals: Record<string, number>): string {
   const entries = Object.entries(totals);
-  return entries.length ? entries.map(([c, v]) => money(v, c)).join(" · ") : "–";
+  return entries.length ? entries.map(([c, v]) => money(v, c)).join("\n") : "–";
 }

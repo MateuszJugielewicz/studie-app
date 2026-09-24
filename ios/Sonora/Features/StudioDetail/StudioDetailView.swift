@@ -76,7 +76,7 @@ struct StudioDetailView: View {
     private func header(_ studio: Studio) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(alignment: .firstTextBaseline) {
-                Text(studio.name).font(.largeTitle.bold())
+                Text(studio.name).font(.display(32)).tracking(-0.5)
                 if studio.isVerified { VerifiedBadge().font(.title2) }
             }
             Text(studio.tagline).foregroundStyle(.secondary)
@@ -89,12 +89,12 @@ struct StudioDetailView: View {
                 }
             }
             .font(.subheadline)
-            HStack(spacing: 8) {
+            FlowLayout(spacing: 8) {
                 if studio.bookingPolicy.instantBook { Chip(title: "Instant book", symbol: "bolt.fill") }
                 Chip(title: "Up to \(studio.capacity) people", symbol: "person.2")
-                Chip(title: "\(studio.bookingCount) sessions", symbol: "waveform")
+                Chip(title: "\(studio.bookingCount) sessions booked", symbol: "calendar")
             }
-            .font(.caption)
+            .padding(.top, 4)
         }
     }
 
@@ -219,7 +219,7 @@ struct StudioDetailView: View {
                     HStack {
                         Text(hours.weekdayName)
                         Spacer()
-                        Text(hours.label).foregroundStyle(hours.isClosed ? .secondary : .primary)
+                        Text(hours.label).foregroundStyle(hours.isClosed ? Color.secondary : Color.primary)
                     }
                     .font(.subheadline)
                 }

@@ -229,7 +229,7 @@ enum MockData {
             (5, "Super clean room, great vibe, on time. Will be back for the EP."),
             (4, "Great sound. Booth is a bit small for two singers, but otherwise perfect."),
             (5, "Best studio experience I've had in Athens."),
-            (4, "Good value for money. Coffee could be better 😄"),
+            (4, "Good value for money. Coffee could be better."),
         ]
         var reviews: [Review] = []
         for (index, studio) in studios.enumerated() {
