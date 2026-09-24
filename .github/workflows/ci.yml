@@ -69,11 +69,11 @@ jobs:
         working-directory: supabase/functions
     steps:
       - uses: actions/checkout@v4
-      - uses: denoland/setup-deno@v2
+      - uses: actions/setup-node@v4
         with:
-          deno-version: v2.x
-      - run: deno check */index.ts
-      - run: deno test _shared/
+          node-version: 22
+      - run: npx --yes deno@2 check */index.ts
+      - run: npx --yes deno@2 test _shared/
 
   admin:
     name: Admin dashboard (type check + build)
