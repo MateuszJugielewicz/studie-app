@@ -18,7 +18,11 @@ final class DiscoverModel {
         defer { isLoading = false }
         do {
             studios = try await backend.publishedStudios()
+            error = nil
             await loadAvailability(backend)
+        } catch where error.isCancellation {
+            // Try again once: a cancelled first load would otherwise leave the list empty.
+            if studios.isEmpty, let loaded = try? await backend.publishedStudios() { studios = loaded }
         } catch { self.error = error.userMessage }
     }
 
@@ -76,7 +80,7 @@ struct DiscoverView: View {
                         }
                         .padding()
                     }
-                    .refreshable { await model.load(app.backend) }
+                    .refreshable { await Task { await model.load(app.backend) }.value }
                 }
             }
             .auroraBackground()
@@ -109,7 +113,7 @@ struct DiscoverView: View {
             }
             .task {
                 app.location.requestPermission()
-                await model.load(app.backend)
+                await Task { await model.load(app.backend) }.value
             }
             .errorAlert($model.error)
         }

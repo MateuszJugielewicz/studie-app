@@ -54,7 +54,7 @@ struct ArtistBookingsView: View {
             .sonoraGrouped()
             .navigationTitle("Bookings")
             .navigationDestination(for: Booking.self) { BookingDetailView(bookingId: $0.id, initial: $0) }
-            .refreshable { await load() }
+            .refreshable { await Task { await load() }.value }
             .task { await load() }
             .onChange(of: app.pendingDeepLink) { openDeepLink() }
             .sheet(item: $reviewing) { booking in
@@ -233,7 +233,7 @@ struct BookingDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .disabled(isWorking)
         .task { await load() }
-        .refreshable { await load() }
+        .refreshable { await Task { await load() }.value }
         .navigationDestination(item: $conversation) { ChatView(conversation: $0) }
         .sheet(item: $sheet) { sheet in
             switch sheet {

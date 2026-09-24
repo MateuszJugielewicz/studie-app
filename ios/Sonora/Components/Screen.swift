@@ -54,7 +54,7 @@ struct SonoraScreen<Trailing: View, Content: View>: View {
             let stepped = (value * 10).rounded() / 10
             if stepped != collapse { collapse = stepped }
         }
-        .refreshable { await refresh() }
+        .refreshable { await Task { await refresh() }.value }
         .overlay(alignment: .top) { compactBar }
         .animation(.easeOut(duration: 0.18), value: collapse)
         .auroraBackground(height: 420)

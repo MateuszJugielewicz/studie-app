@@ -544,7 +544,7 @@ struct PayoutAccountEditor: View {
         .sonoraGrouped()
         .navigationTitle("Payout details")
         .task { await load() }
-        .refreshable { await load() }
+        .refreshable { await Task { await load() }.value }
         .errorAlert($error)
     }
 

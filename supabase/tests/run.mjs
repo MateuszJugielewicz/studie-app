@@ -31,6 +31,7 @@ const expect = (label, predicate) => {
 };
 
 expect("after self-approve", (r) => r.status === "draft" && r.is_active === false);
+expect("still live", (r) => r.status === "approved" && r.is_active === true);
 expect("resave", (r) => r.name === "Renamed Studio" && r.status === "draft");
 expect("artist role after attempt", (r) => r.role === "artist");
 expect("booking_count", (r) => r.booking_count === 1);

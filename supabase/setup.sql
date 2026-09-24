@@ -669,6 +669,9 @@ begin
     new.reviewed_at := old.reviewed_at;
     new.reviewed_by := old.reviewed_by;
     new.created_at := old.created_at;
+    -- Going live/paused only happens through set_studio_active (or an admin), never through a
+    -- listing save, so a stale copy in the app can't hide an approved studio.
+    new.is_active := old.is_active;
     if new.status <> 'approved' then
       new.is_active := false;
     end if;

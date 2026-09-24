@@ -291,7 +291,8 @@ struct ErrorAlert: ViewModifier {
     @Binding var error: String?
 
     func body(content: Content) -> some View {
-        content.alert("Something went wrong", isPresented: Binding(get: { error != nil }, set: { if !$0 { error = nil } })) {
+        // Empty messages come from cancelled requests (pull-to-refresh, typing while searching): not shown.
+        content.alert("Something went wrong", isPresented: Binding(get: { !(error ?? "").isEmpty }, set: { if !$0 { error = nil } })) {
             Button("OK", role: .cancel) {}
         } message: {
             Text(error ?? "")
@@ -304,7 +305,18 @@ extension View {
 }
 
 extension Error {
-    var userMessage: String { (self as? LocalizedError)?.errorDescription ?? localizedDescription }
+    /// The request was cancelled (view went away, refresh restarted, new search typed). Not a real failure.
+    var isCancellation: Bool {
+        if self is CancellationError { return true }
+        if let url = self as? URLError, url.code == .cancelled { return true }
+        return (self as NSError).domain == NSURLErrorDomain && (self as NSError).code == NSURLErrorCancelled
+    }
+
+    /// Message for the user; empty for cancellations, which the error alert ignores.
+    var userMessage: String {
+        if isCancellation { return "" }
+        return (self as? LocalizedError)?.errorDescription ?? localizedDescription
+    }
 }
 
 extension Text {

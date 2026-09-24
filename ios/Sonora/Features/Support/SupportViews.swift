@@ -84,7 +84,7 @@ struct SupportCenterView: View {
         .sonoraGrouped()
         .navigationTitle("Help & support")
         .overlay { if isLoading && tickets.isEmpty { ProgressView() } }
-        .refreshable { await load() }
+        .refreshable { await Task { await load() }.value }
         .task { await load() }
         .sheet(isPresented: $isComposing) {
             NavigationStack {
@@ -271,7 +271,7 @@ struct SupportTicketView: View {
         .confirmationDialog("Close this request?", isPresented: $confirmClose, titleVisibility: .visible) {
             Button("Mark as solved") { close() }
         }
-        .refreshable { await load() }
+        .refreshable { await Task { await load() }.value }
         .task { await load() }
         .errorAlert($error)
     }

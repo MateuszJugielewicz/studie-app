@@ -45,6 +45,10 @@ final class SupabaseBackend: Backend {
             return try await work()
         } catch let error as BackendError {
             throw error
+        } catch is CancellationError {
+            throw CancellationError()
+        } catch let error as URLError where error.code == .cancelled {
+            throw CancellationError()
         } catch let error as PostgrestError {
             throw Self.map(message: error.message, code: error.code)
         } catch let error as AuthError {

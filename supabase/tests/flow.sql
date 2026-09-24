@@ -69,6 +69,12 @@ select (admin_review_studio((select id from studios), 'approve', null)).status;
 set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
 set request.jwt.claims = '{}';
 select 'artist sees', count(*) from studios;
+-- a listing save with a stale is_active=false must not pause an approved studio
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000b';
+set request.jwt.claims = '{}';
+insert into studios (id, owner_id, name, is_active) select id, owner_id, name, false from studios
+  on conflict (id) do update set name = excluded.name, is_active = excluded.is_active;
+select 'still live' as label, status, is_active from studios;
 reset role;
 
 -- service creates booking (edge function), overlap blocked
