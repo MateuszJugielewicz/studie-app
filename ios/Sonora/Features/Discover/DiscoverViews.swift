@@ -293,12 +293,12 @@ struct FilterSheet: View {
                 }
 
                 Section("Genres") {
-                    ChipPicker(items: Genre.allCases, selection: $draft.genres, title: \.title)
+                    ChipPicker(items: Genre.allCases, selection: $draft.genres, title: { $0.title })
                         .padding(.vertical, 4)
                 }
 
                 Section("Facilities") {
-                    ChipPicker(items: Facility.allCases, selection: $draft.facilities, title: \.title, symbol: \.symbol)
+                    ChipPicker(items: Facility.allCases, selection: $draft.facilities, title: { $0.title }, symbol: { $0.symbol })
                         .padding(.vertical, 4)
                 }
 
@@ -311,7 +311,7 @@ struct FilterSheet: View {
                 Section {
                     TextField("e.g. U87, SM7B, Neve", text: $draft.equipmentQuery)
                         .autocorrectionDisabled()
-                    ChipPicker(items: EquipmentCategory.allCases, selection: $draft.equipmentCategories, title: \.title)
+                    ChipPicker(items: EquipmentCategory.allCases, selection: $draft.equipmentCategories, title: { $0.title })
                         .padding(.vertical, 4)
                 } header: {
                     Text("Equipment")

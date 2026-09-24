@@ -21,7 +21,7 @@ function base64url(data: ArrayBuffer | Uint8Array | string): string {
 async function providerToken(): Promise<string> {
   // APNs accepts a token for up to an hour; refresh every 50 minutes.
   if (cachedJwt && Date.now() - cachedJwt.issuedAt < 50 * 60_000) return cachedJwt.token;
-  const pem = Deno.env.get("APNS_PRIVATE_KEY")!.replace(/-----[^-]+-----/g, "").replace(/\s+/g, "");
+  const pem = Deno.env.get("APNS_PRIVATE_KEY")!.replace(/\\n/g, "").replace(/-----[^-]+-----/g, "").replace(/\s+/g, "");
   const der = Uint8Array.from(atob(pem), (c) => c.charCodeAt(0));
   const key = await crypto.subtle.importKey("pkcs8", der, { name: "ECDSA", namedCurve: "P-256" }, false, ["sign"]);
   const header = base64url(JSON.stringify({ alg: "ES256", kid: Deno.env.get("APNS_KEY_ID") }));

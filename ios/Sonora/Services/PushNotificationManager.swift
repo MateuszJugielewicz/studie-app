@@ -8,7 +8,7 @@ final class PushNotificationManager: NSObject, UNUserNotificationCenterDelegate 
     var onDeepLink: ((DeepLink) -> Void)?
 
     private let center = UNUserNotificationCenter.current()
-    private static let reminderPrefix = "reminder-"
+    private nonisolated static let reminderPrefix = "reminder-"
 
     override init() {
         super.init()

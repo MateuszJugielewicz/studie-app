@@ -307,7 +307,7 @@ final class SupabaseBackend: Backend {
             "session_type_id": .string(request.sessionType.id),
             "starts_at": .string(PostgresDate.format(request.startsAt)),
             "hours": .integer(request.hours),
-            "add_ons": .array(request.addOns.filter { $0.value > 0 }.map { .object(["id": .string($0.key), "quantity": .integer($0.value)]) }),
+            "add_ons": .array(request.addOns.filter { $0.value > 0 }.map { AnyJSON.object(["id": .string($0.key), "quantity": .integer($0.value)]) }),
             "notes": .string(request.notes),
         ])
     }
@@ -366,7 +366,7 @@ final class SupabaseBackend: Backend {
     }
 
     func respondToBooking(id: UUID, accept: Bool, message: String?) async throws -> Booking {
-        try await invoke("respond-booking", ["booking_id": .string(id.uuidString), "accept": .bool(accept), "message": message.map { .string($0) } ?? .null])
+        try await invoke("respond-booking", ["booking_id": .string(id.uuidString), "accept": .bool(accept), "message": message.map { AnyJSON.string($0) } ?? AnyJSON.null])
     }
 
     func openDispute(bookingId: UUID, reason: String) async throws {
@@ -398,7 +398,7 @@ final class SupabaseBackend: Backend {
     func conversation(studioId: UUID, bookingId: UUID?) async throws -> Conversation {
         try await rpc("get_or_create_conversation", [
             "p_studio_id": .string(studioId.uuidString),
-            "p_booking_id": bookingId.map { .string($0.uuidString) } ?? .null,
+            "p_booking_id": bookingId.map { AnyJSON.string($0.uuidString) } ?? AnyJSON.null,
         ])
     }
 
@@ -531,11 +531,15 @@ enum PostgresDate {
         // Add a timezone when missing (realtime payloads for `timestamp` columns).
         if value.range(of: #"(Z|[+-]\d{2}(:?\d{2})?)$"#, options: .regularExpression) == nil { value += "Z" }
         // Normalise "+00" to "+00:00".
-        if let range = value.range(of: #"[+-]\d{2}$"#, options: .regularExpression) { value.replaceSubrange(range, with: value[range] + ":00") }
+        if let range = value.range(of: #"[+-]\d{2}$"#, options: .regularExpression) {
+            let offset = String(value[range]) + ":00"
+            value.replaceSubrange(range, with: offset)
+        }
         // ISO8601DateFormatter supports at most millisecond precision; trim microseconds.
         if let range = value.range(of: #"\.\d+"#, options: .regularExpression) {
-            let digits = value[range].dropFirst()
-            value.replaceSubrange(range, with: "." + digits.prefix(3).padding(toLength: 3, withPad: "0", startingAt: 0))
+            let digits = String(value[range].dropFirst().prefix(3))
+            let fraction = "." + digits.padding(toLength: 3, withPad: "0", startingAt: 0)
+            value.replaceSubrange(range, with: fraction)
         }
         return withFraction.date(from: value) ?? plain.date(from: value)
     }

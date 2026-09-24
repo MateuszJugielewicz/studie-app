@@ -1,0 +1,20 @@
+# Supabase CLI project config (only the settings Sonora relies on; everything else uses CLI defaults).
+project_id = "sonora"
+
+[auth]
+site_url = "sonora://auth-callback"
+additional_redirect_urls = ["sonora://auth-callback", "http://localhost:5173"]
+
+[auth.external.apple]
+enabled = true
+client_id = "env(SUPABASE_AUTH_APPLE_CLIENT_ID)"
+secret = "env(SUPABASE_AUTH_APPLE_SECRET)"
+
+[auth.external.google]
+enabled = true
+client_id = "env(SUPABASE_AUTH_GOOGLE_CLIENT_ID)"
+secret = "env(SUPABASE_AUTH_GOOGLE_SECRET)"
+
+# Stripe calls this without a Supabase JWT; the function verifies Stripe's signature instead.
+[functions.stripe-webhook]
+verify_jwt = false

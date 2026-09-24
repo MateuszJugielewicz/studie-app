@@ -368,10 +368,10 @@ struct StudioFeaturesEditor: View {
                 Stepper("Up to \(studio.capacity) people", value: $studio.capacity, in: 1...60)
             }
             Section("Facilities") {
-                ChipPicker(items: Facility.allCases, selection: $facilities, title: \.title, symbol: \.symbol).padding(.vertical, 4)
+                ChipPicker(items: Facility.allCases, selection: $facilities, title: { $0.title }, symbol: { $0.symbol }).padding(.vertical, 4)
             }
             Section("Genres you work with") {
-                ChipPicker(items: Genre.allCases, selection: $genres, title: \.title).padding(.vertical, 4)
+                ChipPicker(items: Genre.allCases, selection: $genres, title: { $0.title }).padding(.vertical, 4)
             }
             Section {
                 ForEach(EquipmentCategory.allCases) { category in

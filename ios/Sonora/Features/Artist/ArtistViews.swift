@@ -157,7 +157,7 @@ struct ArtistProfileEditor: View {
             }
 
             Section("Genres") {
-                ChipPicker(items: Genre.allCases, selection: $genres, title: \.title)
+                ChipPicker(items: Genre.allCases, selection: $genres, title: { $0.title })
                     .padding(.vertical, 4)
             }
 
