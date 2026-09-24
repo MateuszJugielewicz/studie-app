@@ -28,7 +28,7 @@ final class PushNotificationManager: NSObject, UNUserNotificationCenterDelegate 
         center.setBadgeCount(count) { _ in }
     }
 
-    /// Shows an in-app notification as a banner (demo mode has no APNs).
+    /// Shows a notification as a local banner.
     func presentLocal(_ note: AppNotification) {
         let content = UNMutableNotificationContent()
         content.title = note.title
