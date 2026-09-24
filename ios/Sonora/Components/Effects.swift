@@ -17,37 +17,40 @@ extension Theme {
 
 // MARK: - Aurora
 
-/// Slowly drifting blurred colour fields. Pauses when Reduce Motion is on.
+/// Slowly drifting blurred colour fields, animated by Core Animation (no per-frame redraws).
+/// Static when Reduce Motion is on.
 struct AuroraBackground: View {
     var intensity: Double = 1
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.colorScheme) private var scheme
+    @State private var drift = false
 
     var body: some View {
-        TimelineView(.animation(minimumInterval: 1 / 30, paused: reduceMotion)) { context in
-            let t: CGFloat = reduceMotion ? 0 : CGFloat(context.date.timeIntervalSinceReferenceDate.truncatingRemainder(dividingBy: 10_000))
-            GeometryReader { proxy in
-                let w = proxy.size.width
-                let h = proxy.size.height
-                ZStack {
-                    blob(Theme.accent, size: w * 0.9)
-                        .offset(x: -w * 0.25 + sin(t * 0.21) * w * 0.12, y: -h * 0.18 + cos(t * 0.17) * h * 0.08)
-                    blob(Theme.magenta, size: w * 0.75)
-                        .offset(x: w * 0.3 + cos(t * 0.19) * w * 0.12, y: -h * 0.05 + sin(t * 0.23) * h * 0.1)
-                    blob(Theme.violet, size: w * 0.85)
-                        .offset(x: sin(t * 0.13) * w * 0.18, y: h * 0.22 + cos(t * 0.11) * h * 0.08)
-                    blob(Theme.cyan, size: w * 0.45)
-                        .offset(x: -w * 0.35 + cos(t * 0.27) * w * 0.1, y: h * 0.3 + sin(t * 0.2) * h * 0.06)
-                        .opacity(0.6)
-                }
-                .frame(width: w, height: h)
-                .blur(radius: 70)
-                .opacity((scheme == .dark ? 0.55 : 0.32) * intensity)
+        GeometryReader { proxy in
+            let w = proxy.size.width
+            let h = proxy.size.height
+            ZStack {
+                blob(Theme.accent, size: w * 0.9)
+                    .offset(x: drift ? -w * 0.12 : -w * 0.34, y: drift ? -h * 0.1 : -h * 0.24)
+                blob(Theme.magenta, size: w * 0.75)
+                    .offset(x: drift ? w * 0.18 : w * 0.38, y: drift ? h * 0.04 : -h * 0.12)
+                blob(Theme.violet, size: w * 0.85)
+                    .offset(x: drift ? w * 0.14 : -w * 0.16, y: drift ? h * 0.16 : h * 0.28)
+                blob(Theme.cyan, size: w * 0.45)
+                    .offset(x: drift ? -w * 0.26 : -w * 0.42, y: drift ? h * 0.34 : h * 0.24)
+                    .opacity(0.6)
             }
+            .frame(width: w, height: h)
+            .blur(radius: 60)
+            .opacity((scheme == .dark ? 0.55 : 0.32) * intensity)
         }
-        .drawingGroup()
+        .clipped()
         .allowsHitTesting(false)
         .accessibilityHidden(true)
+        .onAppear {
+            guard !reduceMotion else { return }
+            withAnimation(.easeInOut(duration: 9).repeatForever(autoreverses: true)) { drift = true }
+        }
     }
 
     private func blob(_ color: Color, size: CGFloat) -> some View {

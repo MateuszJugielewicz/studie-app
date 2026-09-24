@@ -55,7 +55,6 @@ struct SplashView: View {
     var body: some View {
         ZStack {
             Theme.background.ignoresSafeArea()
-            AuroraBackground().ignoresSafeArea()
             SonoraLogo(size: 44)
         }
     }
