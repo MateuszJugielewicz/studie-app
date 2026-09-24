@@ -1809,16 +1809,20 @@ as $$
 declare
   t public.support_tickets;
   m public.support_messages;
+  new_id uuid := gen_random_uuid();
   body text := btrim(coalesce(p_body, ''));
 begin
-  select * into t from public.support_tickets where id = p_ticket_id for update;
+  -- Plain assignments on purpose: the Supabase SQL Editor treats "select ... in-to var"
+  -- as a new table and breaks the function when this file is pasted.
+  perform 1 from public.support_tickets where id = p_ticket_id for update;
+  t := (select x from public.support_tickets x where x.id = p_ticket_id);
   if t.id is null then raise exception 'not_found'; end if;
   if body = '' then raise exception 'Write a message first.'; end if;
   if char_length(body) > 4000 then raise exception 'Message is too long (max 4000 characters).'; end if;
 
-  insert into public.support_messages (ticket_id, sender_id, from_admin, body)
-  values (t.id, auth.uid(), p_from_admin, body)
-  returning * into m;
+  insert into public.support_messages (id, ticket_id, sender_id, from_admin, body)
+  values (new_id, t.id, auth.uid(), p_from_admin, body);
+  m := (select x from public.support_messages x where x.id = new_id);
 
   update public.support_tickets set
     status = case when p_from_admin then 'answered' else 'open' end,
@@ -1843,7 +1847,7 @@ returns public.support_tickets
 language plpgsql security definer set search_path = public
 as $$
 declare
-  t public.support_tickets;
+  new_id uuid := gen_random_uuid();
 begin
   if auth.uid() is null then raise exception 'not_authenticated'; end if;
   if p_booking_id is not null and not exists (
@@ -1860,12 +1864,10 @@ begin
     raise exception 'Too many requests. Please try again later.';
   end if;
 
-  insert into public.support_tickets (user_id, subject, category, booking_id)
-  values (auth.uid(), btrim(coalesce(p_subject, '')), coalesce(nullif(p_category, ''), 'other'), p_booking_id)
-  returning * into t;
-  perform public.add_support_message(t.id, p_body, false);
-  select * into t from public.support_tickets where id = t.id;
-  return t;
+  insert into public.support_tickets (id, user_id, subject, category, booking_id)
+  values (new_id, auth.uid(), btrim(coalesce(p_subject, '')), coalesce(nullif(p_category, ''), 'other'), p_booking_id);
+  perform public.add_support_message(new_id, p_body, false);
+  return (select x from public.support_tickets x where x.id = new_id);
 end;
 $$;
 
@@ -1877,7 +1879,7 @@ as $$
 declare
   owner uuid;
 begin
-  select user_id into owner from public.support_tickets where id = p_ticket_id;
+  owner := (select user_id from public.support_tickets where id = p_ticket_id);
   if owner is null then raise exception 'not_found'; end if;
   if public.is_admin() then
     return public.add_support_message(p_ticket_id, p_body, true);
@@ -1911,16 +1913,16 @@ declare
   t public.support_tickets;
 begin
   if p_status not in ('open', 'answered', 'closed') then raise exception 'invalid status'; end if;
-  select * into t from public.support_tickets where id = p_ticket_id for update;
+  perform 1 from public.support_tickets where id = p_ticket_id for update;
+  t := (select x from public.support_tickets x where x.id = p_ticket_id);
   if t.id is null then raise exception 'not_found'; end if;
   if not public.is_admin() and not (t.user_id = auth.uid() and p_status = 'closed') then
     raise exception 'forbidden' using errcode = '42501';
   end if;
   update public.support_tickets
   set status = p_status, closed_at = case when p_status = 'closed' then now() end
-  where id = t.id
-  returning * into t;
-  return t;
+  where id = t.id;
+  return (select x from public.support_tickets x where x.id = t.id);
 end;
 $$;
 
