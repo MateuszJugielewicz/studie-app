@@ -175,7 +175,8 @@ enum MockData {
             reviewCount: s.reviews,
             bookingCount: s.bookings,
             createdAt: .now.adding(days: -300 + index * 10),
-            submittedAt: .now.adding(days: -290 + index * 10)
+            submittedAt: .now.adding(days: -290 + index * 10),
+            timezone: s.country == "Denmark" ? "Europe/Copenhagen" : "Europe/Athens"
         ).normalized()
     }
 

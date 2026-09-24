@@ -250,13 +250,27 @@ final class SupabaseBackend: Backend {
         return rows.first
     }
 
+    private struct PayoutAccountResponse: Decodable {
+        let account: PayoutAccount
+        let onboardingUrl: String?
+    }
+
     func savePayoutAccount(_ account: PayoutAccount, iban: String?) async throws -> PayoutAccount {
-        var body: [String: AnyJSON] = [
+        // Bank details are collected by Stripe's hosted onboarding, never sent through our servers.
+        let response: PayoutAccountResponse = try await invoke("payout-account", [
             "studio_id": .string(account.studioId.uuidString),
             "account_holder": .string(account.accountHolder),
-        ]
-        if let iban { body["iban"] = .string(iban) }
-        return try await invoke("payout-account", body)
+            "action": .string("save"),
+        ])
+        return response.account
+    }
+
+    func payoutOnboardingURL(studioId: UUID) async throws -> URL? {
+        let response: PayoutAccountResponse = try await invoke("payout-account", [
+            "studio_id": .string(studioId.uuidString),
+            "action": .string("onboarding_link"),
+        ])
+        return response.onboardingUrl.flatMap(URL.init(string:))
     }
 
     func busyIntervals(studioIds: [UUID], from: Date, to: Date) async throws -> [UUID: [DateInterval]] {

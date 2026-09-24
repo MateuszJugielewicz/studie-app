@@ -1,0 +1,9 @@
+{
+  "imports": {
+    "@supabase/supabase-js": "npm:@supabase/supabase-js@2.49.4",
+    "stripe": "npm:stripe@17.7.0"
+  },
+  "compilerOptions": {
+    "strict": true
+  }
+}

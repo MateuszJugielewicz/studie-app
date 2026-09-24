@@ -486,48 +486,79 @@ struct StudioPolicyEditor: View {
 
 struct PayoutAccountEditor: View {
     @Environment(AppState.self) private var app
+    @Environment(\.openURL) private var openURL
     let studioId: UUID
     @State private var account: PayoutAccount?
     @State private var holder = ""
     @State private var iban = ""
     @State private var saved = false
+    @State private var isOpeningStripe = false
     @State private var error: String?
 
     var body: some View {
         Form {
             Section {
                 if let account, account.payoutsEnabled {
-                    Label("Payouts enabled to IBAN •••• \(account.ibanLast4)", systemImage: "checkmark.seal.fill").foregroundStyle(.green)
+                    Label(account.ibanLast4.isEmpty ? "Payouts enabled" : "Payouts enabled to •••• \(account.ibanLast4)", systemImage: "checkmark.seal.fill")
+                        .foregroundStyle(.green)
+                } else {
+                    Label("Payouts not set up yet", systemImage: "exclamationmark.triangle").foregroundStyle(.orange)
                 }
                 TextField("Account holder / company name", text: $holder)
-                TextField(account == nil ? "IBAN" : "New IBAN (leave empty to keep)", text: $iban)
-                    .textInputAutocapitalization(.characters)
-                    .autocorrectionDisabled()
+                if app.isDemo {
+                    TextField(account == nil ? "IBAN" : "New IBAN (leave empty to keep)", text: $iban)
+                        .textInputAutocapitalization(.characters)
+                        .autocorrectionDisabled()
+                }
             } footer: {
-                Text("Payouts are sent \(PlatformConfig.payoutDelayDays) days after each completed session, minus Sonora's \(PlatformConfig.studioCommissionPercent)% commission. Bank details are stored with our payment provider, not in the app.")
+                Text("Payouts are sent \(PlatformConfig.payoutDelayDays) days after each completed session, minus Sonora's \(PlatformConfig.studioCommissionPercent)% commission.")
             }
             Section {
-                Button(saved ? "Saved ✓" : "Save payout details") { save() }
-                    .disabled(holder.isEmpty || (account == nil && iban.isEmpty))
+                Button(saved ? "Saved ✓" : "Save") { save() }
+                    .disabled(holder.isEmpty || (app.isDemo && account == nil && iban.isEmpty))
+            }
+            if !app.isDemo {
+                Section {
+                    Button {
+                        openStripe()
+                    } label: {
+                        Label(isOpeningStripe ? "Opening…" : (account?.payoutsEnabled == true ? "Update bank details" : "Connect bank account"), systemImage: "building.columns")
+                    }
+                    .disabled(isOpeningStripe)
+                } footer: {
+                    Text("Bank details and identity checks are handled securely by Stripe, our payment provider.")
+                }
             }
         }
         .navigationTitle("Payout details")
-        .task {
-            account = try? await app.backend.payoutAccount(studioId: studioId)
-            holder = account?.accountHolder ?? ""
-        }
+        .task { await load() }
+        .refreshable { await load() }
         .errorAlert($error)
+    }
+
+    private func load() async {
+        account = try? await app.backend.payoutAccount(studioId: studioId)
+        if holder.isEmpty { holder = account?.accountHolder ?? "" }
     }
 
     private func save() {
         Task {
             do {
-                let base = account ?? PayoutAccount(studioId: studioId, accountHolder: holder, ibanLast4: "", stripeAccountId: nil, payoutsEnabled: false)
-                var updated = base
+                var updated = account ?? PayoutAccount(studioId: studioId, accountHolder: holder, ibanLast4: "", stripeAccountId: nil, payoutsEnabled: false)
                 updated.accountHolder = holder
                 account = try await app.backend.savePayoutAccount(updated, iban: iban.isEmpty ? nil : iban)
                 iban = ""
                 saved = true
+            } catch { self.error = error.userMessage }
+        }
+    }
+
+    private func openStripe() {
+        isOpeningStripe = true
+        Task {
+            defer { isOpeningStripe = false }
+            do {
+                if let url = try await app.backend.payoutOnboardingURL(studioId: studioId) { openURL(url) }
             } catch { self.error = error.userMessage }
         }
     }

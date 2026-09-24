@@ -377,6 +377,8 @@ final class MockBackend: Backend {
         return saved
     }
 
+    func payoutOnboardingURL(studioId: UUID) async throws -> URL? { nil }
+
     func busyIntervals(studioIds: [UUID], from: Date, to: Date) async throws -> [UUID: [DateInterval]] {
         let range = DateInterval(start: from, end: max(from, to))
         var result: [UUID: [DateInterval]] = [:]

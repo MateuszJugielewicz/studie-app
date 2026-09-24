@@ -71,6 +71,8 @@ protocol Backend: AnyObject {
     func setStudioActive(id: UUID, isActive: Bool) async throws -> Studio
     func payoutAccount(studioId: UUID) async throws -> PayoutAccount?
     func savePayoutAccount(_ account: PayoutAccount, iban: String?) async throws -> PayoutAccount
+    /// Hosted onboarding link where the studio adds bank details (Stripe Connect). nil in demo mode.
+    func payoutOnboardingURL(studioId: UUID) async throws -> URL?
     /// Occupied periods (bookings + blocks) used to compute availability.
     func busyIntervals(studioIds: [UUID], from: Date, to: Date) async throws -> [UUID: [DateInterval]]
     func blockedSlots(studioId: UUID) async throws -> [BlockedSlot]

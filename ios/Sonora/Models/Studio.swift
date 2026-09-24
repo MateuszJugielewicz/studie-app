@@ -36,12 +36,16 @@ struct Studio: Codable, Identifiable, Hashable {
     var bookingCount: Int
     var createdAt: Date
     var submittedAt: Date?
+    /// IANA time zone of the studio. Opening hours are interpreted in this zone.
+    var timezone: String? = nil
 
     var coordinate: CLLocationCoordinate2D {
         CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
     }
 
     var location: CLLocation { CLLocation(latitude: latitude, longitude: longitude) }
+
+    var timeZone: TimeZone { timezone.flatMap(TimeZone.init(identifier:)) ?? .current }
 
     /// Visible to artists only when approved by an admin and switched on.
     var isBookable: Bool { status == .approved && isActive }

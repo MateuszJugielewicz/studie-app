@@ -8,12 +8,19 @@ struct TimeSlot: Hashable, Identifiable {
 
 /// Computes bookable start times from opening hours, existing bookings and blocked periods.
 struct AvailabilityEngine {
-    var calendar: Calendar = .current
     /// Granularity of start times in minutes.
     var stepMinutes: Int = 60
 
+    /// Opening hours are wall-clock times in the studio's own time zone.
+    func studioCalendar(for studio: Studio) -> Calendar {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = studio.timeZone
+        return calendar
+    }
+
     /// Opening window for the given day, or nil when closed.
     func openingWindow(for studio: Studio, on day: Date) -> DateInterval? {
+        let calendar = studioCalendar(for: studio)
         let dayStart = calendar.startOfDay(for: day)
         let weekday = calendar.component(.weekday, from: dayStart)
         guard let hours = studio.hours(for: weekday), !hours.isClosed else { return nil }
@@ -35,7 +42,7 @@ struct AvailabilityEngine {
         guard hours > 0, let window = openingWindow(for: studio, on: day) else { return [] }
         let policy = studio.bookingPolicy
         let earliest = now.addingTimeInterval(TimeInterval(policy.minimumNoticeHours * 3600))
-        let latestDay = calendar.startOfDay(for: now).adding(days: policy.maxAdvanceDays + 1)
+        let latestDay = studioCalendar(for: studio).startOfDay(for: now).addingTimeInterval(TimeInterval((policy.maxAdvanceDays + 1) * 86_400))
         guard window.start < latestDay else { return [] }
 
         let buffer = TimeInterval(policy.bufferMinutes * 60)
@@ -61,8 +68,11 @@ struct AvailabilityEngine {
     }
 
     /// True when the interval fits the opening hours and does not clash. Used to validate reschedules.
+    /// Checks the start's own day and the previous day (whose window may run past midnight).
     func canBook(_ studio: Studio, start: Date, hours: Int, busy: [DateInterval], now: Date = .now) -> Bool {
-        availableSlots(for: studio, on: start, hours: hours, busy: busy, now: now).contains { $0.start == start }
+        [start, start.addingTimeInterval(-86_400)].contains { day in
+            availableSlots(for: studio, on: day, hours: hours, busy: busy, now: now).contains { $0.start == start }
+        }
     }
 
     /// Half-open overlap: touching intervals do not clash.
