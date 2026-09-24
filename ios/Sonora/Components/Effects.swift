@@ -119,21 +119,28 @@ struct SonoraTabContainer<Content: View>: View {
     @State private var keyboardVisible = false
 
     var body: some View {
-        ZStack {
-            ForEach(tabs) { spec in
-                let isSelected = spec.tab == selection
-                if isSelected || visited.contains(spec.tab) {
-                    content(spec.tab)
-                        .opacity(isSelected ? 1 : 0)
-                        .allowsHitTesting(isSelected)
-                        .accessibilityHidden(!isSelected)
-                        .onAppear { _ = visited.insert(spec.tab) }
+        // The bar sits below the content (not on top of it) so no page, including pushed
+        // screens inside a NavigationStack, ends up hidden behind it.
+        VStack(spacing: 0) {
+            ZStack {
+                ForEach(tabs) { spec in
+                    let isSelected = spec.tab == selection
+                    if isSelected || visited.contains(spec.tab) {
+                        content(spec.tab)
+                            .opacity(isSelected ? 1 : 0)
+                            .allowsHitTesting(isSelected)
+                            .accessibilityHidden(!isSelected)
+                            .onAppear { _ = visited.insert(spec.tab) }
+                    }
                 }
             }
-        }
-        .safeAreaInset(edge: .bottom, spacing: 0) {
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+
             if !keyboardVisible {
                 SonoraTabBar(selection: $selection, tabs: tabs)
+                    .padding(.top, 6)
+                    .frame(maxWidth: .infinity)
+                    .background(Theme.background.ignoresSafeArea(edges: .bottom))
                     .transition(.move(edge: .bottom).combined(with: .opacity))
             }
         }
