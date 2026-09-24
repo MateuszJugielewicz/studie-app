@@ -226,6 +226,20 @@ struct BookingPolicy: Codable, Hashable {
     var terms: String = ""
 }
 
+extension BookingPolicy {
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        let d = BookingPolicy()
+        instantBook = try c.decodeIfPresent(Bool.self, forKey: .instantBook) ?? d.instantBook
+        cancellationPolicy = try c.decodeIfPresent(CancellationPolicy.self, forKey: .cancellationPolicy) ?? d.cancellationPolicy
+        depositPercent = try c.decodeIfPresent(Int.self, forKey: .depositPercent) ?? d.depositPercent
+        minimumNoticeHours = try c.decodeIfPresent(Int.self, forKey: .minimumNoticeHours) ?? d.minimumNoticeHours
+        maxAdvanceDays = try c.decodeIfPresent(Int.self, forKey: .maxAdvanceDays) ?? d.maxAdvanceDays
+        bufferMinutes = try c.decodeIfPresent(Int.self, forKey: .bufferMinutes) ?? d.bufferMinutes
+        terms = try c.decodeIfPresent(String.self, forKey: .terms) ?? d.terms
+    }
+}
+
 /// Private payout details (`studio_payout_accounts` table, owner + admin only).
 struct PayoutAccount: Codable, Hashable {
     var studioId: UUID

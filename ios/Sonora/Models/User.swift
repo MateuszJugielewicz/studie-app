@@ -23,6 +23,23 @@ struct UserSettings: Codable, Hashable {
     var useMetricUnits: Bool = true
 }
 
+extension UserSettings {
+    /// Tolerates missing keys so older/partial jsonb rows still decode.
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        let d = UserSettings()
+        pushEnabled = try c.decodeIfPresent(Bool.self, forKey: .pushEnabled) ?? d.pushEnabled
+        emailEnabled = try c.decodeIfPresent(Bool.self, forKey: .emailEnabled) ?? d.emailEnabled
+        bookingUpdates = try c.decodeIfPresent(Bool.self, forKey: .bookingUpdates) ?? d.bookingUpdates
+        messages = try c.decodeIfPresent(Bool.self, forKey: .messages) ?? d.messages
+        reminders = try c.decodeIfPresent(Bool.self, forKey: .reminders) ?? d.reminders
+        reviewPrompts = try c.decodeIfPresent(Bool.self, forKey: .reviewPrompts) ?? d.reviewPrompts
+        marketing = try c.decodeIfPresent(Bool.self, forKey: .marketing) ?? d.marketing
+        searchRadiusKm = try c.decodeIfPresent(Double.self, forKey: .searchRadiusKm) ?? d.searchRadiusKm
+        useMetricUnits = try c.decodeIfPresent(Bool.self, forKey: .useMetricUnits) ?? d.useMetricUnits
+    }
+}
+
 /// Public artist profile (`artist_profiles` table). `id` equals the account id.
 struct ArtistProfile: Codable, Identifiable, Hashable {
     let id: UUID

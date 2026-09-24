@@ -16,7 +16,7 @@ final class MockBackend: Backend {
     private var payoutAccounts: [UUID: PayoutAccount] = [:]
     private var blocked: [UUID: BlockedSlot] = [:]
     private(set) var bookings: [UUID: Booking] = [:]
-    private var transactionsById: [UUID: Transaction] = [:]
+    private var transactionsById: [UUID: PaymentTransaction] = [:]
     private var payoutsById: [UUID: Payout] = [:]
     private var conversationsById: [UUID: Conversation] = [:]
     private var messagesById: [UUID: ChatMessage] = [:]
@@ -84,9 +84,9 @@ final class MockBackend: Backend {
     }
 
     @discardableResult
-    private func recordCharge(for booking: Booking, amount: Int, method: PaymentMethod, kind: TransactionKind = .charge, at date: Date = .now) -> Transaction {
+    private func recordCharge(for booking: Booking, amount: Int, method: PaymentMethod, kind: TransactionKind = .charge, at date: Date = .now) -> PaymentTransaction {
         let fee = kind == .charge ? booking.price.serviceFee : 0
-        let transaction = Transaction(
+        let transaction = PaymentTransaction(
             id: UUID(), bookingId: booking.id, studioId: booking.studioId, artistId: booking.artistId,
             kind: kind, method: method, status: .succeeded, amount: amount, platformFee: fee,
             currency: booking.price.currency, receiptNumber: "RCPT-\(Int.random(in: 100000...999999))",
@@ -594,7 +594,7 @@ final class MockBackend: Backend {
 
     // MARK: - Payments
 
-    func transactions(bookingId: UUID) async throws -> [Transaction] {
+    func transactions(bookingId: UUID) async throws -> [PaymentTransaction] {
         _ = try await booking(id: bookingId)
         return transactionsById.values.filter { $0.bookingId == bookingId }.sorted { $0.createdAt < $1.createdAt }
     }
@@ -617,12 +617,21 @@ final class MockBackend: Backend {
 
     func conversation(studioId: UUID, bookingId: UUID?) async throws -> Conversation {
         let user = try requireUser()
-        guard user.role == .artist, let studio = studios[studioId] else { throw BackendError.forbidden }
-        if let existing = conversationsById.values.first(where: { $0.artistId == user.id && $0.studioId == studioId && $0.bookingId == bookingId }) {
+        guard let studio = studios[studioId] else { throw BackendError.notFound }
+        let artistId: UUID
+        if user.role == .artist {
+            artistId = user.id
+        } else if studio.ownerId == user.id, let bookingId, let booking = bookings[bookingId], booking.studioId == studioId {
+            // Studios can only start a chat about an existing booking.
+            artistId = booking.artistId
+        } else {
+            throw BackendError.forbidden
+        }
+        if let existing = conversationsById.values.first(where: { $0.artistId == artistId && $0.studioId == studioId && $0.bookingId == bookingId }) {
             return existing
         }
-        let name = artistProfiles[user.id]?.artistName ?? user.email
-        let conversation = Conversation(id: UUID(), artistId: user.id, studioId: studioId, bookingId: bookingId, artistName: name.isEmpty ? user.email : name, studioName: studio.name, studioPhotoUrl: studio.photoUrls.first, lastMessagePreview: "", lastMessageAt: .now, artistUnread: 0, studioUnread: 0)
+        let name = artistProfiles[artistId]?.artistName ?? accounts[artistId]?.email ?? "Artist"
+        let conversation = Conversation(id: UUID(), artistId: artistId, studioId: studioId, bookingId: bookingId, artistName: name, studioName: studio.name, studioPhotoUrl: studio.photoUrls.first, lastMessagePreview: "", lastMessageAt: .now, artistUnread: 0, studioUnread: 0)
         conversationsById[conversation.id] = conversation
         return conversation
     }

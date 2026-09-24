@@ -47,6 +47,7 @@ targets:
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
         NSLocationWhenInUseUsageDescription: Sonora uses your location to show recording studios near you and the distance to them.
         NSPhotoLibraryUsageDescription: Choose photos for your artist or studio profile.
+        NSCalendarsWriteOnlyAccessUsageDescription: Add your booked sessions to your calendar.
         NSCameraUsageDescription: Take photos for your artist or studio profile.
         UIBackgroundModes: [remote-notification]
         LSApplicationQueriesSchemes: [comgooglemaps]

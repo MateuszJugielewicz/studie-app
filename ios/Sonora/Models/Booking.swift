@@ -74,7 +74,7 @@ struct BookingRequest: Hashable {
 }
 
 /// A payment-side movement of money (`transactions` table).
-struct Transaction: Codable, Identifiable, Hashable {
+struct PaymentTransaction: Codable, Identifiable, Hashable {
     let id: UUID
     var bookingId: UUID
     var studioId: UUID

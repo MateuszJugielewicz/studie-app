@@ -91,7 +91,7 @@ protocol Backend: AnyObject {
     func openDispute(bookingId: UUID, reason: String) async throws
 
     // MARK: Payments
-    func transactions(bookingId: UUID) async throws -> [Transaction]
+    func transactions(bookingId: UUID) async throws -> [PaymentTransaction]
     func payouts(studioId: UUID) async throws -> [Payout]
 
     // MARK: Chat
