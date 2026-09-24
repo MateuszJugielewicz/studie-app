@@ -61,17 +61,16 @@ targets:
         SonoraSupabaseAnonKey: $(SONORA_SUPABASE_ANON_KEY)
         SonoraStripePublishableKey: $(SONORA_STRIPE_PUBLISHABLE_KEY)
         SonoraApplePayMerchantId: $(SONORA_APPLE_PAY_MERCHANT_ID)
-    entitlements:
-      path: Sonora/Sonora.entitlements
-      properties:
-        com.apple.developer.applesignin: [Default]
-        aps-environment: development
-        com.apple.developer.in-app-payments: [merchant.com.sonora.app]
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.sonora.app
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+      configs:
+        # Debug builds run with a free (personal) Apple team: no Sign in with Apple,
+        # Apple Pay or push entitlements. Release uses Sonora.entitlements (paid team).
+        Release:
+          CODE_SIGN_ENTITLEMENTS: Sonora/Sonora.entitlements
 
   SonoraTests:
     type: bundle.unit-test
