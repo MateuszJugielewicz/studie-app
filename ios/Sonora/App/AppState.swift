@@ -37,7 +37,6 @@ final class AppState {
     var unreadNotifications: Int { notifications.filter { !$0.isRead }.count }
 
     var role: UserRole { account?.role ?? .artist }
-    var isDemo: Bool { backend.isDemo }
 
     init(backend: Backend) {
         self.backend = backend
@@ -46,17 +45,10 @@ final class AppState {
         push.onToken = { [weak self] token in
             Task { try? await self?.backend.registerPushToken(token) }
         }
-        if let mock = backend as? MockBackend {
-            mock.onNotification = { [weak self] note in
-                self?.push.presentLocal(note)
-                self?.notifications.insert(note, at: 0)
-            }
-        }
     }
 
     static func makeDefault() -> AppState {
-        if AppConfig.isDemoMode { return AppState(backend: MockBackend()) }
-        return AppState(backend: SupabaseBackend())
+        AppState(backend: SupabaseBackend())
     }
 
     // MARK: Session

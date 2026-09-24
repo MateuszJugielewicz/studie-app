@@ -498,7 +498,6 @@ struct PayoutAccountEditor: View {
     let studioId: UUID
     @State private var account: PayoutAccount?
     @State private var holder = ""
-    @State private var iban = ""
     @State private var saved = false
     @State private var isOpeningStripe = false
     @State private var error: String?
@@ -513,29 +512,22 @@ struct PayoutAccountEditor: View {
                     Label("Payouts not set up yet", systemImage: "exclamationmark.triangle").foregroundStyle(Theme.warning)
                 }
                 TextField("Account holder / company name", text: $holder)
-                if app.isDemo {
-                    TextField(account == nil ? "IBAN" : "New IBAN (leave empty to keep)", text: $iban)
-                        .textInputAutocapitalization(.characters)
-                        .autocorrectionDisabled()
-                }
             } footer: {
                 Text("Payouts are sent \(PlatformConfig.payoutDelayDays) days after each completed session, minus Sonora's \(PlatformConfig.platformFeePercent)% platform fee. Platform fees for cash bookings are deducted from the same payouts.")
             }
             Section {
                 Button(saved ? "Saved" : "Save") { save() }
-                    .disabled(holder.isEmpty || (app.isDemo && account == nil && iban.isEmpty))
+                    .disabled(holder.isEmpty)
             }
-            if !app.isDemo {
-                Section {
-                    Button {
-                        openStripe()
-                    } label: {
-                        Label(isOpeningStripe ? "Opening…" : (account?.payoutsEnabled == true ? "Update bank details" : "Connect bank account"), systemImage: "building.columns")
-                    }
-                    .disabled(isOpeningStripe)
-                } footer: {
-                    Text("Bank details and identity checks are handled securely by Stripe, our payment provider.")
+            Section {
+                Button {
+                    openStripe()
+                } label: {
+                    Label(isOpeningStripe ? "Opening…" : (account?.payoutsEnabled == true ? "Update bank details" : "Connect bank account"), systemImage: "building.columns")
                 }
+                .disabled(isOpeningStripe)
+            } footer: {
+                Text("Bank details and identity checks are handled securely by Stripe, our payment provider.")
             }
         }
         .navigationTitle("Payout details")
@@ -554,8 +546,7 @@ struct PayoutAccountEditor: View {
             do {
                 var updated = account ?? PayoutAccount(studioId: studioId, accountHolder: holder, ibanLast4: "", stripeAccountId: nil, payoutsEnabled: false)
                 updated.accountHolder = holder
-                account = try await app.backend.savePayoutAccount(updated, iban: iban.isEmpty ? nil : iban)
-                iban = ""
+                account = try await app.backend.savePayoutAccount(updated, iban: nil)
                 saved = true
             } catch { self.error = error.userMessage }
         }

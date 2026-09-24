@@ -12,7 +12,6 @@ function unwrap<T>(result: { data: T | null; error: { message: string } | null }
 }
 
 export class SupabaseAdminApi implements AdminApi {
-  readonly isDemo = false;
   private client: SupabaseClient;
 
   constructor(url: string, anonKey: string) {

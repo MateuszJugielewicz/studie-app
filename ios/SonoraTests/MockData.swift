@@ -1,4 +1,5 @@
 import Foundation
+@testable import Sonora
 
 /// Seed data for demo mode. Mirrors `supabase/seed.sql` so both environments look alike.
 enum MockData {

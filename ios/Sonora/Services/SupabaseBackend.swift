@@ -5,8 +5,6 @@ import Supabase
 /// Edge Functions (for anything that moves money – see `supabase/functions`).
 @MainActor
 final class SupabaseBackend: Backend {
-    let isDemo = false
-
     private let client: SupabaseClient
     private let decoder = PostgresCoding.decoder()
 

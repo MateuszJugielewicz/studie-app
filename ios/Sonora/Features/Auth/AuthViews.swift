@@ -12,7 +12,6 @@ struct WelcomeView: View {
                 HStack {
                     SonoraLogo(size: 26)
                     Spacer()
-                    if app.isDemo { DemoBanner() }
                 }
                 .padding(.top, 8)
 
@@ -204,13 +203,6 @@ struct AuthView: View {
                 }
             }
 
-            if app.isDemo {
-                Section("Demo accounts") {
-                    Button("Artist · artist@demo.sonora") { fillDemo("artist@demo.sonora") }
-                    Button("Studio · studio@demo.sonora") { fillDemo("studio@demo.sonora") }
-                    Text("Password: \(MockData.demoPassword)").font(.footnote).foregroundStyle(.secondary)
-                }
-            }
         }
         .navigationTitle(mode == .signUp ? "Create account" : "Sign in")
         .sheet(item: $legalDocument) { document in
@@ -225,12 +217,6 @@ struct AuthView: View {
     private var canSubmit: Bool {
         !isWorking && email.contains("@") && !password.isEmpty
             && (mode == .signIn || (acceptedTerms && PasswordPolicy.problem(password) == nil))
-    }
-
-    private func fillDemo(_ address: String) {
-        mode = .signIn
-        email = address
-        password = MockData.demoPassword
     }
 
     private func run(_ action: @escaping () async throws -> UserAccount) {

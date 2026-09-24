@@ -228,11 +228,14 @@ struct CheckoutView: View {
 
     @State private var method: PaymentMethod = .applePay
     @State private var payWithCash = false
-    @State private var card = DemoCard()
     @State private var agreed = false
     @State private var isPaying = false
     @State private var confirmed: Booking?
     @State private var error: String?
+
+    /// Card/Apple Pay needs Stripe keys; cash needs a studio that accepts it.
+    private var cardAvailable: Bool { AppConfig.stripePublishableKey != nil }
+    private var cashAvailable: Bool { PricingEngine.acceptsCash(request.studio) }
 
     private var price: PriceBreakdown {
         PricingEngine.quote(studio: request.studio, sessionType: request.sessionType, hours: request.hours, addOns: request.addOns)
@@ -250,7 +253,7 @@ struct CheckoutView: View {
                 PriceBreakdownView(price: price)
             }
 
-            if PricingEngine.acceptsCash(request.studio) {
+            if cashAvailable && cardAvailable {
                 Section {
                     Picker("Payment", selection: $payWithCash) {
                         Label("Pay now in the app", systemImage: "creditcard").tag(false)
@@ -268,31 +271,20 @@ struct CheckoutView: View {
             }
 
             if payWithCash {
-                EmptyView()
-            } else if app.isDemo {
                 Section {
-                    Picker("Pay with", selection: $method) {
-                        Label("Apple Pay", systemImage: "apple.logo").tag(PaymentMethod.applePay)
-                        Label("Card", systemImage: "creditcard").tag(PaymentMethod.card)
-                    }
-                    .pickerStyle(.inline)
-                    .labelsHidden()
-                    if method == .card {
-                        TextField("Card number", text: $card.number).keyboardType(.numberPad)
-                        HStack {
-                            TextField("MM/YY", text: $card.expiry)
-                            TextField("CVC", text: $card.cvc).keyboardType(.numberPad)
-                        }
-                    }
-                } header: {
-                    Text("Pay with")
-                } footer: {
-                    Text("Demo: any card works; 4000 0000 0000 0002 is declined.")
+                    Label("Pay \(Money.format(price.total, currency: price.currency)) in cash at the session.", systemImage: "banknote")
+                        .font(.footnote)
                 }
-            } else {
+            } else if cardAvailable {
                 Section {
                     Label("Card or Apple Pay – securely processed by Stripe.", systemImage: "lock.shield")
                         .font(.footnote)
+                }
+            } else {
+                Section {
+                    Label("In-app payment isn't available yet, and this studio doesn't accept cash. Message the studio to arrange your session.", systemImage: "exclamationmark.circle")
+                        .font(.footnote)
+                        .foregroundStyle(Theme.warning)
                 }
             }
 
@@ -322,12 +314,15 @@ struct CheckoutView: View {
                 }
             }
             .buttonStyle(.primary)
-            .disabled(!agreed || isPaying)
+            .disabled(!agreed || isPaying || (!payWithCash && !cardAvailable))
             .padding()
             .background(.ultraThinMaterial)
         }
         .navigationDestination(item: $confirmed) { booking in
             BookingConfirmationView(booking: booking, onDone: onFinish)
+        }
+        .onAppear {
+            if !cardAvailable && cashAvailable { payWithCash = true }
         }
         .errorAlert($error)
     }
@@ -344,34 +339,13 @@ struct CheckoutView: View {
                     return
                 }
                 let intent = try await app.backend.preparePayment(bookingId: booking.id, method: method)
-                if app.isDemo {
-                    try await DemoPayment.charge(method: method, card: card)
-                } else {
-                    let outcome = try await StripePaymentProcessor.pay(intent)
-                    if case .cancelled = outcome { return }
-                }
+                let outcome = try await StripePaymentProcessor.pay(intent)
+                if case .cancelled = outcome { return }
                 confirmed = try await app.backend.confirmPayment(bookingId: booking.id, method: method)
                 await app.refreshBadges()
             } catch {
                 self.error = error.userMessage
             }
-        }
-    }
-}
-
-struct DemoCard: Equatable {
-    var number = "4242 4242 4242 4242"
-    var expiry = "12/29"
-    var cvc = "123"
-}
-
-enum DemoPayment {
-    static func charge(method: PaymentMethod, card: DemoCard) async throws {
-        try await Task.sleep(for: .seconds(1))
-        if method == .card {
-            let digits = card.number.filter(\.isNumber)
-            guard digits.count >= 15 else { throw BackendError.paymentFailed("Check your card number.") }
-            if digits == "4000000000000002" { throw BackendError.paymentFailed("Your card was declined.") }
         }
     }
 }

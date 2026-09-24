@@ -40,12 +40,10 @@ struct PaymentIntentInfo: Hashable {
     var captureLater: Bool
 }
 
-/// Everything the iOS app needs from the server. Implemented by `SupabaseBackend` (production)
-/// and `MockBackend` (demo mode / previews / tests).
+/// Everything the iOS app needs from the server. Implemented by `SupabaseBackend`;
+/// the unit tests use an in-memory `MockBackend`.
 @MainActor
 protocol Backend: AnyObject {
-    var isDemo: Bool { get }
-
     // MARK: Auth
     func restoreSession() async -> UserAccount?
     func signUp(email: String, password: String, role: UserRole) async throws -> UserAccount

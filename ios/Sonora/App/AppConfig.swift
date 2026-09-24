@@ -11,12 +11,6 @@ enum AppConfig {
     static var stripePublishableKey: String? { value("SonoraStripePublishableKey") }
     static var applePayMerchantId: String { value("SonoraApplePayMerchantId") ?? "merchant.com.sonora.app" }
 
-    /// Without backend keys the app runs in demo mode on `MockBackend`.
-    static var isDemoMode: Bool {
-        if ProcessInfo.processInfo.arguments.contains("-demo") { return true }
-        return supabaseURL == nil || (supabaseAnonKey ?? "").isEmpty
-    }
-
     static let redirectURL = URL(string: "sonora://auth-callback")!
     static let supportEmail = "support@sonora.app"
     static let termsURL = URL(string: "https://sonora.app/terms")!

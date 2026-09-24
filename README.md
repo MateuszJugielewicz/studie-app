@@ -12,13 +12,11 @@ Studie ansøger → Admin godkender → Synligt på platformen → Artister find
 | Backend | `supabase/` | Postgres + Row Level Security, Auth (e-mail/Apple/Google), Storage, Realtime, Edge Functions, pg_cron |
 | Admin-dashboard (web) | `admin/` | React + TypeScript + Vite |
 
-Både appen og admin-dashboardet kører i **demo-mode** med indbygget testdata, når der ikke er sat nøgler op. Så kan du prøve alt med det samme.
-
----
+Appen og admin-dashboardet er forbundet til Sonoras Supabase-projekt. Der er ingen testdata: studier, bookinger og konti kommer fra rigtige brugere.
 
 ## Kom i gang
 
-### iOS-appen (demo-mode)
+### iOS-appen
 
 Kræver Xcode 16 eller nyere. Projektfilen ligger i repoet:
 
@@ -26,22 +24,17 @@ Kræver Xcode 16 eller nyere. Projektfilen ligger i repoet:
 open ios/Sonora.xcodeproj
 ```
 
-Ændrer du `ios/project.yml`, så generér projektet igen med [XcodeGen](https://github.com/yonaskolb/XcodeGen) (`xcodegen generate` i `ios/`).
-
-Kør på en simulator. Log ind med en demo-konto:
-
-- Artist: `artist@demo.sonora` / `demo1234`
-- Studie: `studio@demo.sonora` / `demo1234`
-
-Opretter du en ny studiekonto, kan du i demo-mode trykke **"Simulate approval"** i stedet for at vente på en admin.
+Vælg dit Apple ID under *Signing & Capabilities → Team*, vælg en iPhone-simulator og tryk ▶. Opret en konto i appen. Studier bliver synlige, når en admin har godkendt dem.
 
 ### Admin-dashboardet
 
 ```bash
 cd admin
 npm install
-npm run dev            # http://localhost:5173 (demo-data, bare tryk "Sign in")
+npm run dev            # http://localhost:5173 – log ind med en admin-konto (kræver 2-faktor)
 ```
+
+Gør en konto til admin i Supabase → SQL Editor: `update profiles set role = 'admin' where email = '...';`
 
 ---
 
@@ -201,7 +194,7 @@ ios/
   Sonora/App                 app-entry, global state, konfiguration
   Sonora/Models              datamodeller (matcher databasen)
   Sonora/Core                pris, tilgængelighed, søgning, indtjening (ren logik, testet)
-  Sonora/Services            Backend-protokol, SupabaseBackend, MockBackend (demo), Stripe, lokation, push
+  Sonora/Services            Backend-protokol, SupabaseBackend, Stripe, lokation, push
   Sonora/Features            Auth, Artist, Discover, StudioDetail, Booking, Chat, Reviews, StudioOwner
 supabase/
   migrations/                skema, sikkerhed, app-logik, admin, cron

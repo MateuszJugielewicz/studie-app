@@ -298,14 +298,3 @@ extension View {
 extension Error {
     var userMessage: String { (self as? LocalizedError)?.errorDescription ?? localizedDescription }
 }
-
-struct DemoBanner: View {
-    var body: some View {
-        Text("Demo mode · sample data, no real payments")
-            .font(.caption.weight(.medium))
-            .padding(.horizontal, 10)
-            .padding(.vertical, 5)
-            .background(Theme.fill, in: Capsule())
-            .foregroundStyle(.secondary)
-    }
-}

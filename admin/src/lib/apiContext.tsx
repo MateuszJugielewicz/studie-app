@@ -1,14 +1,14 @@
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import type { AdminApi } from "./api";
-import { DemoAdminApi } from "./demoApi";
 import { SupabaseAdminApi } from "./supabaseApi";
 
 const url = import.meta.env.VITE_SUPABASE_URL as string | undefined;
 const key = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
 
-export const api: AdminApi = url && key ? new SupabaseAdminApi(url, key) : new DemoAdminApi();
+/** Null when the Supabase keys are missing (see admin/.env.development). */
+export const api: AdminApi | null = url && key ? new SupabaseAdminApi(url, key) : null;
 
-export const ApiContext = createContext<AdminApi>(api);
+export const ApiContext = createContext<AdminApi>(api as AdminApi);
 export const useApi = () => useContext(ApiContext);
 
 /** Loads data with `load`, exposing a reload function and loading/error state. */

@@ -74,17 +74,6 @@ struct ApplicationStatusView: View {
                 }
             }
 
-            if app.isDemo, studio.status == .pendingReview, let mock = app.backend as? MockBackend {
-                Section {
-                    Button("Simulate approval") { decide(mock, approve: true) }
-                    Button("Simulate “changes requested”") { decide(mock, approve: false) }
-                } header: {
-                    Text("Demo only")
-                } footer: {
-                    Text("In production this happens in the admin dashboard.")
-                }
-            }
-
             Section {
                 Button("Sign out") { Task { await app.signOut() } }
             }
@@ -110,14 +99,6 @@ struct ApplicationStatusView: View {
             defer { isSubmitting = false }
             do { app.ownedStudio = try await app.backend.submitStudioForReview(id: studio.id) }
             catch { self.error = error.userMessage }
-        }
-    }
-
-    private func decide(_ mock: MockBackend, approve: Bool) {
-        mock.simulateAdminDecision(studioId: studio.id, approve: approve, note: approve ? nil : "Please add photos of your vocal booth and list your microphones.")
-        Task {
-            app.ownedStudio = try? await app.backend.ownedStudio()
-            await app.refreshBadges()
         }
     }
 }

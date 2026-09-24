@@ -6,9 +6,8 @@ import type {
 
 export type StudioDecision = "approve" | "reject" | "request_changes";
 
-/** Everything the dashboard needs. Implemented against Supabase and an in-memory demo. */
+/** Everything the dashboard needs, implemented against Supabase. */
 export interface AdminApi {
-  readonly isDemo: boolean;
   signIn(email: string, password: string): Promise<void>;
   signOut(): Promise<void>;
   currentAdminEmail(): Promise<string | null>;

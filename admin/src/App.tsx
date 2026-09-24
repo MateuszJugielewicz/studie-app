@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import type { MfaState } from "./lib/types";
 import { NavLink, Navigate, Route, Routes } from "react-router-dom";
-import { api, ApiContext } from "./lib/apiContext";
+import { api as configuredApi, ApiContext } from "./lib/apiContext";
+import type { AdminApi } from "./lib/api";
 import OverviewPage from "./pages/OverviewPage";
 import StudiosPage from "./pages/StudiosPage";
 import UsersPage from "./pages/UsersPage";
@@ -46,6 +47,21 @@ const nav = [
 ];
 
 export default function App() {
+  if (!configuredApi) {
+    return (
+      <div className="center">
+        <div className="card login">
+          <Logo big />
+          <h2>Missing configuration</h2>
+          <p className="muted">Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to admin/.env.development, then restart <span className="mono">npm run dev</span>.</p>
+        </div>
+      </div>
+    );
+  }
+  return <Dashboard api={configuredApi} />;
+}
+
+function Dashboard({ api }: { api: AdminApi }) {
   const [email, setEmail] = useState<string | null | undefined>(undefined);
   const [mfa, setMfa] = useState<MfaState | null>(null);
 
@@ -60,10 +76,10 @@ export default function App() {
   }, [email]);
 
   if (email === undefined) return <div className="center muted">Loading…</div>;
-  if (!email) return <Login onSignedIn={setEmail} />;
+  if (!email) return <Login api={api} onSignedIn={setEmail} />;
   if (!mfa) return <div className="center muted">Checking two-factor authentication…</div>;
   if (mfa.kind !== "verified") {
-    return <TwoFactor state={mfa} onVerified={refreshMfa} onCancel={async () => { await api.signOut(); setEmail(null); setMfa(null); }} />;
+    return <TwoFactor api={api} state={mfa} onVerified={refreshMfa} onCancel={async () => { await api.signOut(); setEmail(null); setMfa(null); }} />;
   }
 
   return (
@@ -79,7 +95,6 @@ export default function App() {
             ))}
           </nav>
           <div className="sidebar-footer">
-            {api.isDemo && <div className="badge orange">Demo data</div>}
             <div className="muted small">{email}</div>
             <button className="ghost" onClick={async () => { await api.signOut(); setEmail(null); }}>Sign out</button>
           </div>
@@ -100,9 +115,9 @@ export default function App() {
   );
 }
 
-function Login({ onSignedIn }: { onSignedIn: (email: string) => void }) {
-  const [email, setEmail] = useState(api.isDemo ? "admin@sonora.app" : "");
-  const [password, setPassword] = useState(api.isDemo ? "demo" : "");
+function Login({ api, onSignedIn }: { api: AdminApi; onSignedIn: (email: string) => void }) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -125,7 +140,6 @@ function Login({ onSignedIn }: { onSignedIn: (email: string) => void }) {
       >
         <Logo big />
         <p className="muted">Admin dashboard</p>
-        {api.isDemo && <p className="badge orange">Demo mode – no Supabase keys configured</p>}
         <label>Email<input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required /></label>
         <label>Password<input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required /></label>
         {error && <p className="error-text">{error}</p>}
@@ -136,7 +150,7 @@ function Login({ onSignedIn }: { onSignedIn: (email: string) => void }) {
 }
 
 /** Admins must use an authenticator app (TOTP). First sign-in enrols, later sign-ins verify. */
-function TwoFactor({ state, onVerified, onCancel }: { state: Exclude<MfaState, { kind: "verified" }>; onVerified: () => void; onCancel: () => void }) {
+function TwoFactor({ api, state, onVerified, onCancel }: { api: AdminApi; state: Exclude<MfaState, { kind: "verified" }>; onVerified: () => void; onCancel: () => void }) {
   const [code, setCode] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
