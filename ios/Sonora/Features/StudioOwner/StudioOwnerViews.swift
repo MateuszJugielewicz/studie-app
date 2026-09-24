@@ -20,6 +20,8 @@ struct StudioOwnerRootView: View {
                             Button("Sign out") { Task { await app.signOut() } }
                         }
                     }
+                    // An application may already exist (e.g. saved from another device); edit that instead of a new draft.
+                    .task { app.ownedStudio = (try? await app.backend.ownedStudio()) ?? app.ownedStudio }
             }
         }
     }

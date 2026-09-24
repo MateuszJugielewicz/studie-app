@@ -31,6 +31,7 @@ const expect = (label, predicate) => {
 };
 
 expect("after self-approve", (r) => r.status === "draft" && r.is_active === false);
+expect("resave", (r) => r.name === "Renamed Studio" && r.status === "draft");
 expect("artist role after attempt", (r) => r.role === "artist");
 expect("booking_count", (r) => r.booking_count === 1);
 expect("owner unread", (r) => r.studio_unread === 1);
@@ -39,7 +40,7 @@ expect("review", (r) => r.studio_reply === null);
 expect("rating", (r) => r.rating_average === 4 && r.review_count === 1);
 expect("has_review", (r) => r.has_review === true);
 expect("stats", (r) => Number(r.rate) === 100 && r.live === 1);
-for (const label of ["unapproved block denied", "artist studio denied", "admin without mfa denied"]) {
+for (const label of ["unapproved block denied", "second studio denied", "artist studio denied", "admin without mfa denied"]) {
   if (!rows.some((r) => r.r === label)) {
     console.error("FAILED:", label);
     process.exitCode = 1;

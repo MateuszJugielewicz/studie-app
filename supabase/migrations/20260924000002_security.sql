@@ -178,11 +178,16 @@ begin
   end if;
 
   if tg_op = 'INSERT' then
+    -- Upsert of an existing row: Postgres runs this INSERT trigger before resolving the conflict.
+    -- The UPDATE branch below guards the row that actually gets written, so leave it alone here.
+    if exists (select 1 from public.studios where id = new.id) then
+      return new;
+    end if;
     if new.owner_id is distinct from auth.uid()
        or not exists (select 1 from public.profiles where id = auth.uid() and role = 'studio_owner' and status = 'active') then
       raise exception 'forbidden' using errcode = '42501';
     end if;
-    if exists (select 1 from public.studios where owner_id = auth.uid()) then
+    if exists (select 1 from public.studios where owner_id = auth.uid() and id <> new.id) then
       raise exception 'You already have a studio.';
     end if;
     new.status := 'draft';

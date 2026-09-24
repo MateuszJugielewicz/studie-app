@@ -23,6 +23,16 @@ select name, status, is_verified, rating_average, price_from from studios;
 -- owner tries to self-approve via update
 update studios set status='approved', is_active=true;
 select 'after self-approve', status, is_active from studios;
+-- editing the application again via upsert (what the app does) must work
+insert into studios (id, owner_id, name) select id, owner_id, 'Renamed Studio' from studios
+  on conflict (id) do update set name = excluded.name, status = excluded.status;
+select 'resave', name, status from studios;
+do $$ begin
+  insert into studios (owner_id, name) values (auth.uid(), 'Second studio');
+  create temp table second_studio as select 'NOT BLOCKED' r;
+exception when others then create temp table second_studio as select 'second studio denied' r;
+end $$;
+select * from second_studio;
 select (submit_studio_for_review(id)).status from studios;
 do $$ begin
   insert into blocked_slots (studio_id, starts_at, ends_at) select id, now(), now() + interval '1 hour' from studios;

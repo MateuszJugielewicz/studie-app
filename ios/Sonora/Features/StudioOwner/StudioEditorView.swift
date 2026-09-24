@@ -88,7 +88,11 @@ struct StudioEditorView: View {
                 app.ownedStudio = saved
                 onSaved(saved)
                 if !isApplication { dismiss() }
-            } catch { self.error = error.userMessage }
+            } catch {
+                self.error = error.userMessage
+                // If the application was stored after all, show it instead of this unsaved draft.
+                if isApplication, let existing = try? await app.backend.ownedStudio() { app.ownedStudio = existing }
+            }
         }
     }
 }
