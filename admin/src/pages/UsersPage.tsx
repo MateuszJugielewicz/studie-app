@@ -11,6 +11,7 @@ export default function UsersPage() {
   const { data, loading, error, reload } = useLoad(() => api.users());
   const [tab, setTab] = useState<Tab>("artist");
   const [query, setQuery] = useState("");
+  const [reasons, setReasons] = useState<Record<string, string>>({});
 
   const users = data ?? [];
   const q = query.toLowerCase();
@@ -19,8 +20,7 @@ export default function UsersPage() {
     .filter((u) => !q || `${u.email} ${u.artist_name ?? ""} ${u.studio_name ?? ""} ${u.artist_city ?? ""}`.toLowerCase().includes(q));
 
   const setStatus = (user: AdminUser, status: AccountStatus) => async () => {
-    const reason = status === "active" ? undefined : window.prompt(`Reason for ${status === "banned" ? "banning" : "suspending"} ${user.email}?`) ?? undefined;
-    if (status !== "active" && reason === undefined) return;
+    const reason = status === "active" ? undefined : (reasons[user.id]?.trim() || (status === "banned" ? "Banned by admin" : "Suspended by admin"));
     await api.setUserStatus(user.id, status, reason);
     await reload();
   };
@@ -63,8 +63,9 @@ export default function UsersPage() {
                         </ActionButton>
                         {u.status === "active" ? (
                           <>
-                            <ActionButton kind="secondary" onClick={setStatus(u, "suspended")}>Suspend</ActionButton>
-                            <ActionButton kind="danger" onClick={setStatus(u, "banned")}>Ban</ActionButton>
+                            <input className="reason" placeholder="Reason (optional)" value={reasons[u.id] ?? ""} onChange={(e) => setReasons({ ...reasons, [u.id]: e.target.value })} />
+                            <ActionButton kind="secondary" confirm={`Suspend ${u.email}?`} onClick={setStatus(u, "suspended")}>Suspend</ActionButton>
+                            <ActionButton kind="danger" confirm={`Ban ${u.email} permanently?`} onClick={setStatus(u, "banned")}>Ban</ActionButton>
                           </>
                         ) : (
                           <ActionButton kind="secondary" onClick={setStatus(u, "active")}>Reactivate</ActionButton>

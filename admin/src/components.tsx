@@ -63,24 +63,38 @@ export function ActionButton({ onClick, children, kind = "primary", confirm, dis
   onClick: () => Promise<void>; children: ReactNode; kind?: "primary" | "danger" | "secondary"; confirm?: string; disabled?: boolean;
 }) {
   const [busy, setBusy] = useState(false);
+  const [armed, setArmed] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   return (
-    <button
-      className={kind}
-      disabled={busy || disabled}
-      onClick={async () => {
-        if (confirm && !window.confirm(confirm)) return;
-        setBusy(true);
-        try {
-          await onClick();
-        } catch (e) {
-          window.alert((e as Error).message);
-        } finally {
-          setBusy(false);
-        }
-      }}
-    >
-      {busy ? "…" : children}
-    </button>
+    <span className="action">
+      <button
+        className={kind}
+        disabled={busy || disabled}
+        title={armed ? confirm : undefined}
+        onBlur={() => setArmed(false)}
+        onClick={async () => {
+          // Destructive actions need a second click instead of a browser dialog.
+          if (confirm && !armed) {
+            setArmed(true);
+            return;
+          }
+          setArmed(false);
+          setError(null);
+          setBusy(true);
+          try {
+            await onClick();
+          } catch (e) {
+            setError((e as Error).message);
+          } finally {
+            setBusy(false);
+          }
+        }}
+      >
+        {busy ? "Working…" : armed ? "Click again to confirm" : children}
+      </button>
+      {armed && confirm && <span className="muted small">{confirm}</span>}
+      {error && <span className="error-text small">{error}</span>}
+    </span>
   );
 }
 

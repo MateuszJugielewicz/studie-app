@@ -145,3 +145,17 @@ blockquote { margin: 8px 0; padding: 8px 12px; border-left: 3px solid var(--acce
 .stat-value { white-space: pre-line; }
 .stat-value.multi { font-size: 20px; line-height: 1.3; }
 .card { overflow-x: auto; }
+.action { display: inline-flex; flex-direction: column; gap: 4px; }
+input.reason { width: 150px; }
+button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+/* Explicit theme choice (data-theme on the root) overrides the system setting in both directions. */
+:root[data-theme="dark"] {
+  --bg: #0e0e0d; --panel: #161615; --card: #1c1c1a; --stroke: #2c2b29; --text: #efeee9; --muted: #9b9890;
+  --accent: #ff6a3d; --accent-soft: rgba(255, 106, 61, 0.14); --green: #5cc98a; --orange: #f2a93b;
+  --yellow: #e8c547; --red: #ff7a66; --blue: #7aa7ff; --gray: #9b9890; color-scheme: dark;
+}
+:root[data-theme="light"] {
+  --bg: #f5f5f4; --panel: #ffffff; --card: #ffffff; --stroke: #e4e3e0; --text: #1c1b19; --muted: #6f6c66;
+  --accent: #d9431e; --accent-soft: rgba(217, 67, 30, 0.1); --green: #2f7d4f; --orange: #b86e00;
+  --yellow: #9a7b00; --red: #c4321c; --blue: #2a64b8; --gray: #6f6c66; color-scheme: light;
+}
