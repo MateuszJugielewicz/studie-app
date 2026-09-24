@@ -28,7 +28,11 @@ struct SonoraApp: App {
                 await appState.bootstrap()
             }
             .onOpenURL { url in
-                (appState.backend as? SupabaseBackend)?.handle(url: url)
+                Task { await appState.openAuthLink(url) }
+            }
+            .sheet(isPresented: $appState.needsNewPassword) {
+                NavigationStack { ChangePasswordView(isRecovery: true) }
+                    .interactiveDismissDisabled()
             }
         }
     }

@@ -12,6 +12,13 @@ export default function UsersPage() {
   const [tab, setTab] = useState<Tab>("artist");
   const [query, setQuery] = useState("");
   const [reasons, setReasons] = useState<Record<string, string>>({});
+  const [resetResult, setResetResult] = useState<{ email: string; password?: string } | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  const resetPassword = (user: AdminUser, mode: "email" | "temporary") => async () => {
+    setCopied(false);
+    setResetResult(await api.resetPassword(user.id, mode));
+  };
 
   const users = data ?? [];
   const q = query.toLowerCase();
@@ -41,6 +48,27 @@ export default function UsersPage() {
           { id: "admin", title: "Admins" },
         ]}
       />
+      {resetResult && (
+        <div className="card notice">
+          <div className="row between">
+            {resetResult.password ? (
+              <div>
+                <strong>Temporary password for {resetResult.email}</strong>
+                <div className="row gap wrap">
+                  <span className="mono big-mono">{resetResult.password}</span>
+                  <button className="secondary" onClick={async () => { await navigator.clipboard.writeText(resetResult.password!); setCopied(true); }}>
+                    {copied ? "Copied" : "Copy"}
+                  </button>
+                </div>
+                <div className="muted small">Shown only once. Give it to the user privately; they should change it in Settings → Change password. They also got a notification.</div>
+              </div>
+            ) : (
+              <div><strong>Reset email sent to {resetResult.email}.</strong><div className="muted small">The link lets them choose a new password in the app.</div></div>
+            )}
+            <button className="ghost" onClick={() => setResetResult(null)}>Close</button>
+          </div>
+        </div>
+      )}
       <PageState loading={loading && !data} error={error} empty={rows.length === 0}>
         <div className="card flush">
           <table>
@@ -60,6 +88,12 @@ export default function UsersPage() {
                       <>
                         <ActionButton kind="secondary" onClick={async () => { await api.verifyUser(u.id, !u.is_verified); await reload(); }}>
                           {u.is_verified ? "Unverify" : "Verify"}
+                        </ActionButton>
+                        <ActionButton kind="secondary" confirm={`Send a password reset email to ${u.email}?`} onClick={resetPassword(u, "email")}>
+                          Reset password
+                        </ActionButton>
+                        <ActionButton kind="secondary" confirm={`Set a temporary password for ${u.email}? Their current password stops working.`} onClick={resetPassword(u, "temporary")}>
+                          Temp password
                         </ActionButton>
                         {u.status === "active" ? (
                           <>

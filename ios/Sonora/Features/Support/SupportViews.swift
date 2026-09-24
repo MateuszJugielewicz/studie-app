@@ -11,29 +11,29 @@ struct SupportCenterView: View {
     @State private var isComposing = false
     @State private var error: String?
 
+    private var active: [SupportTicket] { tickets.filter { $0.status != .closed } }
+    private var closed: [SupportTicket] { tickets.filter { $0.status == .closed } }
+
     var body: some View {
         List {
             Section {
                 Button { isComposing = true } label: {
                     HStack(spacing: 14) {
-                        Image(systemName: "bubble.left.and.text.bubble.right.fill")
-                            .font(.title2)
-                            .foregroundStyle(Theme.accent)
-                            .frame(width: 36)
+                        IconTile(symbol: "bubble.left.and.text.bubble.right.fill", size: 44, colors: TilePalette.signal)
                         VStack(alignment: .leading, spacing: 2) {
                             Text("Contact support").font(.headline).foregroundStyle(Color.primary)
                             Text("We usually reply within 24 hours.").font(.subheadline).foregroundStyle(.secondary)
                         }
                         Spacer()
-                        Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(.tertiary)
+                        Image(systemName: "plus.circle.fill").font(.title2).foregroundStyle(Theme.neon)
                     }
                     .padding(.vertical, 4)
                 }
             }
 
-            if !tickets.isEmpty {
-                Section("Your requests") {
-                    ForEach(tickets) { ticket in
+            if !active.isEmpty {
+                Section("Active") {
+                    ForEach(active) { ticket in
                         NavigationLink {
                             SupportTicketView(ticket: ticket) { updated in replace(updated) }
                         } label: {
@@ -49,13 +49,39 @@ struct SupportCenterView: View {
                 }
             }
 
+            if !closed.isEmpty {
+                Section {
+                    NavigationLink {
+                        ClosedSupportTicketsView(tickets: closed) { updated in replace(updated) }
+                    } label: {
+                        HStack(spacing: 12) {
+                            SettingsIcon(symbol: "archivebox.fill", colors: TilePalette.muted)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Closed").foregroundStyle(Color.primary)
+                                let unrated = closed.filter { $0.rating == nil }.count
+                                if unrated > 0 {
+                                    Text("\(unrated) waiting for your rating").font(.caption).foregroundStyle(Theme.accent)
+                                }
+                            }
+                            Spacer()
+                            Text("\(closed.count)").foregroundStyle(.secondary).monospacedDigit()
+                        }
+                    }
+                }
+            }
+
             Section {
-                NavigationLink { LegalDocumentView(document: .refunds) } label: { Label("Refund & cancellation policy", systemImage: "arrow.uturn.backward.circle") }
-                NavigationLink { LegalListView() } label: { Label("Terms & privacy", systemImage: "doc.text") }
+                NavigationLink { LegalDocumentView(document: .refunds) } label: {
+                    HStack { SettingsIcon(symbol: "arrow.uturn.backward.circle.fill", colors: TilePalette.ocean); Text("Refund & cancellation policy") }
+                }
+                NavigationLink { LegalListView() } label: {
+                    HStack { SettingsIcon(symbol: "doc.text.fill", colors: TilePalette.muted); Text("Terms & privacy") }
+                }
             } header: {
                 Text("Policies")
             }
         }
+        .sonoraGrouped()
         .navigationTitle("Help & support")
         .overlay { if isLoading && tickets.isEmpty { ProgressView() } }
         .refreshable { await load() }
@@ -155,6 +181,7 @@ struct NewSupportTicketView: View {
                 Text("Please don't share card numbers or passwords. The EasySesh team can see your account and bookings.")
             }
         }
+        .sonoraGrouped()
         .navigationTitle("Contact support")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -216,8 +243,11 @@ struct SupportTicketView: View {
                     }
 
                     if ticket.status == .closed {
+                        SupportRatingCard(ticket: $ticket, onChange: onChange)
+                            .padding(.top, 8)
+                            .transition(.move(edge: .bottom).combined(with: .opacity))
                         Text("This request is closed. Send a message to reopen it.")
-                            .font(.caption).foregroundStyle(.secondary).padding(.top, 8)
+                            .font(.caption).foregroundStyle(.secondary).padding(.top, 4)
                     }
                 }
                 .padding()
@@ -228,6 +258,7 @@ struct SupportTicketView: View {
         }
         .background(Theme.background)
         .safeAreaInset(edge: .bottom) { inputBar }
+        .sonoraGrouped()
         .navigationTitle("Support")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -322,6 +353,141 @@ private struct SupportBubble: View {
                 Text(message.createdAt.formatted(date: .abbreviated, time: .shortened)).font(.caption2).foregroundStyle(.secondary)
             }
             if message.fromAdmin { Spacer(minLength: 48) }
+        }
+    }
+}
+
+/// The "Closed" folder: finished requests and their ratings.
+struct ClosedSupportTicketsView: View {
+    @State var tickets: [SupportTicket]
+    var onChange: (SupportTicket) -> Void = { _ in }
+
+    var body: some View {
+        List {
+            ForEach(tickets) { ticket in
+                NavigationLink {
+                    SupportTicketView(ticket: ticket) { updated in
+                        if let index = tickets.firstIndex(where: { $0.id == updated.id }) { tickets[index] = updated }
+                        onChange(updated)
+                    }
+                } label: {
+                    VStack(alignment: .leading, spacing: 6) {
+                        SupportTicketRow(ticket: ticket)
+                        if let rating = ticket.rating {
+                            StarsView(rating: rating, size: 12).padding(.leading, 40)
+                        } else {
+                            Label("Rate this request", systemImage: "star.bubble")
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(Theme.accent)
+                                .padding(.leading, 40)
+                        }
+                    }
+                }
+            }
+        }
+        .sonoraGrouped()
+        .navigationTitle("Closed")
+    }
+}
+
+/// Read-only row of stars.
+struct StarsView: View {
+    let rating: Int
+    var size: CGFloat = 14
+
+    var body: some View {
+        HStack(spacing: 2) {
+            ForEach(1...5, id: \.self) { star in
+                Image(systemName: star <= rating ? "star.fill" : "star")
+                    .font(.system(size: size, weight: .semibold))
+                    .foregroundStyle(star <= rating ? AnyShapeStyle(Theme.neon) : AnyShapeStyle(Color.secondary.opacity(0.4)))
+            }
+        }
+        .accessibilityElement()
+        .accessibilityLabel("\(rating) of 5 stars")
+    }
+}
+
+/// Shown in a closed request: rate how support handled it.
+struct SupportRatingCard: View {
+    @Environment(AppState.self) private var app
+    @Binding var ticket: SupportTicket
+    var onChange: (SupportTicket) -> Void
+
+    @State private var rating = 0
+    @State private var comment = ""
+    @State private var isEditing = false
+    @State private var isSending = false
+    @State private var error: String?
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            if let given = ticket.rating, !isEditing {
+                HStack {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("Thanks for your feedback!").font(.subheadline.weight(.bold))
+                        StarsView(rating: given, size: 16)
+                        if let text = ticket.ratingComment, !text.isEmpty {
+                            Text("“\(text)”").font(.subheadline).foregroundStyle(.secondary)
+                        }
+                    }
+                    Spacer()
+                    Button("Edit") {
+                        rating = given
+                        comment = ticket.ratingComment ?? ""
+                        withAnimation(.snappy) { isEditing = true }
+                    }
+                    .font(.subheadline.weight(.semibold))
+                }
+            } else {
+                Text("How did we do?").font(.headline)
+                Text("Rate how the EasySesh team handled your request.").font(.subheadline).foregroundStyle(.secondary)
+                HStack(spacing: 10) {
+                    ForEach(1...5, id: \.self) { star in
+                        Button {
+                            withAnimation(.spring(response: 0.3, dampingFraction: 0.5)) { rating = star }
+                        } label: {
+                            Image(systemName: star <= rating ? "star.fill" : "star")
+                                .font(.system(size: 30, weight: .semibold))
+                                .foregroundStyle(star <= rating ? AnyShapeStyle(Theme.neon) : AnyShapeStyle(Color.secondary.opacity(0.5)))
+                                .scaleEffect(star == rating ? 1.18 : 1)
+                                .neonGlow(Theme.magenta, radius: 6, active: star <= rating)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("\(star) stars")
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .haptic(.selection, trigger: rating)
+                TextField("Anything we could do better? (optional)", text: $comment, axis: .vertical)
+                    .lineLimit(2...5)
+                    .padding(12)
+                    .background(Theme.card.opacity(0.78), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                Button {
+                    send()
+                } label: {
+                    Text(isSending ? LocalizedStringKey("Sending…") : LocalizedStringKey("Send rating"))
+                }
+                .buttonStyle(.primary)
+                .disabled(rating == 0 || isSending)
+            }
+        }
+        .glassCard(padding: 16, cornerRadius: 22)
+        .errorAlert($error)
+    }
+
+    private func send() {
+        isSending = true
+        Task {
+            defer { isSending = false }
+            do {
+                let updated = try await app.backend.rateSupportTicket(id: ticket.id, rating: rating, comment: comment.trimmingCharacters(in: .whitespacesAndNewlines))
+                withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                    ticket = updated
+                    isEditing = false
+                }
+                onChange(updated)
+            } catch { self.error = error.userMessage }
         }
     }
 }

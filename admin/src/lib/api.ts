@@ -20,6 +20,8 @@ export interface AdminApi {
   users(): Promise<AdminUser[]>;
   setUserStatus(userId: string, status: AccountStatus, reason?: string): Promise<void>;
   verifyUser(userId: string, verified: boolean): Promise<void>;
+  /** "email" sends a reset link; "temporary" sets and returns a one-time password. */
+  resetPassword(userId: string, mode: "email" | "temporary"): Promise<{ email: string; password?: string }>;
 
   studios(): Promise<Studio[]>;
   studioEvents(studioId: string): Promise<StudioEvent[]>;
@@ -46,6 +48,8 @@ export interface AdminApi {
   setReviewHidden(reviewId: string, hidden: boolean): Promise<void>;
 
   supportTickets(): Promise<SupportTicket[]>;
+  /** Tickets waiting for an admin reply (for the sidebar badge). */
+  supportOpenCount(): Promise<number>;
   supportMessages(ticketId: string): Promise<SupportMessage[]>;
   replyToSupport(ticketId: string, body: string): Promise<void>;
   markSupportRead(ticketId: string): Promise<void>;

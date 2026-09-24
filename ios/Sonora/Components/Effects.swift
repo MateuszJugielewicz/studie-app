@@ -17,13 +17,14 @@ extension Theme {
 
 // MARK: - Aurora
 
-/// Slowly drifting blurred colour fields, animated by Core Animation (no per-frame redraws).
-/// Static when Reduce Motion is on.
+/// Soft colour fields drawn with radial gradients (no blur filter, so it's cheap to render).
+/// Only drifts when `animated` is set (welcome, intro and sign-in screens); everywhere else it is
+/// static so frosted surfaces on top don't have to re-render every frame.
 struct AuroraBackground: View {
     var intensity: Double = 1
+    var animated = false
     @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
     @Environment(\.reduceEffects) private var reduceEffects
-    private var reduceMotion: Bool { systemReduceMotion || reduceEffects }
     @Environment(\.colorScheme) private var scheme
     @State private var drift = false
 
@@ -32,41 +33,42 @@ struct AuroraBackground: View {
             let w = proxy.size.width
             let h = proxy.size.height
             ZStack {
-                blob(Theme.accent, size: w * 0.9)
+                blob(Theme.accent, size: w * 1.5)
                     .offset(x: drift ? -w * 0.12 : -w * 0.34, y: drift ? -h * 0.1 : -h * 0.24)
-                blob(Theme.magenta, size: w * 0.75)
+                blob(Theme.magenta, size: w * 1.25)
                     .offset(x: drift ? w * 0.18 : w * 0.38, y: drift ? h * 0.04 : -h * 0.12)
-                blob(Theme.violet, size: w * 0.85)
+                blob(Theme.violet, size: w * 1.4)
                     .offset(x: drift ? w * 0.14 : -w * 0.16, y: drift ? h * 0.16 : h * 0.28)
-                blob(Theme.cyan, size: w * 0.45)
+                blob(Theme.cyan, size: w * 0.8)
                     .offset(x: drift ? -w * 0.26 : -w * 0.42, y: drift ? h * 0.34 : h * 0.24)
                     .opacity(0.6)
             }
             .frame(width: w, height: h)
-            .blur(radius: 60)
-            .opacity((scheme == .dark ? 0.55 : 0.32) * intensity)
+            .opacity((scheme == .dark ? 0.6 : 0.36) * intensity)
         }
         .clipped()
         .allowsHitTesting(false)
         .accessibilityHidden(true)
         .onAppear {
-            guard !reduceMotion else { return }
+            guard animated, !(systemReduceMotion || reduceEffects) else { return }
             withAnimation(.easeInOut(duration: 9).repeatForever(autoreverses: true)) { drift = true }
         }
     }
 
     private func blob(_ color: Color, size: CGFloat) -> some View {
-        Circle().fill(color).frame(width: size, height: size)
+        Circle()
+            .fill(RadialGradient(colors: [color, color.opacity(0.35), color.opacity(0)], center: .center, startRadius: 0, endRadius: size / 2))
+            .frame(width: size, height: size)
     }
 }
 
 extension View {
     /// Page background with an aurora glow at the top that fades into the normal background.
-    func auroraBackground(height: CGFloat = 380) -> some View {
+    func auroraBackground(height: CGFloat = 380, animated: Bool = false) -> some View {
         background {
             ZStack(alignment: .top) {
                 Theme.background
-                AuroraBackground()
+                AuroraBackground(animated: animated)
                     .frame(height: height)
                     .mask(LinearGradient(colors: [.black, .black.opacity(0)], startPoint: .top, endPoint: .bottom))
             }
@@ -78,9 +80,8 @@ extension View {
     func scrollReveal() -> some View {
         scrollTransition(.interactive, axis: .vertical) { content, phase in
             content
-                .opacity(phase.isIdentity ? 1 : 0.55)
-                .scaleEffect(phase.isIdentity ? 1 : 0.94)
-                .blur(radius: phase.isIdentity ? 0 : 1.5)
+                .opacity(phase.isIdentity ? 1 : 0.6)
+                .scaleEffect(phase.isIdentity ? 1 : 0.95)
         }
     }
 

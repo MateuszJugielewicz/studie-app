@@ -40,71 +40,183 @@ struct ArtistOnboardingView: View {
 struct ArtistProfileView: View {
     @Environment(AppState.self) private var app
     @State private var isEditing = false
+    @State private var bookings: [Booking] = []
+
+    private let columns = [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)]
 
     var body: some View {
         NavigationStack {
-            List {
+            SonoraScreen("Profile", eyebrow: Date.now.greeting, refresh: { await load() }) {
+                GlassIconButton(symbol: "pencil", label: "Edit profile") { isEditing = true }
+            } content: {
                 if let profile = app.artistProfile {
-                    Section {
-                        VStack(spacing: 12) {
-                            Avatar(url: profile.avatarUrl, name: profile.artistName, size: 96)
-                            HStack(spacing: 6) {
-                                Text(profile.artistName).font(.title2.bold())
-                                if profile.isVerified { VerifiedBadge() }
-                            }
-                            Label(profile.city, systemImage: "mappin.and.ellipse").foregroundStyle(.secondary)
-                            if !profile.genres.isEmpty {
-                                FlowLayout {
-                                    ForEach(profile.genres) { Chip(title: $0.title) }
-                                }
-                            }
-                            if !profile.bio.isEmpty {
-                                Text(profile.bio).multilineTextAlignment(.center).foregroundStyle(.secondary)
-                            }
-                        }
-                        .frame(maxWidth: .infinity)
-                        .listRowBackground(Color.clear)
-                    }
-
-                    if !profile.links.isEmpty {
-                        Section("Links") {
-                            ForEach(profile.links) { link in
-                                if let url = URL(string: link.url) {
-                                    Link(destination: url) {
-                                        Label(link.platform.title, systemImage: link.platform.symbol)
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    if !profile.isVerified {
-                        Section {
-                            Label("Verified artists get a badge. Link your Spotify or Instagram and our team will verify you.", systemImage: "checkmark.seal")
-                                .font(.footnote)
-                                .foregroundStyle(.secondary)
-                        }
-                    }
+                    hero(profile)
+                    stats
+                    if !profile.links.isEmpty { links(profile) }
+                    if !profile.isVerified { verificationCard }
                 }
-
-                Section {
-                    NavigationLink { SettingsView() } label: { Label("Settings", systemImage: "gearshape") }
-                    NavigationLink { AppSettingsView() } label: { Label("App settings", systemImage: "slider.horizontal.3") }
-                    NavigationLink { BookingHistoryView() } label: { Label("Booking history & receipts", systemImage: "clock.arrow.circlepath") }
-                    NavigationLink { LegalListView() } label: { Label("Terms & privacy", systemImage: "doc.text") }
-                    NavigationLink { SupportCenterView() } label: { Label("Help & support", systemImage: "questionmark.circle") }
+                LazyVGrid(columns: columns, spacing: 12) {
+                    tile("Sessions", "History & receipts", "clock.arrow.circlepath", TilePalette.ocean) { BookingHistoryView() }
+                    tile("Account", "Notifications & data", "person.crop.circle.fill", TilePalette.muted) { SettingsView() }
+                    tile("App settings", "Language, look, storage", "slider.horizontal.3", TilePalette.violet) { AppSettingsView() }
+                    tile("Support", "Talk to EasySesh", "questionmark.bubble.fill", [Theme.warning, Theme.accent]) { SupportCenterView() }
                 }
+                NavigationLink { LegalListView() } label: {
+                    HStack(spacing: 12) {
+                        IconTile(symbol: "doc.text.fill", size: 32, colors: TilePalette.muted)
+                        Text("Terms & privacy").font(.body.weight(.medium)).foregroundStyle(.primary)
+                        Spacer()
+                        Image(systemName: "chevron.right").font(.caption.weight(.semibold)).foregroundStyle(.tertiary)
+                    }
+                    .glassCard(padding: 12)
+                }
+                .buttonStyle(PressableCardStyle())
+                SignOutButton()
             }
-            .navigationTitle("Profile")
-            .toolbar {
-                Button("Edit") { isEditing = true }
-            }
+            .task { await load() }
             .sheet(isPresented: $isEditing) {
                 if let profile = app.artistProfile {
                     NavigationStack { ArtistProfileEditor(profile: profile, isOnboarding: false) }
                 }
             }
         }
+    }
+
+    private func load() async {
+        bookings = (try? await app.backend.artistBookings()) ?? bookings
+        if let id = app.account?.id, let profile = try? await app.backend.artistProfile(id: id) {
+            app.artistProfile = profile
+        }
+    }
+
+    // MARK: Sections
+
+    private func hero(_ profile: ArtistProfile) -> some View {
+        VStack(spacing: 14) {
+            ZStack {
+                Circle()
+                    .fill(Theme.neon)
+                    .frame(width: 124, height: 124)
+                    .blur(radius: 18)
+                    .opacity(0.55)
+                Avatar(url: profile.avatarUrl, name: profile.artistName, size: 104)
+                    .padding(4)
+                    .overlay(Circle().strokeBorder(Theme.neon, lineWidth: 3))
+                    .shadow(color: .black.opacity(0.2), radius: 10, y: 6)
+            }
+            .overlay(alignment: .bottomTrailing) {
+                Button { isEditing = true } label: {
+                    Image(systemName: "camera.fill")
+                        .font(.system(size: 13, weight: .bold))
+                        .foregroundStyle(.white)
+                        .frame(width: 32, height: 32)
+                        .background(Theme.neon, in: Circle())
+                        .overlay(Circle().strokeBorder(Color.white.opacity(0.8), lineWidth: 2))
+                }
+                .buttonStyle(PressableCardStyle())
+                .accessibilityLabel("Change photo")
+            }
+
+            VStack(spacing: 6) {
+                HStack(spacing: 6) {
+                    Text(profile.artistName.isEmpty ? "Artist" : profile.artistName)
+                        .font(.system(size: 26, weight: .heavy))
+                        .tracking(-0.5)
+                    if profile.isVerified { VerifiedBadge() }
+                }
+                if !profile.city.isEmpty {
+                    Label(profile.city, systemImage: "mappin.and.ellipse")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                        .padding(.horizontal, 10).padding(.vertical, 5)
+                        .background(.ultraThinMaterial, in: Capsule())
+                }
+            }
+
+            if !profile.genres.isEmpty {
+                FlowLayout(spacing: 6) {
+                    ForEach(profile.genres) { genre in
+                        Text(localized: genre.title)
+                            .font(.caption.weight(.bold))
+                            .padding(.horizontal, 10).padding(.vertical, 5)
+                            .background(Theme.violet.opacity(0.14), in: Capsule())
+                            .foregroundStyle(Theme.violet)
+                    }
+                }
+            }
+
+            if !profile.bio.isEmpty {
+                Text(profile.bio)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .glassCard(padding: 20, cornerRadius: 26)
+    }
+
+    private var stats: some View {
+        let completed = bookings.filter { $0.status == .completed }
+        let upcoming = bookings.filter(\.isUpcoming)
+        let studios = Set(completed.map(\.studioId)).count
+        return HStack(spacing: 10) {
+            StatCard(title: "Sessions", value: "\(completed.count)", symbol: "waveform", colors: TilePalette.signal)
+            StatCard(title: "Upcoming", value: "\(upcoming.count)", symbol: "calendar", colors: TilePalette.ocean)
+            StatCard(title: "Studios", value: "\(studios)", symbol: "building.2.fill", colors: TilePalette.violet)
+        }
+    }
+
+    private func links(_ profile: ArtistProfile) -> some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                ForEach(profile.links) { link in
+                    if let url = URL(string: link.url) {
+                        Link(destination: url) {
+                            Label { Text(localized: link.platform.title) } icon: { Image(systemName: link.platform.symbol) }
+                                .font(.subheadline.weight(.semibold))
+                                .foregroundStyle(.primary)
+                                .padding(.horizontal, 14).padding(.vertical, 10)
+                                .background(.ultraThinMaterial, in: Capsule())
+                                .overlay(Capsule().strokeBorder(Theme.glassEdge, lineWidth: 0.8))
+                        }
+                    }
+                }
+            }
+            .padding(.vertical, 2)
+        }
+    }
+
+    private var verificationCard: some View {
+        HStack(alignment: .top, spacing: 12) {
+            IconTile(symbol: "checkmark.seal.fill", size: 36, colors: [Color.blue, Theme.cyan])
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Get verified").font(.subheadline.weight(.bold))
+                Text("Verified artists get a badge. Link your Spotify or Instagram and our team will verify you.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .glassCard(padding: 14)
+    }
+
+    private func tile<Destination: View>(_ title: LocalizedStringKey, _ subtitle: LocalizedStringKey, _ symbol: String, _ colors: [Color], @ViewBuilder destination: @escaping () -> Destination) -> some View {
+        NavigationLink(destination: destination) {
+            VStack(alignment: .leading, spacing: 14) {
+                IconTile(symbol: symbol, size: 38, colors: colors)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title).font(.subheadline.weight(.bold)).foregroundStyle(.primary)
+                    Text(subtitle).font(.caption).foregroundStyle(.secondary).lineLimit(1)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .glassCard(padding: 14, cornerRadius: 20)
+        }
+        .buttonStyle(PressableCardStyle())
+        .scrollReveal()
     }
 }
 
@@ -175,6 +287,7 @@ struct ArtistProfileEditor: View {
                 Text("Paste profile links, e.g. https://open.spotify.com/artist/…")
             }
         }
+        .sonoraGrouped()
         .navigationTitle(isOnboarding ? "Welcome" : "Edit profile")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -249,34 +362,49 @@ struct SettingsView: View {
 
     var body: some View {
         Form {
-            Section {
-                NavigationLink { AppSettingsView() } label: { Label("App settings", systemImage: "slider.horizontal.3") }
-            } footer: {
-                Text("Language, appearance, effects and storage on this device.")
-            }
-
             if let account = app.account {
-                Section("Account") {
-                    InfoRow(symbol: "envelope", title: "Email", value: account.email)
-                    InfoRow(symbol: "person", title: "Account type", value: account.role.title)
+                Section {
+                    HStack(spacing: 14) {
+                        Avatar(url: app.artistProfile?.avatarUrl, name: app.artistProfile?.artistName ?? app.ownedStudio?.name ?? account.email, size: 56)
+                            .padding(2.5)
+                            .overlay(Circle().strokeBorder(Theme.neon, lineWidth: 2.5))
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text(app.artistProfile?.artistName ?? app.ownedStudio?.name ?? account.email)
+                                .font(.headline).lineLimit(1)
+                            Text(account.email).font(.subheadline).foregroundStyle(.secondary).lineLimit(1)
+                            Text(localized: account.role.title)
+                                .font(.caption2.weight(.bold))
+                                .padding(.horizontal, 8).padding(.vertical, 3)
+                                .background(Theme.violet.opacity(0.15), in: Capsule())
+                                .foregroundStyle(Theme.violet)
+                        }
+                    }
+                    .padding(.vertical, 4)
                 }
             }
 
             Section {
-                Toggle("Push notifications", isOn: $settings.pushEnabled)
-                Toggle("Email notifications", isOn: $settings.emailEnabled)
+                NavigationLink { AppSettingsView() } label: { row("App settings", "slider.horizontal.3", TilePalette.ocean) }
+                NavigationLink { ChangePasswordView() } label: { row("Change password", "key.fill", TilePalette.signal) }
+            } footer: {
+                Text("Language, appearance, effects and storage on this device.")
+            }
+
+            Section {
+                Toggle(isOn: $settings.pushEnabled) { row("Push notifications", "bell.badge.fill", TilePalette.signal) }
+                Toggle(isOn: $settings.emailEnabled) { row("Email notifications", "envelope.fill", TilePalette.violet) }
             } header: {
                 Text("Notifications")
             }
 
             Section {
-                Toggle("Booking updates", isOn: $settings.bookingUpdates)
-                Toggle("Messages", isOn: $settings.messages)
+                Toggle(isOn: $settings.bookingUpdates) { row("Booking updates", "calendar", TilePalette.ocean) }
+                Toggle(isOn: $settings.messages) { row("Messages", "bubble.left.and.bubble.right.fill", TilePalette.mint) }
                 if app.role == .artist {
-                    Toggle("Session reminders", isOn: $settings.reminders)
-                    Toggle("Review prompts", isOn: $settings.reviewPrompts)
+                    Toggle(isOn: $settings.reminders) { row("Session reminders", "alarm.fill", [Theme.warning, Theme.accent]) }
+                    Toggle(isOn: $settings.reviewPrompts) { row("Review prompts", "star.bubble.fill", TilePalette.violet) }
                 }
-                Toggle("News & offers", isOn: $settings.marketing)
+                Toggle(isOn: $settings.marketing) { row("News & offers", "megaphone.fill", TilePalette.muted) }
             } header: {
                 Text("Notify me about")
             } footer: {
@@ -285,20 +413,33 @@ struct SettingsView: View {
 
             if app.role == .artist {
                 Section("Search") {
-                    VStack(alignment: .leading) {
-                        Text("Default radius: \(Int(settings.searchRadiusKm)) km")
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack {
+                            row("Default radius", "scope", TilePalette.ocean)
+                            Spacer()
+                            Text("\(Int(settings.searchRadiusKm)) km")
+                                .font(.subheadline.weight(.bold))
+                                .monospacedDigit()
+                                .contentTransition(.numericText())
+                        }
                         Slider(value: $settings.searchRadiusKm, in: 1...50, step: 1)
                     }
-                    Toggle("Use kilometres", isOn: $settings.useMetricUnits)
-                    Button("Allow location access") { app.location.requestPermission() }
-                        .disabled(app.location.isAuthorized)
+                    Toggle(isOn: $settings.useMetricUnits) { row("Use kilometres", "ruler.fill", TilePalette.muted) }
+                    Button { app.location.requestPermission() } label: {
+                        row(app.location.isAuthorized ? "Location allowed" : "Allow location access", "location.fill", TilePalette.mint)
+                    }
+                    .disabled(app.location.isAuthorized)
                 }
             }
 
             Section {
-                NavigationLink { LegalListView() } label: { Label("Terms, privacy & policies", systemImage: "doc.text") }
+                NavigationLink { LegalListView() } label: { row("Terms, privacy & policies", "doc.text.fill", TilePalette.muted) }
                 if let accepted = app.account?.acceptedTermsAt {
-                    InfoRow(symbol: "checkmark.seal", title: "Terms accepted", value: accepted.formatted(date: .abbreviated, time: .omitted))
+                    HStack {
+                        row("Terms accepted", "checkmark.seal.fill", TilePalette.mint)
+                        Spacer()
+                        Text(accepted.formatted(date: .abbreviated, time: .omitted)).foregroundStyle(.secondary)
+                    }
                 }
             } header: {
                 Text("Legal")
@@ -306,7 +447,7 @@ struct SettingsView: View {
 
             Section {
                 DataExportButton()
-                NavigationLink { SupportCenterView() } label: { Label("Contact us about your data", systemImage: "envelope") }
+                NavigationLink { SupportCenterView() } label: { row("Contact us about your data", "envelope.open.fill", TilePalette.violet) }
             } header: {
                 Text("Your data")
             } footer: {
@@ -314,10 +455,18 @@ struct SettingsView: View {
             }
 
             Section {
-                Button("Sign out") { Task { await app.signOut() } }
-                Button("Delete account", role: .destructive) { confirmDelete = true }
+                Button { Task { await app.signOut() } } label: {
+                    row("Sign out", "rectangle.portrait.and.arrow.right", TilePalette.muted)
+                }
+                Button(role: .destructive) { confirmDelete = true } label: {
+                    HStack {
+                        SettingsIcon(symbol: "trash.fill", colors: [Color.red, Theme.magenta])
+                        Text("Delete account").foregroundStyle(.red)
+                    }
+                }
             }
         }
+        .sonoraGrouped()
         .navigationTitle("Settings")
         .onAppear { settings = app.account?.settings ?? UserSettings() }
         .onChange(of: settings) { _, newValue in
@@ -339,5 +488,12 @@ struct SettingsView: View {
             Text("Your profile, messages and upcoming bookings will be removed. Receipts are kept for accounting as required by law.")
         }
         .errorAlert($error)
+    }
+
+    private func row(_ title: LocalizedStringKey, _ symbol: String, _ colors: [Color]) -> some View {
+        HStack {
+            SettingsIcon(symbol: symbol, colors: colors)
+            Text(title).foregroundStyle(Color.primary)
+        }
     }
 }

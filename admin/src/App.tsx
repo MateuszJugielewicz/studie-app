@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { MfaState } from "./lib/types";
-import { NavLink, Navigate, Route, Routes } from "react-router-dom";
+import { NavLink, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { api as configuredApi, ApiContext } from "./lib/apiContext";
 import type { AdminApi } from "./lib/api";
 import OverviewPage from "./pages/OverviewPage";
@@ -67,6 +67,21 @@ export default function App() {
 function Dashboard({ api }: { api: AdminApi }) {
   const [email, setEmail] = useState<string | null | undefined>(undefined);
   const [mfa, setMfa] = useState<MfaState | null>(null);
+  const [openSupport, setOpenSupport] = useState(0);
+  const location = useLocation();
+
+  // Support requests waiting for a reply, refreshed every 30 seconds and on navigation.
+  useEffect(() => {
+    if (mfa?.kind !== "verified") return;
+    const refresh = () => api.supportOpenCount().then(setOpenSupport).catch(() => {});
+    void refresh();
+    const timer = window.setInterval(refresh, 30_000);
+    return () => window.clearInterval(timer);
+  }, [mfa?.kind, location.pathname]);
+
+  useEffect(() => {
+    document.title = openSupport > 0 ? `(${openSupport}) EasySesh Admin` : "EasySesh Admin";
+  }, [openSupport]);
 
   const refreshMfa = () => api.mfaState().then(setMfa).catch(() => setMfa(null));
 
@@ -94,6 +109,9 @@ function Dashboard({ api }: { api: AdminApi }) {
             {nav.map((item) => (
               <NavLink key={item.to} to={item.to} end={item.to === "/"} className={({ isActive }) => (isActive ? "nav active" : "nav")}>
                 <Icon name={item.icon} /> {item.title}
+                {item.to === "/support" && openSupport > 0 && (
+                  <span className="nav-badge" title={`${openSupport} waiting for a reply`}>{openSupport}</span>
+                )}
               </NavLink>
             ))}
           </nav>
@@ -104,7 +122,7 @@ function Dashboard({ api }: { api: AdminApi }) {
         </aside>
         <main className="content">
           <Routes>
-            <Route path="/" element={<OverviewPage />} />
+            <Route path="/" element={<OverviewPage openSupport={openSupport} />} />
             <Route path="/studios" element={<StudiosPage />} />
             <Route path="/users" element={<UsersPage />} />
             <Route path="/bookings" element={<BookingsPage />} />

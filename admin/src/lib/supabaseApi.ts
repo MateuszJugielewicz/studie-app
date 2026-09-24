@@ -75,6 +75,16 @@ export class SupabaseAdminApi implements AdminApi {
     unwrap(await this.client.rpc("admin_verify_user", { p_user_id: userId, p_verified: verified }));
   }
 
+  async resetPassword(userId: string, mode: "email" | "temporary") {
+    const { data, error } = await this.client.functions.invoke("admin-reset-password", { body: { user_id: userId, mode } });
+    if (error) {
+      // Edge function errors carry the JSON message in the response body.
+      const detail = await (error as { context?: Response }).context?.json?.().catch(() => null);
+      throw new Error(detail?.error ?? error.message);
+    }
+    return data as { email: string; password?: string };
+  }
+
   async studios(): Promise<Studio[]> {
     return unwrap(await this.client.from("studios").select("*").order("submitted_at", { ascending: false, nullsFirst: false }));
   }
@@ -186,6 +196,12 @@ export class SupabaseAdminApi implements AdminApi {
 
   async supportTickets(): Promise<SupportTicket[]> {
     return unwrap(await this.client.from("admin_support_tickets").select("*").order("last_message_at", { ascending: false }).limit(1000));
+  }
+
+  async supportOpenCount(): Promise<number> {
+    const { count, error } = await this.client.from("support_tickets").select("id", { count: "exact", head: true }).eq("status", "open");
+    if (error) throw new Error(error.message);
+    return count ?? 0;
   }
 
   async supportMessages(ticketId: string): Promise<SupportMessage[]> {

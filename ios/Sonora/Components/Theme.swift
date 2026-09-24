@@ -92,13 +92,7 @@ struct CardBackground: ViewModifier {
     var padding: CGFloat = Theme.spacing
 
     func body(content: Content) -> some View {
-        content
-            .padding(padding)
-            .background(Theme.card, in: RoundedRectangle(cornerRadius: Theme.corner, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: Theme.corner, style: .continuous)
-                    .strokeBorder(LinearGradient(colors: [Color.primary.opacity(0.12), Color.primary.opacity(0.03)], startPoint: .topLeading, endPoint: .bottomTrailing))
-            )
+        content.glassCard(padding: padding, cornerRadius: Theme.corner)
     }
 }
 

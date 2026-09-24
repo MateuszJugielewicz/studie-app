@@ -35,6 +35,7 @@ parts = [
 --  • Fix: "You already have a studio" when saving a studio application again
 --  • Contact support (tickets in the app, replies from the admin dashboard)
 --  • Message requests (studios can write to artists; artists accept/decline)
+--  • Support ratings (users rate closed support requests)
 --  • Notification texts say EasySesh
 --
 -- Supabase → SQL Editor → New query → paste this whole file → Run.
@@ -45,6 +46,7 @@ parts = [
     "-- Studio save fix ------------------------------------------------------\n" + guard + "\n",
     "-- Support --------------------------------------------------------------\n" + idempotent(mig("20260926000001_support.sql")),
     "-- Message requests -----------------------------------------------------\n" + idempotent(mig("20260927000001_message_requests.sql")),
+    "-- Support ratings ------------------------------------------------------\n" + idempotent(mig("20260928000001_support_ratings.sql")),
     """-- Grants ---------------------------------------------------------------
 grant select, insert, update, delete on all tables in schema public to authenticated, service_role;
 grant execute on all functions in schema public to authenticated, service_role;

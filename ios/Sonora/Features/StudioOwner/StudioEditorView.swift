@@ -57,6 +57,7 @@ struct StudioEditorView: View {
                 }
             }
         }
+        .sonoraGrouped()
         .navigationTitle(isApplication ? "Studio application" : "Edit studio")
         .toolbar {
             ToolbarItem(placement: .confirmationAction) {
@@ -149,6 +150,7 @@ struct StudioBasicsEditor: View {
                 Text("The first photo is your cover. Show the live room, control room and booth.")
             }
         }
+        .sonoraGrouped()
         .navigationTitle("Basics & photos")
         .onChange(of: items) { _, newItems in upload(newItems) }
         .errorAlert($error)
@@ -211,6 +213,7 @@ struct StudioLocationEditor: View {
                 TextField("Website", text: $studio.contact.website).keyboardType(.URL).textInputAutocapitalization(.never)
             }
         }
+        .sonoraGrouped()
         .navigationTitle("Address & contact")
     }
 
@@ -282,6 +285,7 @@ struct StudioPricingEditor: View {
                 Text("Mix, mastering, engineer & producer")
             }
         }
+        .sonoraGrouped()
         .navigationTitle("Prices & services")
     }
 }
@@ -336,6 +340,7 @@ struct OpeningHoursEditor: View {
                 Text("Closing times after midnight (e.g. 02:00) are allowed for late sessions.")
             }
         }
+        .sonoraGrouped()
         .navigationTitle("Opening hours")
         .onAppear {
             for weekday in 1...7 where !hours.contains(where: { $0.weekday == weekday }) {
@@ -424,6 +429,7 @@ struct StudioFeaturesEditor: View {
                 Text("Engineers & producers")
             }
         }
+        .sonoraGrouped()
         .navigationTitle("Facilities & gear")
         .onAppear {
             facilities = Set(studio.facilities)
@@ -492,6 +498,7 @@ struct StudioPolicyEditor: View {
                 TextField("Overtime, damage, guests, recording rights…", text: $studio.bookingPolicy.terms, axis: .vertical).lineLimit(3...10)
             }
         }
+        .sonoraGrouped()
         .navigationTitle("Rules & terms")
     }
 }
@@ -534,6 +541,7 @@ struct PayoutAccountEditor: View {
                 Text("Bank details and identity checks are handled securely by Stripe, our payment provider.")
             }
         }
+        .sonoraGrouped()
         .navigationTitle("Payout details")
         .task { await load() }
         .refreshable { await load() }

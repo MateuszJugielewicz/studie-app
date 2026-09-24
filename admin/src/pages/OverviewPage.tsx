@@ -1,11 +1,12 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { BarChart, PageState, Stat, Tabs } from "../components";
 import { useApi, useLoad } from "../lib/apiContext";
 import { money } from "../lib/format";
 
 type Range = "7" | "30" | "90" | "365";
 
-export default function OverviewPage() {
+export default function OverviewPage({ openSupport = 0 }: { openSupport?: number }) {
   const api = useApi();
   const [range, setRange] = useState<Range>("30");
   const { data: stats, loading, error } = useLoad(() => api.stats(Number(range)), [range]);
@@ -31,6 +32,9 @@ export default function OverviewPage() {
               <Stat title="Booking rate" value={`${stats.booking_rate}%`} hint="Started bookings that were paid & confirmed" />
               <Stat title="Open reports" value={stats.open_reports} hint={`${stats.open_disputes} open disputes`} />
               <Stat title="Failed payments" value={stats.failed_payments} />
+              <Link to="/support" className={openSupport > 0 ? "stat-link attention" : "stat-link"}>
+                <Stat title="Support requests" value={openSupport} hint={openSupport > 0 ? "Waiting for a reply →" : "All answered"} />
+              </Link>
             </section>
 
             <section className="grid two">

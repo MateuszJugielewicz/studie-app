@@ -74,7 +74,7 @@ struct SearchEngine {
         busy: [UUID: [DateInterval]] = [:],
         now: Date = .now
     ) -> [StudioResult] {
-        let query = filters.query.trimmingCharacters(in: .whitespaces).lowercased()
+        let query = filters.query.trimmingCharacters(in: .whitespaces)
         let equipmentQuery = filters.equipmentQuery.trimmingCharacters(in: .whitespaces).lowercased()
 
         var results: [StudioResult] = studios.compactMap { studio in
@@ -82,9 +82,10 @@ struct SearchEngine {
             let distance = origin.map { $0.distance(from: studio.location) }
 
             if !query.isEmpty {
-                let haystack = [studio.name, studio.tagline, studio.address.city, studio.address.area, studio.description]
-                    .joined(separator: " ").lowercased()
-                guard haystack.contains(query) else { return nil }
+                // Every word must match somewhere: name, place, country (in any app language), gear or genre.
+                let haystack = SearchText.normalize(SearchText.haystack(for: studio))
+                let words = SearchText.normalize(query).split(separator: " ")
+                guard words.allSatisfy({ haystack.contains($0) }) else { return nil }
             }
             if let min = filters.minPrice, studio.priceFrom < min { return nil }
             if let max = filters.maxPrice, studio.priceFrom > max { return nil }
@@ -136,5 +137,76 @@ struct SearchEngine {
             priceFrom: cheapest?.studio.priceFrom,
             currency: cheapest?.studio.currency ?? "EUR"
         )
+    }
+}
+
+/// Text matching that ignores case, accents and Nordic letters, and knows common city/country names.
+enum SearchText {
+    /// Languages the app ships in: country names are searchable in all of them.
+    static let languages = ["en", "da", "de", "pl", "el", "fr", "es", "it", "sv", "nl"]
+
+    /// English names for cities often written in the local language.
+    static let cityAliases: [String: String] = [
+        "københavn": "copenhagen", "kobenhavn": "copenhagen", "århus": "aarhus", "aarhus": "aarhus",
+        "athína": "athens", "athina": "athens", "αθήνα": "athens", "θεσσαλονίκη": "thessaloniki",
+        "warszawa": "warsaw", "kraków": "krakow", "wrocław": "wroclaw", "gdańsk": "gdansk",
+        "münchen": "munich", "köln": "cologne", "wien": "vienna", "roma": "rome", "milano": "milan",
+        "napoli": "naples", "firenze": "florence", "lisboa": "lisbon", "praha": "prague",
+        "göteborg": "gothenburg", "den haag": "the hague", "bruxelles": "brussels", "brussel": "brussels",
+    ]
+
+    static func haystack(for studio: Studio) -> String {
+        let address = studio.address
+        var parts = [studio.name, studio.tagline, address.city, address.area, address.street, address.postalCode,
+                     address.country, studio.description]
+        parts += countryNames(address.country)
+        if let alias = cityAliases[address.city.lowercased()] { parts.append(alias) }
+        parts += studio.genres.map(\.title)
+        parts += studio.equipment.map(\.name)
+        return parts.joined(separator: " ")
+    }
+
+    private static var countryCache: [String: [String]] = [:]
+    private static let cacheLock = NSLock()
+
+    /// "DK" or "Denmark" → Denmark, Danmark, Dänemark, Dania, Δανία, Danemark, Dinamarca… (cached)
+    static func countryNames(_ country: String) -> [String] {
+        let trimmed = country.trimmingCharacters(in: .whitespaces)
+        guard !trimmed.isEmpty else { return [] }
+        cacheLock.lock()
+        let cached = countryCache[trimmed]
+        cacheLock.unlock()
+        if let cached { return cached }
+        let names = lookUpCountryNames(trimmed)
+        cacheLock.lock()
+        countryCache[trimmed] = names
+        cacheLock.unlock()
+        return names
+    }
+
+    private static func lookUpCountryNames(_ trimmed: String) -> [String] {
+        var code: String?
+        if trimmed.count == 2 {
+            code = trimmed.uppercased()
+        } else {
+            let needle = normalize(trimmed)
+            code = Locale.isoRegionCodes.first { candidate in
+                languages.contains { language in
+                    Locale(identifier: language).localizedString(forRegionCode: candidate).map(normalize) == needle
+                }
+            }
+        }
+        guard let code else { return [] }
+        return [code] + languages.compactMap { Locale(identifier: $0).localizedString(forRegionCode: code) }
+    }
+
+    static func normalize(_ text: String) -> String {
+        text.lowercased()
+            .replacingOccurrences(of: "ø", with: "o")
+            .replacingOccurrences(of: "æ", with: "ae")
+            .replacingOccurrences(of: "å", with: "a")
+            .replacingOccurrences(of: "ß", with: "ss")
+            .replacingOccurrences(of: "ł", with: "l")
+            .folding(options: [.diacriticInsensitive, .caseInsensitive], locale: nil)
     }
 }

@@ -25,6 +25,14 @@ final class SupabaseBackend: Backend {
         client.auth.handle(url)
     }
 
+    /// Completes a sign-in link (email confirmation, magic link or password reset).
+    /// Returns true when the link was a password reset, so the app can ask for a new password.
+    func completeAuthLink(_ url: URL) async throws -> Bool {
+        _ = try await mapped { try await client.auth.session(from: url) }
+        let text = url.absoluteString
+        return text.contains("type=recovery")
+    }
+
     // MARK: - Helpers
 
     private func userId() throws -> UUID {
@@ -153,6 +161,11 @@ final class SupabaseBackend: Backend {
 
     func signOut() async {
         try? await client.auth.signOut()
+    }
+
+    func changePassword(to newPassword: String) async throws {
+        if let problem = PasswordPolicy.problem(newPassword) { throw BackendError.validation(problem) }
+        _ = try await mapped { try await client.auth.update(user: UserAttributes(password: newPassword)) }
     }
 
     func deleteAccount() async throws {
@@ -480,6 +493,14 @@ final class SupabaseBackend: Backend {
 
     func markSupportTicketRead(id: UUID) async throws {
         try await rpcVoid("mark_support_ticket_read", ["p_ticket_id": .string(id.uuidString)])
+    }
+
+    func rateSupportTicket(id: UUID, rating: Int, comment: String) async throws -> SupportTicket {
+        try await rpc("rate_support_ticket", [
+            "p_ticket_id": .string(id.uuidString),
+            "p_rating": .integer(rating),
+            "p_comment": .string(comment),
+        ])
     }
 
     func closeSupportTicket(id: UUID) async throws -> SupportTicket {

@@ -265,6 +265,7 @@ struct NewMessageSheet: View {
                 picker
             }
         }
+        .sonoraGrouped()
         .navigationTitle(selected == nil ? "New message" : selected!.artistName)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -409,6 +410,7 @@ struct ChatView: View {
         }
         .background(Theme.background)
         .safeAreaInset(edge: .bottom) { bottomBar }
+        .sonoraGrouped()
         .navigationTitle(conversation.title(for: app.role))
         .navigationBarTitleDisplayMode(.inline)
         .sheet(item: $reporting) { ReportSheet(target: .message, targetId: $0.id) }

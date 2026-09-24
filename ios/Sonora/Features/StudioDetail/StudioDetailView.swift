@@ -100,19 +100,29 @@ struct StudioDetailView: View {
 
     private func availabilitySection(_ studio: Studio) -> some View {
         VStack(alignment: .leading, spacing: 10) {
-            SectionHeader(title: "Next available")
+            GlowSectionHeader(title: "Next available")
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack {
-                    ForEach(nextSlots.prefix(8)) { slot in
+                    ForEach(Array(nextSlots.prefix(8).enumerated()), id: \.element.id) { index, slot in
                         Button { showBooking = true } label: {
-                            VStack {
-                                Text(slot.start.formatted(.dateTime.weekday(.abbreviated).day())).font(.caption)
-                                Text(slot.start.formatted(date: .omitted, time: .shortened)).font(.subheadline.bold())
+                            VStack(spacing: 2) {
+                                Text(slot.start.formatted(.dateTime.weekday(.abbreviated).day())).font(.caption.weight(.semibold))
+                                    .opacity(0.8)
+                                Text(slot.start.formatted(date: .omitted, time: .shortened)).font(.subheadline.weight(.heavy))
                             }
-                            .padding(.horizontal, 14).padding(.vertical, 8)
-                            .background(Theme.card, in: RoundedRectangle(cornerRadius: 12))
+                            .foregroundStyle(index == 0 ? Color.white : Color.primary)
+                            .padding(.horizontal, 16).padding(.vertical, 10)
+                            .background {
+                                let shape = RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                if index == 0 {
+                                    shape.fill(Theme.neon).neonGlow(Theme.magenta, radius: 8)
+                                } else {
+                                    shape.fill(Theme.card.opacity(0.78))
+                                        .overlay(shape.strokeBorder(Color.primary.opacity(0.1)))
+                                }
+                            }
                         }
-                        .buttonStyle(.plain)
+                        .buttonStyle(PressableCardStyle())
                     }
                 }
             }
@@ -121,7 +131,7 @@ struct StudioDetailView: View {
 
     private func pricingSection(_ studio: Studio) -> some View {
         VStack(alignment: .leading, spacing: 10) {
-            SectionHeader(title: "Prices")
+            GlowSectionHeader(title: "Prices")
             ForEach(studio.sessionTypes) { type in
                 HStack(alignment: .top) {
                     VStack(alignment: .leading, spacing: 2) {
@@ -157,14 +167,14 @@ struct StudioDetailView: View {
 
     private func textSection(_ title: String, _ text: String) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            SectionHeader(title: title)
+            GlowSectionHeader(title: title)
             Text(text).foregroundStyle(.secondary)
         }
     }
 
     private func facilitiesSection(_ studio: Studio) -> some View {
         VStack(alignment: .leading, spacing: 10) {
-            SectionHeader(title: "Facilities")
+            GlowSectionHeader(title: "Facilities")
             LazyVGrid(columns: [GridItem(.flexible(), alignment: .leading), GridItem(.flexible(), alignment: .leading)], spacing: 10) {
                 ForEach(studio.facilities) { facility in
                     Label(facility.title, systemImage: facility.symbol).font(.subheadline)
@@ -175,7 +185,7 @@ struct StudioDetailView: View {
 
     private func equipmentSection(_ studio: Studio) -> some View {
         VStack(alignment: .leading, spacing: 10) {
-            SectionHeader(title: "Equipment")
+            GlowSectionHeader(title: "Equipment")
             ForEach(EquipmentCategory.allCases) { category in
                 let items = studio.equipment.filter { $0.category == category }
                 if !items.isEmpty {
@@ -190,7 +200,7 @@ struct StudioDetailView: View {
 
     private func peopleSection(_ studio: Studio) -> some View {
         VStack(alignment: .leading, spacing: 10) {
-            SectionHeader(title: "Engineers & producers")
+            GlowSectionHeader(title: "Engineers & producers")
             ForEach(studio.engineers) { person in
                 HStack(spacing: 12) {
                     Avatar(url: nil, name: person.name, size: 40)
@@ -206,14 +216,14 @@ struct StudioDetailView: View {
 
     private func genresSection(_ studio: Studio) -> some View {
         VStack(alignment: .leading, spacing: 10) {
-            SectionHeader(title: "Genres")
+            GlowSectionHeader(title: "Genres")
             FlowLayout { ForEach(studio.genres) { Chip(title: $0.title) } }
         }
     }
 
     private func hoursSection(_ studio: Studio) -> some View {
         VStack(alignment: .leading, spacing: 6) {
-            SectionHeader(title: "Opening hours")
+            GlowSectionHeader(title: "Opening hours")
             ForEach(OpeningHours.displayOrder, id: \.self) { weekday in
                 if let hours = studio.hours(for: weekday) {
                     HStack {
@@ -229,7 +239,7 @@ struct StudioDetailView: View {
 
     private func rulesSection(_ studio: Studio) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            SectionHeader(title: "Rules & terms")
+            GlowSectionHeader(title: "Rules & terms")
             ForEach(studio.rules, id: \.self) { rule in
                 Label(rule, systemImage: "checkmark.circle").font(.subheadline)
             }
@@ -246,7 +256,7 @@ struct StudioDetailView: View {
 
     private func locationSection(_ studio: Studio) -> some View {
         VStack(alignment: .leading, spacing: 10) {
-            SectionHeader(title: "Location")
+            GlowSectionHeader(title: "Location")
             Map(initialPosition: .region(MKCoordinateRegion(center: studio.coordinate, latitudinalMeters: 1200, longitudinalMeters: 1200))) {
                 Marker(studio.name, systemImage: "waveform", coordinate: studio.coordinate).tint(Theme.accent)
                 UserAnnotation()
@@ -271,7 +281,7 @@ struct StudioDetailView: View {
 
     private func reviewsSection(_ studio: Studio) -> some View {
         VStack(alignment: .leading, spacing: 12) {
-            SectionHeader(title: "Reviews")
+            GlowSectionHeader(title: "Reviews")
             ReviewSummaryView(studio: studio, reviews: reviews)
             ForEach(reviews.prefix(3)) { ReviewRow(review: $0, canReply: false) }
             if reviews.count > 3 {
@@ -296,7 +306,7 @@ struct StudioDetailView: View {
                         catch { self.error = error.userMessage }
                     }
                 } label: {
-                    Image(systemName: "bubble.left.fill").padding(12).background(Theme.card, in: Circle())
+                    GlassIcon(symbol: "bubble.left.fill")
                 }
                 .accessibilityLabel("Message studio")
                 Button("Book") { showBooking = true }

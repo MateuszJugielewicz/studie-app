@@ -51,6 +51,7 @@ protocol Backend: AnyObject {
     func signInWithApple(idToken: String, nonce: String, role: UserRole) async throws -> UserAccount
     func signInWithGoogle(role: UserRole) async throws -> UserAccount
     func sendPasswordReset(email: String) async throws
+    func changePassword(to newPassword: String) async throws
     func signOut() async
     func deleteAccount() async throws
     func updateSettings(_ settings: UserSettings) async throws -> UserAccount
@@ -131,6 +132,8 @@ protocol Backend: AnyObject {
     func sendSupportMessage(ticketId: UUID, body: String) async throws -> SupportMessage
     func markSupportTicketRead(id: UUID) async throws
     func closeSupportTicket(id: UUID) async throws -> SupportTicket
+    /// Rate a closed request (1–5 stars, optional comment).
+    func rateSupportTicket(id: UUID, rating: Int, comment: String) async throws -> SupportTicket
 
     // MARK: Notifications
     func notifications() async throws -> [AppNotification]

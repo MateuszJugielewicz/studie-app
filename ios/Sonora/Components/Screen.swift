@@ -17,7 +17,9 @@ struct SonoraScreen<Trailing: View, Content: View>: View {
     let trailing: Trailing
     let content: Content
 
-    @State private var offset: CGFloat = 0
+    /// 0 while the large title is visible, 1 once it has scrolled away. Only updated in small steps
+    /// so scrolling doesn't re-render the whole screen on every frame.
+    @State private var collapse: CGFloat = 0
     private let space = "sonoraScreen"
 
     init(_ title: String, eyebrow: String? = nil, refresh: @escaping () async -> Void,
@@ -29,16 +31,12 @@ struct SonoraScreen<Trailing: View, Content: View>: View {
         self.content = content()
     }
 
-    /// 0 while the large title is visible, 1 once it has scrolled away.
-    private var collapse: CGFloat { min(max((-offset - 24) / 44, 0), 1) }
-
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
                 header
                     .opacity(Double(1 - collapse))
                     .scaleEffect(1 - collapse * 0.08, anchor: .bottomLeading)
-                    .blur(radius: collapse * 4)
                 content
             }
             .padding(.horizontal)
@@ -51,9 +49,14 @@ struct SonoraScreen<Trailing: View, Content: View>: View {
             }
         }
         .coordinateSpace(name: space)
-        .onPreferenceChange(SonoraScrollOffsetKey.self) { offset = $0 }
+        .onPreferenceChange(SonoraScrollOffsetKey.self) { offset in
+            let value = min(max((-offset - 24) / 44, 0), 1)
+            let stepped = (value * 10).rounded() / 10
+            if stepped != collapse { collapse = stepped }
+        }
         .refreshable { await refresh() }
         .overlay(alignment: .top) { compactBar }
+        .animation(.easeOut(duration: 0.18), value: collapse)
         .auroraBackground(height: 420)
         .toolbar(.hidden, for: .navigationBar)
     }
@@ -122,14 +125,14 @@ struct GlassCard: ViewModifier {
         let shape = RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
         content
             .padding(padding)
-            .background(.ultraThinMaterial, in: shape)
+            // A translucent fill looks frosted over the glow but costs far less than a live blur.
+            .background(Theme.card.opacity(0.78), in: shape)
             .overlay(
                 shape.strokeBorder(
-                    LinearGradient(colors: [Color.white.opacity(0.45), Color.primary.opacity(0.06)], startPoint: .topLeading, endPoint: .bottomTrailing),
+                    LinearGradient(colors: [Color.white.opacity(0.4), Color.primary.opacity(0.06)], startPoint: .topLeading, endPoint: .bottomTrailing),
                     lineWidth: 0.8
                 )
             )
-            .shadow(color: .black.opacity(0.08), radius: 16, y: 8)
     }
 }
 
@@ -155,7 +158,6 @@ struct IconTile: View {
                 in: RoundedRectangle(cornerRadius: size * 0.3, style: .continuous)
             )
             .overlay(RoundedRectangle(cornerRadius: size * 0.3, style: .continuous).strokeBorder(Color.white.opacity(0.25), lineWidth: 0.6))
-            .shadow(color: (colors.last ?? Theme.accent).opacity(0.35), radius: 6, y: 3)
             .accessibilityHidden(true)
     }
 }
@@ -179,7 +181,6 @@ struct GlassIcon: View {
             .frame(width: 40, height: 40)
             .background(.ultraThinMaterial, in: Circle())
             .overlay(Circle().strokeBorder(Theme.glassEdge, lineWidth: 0.8))
-            .shadow(color: .black.opacity(0.1), radius: 8, y: 4)
     }
 }
 
@@ -298,5 +299,31 @@ struct SignOutButton: View {
         .confirmationDialog("Sign out of EasySesh?", isPresented: $confirm, titleVisibility: .visible) {
             Button("Sign out", role: .destructive) { Task { await app.signOut() } }
         }
+    }
+}
+
+// MARK: - Grouped screens (lists & forms)
+
+extension View {
+    /// House style for List/Form screens: aurora glow behind frosted rows.
+    func sonoraGrouped() -> some View {
+        modifier(SonoraGroupedStyle())
+    }
+}
+
+private struct SonoraGroupedStyle: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .scrollContentBackground(.hidden)
+            .background {
+                ZStack(alignment: .top) {
+                    Theme.background
+                    AuroraBackground(intensity: 0.8)
+                        .frame(height: 340)
+                        .mask(LinearGradient(colors: [.black, .black.opacity(0)], startPoint: .top, endPoint: .bottom))
+                }
+                .ignoresSafeArea()
+            }
+            .tint(Theme.accent)
     }
 }

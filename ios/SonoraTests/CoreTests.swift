@@ -174,6 +174,25 @@ final class SearchTests: XCTestCase {
         XCTAssertEqual(summary.priceFrom, 1500)
     }
 
+    func testTextSearchFindsStudiosAnywhere() {
+        var studios = MockData.studios()
+        studios[0].address.city = "København"
+        studios[0].address.country = "DK"
+        let engine = SearchEngine()
+        let beijing = CLLocation(latitude: 39.9, longitude: 116.4)
+        for query in ["københavn", "kobenhavn", "Copenhagen", "Denmark", "danmark", "Dänemark", "dk"] {
+            var filters = SearchFilters()
+            filters.query = query
+            let results = engine.search(studios: studios, filters: filters, sort: .nearest, origin: beijing)
+            XCTAssertTrue(results.contains { $0.id == studios[0].id }, "\(query) should find the Danish studio")
+        }
+        var filters = SearchFilters()
+        filters.query = "\(studios[0].name) denmark"
+        XCTAssertEqual(engine.search(studios: studios, filters: filters, sort: .nearest, origin: beijing).map(\.id), [studios[0].id])
+        filters.query = "denmark zzzz"
+        XCTAssertTrue(engine.search(studios: studios, filters: filters, sort: .nearest, origin: beijing).isEmpty)
+    }
+
     func testUnapprovedStudiosAreHidden() {
         var studios = MockData.studios()
         studios[0].status = .pendingReview
@@ -278,8 +297,14 @@ final class MockBackendTests: XCTestCase {
         _ = try await backend.sendSupportMessage(ticketId: ticket.id, body: "Any news?")
         let messages = try await backend.supportMessages(ticketId: ticket.id)
         XCTAssertEqual(messages.map(\.body), ["Where is my refund?", "Any news?"])
+        do {
+            _ = try await backend.rateSupportTicket(id: ticket.id, rating: 5, comment: "")
+            XCTFail("Open requests can't be rated")
+        } catch {}
         let closed = try await backend.closeSupportTicket(id: ticket.id)
         XCTAssertEqual(closed.status, .closed)
+        let rated = try await backend.rateSupportTicket(id: ticket.id, rating: 4, comment: "Helpful")
+        XCTAssertEqual(rated.rating, 4)
         let tickets = try await backend.supportTickets()
         XCTAssertEqual(tickets.count, 1)
     }

@@ -34,55 +34,75 @@ struct ApplicationStatusView: View {
     @State private var error: String?
 
     var body: some View {
-        List {
-            Section {
-                VStack(alignment: .leading, spacing: 10) {
-                    StatusPill(text: studio.status.title, color: studio.status.color)
-                    Text(studio.name.isEmpty ? "Your studio" : studio.name).font(.title.bold())
-                    Text(statusText).foregroundStyle(.secondary)
-                    if let note = studio.adminNote, !note.isEmpty {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("Message from the EasySesh team").font(.caption.bold())
-                            Text(note)
-                        }
-                        .padding()
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(Theme.warning.opacity(0.12), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        SonoraScreen("Application", eyebrow: studio.name.isEmpty ? String(localized: "Your studio") : studio.name,
+                     refresh: { app.ownedStudio = (try? await app.backend.ownedStudio()) ?? app.ownedStudio }) {
+            statusCard
+            if let note = studio.adminNote, !note.isEmpty {
+                HStack(alignment: .top, spacing: 12) {
+                    IconTile(symbol: "text.bubble.fill", size: 36, colors: [Theme.warning, Theme.accent])
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Message from the EasySesh team").font(.subheadline.weight(.bold))
+                        Text(note).font(.subheadline).foregroundStyle(.secondary)
                     }
                 }
-                .listRowBackground(Color.clear)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .glassCard()
             }
-
-            Section {
-                ApplicationStep(title: "Create your listing", done: true)
-                ApplicationStep(title: "Submit for review", done: studio.status != .draft)
-                ApplicationStep(title: "EasySesh reviews your studio", done: studio.status == .approved, active: studio.status == .pendingReview)
-                ApplicationStep(title: "Go live – artists can find, book and pay", done: studio.status == .approved)
-            }
-
-            Section {
+            steps
+            VStack(spacing: 10) {
+                if studio.status != .pendingReview {
+                    Button {
+                        submit()
+                    } label: {
+                        HStack(spacing: 8) {
+                            if isSubmitting { ProgressView().tint(.white) } else { Image(systemName: "paperplane.fill") }
+                            Text(isSubmitting ? LocalizedStringKey("Submitting…") : LocalizedStringKey("Submit for review"))
+                        }
+                    }
+                    .buttonStyle(.primary)
+                    .disabled(isSubmitting)
+                }
                 NavigationLink {
                     StudioEditorView(studio: studio, isApplication: true)
                 } label: {
                     Label("Edit listing", systemImage: "pencil")
                 }
-                if studio.status != .pendingReview {
-                    Button {
-                        submit()
-                    } label: {
-                        Label(isSubmitting ? "Submitting…" : "Submit for review", systemImage: "paperplane.fill")
-                    }
-                    .disabled(isSubmitting)
-                }
+                .buttonStyle(.secondary)
             }
-
-            Section {
-                Button("Sign out") { Task { await app.signOut() } }
-            }
+            SignOutButton()
         }
-        .navigationTitle("Application")
-        .refreshable { app.ownedStudio = try? await app.backend.ownedStudio() }
         .errorAlert($error)
+    }
+
+    private var statusCard: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(spacing: 10) {
+                PulseDot(color: studio.status.color, isActive: studio.status == .pendingReview)
+                Text(localized: studio.status.title)
+                    .font(.caption.weight(.heavy))
+                    .textCase(.uppercase)
+                    .tracking(0.8)
+                    .foregroundStyle(studio.status.color)
+            }
+            Text(localized: statusText)
+                .font(.body)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .glassCard(padding: 18, cornerRadius: 24)
+        .overlay(alignment: .leading) {
+            Capsule().fill(Theme.neon).frame(width: 4).padding(.vertical, 18)
+        }
+    }
+
+    private var steps: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            ApplicationStep(title: "Create your listing", done: true, isLast: false)
+            ApplicationStep(title: "Submit for review", done: studio.status != .draft, isLast: false)
+            ApplicationStep(title: "EasySesh reviews your studio", done: studio.status == .approved, active: studio.status == .pendingReview, isLast: false)
+            ApplicationStep(title: "Go live – artists can find, book and pay", done: studio.status == .approved, isLast: true)
+        }
+        .glassCard(padding: 16, cornerRadius: 24)
     }
 
     private var statusText: String {
@@ -105,17 +125,37 @@ struct ApplicationStatusView: View {
     }
 }
 
+/// One row of the application timeline, with a gradient connector to the next step.
 struct ApplicationStep: View {
-    let title: String
+    let title: LocalizedStringKey
     let done: Bool
     var active = false
+    var isLast = true
 
     var body: some View {
-        Label {
+        HStack(alignment: .top, spacing: 14) {
+            VStack(spacing: 0) {
+                ZStack {
+                    Circle()
+                        .fill(done ? AnyShapeStyle(Theme.neon) : AnyShapeStyle(Color.primary.opacity(0.08)))
+                        .frame(width: 30, height: 30)
+                    Image(systemName: done ? "checkmark" : active ? "hourglass" : "circle.dotted")
+                        .font(.system(size: 13, weight: .heavy))
+                        .foregroundStyle(done ? Color.white : active ? Theme.warning : Color.secondary)
+                        .symbolEffect(.pulse, isActive: active)
+                }
+                .neonGlow(Theme.magenta, radius: 8, active: done)
+                if !isLast {
+                    Rectangle()
+                        .fill(done ? AnyShapeStyle(Theme.neon) : AnyShapeStyle(Color.primary.opacity(0.1)))
+                        .frame(width: 2, height: 26)
+                }
+            }
             Text(title)
-        } icon: {
-            Image(systemName: done ? "checkmark.circle.fill" : active ? "clock.fill" : "circle")
-                .foregroundStyle(done ? Theme.positive : active ? Theme.warning : Color.secondary)
+                .font(.subheadline.weight(done || active ? .bold : .regular))
+                .foregroundStyle(done || active ? Color.primary : Color.secondary)
+                .padding(.top, 5)
+            Spacer(minLength: 0)
         }
     }
 }
@@ -486,6 +526,7 @@ struct StudioBookingListView: View {
                 }
             }
         }
+        .sonoraGrouped()
         .navigationTitle(title)
     }
 }
@@ -634,6 +675,7 @@ struct BlockTimeSheet: View {
                 }
                 TextField("Reason (private)", text: $reason)
             }
+            .sonoraGrouped()
             .navigationTitle("Block time")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -736,6 +778,7 @@ struct EarningsView: View {
                 NavigationLink { LegalDocumentView(document: .studioAgreement) } label: { Label("Studio agreement", systemImage: "doc.text") }
             }
         }
+        .sonoraGrouped()
         .navigationTitle("Earnings")
     }
 }

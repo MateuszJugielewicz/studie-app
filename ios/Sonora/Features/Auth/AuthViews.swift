@@ -50,7 +50,7 @@ struct WelcomeView: View {
             }
             .padding(.horizontal, 24)
             .padding(.bottom, 12)
-            .auroraBackground(height: 560)
+            .auroraBackground(height: 560, animated: true)
             .navigationDestination(item: $route) { route in
                 AuthView(mode: route.mode, role: route.role)
             }
@@ -139,7 +139,7 @@ struct AuthView: View {
             .animation(.spring(response: 0.4, dampingFraction: 0.8), value: role)
         }
         .scrollDismissesKeyboard(.interactively)
-        .auroraBackground(height: 520)
+        .auroraBackground(height: 520, animated: true)
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(.hidden, for: .navigationBar)
         .haptic(.selection, trigger: role)

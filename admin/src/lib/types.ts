@@ -238,6 +238,8 @@ export interface SupportTicket {
   last_message_at: string;
   created_at: string;
   closed_at: string | null;
+  rating: number | null;
+  rating_comment: string | null;
   user_email: string;
   user_role: UserRole;
   user_name: string;

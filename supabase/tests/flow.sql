@@ -208,3 +208,17 @@ exception when others then create temp table artist_search as select 'artist can
 end $$;
 select * from artist_search;
 reset role;
+
+-- support ratings: only the owner, only when closed
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
+set request.jwt.claims = '{}';
+select 'support rated' as label, (rate_support_ticket((select id from support_tickets limit 1), 5, 'Quick and friendly')).rating as rating;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000b';
+do $$ begin
+  perform rate_support_ticket((select id from admin_support_tickets limit 1), 1, 'not mine');
+  create temp table rate_other as select 'NOT BLOCKED' r;
+exception when others then create temp table rate_other as select 'rating others denied' r;
+end $$;
+select * from rate_other;
+reset role;

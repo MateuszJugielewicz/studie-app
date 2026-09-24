@@ -159,6 +159,9 @@ struct SupportTicket: Codable, Identifiable, Hashable {
     var lastMessagePreview: String
     var lastMessageAt: Date
     var createdAt: Date
+    /// 1–5 stars the user gave after the request was closed.
+    var rating: Int?
+    var ratingComment: String?
 }
 
 struct SupportMessage: Codable, Identifiable, Hashable {

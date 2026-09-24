@@ -102,6 +102,7 @@ struct AppSettingsView: View {
                 NavigationLink { LegalListView() } label: { Text("Terms, privacy & policies") }
             }
         }
+        .sonoraGrouped()
         .navigationTitle("App settings")
         .confirmationDialog("Clear cached images and data?", isPresented: $confirmClear, titleVisibility: .visible) {
             Button("Clear cache", role: .destructive) {
@@ -152,6 +153,7 @@ struct LanguagePickerView: View {
                 Text("Most text changes right away. A few system texts update the next time you open the app.")
             }
         }
+        .sonoraGrouped()
         .navigationTitle("Language")
         .haptic(.selection, trigger: preferences.language)
     }
@@ -165,5 +167,92 @@ struct SettingsIcon: View {
     var body: some View {
         IconTile(symbol: symbol, size: 28, colors: colors)
             .padding(.trailing, 4)
+    }
+}
+
+/// Choose a new password: from Settings, or after opening a password-reset link.
+struct ChangePasswordView: View {
+    @Environment(AppState.self) private var app
+    @Environment(\.dismiss) private var dismiss
+    var isRecovery = false
+
+    @State private var password = ""
+    @State private var confirmation = ""
+    @State private var isSaving = false
+    @State private var saved = false
+    @State private var error: String?
+
+    private var problem: String? {
+        if password.isEmpty { return nil }
+        if let problem = PasswordPolicy.problem(password) { return problem }
+        if !confirmation.isEmpty && confirmation != password { return String(localized: "The passwords don't match.") }
+        return nil
+    }
+
+    private var canSave: Bool {
+        !isSaving && PasswordPolicy.problem(password) == nil && password == confirmation
+    }
+
+    var body: some View {
+        Form {
+            Section {
+                HStack(spacing: 14) {
+                    IconTile(symbol: saved ? "checkmark.shield.fill" : "key.fill", size: 44, colors: saved ? TilePalette.mint : TilePalette.signal)
+                        .contentTransition(.symbolEffect(.replace))
+                    Text(isRecovery
+                         ? LocalizedStringKey("Choose a new password for your account.")
+                         : LocalizedStringKey("Use at least 10 characters with upper- and lowercase letters and a number."))
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+                .padding(.vertical, 4)
+            }
+            Section {
+                SecureField("New password", text: $password)
+                    .textContentType(.newPassword)
+                SecureField("Repeat new password", text: $confirmation)
+                    .textContentType(.newPassword)
+            } footer: {
+                if let problem {
+                    Text(problem).foregroundStyle(Theme.warning)
+                }
+            }
+            Section {
+                Button {
+                    save()
+                } label: {
+                    HStack {
+                        Spacer()
+                        if isSaving { ProgressView() } else { Text(saved ? LocalizedStringKey("Password changed") : LocalizedStringKey("Save new password")).bold() }
+                        Spacer()
+                    }
+                }
+                .disabled(!canSave || saved)
+            }
+        }
+        .sonoraGrouped()
+        .navigationTitle("Change password")
+        .toolbar {
+            if isRecovery {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Later") { app.needsNewPassword = false }
+                }
+            }
+        }
+        .haptic(.success, trigger: saved)
+        .errorAlert($error)
+    }
+
+    private func save() {
+        isSaving = true
+        Task {
+            defer { isSaving = false }
+            do {
+                try await app.backend.changePassword(to: password)
+                withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) { saved = true }
+                try? await Task.sleep(for: .seconds(1))
+                if isRecovery { app.needsNewPassword = false } else { dismiss() }
+            } catch { self.error = error.userMessage }
+        }
     }
 }

@@ -30,6 +30,8 @@ final class AppState {
     private(set) var isBootstrapping = true
 
     var selectedTab: AppTab = .discover
+    /// Set after opening a password-reset link: the user must choose a new password.
+    var needsNewPassword = false
     var pendingDeepLink: DeepLink?
 
     var notifications: [AppNotification] = []
@@ -52,6 +54,18 @@ final class AppState {
     }
 
     // MARK: Session
+
+    /// Opens a link from an auth email (confirmation or password reset).
+    func openAuthLink(_ url: URL) async {
+        guard let supabase = backend as? SupabaseBackend else { return }
+        do {
+            let isRecovery = try await supabase.completeAuthLink(url)
+            if let account = await backend.restoreSession() { await didAuthenticate(account) }
+            needsNewPassword = isRecovery
+        } catch {
+            supabase.handle(url: url)
+        }
+    }
 
     func bootstrap() async {
         defer { isBootstrapping = false }

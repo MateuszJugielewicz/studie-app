@@ -56,7 +56,8 @@ struct DiscoverView: View {
                 } else {
                     ScrollView {
                         LazyVStack(spacing: 28) {
-                            AreaSummaryCard(summary: model.summary(origin: origin, areaName: app.location.cityName ?? "Athens", radiusKm: app.account?.settings.searchRadiusKm ?? 5))
+                            AreaSummaryCard(summary: model.summary(origin: origin, areaName: app.location.cityName ?? String(localized: "Your area"), radiusKm: app.account?.settings.searchRadiusKm ?? 5),
+                                            totalCount: results.count, isSearching: !model.filters.query.isEmpty)
                             if model.isLoading {
                                 ProgressView().padding(40)
                             } else if results.isEmpty {
@@ -79,6 +80,7 @@ struct DiscoverView: View {
                 }
             }
             .auroraBackground()
+            .sonoraGrouped()
             .navigationTitle("Find a studio")
             .searchable(text: $model.filters.query, prompt: "Studio, area or city")
             .safeAreaInset(edge: .top) { toolbarRow(count: results.count) }
@@ -137,18 +139,29 @@ struct DiscoverView: View {
 
 struct AreaSummaryCard: View {
     let summary: AreaSummary
+    var totalCount = 0
+    var isSearching = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text("Near you").eyebrow()
-            Text(summary.areaName)
+            Text(isSearching ? "Results" : "Near you").eyebrow()
+            Text(isSearching ? String(localized: "\(totalCount) studios") : summary.areaName)
                 .font(.display(30))
                 .tracking(-0.5)
-            HStack(spacing: 6) {
-                Text("\(summary.studioCount) studios within \(Int(summary.radiusKm)) km")
-                if let price = summary.priceFrom {
-                    Text("·")
-                    Text("from \(Money.format(price, currency: summary.currency))/h")
+                .contentTransition(.numericText())
+            Group {
+                if isSearching {
+                    Text("Searching everywhere, sorted by distance.")
+                } else if summary.studioCount == 0 && totalCount > 0 {
+                    Text("No studios within \(Int(summary.radiusKm)) km yet – \(totalCount) elsewhere. Search a city or country to find them.")
+                } else {
+                    HStack(spacing: 6) {
+                        Text("\(summary.studioCount) studios within \(Int(summary.radiusKm)) km")
+                        if let price = summary.priceFrom {
+                            Text("·")
+                            Text("from \(Money.format(price, currency: summary.currency))/h")
+                        }
+                    }
                 }
             }
             .font(.subheadline)
@@ -190,7 +203,6 @@ struct StudioCard: View {
                     RoundedRectangle(cornerRadius: Theme.corner, style: .continuous)
                         .strokeBorder(Theme.glassEdge, lineWidth: 0.8)
                 )
-                .shadow(color: .black.opacity(0.14), radius: 16, y: 8)
 
             VStack(alignment: .leading, spacing: 3) {
                 HStack(alignment: .firstTextBaseline, spacing: 4) {
@@ -221,8 +233,33 @@ struct StudioMapView: View {
     let metric: Bool
     let onOpen: (StudioResult) -> Void
 
-    @State private var position: MapCameraPosition = .userLocation(fallback: .automatic)
+    @State private var position: MapCameraPosition = .automatic
     @State private var selectedId: UUID?
+
+    /// Region that contains every studio in the results (the user's own position is not included,
+    /// so a studio in Denmark is shown even when you are browsing from far away).
+    private static func region(fitting results: [StudioResult]) -> MKCoordinateRegion? {
+        let coordinates = results.map(\.studio.coordinate)
+        guard let first = coordinates.first else { return nil }
+        var minLat = first.latitude, maxLat = first.latitude, minLon = first.longitude, maxLon = first.longitude
+        for c in coordinates {
+            minLat = min(minLat, c.latitude); maxLat = max(maxLat, c.latitude)
+            minLon = min(minLon, c.longitude); maxLon = max(maxLon, c.longitude)
+        }
+        let center = CLLocationCoordinate2D(latitude: (minLat + maxLat) / 2, longitude: (minLon + maxLon) / 2)
+        let span = MKCoordinateSpan(latitudeDelta: min(max((maxLat - minLat) * 1.5, 0.05), 170),
+                                    longitudeDelta: min(max((maxLon - minLon) * 1.5, 0.05), 350))
+        return MKCoordinateRegion(center: center, span: span)
+    }
+
+    private func showAll(animated: Bool = true) {
+        guard let region = Self.region(fitting: results) else { return }
+        if animated {
+            withAnimation(.smooth(duration: 0.8)) { position = .region(region) }
+        } else {
+            position = .region(region)
+        }
+    }
 
     var body: some View {
         Map(position: $position, selection: $selectedId) {
@@ -263,6 +300,21 @@ struct StudioMapView: View {
                 .transition(.move(edge: .bottom).combined(with: .opacity))
             }
         }
+        .overlay(alignment: .top) {
+            if !results.isEmpty {
+                Button { showAll() } label: {
+                    Label("All studios · \(results.count)", systemImage: "scope")
+                        .font(.subheadline.weight(.bold))
+                        .padding(.horizontal, 14).padding(.vertical, 9)
+                        .background(.regularMaterial, in: Capsule())
+                        .overlay(Capsule().strokeBorder(Theme.glassEdge, lineWidth: 0.8))
+                }
+                .buttonStyle(PressableCardStyle())
+                .padding(.top, 8)
+            }
+        }
+        .onAppear { showAll(animated: false) }
+        .onChange(of: results.map(\.id)) { showAll() }
         .animation(.spring, value: selectedId)
     }
 }
@@ -343,6 +395,7 @@ struct FilterSheet: View {
                     Text("Equipment")
                 }
             }
+            .sonoraGrouped()
             .navigationTitle("Filters")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

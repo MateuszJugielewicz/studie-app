@@ -58,7 +58,7 @@ struct IntroView: View {
             .padding(.horizontal, 24)
             .padding(.bottom, 16)
         }
-        .auroraBackground(height: 700)
+        .auroraBackground(height: 700, animated: true)
         .haptic(.selection, trigger: page)
     }
 

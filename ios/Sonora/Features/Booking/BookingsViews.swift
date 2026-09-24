@@ -51,6 +51,7 @@ struct ArtistBookingsView: View {
                     }
                 }
             }
+            .sonoraGrouped()
             .navigationTitle("Bookings")
             .navigationDestination(for: Booking.self) { BookingDetailView(bookingId: $0.id, initial: $0) }
             .refreshable { await load() }
@@ -227,6 +228,7 @@ struct BookingDetailView: View {
             paymentSection
             receiptsSection
         }
+        .sonoraGrouped()
         .navigationTitle("Booking")
         .navigationBarTitleDisplayMode(.inline)
         .disabled(isWorking)
@@ -445,6 +447,7 @@ struct CancelBookingSheet: View {
                     TextField(isStudio ? "Let the artist know why" : "Optional", text: $reason, axis: .vertical).lineLimit(2...5)
                 }
             }
+            .sonoraGrouped()
             .navigationTitle("Cancel booking")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -505,6 +508,7 @@ struct RescheduleSheet: View {
                     }
                 }
             }
+            .sonoraGrouped()
             .navigationTitle("Change booking")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -549,6 +553,7 @@ struct TextPromptSheet: View {
             Form {
                 TextField(placeholder, text: $text, axis: .vertical).lineLimit(4...10)
             }
+            .sonoraGrouped()
             .navigationTitle(title)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -609,6 +614,7 @@ struct ReceiptView: View {
                 Text("EasySesh acts as payment agent for the studio. The service fee includes VAT where applicable.")
             }
         }
+        .sonoraGrouped()
         .navigationTitle("Receipt")
     }
 
@@ -639,6 +645,7 @@ struct BookingHistoryView: View {
                 }
             }
         }
+        .sonoraGrouped()
         .navigationTitle("Booking history")
         .task { bookings = (try? await app.backend.artistBookings()) ?? [] }
     }

@@ -27,6 +27,7 @@ struct LegalDocumentView: View {
             .padding()
         }
         .background(Theme.background)
+        .sonoraGrouped()
         .navigationTitle(document.title)
         .navigationBarTitleDisplayMode(.inline)
     }
@@ -82,6 +83,7 @@ struct LegalListView: View {
                 Text("Version \(LegalDocument.currentVersion). Questions? \(AppConfig.supportEmail)")
             }
         }
+        .sonoraGrouped()
         .navigationTitle("Legal")
     }
 }
@@ -121,6 +123,7 @@ struct TermsAcceptanceView: View {
                     Text("We record the version and time of your acceptance. You can withdraw consent by deleting your account in Settings.")
                 }
             }
+            .sonoraGrouped()
             .navigationTitle("Terms")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -155,13 +158,19 @@ struct DataExportButton: View {
         Group {
             if let fileURL {
                 ShareLink(item: fileURL) {
-                    Label("Share my data file", systemImage: "square.and.arrow.up")
+                    HStack {
+                        SettingsIcon(symbol: "square.and.arrow.up.fill", colors: TilePalette.mint)
+                        Text("Share my data file").foregroundStyle(Color.primary)
+                    }
                 }
             } else {
                 Button {
                     export()
                 } label: {
-                    Label(isExporting ? "Preparing…" : "Download my data", systemImage: "arrow.down.doc")
+                    HStack {
+                        SettingsIcon(symbol: "arrow.down.doc.fill", colors: TilePalette.ocean)
+                        Text(isExporting ? LocalizedStringKey("Preparing…") : LocalizedStringKey("Download my data")).foregroundStyle(Color.primary)
+                    }
                 }
                 .disabled(isExporting)
             }

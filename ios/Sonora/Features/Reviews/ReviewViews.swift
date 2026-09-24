@@ -101,6 +101,7 @@ struct ReplySheet: View {
                     TextField("Thank the artist or respond to feedback", text: $text, axis: .vertical).lineLimit(4...10)
                 }
             }
+            .sonoraGrouped()
             .navigationTitle("Reply to review")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
@@ -136,6 +137,7 @@ struct ReviewsListView: View {
             .padding()
         }
         .background(Theme.background)
+        .sonoraGrouped()
         .navigationTitle("Reviews")
     }
 }
@@ -179,6 +181,7 @@ struct WriteReviewView: View {
                     Text("Reviews are public and shown with your artist name.")
                 }
             }
+            .sonoraGrouped()
             .navigationTitle("Review your session")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -241,6 +244,7 @@ struct ReportSheet: View {
                     }
                 }
             }
+            .sonoraGrouped()
             .navigationTitle("Report")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

@@ -291,6 +291,12 @@ final class MockBackend: Backend {
         await pause()
     }
 
+    func changePassword(to newPassword: String) async throws {
+        let user = try requireUser()
+        if let problem = PasswordPolicy.problem(newPassword) { throw BackendError.validation(problem) }
+        passwords[user.email] = newPassword
+    }
+
     func signOut() async {
         currentUserId = nil
     }
@@ -911,6 +917,17 @@ final class MockBackend: Backend {
 
     func markSupportTicketRead(id: UUID) async throws {
         supportTicketsById[id]?.userUnread = 0
+    }
+
+    func rateSupportTicket(id: UUID, rating: Int, comment: String) async throws -> SupportTicket {
+        let user = try requireUser()
+        guard var ticket = supportTicketsById[id], ticket.userId == user.id else { throw BackendError.notFound }
+        guard ticket.status == .closed else { throw BackendError.validation("You can rate a request once it is closed.") }
+        guard (1...5).contains(rating) else { throw BackendError.validation("Pick 1 to 5 stars.") }
+        ticket.rating = rating
+        ticket.ratingComment = comment.isEmpty ? nil : comment
+        supportTicketsById[id] = ticket
+        return ticket
     }
 
     func closeSupportTicket(id: UUID) async throws -> SupportTicket {

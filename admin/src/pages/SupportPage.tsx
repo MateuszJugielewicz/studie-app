@@ -60,6 +60,7 @@ export default function SupportPage() {
                   <span className="muted">· {label(t.user_role)} · {label(t.category)}</span>
                 </div>
                 <div className="preview">{t.last_message_preview}</div>
+                {t.rating != null && <div className="stars small">{"★".repeat(t.rating)}{"☆".repeat(5 - t.rating)}</div>}
               </button>
             ))}
           </div>
@@ -110,6 +111,12 @@ function TicketThread({ ticket, onChanged }: { ticket: SupportTicket; onChanged:
         </div>
         <Badge value={ticket.status} />
       </div>
+      {ticket.rating != null && (
+        <div className="rating-box">
+          <span className="stars">{"★".repeat(ticket.rating)}{"☆".repeat(5 - ticket.rating)}</span>
+          <span className="muted small">User rating{ticket.rating_comment ? `: “${ticket.rating_comment}”` : ""}</span>
+        </div>
+      )}
 
       <PageState loading={messages.loading && !messages.data} error={messages.error}>
         <div className="thread" style={{ marginTop: 16 }}>

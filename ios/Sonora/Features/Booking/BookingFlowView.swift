@@ -135,6 +135,7 @@ struct BookingFlowView: View {
                     }
                 }
             }
+            .sonoraGrouped()
             .navigationTitle(draft.studio.name)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -302,6 +303,7 @@ struct CheckoutView: View {
                 }
             }
         }
+        .sonoraGrouped()
         .navigationTitle("Checkout")
         .safeAreaInset(edge: .bottom) {
             Button { pay() } label: {
