@@ -12,7 +12,9 @@ alter table storage.objects enable row level security;
 create function storage.foldername(name text) returns text[] language sql as $$ select string_to_array(name, '/') $$;
 create publication supabase_realtime;
 create schema vault; create view vault.decrypted_secrets as select ''::text as name, ''::text as decrypted_secret where false;
-create schema cron; create function cron.schedule(a text, b text, c text) returns bigint language sql as $$ select 1::bigint $$;
+create schema cron; create table cron.job (jobid bigserial primary key, jobname text, schedule text, command text);
+create function cron.schedule(a text, b text, c text) returns bigint language sql as $$ insert into cron.job (jobname, schedule, command) values (a, b, c) returning jobid $$;
+create function cron.unschedule(a text) returns boolean language sql as $$ delete from cron.job where jobname = a returning true $$;
 create schema net; create function net.http_post(url text, headers jsonb, body jsonb) returns bigint language sql as $$ select 1::bigint $$;
 create function auth.jwt() returns jsonb language sql stable as $$
   select coalesce(nullif(current_setting('request.jwt.claims', true), '')::jsonb, '{}'::jsonb)
