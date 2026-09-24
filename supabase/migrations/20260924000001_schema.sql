@@ -2,7 +2,7 @@
 -- Money is stored as integer minor units (cents). Timestamps are timestamptz.
 -- Nested listing data is jsonb with snake_case keys (matches the iOS encoder).
 
-create extension if not exists btree_gist;
+create extension if not exists btree_gist with schema extensions;
 
 -- ---------------------------------------------------------------------------
 -- Enums

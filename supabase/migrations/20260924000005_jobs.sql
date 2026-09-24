@@ -4,8 +4,8 @@
 --   select vault.create_secret('https://<project-ref>.supabase.co', 'project_url');
 --   select vault.create_secret('<service-role-key>', 'service_role_key');
 
-create extension if not exists pg_cron;
-create extension if not exists pg_net;
+create extension if not exists pg_cron with schema pg_catalog;
+create extension if not exists pg_net with schema extensions;
 
 create or replace function public.call_edge_function(p_name text, p_body jsonb default '{}'::jsonb)
 returns void

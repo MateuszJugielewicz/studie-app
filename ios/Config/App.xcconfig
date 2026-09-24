@@ -3,8 +3,10 @@
 //
 // Note: xcconfig treats "//" as a comment, so write URLs as https:/$()/xyz.supabase.co
 
-SONORA_SUPABASE_URL =
-SONORA_SUPABASE_ANON_KEY =
+// Public project keys (safe to ship in the app; data is protected by row-level security).
+// To run on built-in demo data instead, clear these two lines or pass the launch argument -demo.
+SONORA_SUPABASE_URL = https:/$()/gdebbieifsvspszmevwa.supabase.co
+SONORA_SUPABASE_ANON_KEY = sb_publishable_uUYI3cg-BQ-vN9K0LA9OFw_7n5oactH
 SONORA_STRIPE_PUBLISHABLE_KEY =
 SONORA_APPLE_PAY_MERCHANT_ID = merchant.com.sonora.app
 

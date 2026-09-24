@@ -1,3 +1,5 @@
+create schema extensions;
+set search_path = "$user", public, extensions;
 create role authenticated; create role anon; create role service_role;
 create schema auth;
 create table auth.users (id uuid primary key default gen_random_uuid(), email text, raw_user_meta_data jsonb default '{}');

@@ -13,7 +13,7 @@ const db = new PGlite({ extensions: { btree_gist } });
 await db.exec(fs.readFileSync(path.join(here, "supabase_stubs.sql"), "utf8"));
 for (const file of fs.readdirSync(migrations).sort()) {
   // pg_cron / pg_net are stubbed in supabase_stubs.sql.
-  const sql = fs.readFileSync(path.join(migrations, file), "utf8").replace(/create extension if not exists (pg_cron|pg_net);/g, "");
+  const sql = fs.readFileSync(path.join(migrations, file), "utf8").replace(/create extension if not exists (pg_cron|pg_net)[^;]*;/g, "");
   await db.exec(sql);
   console.log("applied", file);
 }

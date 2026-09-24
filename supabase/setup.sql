@@ -1,0 +1,1644 @@
+-- =====================================================================
+-- SONORA – complete database setup (all migrations in one file)
+--
+-- How to use:
+--   1. Supabase dashboard → SQL Editor → New query
+--   2. Paste this whole file and press Run (once, in a fresh project)
+--   3. Then run the two vault lines at the very bottom with your own keys
+--
+-- Generated from supabase/migrations/*.sql – edit those, not this file.
+-- =====================================================================
+
+-- ---------------------------------------------------------------------
+-- 20260924000001_schema.sql
+-- ---------------------------------------------------------------------
+-- Sonora: core schema
+-- Money is stored as integer minor units (cents). Timestamps are timestamptz.
+-- Nested listing data is jsonb with snake_case keys (matches the iOS encoder).
+
+create extension if not exists btree_gist with schema extensions;
+
+-- ---------------------------------------------------------------------------
+-- Enums
+-- ---------------------------------------------------------------------------
+create type public.user_role as enum ('artist', 'studio_owner', 'admin');
+create type public.account_status as enum ('active', 'suspended', 'banned');
+create type public.studio_status as enum ('draft', 'pending_review', 'changes_requested', 'approved', 'rejected', 'suspended');
+create type public.booking_status as enum ('awaiting_payment', 'pending_approval', 'confirmed', 'declined', 'cancelled', 'completed', 'disputed', 'expired');
+create type public.payment_status as enum ('unpaid', 'authorized', 'deposit_paid', 'paid', 'partially_refunded', 'refunded', 'failed', 'pay_at_studio');
+create type public.payment_method as enum ('card', 'apple_pay', 'google_pay', 'cash');
+create type public.transaction_kind as enum ('charge', 'balance', 'refund');
+create type public.transaction_status as enum ('pending', 'succeeded', 'failed');
+create type public.payout_status as enum ('scheduled', 'in_transit', 'paid', 'failed');
+create type public.message_kind as enum ('text', 'system', 'booking');
+create type public.report_target as enum ('user', 'studio', 'review', 'message', 'booking');
+create type public.report_reason as enum ('fake', 'spam', 'abusive', 'inappropriate', 'fraud', 'no_show', 'other');
+create type public.report_status as enum ('open', 'resolved', 'dismissed');
+create type public.notification_kind as enum (
+  'booking_confirmed', 'booking_changed', 'booking_cancelled', 'booking_declined', 'session_reminder',
+  'refund_issued', 'review_reminder', 'booking_requested', 'new_review', 'payout_sent',
+  'studio_approved', 'studio_rejected', 'studio_changes_requested', 'new_message', 'system'
+);
+
+-- ---------------------------------------------------------------------------
+-- Accounts
+-- ---------------------------------------------------------------------------
+create table public.profiles (
+  id uuid primary key references auth.users (id) on delete cascade,
+  email text not null,
+  role public.user_role not null default 'artist',
+  status public.account_status not null default 'active',
+  status_reason text,
+  is_verified boolean not null default false,
+  settings jsonb not null default '{}'::jsonb,
+  stripe_customer_id text,
+  -- GDPR: which version of the terms/privacy policy the user accepted, and when.
+  accepted_terms_version text,
+  accepted_terms_at timestamptz,
+  created_at timestamptz not null default now()
+);
+
+create table public.artist_profiles (
+  id uuid primary key references public.profiles (id) on delete cascade,
+  artist_name text not null default '',
+  genres text[] not null default '{}',
+  city text not null default '',
+  bio text not null default '',
+  avatar_url text,
+  links jsonb not null default '[]'::jsonb,
+  is_verified boolean not null default false,
+  updated_at timestamptz not null default now()
+);
+
+create table public.device_tokens (
+  token text primary key,
+  user_id uuid not null references public.profiles (id) on delete cascade,
+  platform text not null default 'ios',
+  created_at timestamptz not null default now()
+);
+
+-- ---------------------------------------------------------------------------
+-- Studios
+-- ---------------------------------------------------------------------------
+create table public.studios (
+  id uuid primary key default gen_random_uuid(),
+  owner_id uuid not null references public.profiles (id) on delete cascade,
+  name text not null default '',
+  tagline text not null default '',
+  description text not null default '',
+  photo_urls text[] not null default '{}',
+  video_url text,
+  address jsonb not null default '{"street":"","postal_code":"","city":"","area":"","country":""}'::jsonb,
+  latitude double precision not null default 0,
+  longitude double precision not null default 0,
+  contact jsonb not null default '{"phone":"","email":"","website":""}'::jsonb,
+  timezone text not null default 'Europe/Athens',
+  currency text not null default 'EUR' check (currency ~ '^[A-Z]{3}$'),
+  price_from integer not null default 0 check (price_from >= 0),
+  session_types jsonb not null default '[]'::jsonb,
+  add_ons jsonb not null default '[]'::jsonb,
+  facilities text[] not null default '{}',
+  equipment jsonb not null default '[]'::jsonb,
+  engineers jsonb not null default '[]'::jsonb,
+  capacity integer not null default 4 check (capacity > 0),
+  genres text[] not null default '{}',
+  opening_hours jsonb not null default '[]'::jsonb,
+  rules text[] not null default '{}',
+  booking_policy jsonb not null default '{}'::jsonb,
+  status public.studio_status not null default 'draft',
+  is_active boolean not null default false,
+  is_verified boolean not null default false,
+  admin_note text,
+  rating_average double precision not null default 0,
+  review_count integer not null default 0,
+  booking_count integer not null default 0,
+  created_at timestamptz not null default now(),
+  submitted_at timestamptz,
+  reviewed_at timestamptz,
+  reviewed_by uuid references public.profiles (id)
+);
+
+create index studios_public_idx on public.studios (status, is_active);
+create index studios_owner_idx on public.studios (owner_id);
+create index studios_city_idx on public.studios ((address ->> 'city'));
+
+-- Audit trail of moderation decisions.
+create table public.studio_status_events (
+  id uuid primary key default gen_random_uuid(),
+  studio_id uuid not null references public.studios (id) on delete cascade,
+  from_status public.studio_status,
+  to_status public.studio_status not null,
+  note text,
+  actor_id uuid references public.profiles (id),
+  created_at timestamptz not null default now()
+);
+
+create table public.studio_payout_accounts (
+  studio_id uuid primary key references public.studios (id) on delete cascade,
+  account_holder text not null default '',
+  iban_last4 text not null default '',
+  stripe_account_id text,
+  payouts_enabled boolean not null default false,
+  updated_at timestamptz not null default now()
+);
+
+create table public.blocked_slots (
+  id uuid primary key default gen_random_uuid(),
+  studio_id uuid not null references public.studios (id) on delete cascade,
+  starts_at timestamptz not null,
+  ends_at timestamptz not null,
+  reason text not null default '',
+  check (ends_at > starts_at)
+);
+create index blocked_slots_studio_idx on public.blocked_slots (studio_id, starts_at);
+
+-- ---------------------------------------------------------------------------
+-- Bookings & money
+-- ---------------------------------------------------------------------------
+create table public.bookings (
+  id uuid primary key default gen_random_uuid(),
+  reference text not null unique,
+  artist_id uuid not null references public.profiles (id),
+  studio_id uuid not null references public.studios (id),
+  artist_name text not null,
+  studio_name text not null,
+  session_type_id text not null,
+  session_type_name text not null,
+  starts_at timestamptz not null,
+  ends_at timestamptz not null,
+  hours integer not null check (hours between 1 and 24),
+  add_ons jsonb not null default '[]'::jsonb,
+  status public.booking_status not null default 'awaiting_payment',
+  payment_status public.payment_status not null default 'unpaid',
+  price jsonb not null,
+  notes text not null default '',
+  cancellation_reason text,
+  cancelled_by public.user_role,
+  refund_amount integer not null default 0,
+  has_review boolean not null default false,
+  payment_intent_id text,
+  balance_payment_intent_id text,
+  payment_method public.payment_method,
+  -- Who made the last change (set by edge functions) so triggers notify the other party.
+  changed_by uuid,
+  -- Cash bookings: set when the studio confirms it received the money.
+  cash_received_at timestamptz,
+  reminder_24h_sent_at timestamptz,
+  reminder_2h_sent_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  check (ends_at > starts_at),
+  -- The database itself guarantees no double bookings.
+  constraint bookings_no_overlap exclude using gist (
+    studio_id with =,
+    tstzrange(starts_at, ends_at, '[)') with &&
+  ) where (status in ('awaiting_payment', 'pending_approval', 'confirmed'))
+);
+create index bookings_artist_idx on public.bookings (artist_id, starts_at desc);
+create index bookings_studio_idx on public.bookings (studio_id, starts_at desc);
+create index bookings_status_idx on public.bookings (status, starts_at);
+
+create table public.transactions (
+  id uuid primary key default gen_random_uuid(),
+  booking_id uuid not null references public.bookings (id),
+  studio_id uuid not null references public.studios (id),
+  artist_id uuid not null references public.profiles (id),
+  kind public.transaction_kind not null,
+  method public.payment_method not null default 'card',
+  status public.transaction_status not null default 'pending',
+  amount integer not null check (amount >= 0),
+  platform_fee integer not null default 0,
+  currency text not null,
+  receipt_number text not null unique default ('RCPT-' || upper(substr(md5(gen_random_uuid()::text), 1, 10))),
+  card_brand text,
+  card_last4 text,
+  failure_reason text,
+  provider_reference text,
+  created_at timestamptz not null default now()
+);
+create index transactions_booking_idx on public.transactions (booking_id);
+create unique index transactions_provider_ref_idx on public.transactions (provider_reference, kind);
+
+create table public.payouts (
+  id uuid primary key default gen_random_uuid(),
+  studio_id uuid not null references public.studios (id),
+  amount integer not null,
+  currency text not null,
+  status public.payout_status not null default 'scheduled',
+  scheduled_for timestamptz not null,
+  paid_at timestamptz,
+  booking_ids uuid[] not null default '{}',
+  provider_reference text,
+  failure_reason text,
+  created_at timestamptz not null default now()
+);
+create index payouts_studio_idx on public.payouts (studio_id, scheduled_for desc);
+
+create table public.disputes (
+  id uuid primary key default gen_random_uuid(),
+  booking_id uuid not null references public.bookings (id),
+  opened_by uuid not null references public.profiles (id),
+  reason text not null,
+  status public.report_status not null default 'open',
+  resolution text,
+  created_at timestamptz not null default now(),
+  resolved_at timestamptz
+);
+
+-- ---------------------------------------------------------------------------
+-- Communication
+-- ---------------------------------------------------------------------------
+create table public.conversations (
+  id uuid primary key default gen_random_uuid(),
+  artist_id uuid not null references public.profiles (id) on delete cascade,
+  studio_id uuid not null references public.studios (id) on delete cascade,
+  booking_id uuid references public.bookings (id) on delete set null,
+  artist_name text not null,
+  studio_name text not null,
+  studio_photo_url text,
+  last_message_preview text not null default '',
+  last_message_at timestamptz not null default now(),
+  artist_unread integer not null default 0,
+  studio_unread integer not null default 0,
+  created_at timestamptz not null default now()
+);
+-- One thread per artist+studio(+booking). Chat is always scoped; there is no free social messaging.
+create unique index conversations_scope_idx on public.conversations (artist_id, studio_id, coalesce(booking_id, '00000000-0000-0000-0000-000000000000'::uuid));
+
+create table public.messages (
+  id uuid primary key default gen_random_uuid(),
+  conversation_id uuid not null references public.conversations (id) on delete cascade,
+  sender_id uuid references public.profiles (id) on delete set null,
+  kind public.message_kind not null default 'text',
+  body text not null check (char_length(body) between 1 and 2000),
+  created_at timestamptz not null default now()
+);
+create index messages_conversation_idx on public.messages (conversation_id, created_at);
+
+create table public.notifications (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references public.profiles (id) on delete cascade,
+  kind public.notification_kind not null,
+  title text not null,
+  body text not null,
+  is_read boolean not null default false,
+  booking_id uuid references public.bookings (id) on delete set null,
+  conversation_id uuid references public.conversations (id) on delete set null,
+  studio_id uuid references public.studios (id) on delete set null,
+  created_at timestamptz not null default now()
+);
+create index notifications_user_idx on public.notifications (user_id, created_at desc);
+
+-- ---------------------------------------------------------------------------
+-- Reviews & moderation
+-- ---------------------------------------------------------------------------
+create table public.reviews (
+  id uuid primary key default gen_random_uuid(),
+  booking_id uuid not null unique references public.bookings (id),
+  studio_id uuid not null references public.studios (id) on delete cascade,
+  artist_id uuid not null references public.profiles (id) on delete cascade,
+  artist_name text not null,
+  rating integer not null check (rating between 1 and 5),
+  facilities_rating integer not null check (facilities_rating between 1 and 5),
+  experience_rating integer not null check (experience_rating between 1 and 5),
+  engineer_rating integer check (engineer_rating between 1 and 5),
+  text text not null default '',
+  studio_reply text,
+  studio_replied_at timestamptz,
+  is_hidden boolean not null default false,
+  created_at timestamptz not null default now()
+);
+create index reviews_studio_idx on public.reviews (studio_id, created_at desc);
+
+create table public.reports (
+  id uuid primary key default gen_random_uuid(),
+  reporter_id uuid not null references public.profiles (id) on delete cascade,
+  target_type public.report_target not null,
+  target_id uuid not null,
+  reason public.report_reason not null,
+  details text not null default '',
+  status public.report_status not null default 'open',
+  admin_note text,
+  created_at timestamptz not null default now(),
+  resolved_at timestamptz
+);
+create index reports_status_idx on public.reports (status, created_at desc);
+
+-- Commercial settings (mirrored in supabase/functions/_shared/pricing.ts).
+create table public.platform_settings (
+  key text primary key,
+  value jsonb not null
+);
+insert into public.platform_settings (key, value) values
+  -- Sonora takes 10% of every sale. Card payments: deducted from the studio payout.
+  -- Cash payments: owed by the studio (see studio_fee_ledger).
+  ('artist_service_fee_percent', '0'),
+  ('platform_fee_percent', '10'),
+  ('payout_delay_days', '2');
+
+-- ---------------------------------------------------------------------
+-- 20260924000002_security.sql
+-- ---------------------------------------------------------------------
+-- Sonora: identity helpers, sign-up hook, column guards and row-level security.
+
+-- ---------------------------------------------------------------------------
+-- Helpers
+-- ---------------------------------------------------------------------------
+create or replace function public.is_admin()
+returns boolean
+language sql stable security definer set search_path = public
+as $$
+  select exists (
+    select 1 from public.profiles
+    where id = auth.uid() and role = 'admin' and status = 'active'
+  )
+  -- Admins must have signed in with a second factor (TOTP).
+  and coalesce(auth.jwt() ->> 'aal', 'aal1') = 'aal2';
+$$;
+
+-- Studio features (calendar blocks, replies, studio-side chat, payouts) require an approved studio.
+-- Signing up as a studio – or being an artist – never grants them on its own.
+create or replace function public.owns_approved_studio(p_studio_id uuid)
+returns boolean
+language sql stable security definer set search_path = public
+as $$
+  select exists (
+    select 1 from public.studios s join public.profiles p on p.id = s.owner_id
+    where s.id = p_studio_id and s.owner_id = auth.uid() and s.status = 'approved'
+      and p.role = 'studio_owner' and p.status = 'active'
+  );
+$$;
+
+-- True for the service role, SECURITY DEFINER functions (run as the table owner) and admins.
+-- Deliberately SECURITY INVOKER so current_user reflects the real caller.
+create or replace function public.is_trusted()
+returns boolean
+language sql stable
+as $$
+  select current_user not in ('authenticated', 'anon') or public.is_admin();
+$$;
+
+create or replace function public.is_active_user()
+returns boolean
+language sql stable security definer set search_path = public
+as $$
+  select exists (select 1 from public.profiles where id = auth.uid() and status = 'active');
+$$;
+
+create or replace function public.owns_studio(p_studio_id uuid)
+returns boolean
+language sql stable security definer set search_path = public
+as $$
+  select exists (select 1 from public.studios where id = p_studio_id and owner_id = auth.uid());
+$$;
+
+create or replace function public.is_conversation_participant(p_conversation_id uuid)
+returns boolean
+language sql stable security definer set search_path = public
+as $$
+  select exists (
+    select 1 from public.conversations c
+    join public.studios s on s.id = c.studio_id
+    where c.id = p_conversation_id and (c.artist_id = auth.uid() or s.owner_id = auth.uid())
+  );
+$$;
+
+create or replace function public.touch_updated_at()
+returns trigger language plpgsql as $$
+begin
+  new.updated_at := now();
+  return new;
+end;
+$$;
+
+-- ---------------------------------------------------------------------------
+-- Sign-up: create the profile row (role comes from sign-up metadata; admins are never self-assigned)
+-- ---------------------------------------------------------------------------
+create or replace function public.handle_new_user()
+returns trigger
+language plpgsql security definer set search_path = public
+as $$
+declare
+  requested text := coalesce(new.raw_user_meta_data ->> 'role', 'artist');
+  assigned public.user_role := case when requested = 'studio_owner' then 'studio_owner'::public.user_role else 'artist'::public.user_role end;
+begin
+  insert into public.profiles (id, email, role, accepted_terms_version, accepted_terms_at)
+  values (
+    new.id, coalesce(new.email, ''), assigned,
+    new.raw_user_meta_data ->> 'terms_version',
+    case when new.raw_user_meta_data ? 'terms_version' then now() end
+  );
+  if assigned = 'artist' then
+    insert into public.artist_profiles (id, artist_name)
+    values (new.id, coalesce(new.raw_user_meta_data ->> 'full_name', new.raw_user_meta_data ->> 'name', ''));
+  end if;
+  return new;
+end;
+$$;
+
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute function public.handle_new_user();
+
+-- Apple/Google sign-up can't pass metadata; a brand-new account may switch to studio owner once.
+create or replace function public.claim_role(p_role public.user_role)
+returns void
+language plpgsql security definer set search_path = public
+as $$
+declare
+  me public.profiles;
+begin
+  select * into me from public.profiles where id = auth.uid();
+  if me.id is null then raise exception 'not_found'; end if;
+  if p_role = 'admin' then raise exception 'forbidden'; end if;
+  if me.role = p_role then return; end if;
+  if me.created_at < now() - interval '1 hour'
+     or exists (select 1 from public.bookings where artist_id = me.id)
+     or exists (select 1 from public.conversations where artist_id = me.id)
+     or exists (select 1 from public.studios where owner_id = me.id) then
+    raise exception 'This account already has a role. Contact support to change it.';
+  end if;
+  update public.profiles set role = p_role where id = me.id;
+  if p_role = 'studio_owner' then
+    delete from public.artist_profiles where id = me.id;
+  else
+    insert into public.artist_profiles (id) values (me.id) on conflict do nothing;
+  end if;
+end;
+$$;
+
+-- ---------------------------------------------------------------------------
+-- Column guards: users may edit their content, never moderation/financial fields.
+-- ---------------------------------------------------------------------------
+create or replace function public.guard_profiles()
+returns trigger language plpgsql as $$
+begin
+  if not public.is_trusted() then
+    new.id := old.id;
+    new.email := old.email;
+    new.role := old.role;
+    new.status := old.status;
+    new.status_reason := old.status_reason;
+    new.is_verified := old.is_verified;
+    new.stripe_customer_id := old.stripe_customer_id;
+    new.accepted_terms_version := old.accepted_terms_version;
+    new.accepted_terms_at := old.accepted_terms_at;
+    new.created_at := old.created_at;
+  end if;
+  return new;
+end;
+$$;
+create trigger guard_profiles before update on public.profiles
+  for each row execute function public.guard_profiles();
+
+create or replace function public.guard_artist_profiles()
+returns trigger language plpgsql as $$
+begin
+  if not public.is_trusted() then
+    if tg_op = 'INSERT' then
+      new.is_verified := false;
+    else
+      new.is_verified := old.is_verified;
+    end if;
+  end if;
+  new.updated_at := now();
+  return new;
+end;
+$$;
+create trigger guard_artist_profiles before insert or update on public.artist_profiles
+  for each row execute function public.guard_artist_profiles();
+
+create or replace function public.guard_studios()
+returns trigger language plpgsql as $$
+begin
+  -- Keep the "from" price in sync with the session types.
+  new.price_from := coalesce((select min((t.value ->> 'hourly_rate')::int) from jsonb_array_elements(new.session_types) as t), 0);
+
+  if public.is_trusted() then
+    return new;
+  end if;
+
+  if tg_op = 'INSERT' then
+    if new.owner_id is distinct from auth.uid()
+       or not exists (select 1 from public.profiles where id = auth.uid() and role = 'studio_owner' and status = 'active') then
+      raise exception 'forbidden' using errcode = '42501';
+    end if;
+    if exists (select 1 from public.studios where owner_id = auth.uid()) then
+      raise exception 'You already have a studio.';
+    end if;
+    new.status := 'draft';
+    new.is_active := false;
+    new.is_verified := false;
+    new.admin_note := null;
+    new.rating_average := 0;
+    new.review_count := 0;
+    new.booking_count := 0;
+    new.submitted_at := null;
+    new.reviewed_at := null;
+    new.reviewed_by := null;
+    new.created_at := now();
+  else
+    new.id := old.id;
+    new.owner_id := old.owner_id;
+    new.status := old.status;
+    new.is_verified := old.is_verified;
+    new.admin_note := old.admin_note;
+    new.rating_average := old.rating_average;
+    new.review_count := old.review_count;
+    new.booking_count := old.booking_count;
+    new.submitted_at := old.submitted_at;
+    new.reviewed_at := old.reviewed_at;
+    new.reviewed_by := old.reviewed_by;
+    new.created_at := old.created_at;
+    if new.status <> 'approved' then
+      new.is_active := false;
+    end if;
+  end if;
+  return new;
+end;
+$$;
+create trigger guard_studios before insert or update on public.studios
+  for each row execute function public.guard_studios();
+
+create or replace function public.guard_notifications()
+returns trigger language plpgsql as $$
+begin
+  if not public.is_trusted() then
+    -- Only the read flag may change.
+    new := old;
+    new.is_read := true;
+  end if;
+  return new;
+end;
+$$;
+create trigger guard_notifications before update on public.notifications
+  for each row execute function public.guard_notifications();
+
+create trigger bookings_touch before update on public.bookings
+  for each row execute function public.touch_updated_at();
+
+-- ---------------------------------------------------------------------------
+-- Row-level security
+-- ---------------------------------------------------------------------------
+alter table public.profiles enable row level security;
+alter table public.artist_profiles enable row level security;
+alter table public.device_tokens enable row level security;
+alter table public.studios enable row level security;
+alter table public.studio_status_events enable row level security;
+alter table public.studio_payout_accounts enable row level security;
+alter table public.blocked_slots enable row level security;
+alter table public.bookings enable row level security;
+alter table public.transactions enable row level security;
+alter table public.payouts enable row level security;
+alter table public.disputes enable row level security;
+alter table public.conversations enable row level security;
+alter table public.messages enable row level security;
+alter table public.notifications enable row level security;
+alter table public.reviews enable row level security;
+alter table public.reports enable row level security;
+alter table public.platform_settings enable row level security;
+
+-- profiles
+create policy "profiles: read own" on public.profiles for select using (id = auth.uid() or public.is_admin());
+create policy "profiles: update own" on public.profiles for update using (id = auth.uid()) with check (id = auth.uid());
+
+-- artist_profiles are public to signed-in users (studios see who books them)
+create policy "artist_profiles: read" on public.artist_profiles for select to authenticated using (true);
+create policy "artist_profiles: insert own" on public.artist_profiles for insert with check (id = auth.uid());
+create policy "artist_profiles: update own" on public.artist_profiles for update using (id = auth.uid()) with check (id = auth.uid());
+
+-- device tokens
+create policy "device_tokens: own" on public.device_tokens for all using (user_id = auth.uid()) with check (user_id = auth.uid());
+
+-- studios: approved+active are public; owners see their own; admins see all
+create policy "studios: read public" on public.studios for select
+  using ((status = 'approved' and is_active) or owner_id = auth.uid() or public.is_admin()
+         or exists (select 1 from public.bookings b where b.studio_id = studios.id and b.artist_id = auth.uid()));
+create policy "studios: owner insert" on public.studios for insert with check (owner_id = auth.uid());
+create policy "studios: owner update" on public.studios for update using (owner_id = auth.uid() or public.is_admin()) with check (owner_id = auth.uid() or public.is_admin());
+
+create policy "studio_status_events: read" on public.studio_status_events for select
+  using (public.owns_studio(studio_id) or public.is_admin());
+
+create policy "payout_accounts: owner read" on public.studio_payout_accounts for select
+  using (public.owns_studio(studio_id) or public.is_admin());
+
+create policy "blocked_slots: owner read" on public.blocked_slots for select
+  using (public.owns_studio(studio_id));
+create policy "blocked_slots: approved owner write" on public.blocked_slots for insert
+  with check (public.owns_approved_studio(studio_id));
+create policy "blocked_slots: approved owner delete" on public.blocked_slots for delete
+  using (public.owns_approved_studio(studio_id));
+
+-- bookings & money: read-only for participants; all writes go through edge functions / RPCs
+create policy "bookings: participants read" on public.bookings for select
+  using (artist_id = auth.uid() or public.owns_studio(studio_id) or public.is_admin());
+create policy "transactions: participants read" on public.transactions for select
+  using (artist_id = auth.uid() or public.owns_studio(studio_id) or public.is_admin());
+create policy "payouts: owner read" on public.payouts for select
+  using (public.owns_studio(studio_id) or public.is_admin());
+create policy "disputes: participants read" on public.disputes for select
+  using (opened_by = auth.uid() or public.is_admin()
+         or exists (select 1 from public.bookings b where b.id = booking_id and (b.artist_id = auth.uid() or public.owns_studio(b.studio_id))));
+
+-- chat
+create policy "conversations: participants read" on public.conversations for select
+  using (artist_id = auth.uid() or public.owns_studio(studio_id) or public.is_admin());
+create policy "messages: participants read" on public.messages for select
+  using (public.is_conversation_participant(conversation_id) or public.is_admin());
+-- Artists can write in their own threads; the studio side only once the studio is approved.
+create policy "messages: participants send" on public.messages for insert
+  with check (
+    sender_id = auth.uid() and kind = 'text' and public.is_active_user()
+    and exists (
+      select 1 from public.conversations c
+      where c.id = conversation_id
+        and (c.artist_id = auth.uid() or public.owns_approved_studio(c.studio_id))
+    )
+  );
+
+-- notifications
+create policy "notifications: own read" on public.notifications for select using (user_id = auth.uid());
+create policy "notifications: own mark read" on public.notifications for update using (user_id = auth.uid()) with check (user_id = auth.uid());
+
+-- reviews: public; artists write one per completed booking; replies via RPC
+create policy "reviews: read" on public.reviews for select using (not is_hidden or artist_id = auth.uid() or public.owns_studio(studio_id) or public.is_admin());
+create policy "reviews: artist insert" on public.reviews for insert with check (
+  artist_id = auth.uid()
+  and exists (
+    select 1 from public.bookings b
+    where b.id = booking_id and b.artist_id = auth.uid() and b.studio_id = reviews.studio_id
+      and b.status = 'completed' and not b.has_review
+  )
+);
+
+-- reports
+create policy "reports: insert own" on public.reports for insert with check (reporter_id = auth.uid());
+create policy "reports: read own or admin" on public.reports for select using (reporter_id = auth.uid() or public.is_admin());
+
+create policy "platform_settings: read" on public.platform_settings for select using (true);
+
+-- ---------------------------------------------------------------------------
+-- Storage: public "media" bucket; users write only under their own user-id prefix.
+-- ---------------------------------------------------------------------------
+insert into storage.buckets (id, name, public) values ('media', 'media', true) on conflict (id) do nothing;
+
+create policy "media: upload own folder" on storage.objects for insert to authenticated
+  with check (bucket_id = 'media' and (storage.foldername(name))[1] = auth.uid()::text);
+create policy "media: update own folder" on storage.objects for update to authenticated
+  using (bucket_id = 'media' and (storage.foldername(name))[1] = auth.uid()::text);
+create policy "media: delete own folder" on storage.objects for delete to authenticated
+  using (bucket_id = 'media' and (storage.foldername(name))[1] = auth.uid()::text);
+
+-- ---------------------------------------------------------------------
+-- 20260924000003_app_logic.sql
+-- ---------------------------------------------------------------------
+-- Sonora: RPCs used by the app and triggers that keep derived data + notifications in sync.
+
+-- ---------------------------------------------------------------------------
+-- Notifications helper
+-- ---------------------------------------------------------------------------
+create or replace function public.notify(
+  p_user_id uuid,
+  p_kind public.notification_kind,
+  p_title text,
+  p_body text,
+  p_booking_id uuid default null,
+  p_conversation_id uuid default null,
+  p_studio_id uuid default null
+) returns void
+language sql security definer set search_path = public
+as $$
+  insert into public.notifications (user_id, kind, title, body, booking_id, conversation_id, studio_id)
+  select p_user_id, p_kind, p_title, p_body, p_booking_id, p_conversation_id, p_studio_id
+  where p_user_id is not null;
+$$;
+revoke execute on function public.notify from public, anon, authenticated;
+
+create or replace function public.format_local(p_at timestamptz, p_studio_id uuid)
+returns text language sql stable security definer set search_path = public
+as $$
+  select to_char(p_at at time zone coalesce((select timezone from public.studios where id = p_studio_id), 'UTC'), 'Dy DD Mon, HH24:MI');
+$$;
+
+create or replace function public.format_money(p_amount integer, p_currency text)
+returns text language sql immutable
+as $$
+  select p_currency || ' ' || to_char(p_amount / 100.0, 'FM999999990.00');
+$$;
+
+-- Adds a system line to every conversation tied to a booking.
+create or replace function public.booking_system_message(p_booking_id uuid, p_body text)
+returns void
+language sql security definer set search_path = public
+as $$
+  insert into public.messages (conversation_id, sender_id, kind, body)
+  select id, null, 'system', p_body from public.conversations where booking_id = p_booking_id;
+$$;
+revoke execute on function public.booking_system_message from public, anon, authenticated;
+
+-- ---------------------------------------------------------------------------
+-- Studios
+-- ---------------------------------------------------------------------------
+create or replace function public.studio_validation_problems(s public.studios)
+returns text[]
+language plpgsql stable
+as $$
+declare
+  problems text[] := '{}';
+begin
+  if char_length(trim(s.name)) < 3 then problems := problems || 'Add your studio''s name.'; end if;
+  if char_length(s.description) < 40 then problems := problems || 'Write a description of at least 40 characters.'; end if;
+  if cardinality(s.photo_urls) = 0 then problems := problems || 'Add at least one photo.'; end if;
+  if coalesce(s.address ->> 'street', '') = '' or coalesce(s.address ->> 'city', '') = '' then problems := problems || 'Add the studio''s address.'; end if;
+  if s.latitude = 0 and s.longitude = 0 then problems := problems || 'Place your studio on the map.'; end if;
+  if coalesce(s.contact ->> 'email', '') = '' and coalesce(s.contact ->> 'phone', '') = '' then problems := problems || 'Add an email or phone number.'; end if;
+  if jsonb_array_length(s.session_types) = 0 or exists (
+       select 1 from jsonb_array_elements(s.session_types) as t where coalesce((t.value ->> 'hourly_rate')::int, 0) <= 0) then
+    problems := problems || 'Set a price for each session type.';
+  end if;
+  if not exists (select 1 from jsonb_array_elements(s.opening_hours) as h where not coalesce((h.value ->> 'is_closed')::boolean, false)) then
+    problems := problems || 'Set your opening hours.';
+  end if;
+  if cardinality(s.genres) = 0 then problems := problems || 'Pick at least one genre.'; end if;
+  return problems;
+end;
+$$;
+
+create or replace function public.submit_studio_for_review(p_studio_id uuid)
+returns public.studios
+language plpgsql security definer set search_path = public
+as $$
+declare
+  s public.studios;
+  problems text[];
+begin
+  select * into s from public.studios where id = p_studio_id and owner_id = auth.uid() for update;
+  if s.id is null then raise exception 'not_found'; end if;
+  if s.status not in ('draft', 'changes_requested', 'rejected') then return s; end if;
+  problems := public.studio_validation_problems(s);
+  if cardinality(problems) > 0 then raise exception '%', problems[1]; end if;
+
+  insert into public.studio_status_events (studio_id, from_status, to_status, actor_id)
+  values (s.id, s.status, 'pending_review', auth.uid());
+  update public.studios set status = 'pending_review', submitted_at = now() where id = s.id returning * into s;
+  return s;
+end;
+$$;
+
+create or replace function public.set_studio_active(p_studio_id uuid, p_active boolean)
+returns public.studios
+language plpgsql security definer set search_path = public
+as $$
+declare
+  s public.studios;
+begin
+  select * into s from public.studios where id = p_studio_id and owner_id = auth.uid();
+  if s.id is null then raise exception 'not_found'; end if;
+  if s.status <> 'approved' then raise exception 'Your studio must be approved before it can go live.'; end if;
+  update public.studios set is_active = p_active where id = s.id returning * into s;
+  return s;
+end;
+$$;
+
+-- Occupied time ranges for availability. Exposes no personal data.
+create or replace function public.studio_busy_intervals(p_studio_ids uuid[], p_from timestamptz, p_to timestamptz)
+returns table (studio_id uuid, starts_at timestamptz, ends_at timestamptz)
+language sql stable security definer set search_path = public
+as $$
+  select b.studio_id, b.starts_at, b.ends_at from public.bookings b
+  where b.studio_id = any (p_studio_ids)
+    and b.status in ('awaiting_payment', 'pending_approval', 'confirmed')
+    and b.starts_at < p_to and b.ends_at > p_from
+  union all
+  select s.studio_id, s.starts_at, s.ends_at from public.blocked_slots s
+  where s.studio_id = any (p_studio_ids) and s.starts_at < p_to and s.ends_at > p_from;
+$$;
+
+create or replace function public.on_studio_status_change()
+returns trigger
+language plpgsql security definer set search_path = public
+as $$
+begin
+  if new.status is distinct from old.status then
+    if new.status = 'approved' then
+      perform public.notify(new.owner_id, 'studio_approved', 'Your studio is live', new.name || ' was approved and is now visible to artists.', null, null, new.id);
+    elsif new.status = 'rejected' then
+      perform public.notify(new.owner_id, 'studio_rejected', 'Application not approved', coalesce(new.admin_note, 'Your studio was not approved.'), null, null, new.id);
+    elsif new.status = 'changes_requested' then
+      perform public.notify(new.owner_id, 'studio_changes_requested', 'Changes requested', coalesce(new.admin_note, 'Please update your listing and resubmit.'), null, null, new.id);
+    elsif new.status = 'suspended' then
+      perform public.notify(new.owner_id, 'system', 'Studio suspended', coalesce(new.admin_note, 'Your studio has been suspended. Contact support.'), null, null, new.id);
+    end if;
+  end if;
+  return new;
+end;
+$$;
+create trigger on_studio_status_change after update of status on public.studios
+  for each row execute function public.on_studio_status_change();
+
+-- ---------------------------------------------------------------------------
+-- Bookings → notifications, system messages, counters
+-- ---------------------------------------------------------------------------
+create or replace function public.on_booking_change()
+returns trigger
+language plpgsql security definer set search_path = public
+as $$
+declare
+  owner uuid;
+  when_text text;
+begin
+  select owner_id into owner from public.studios where id = new.studio_id;
+  when_text := public.format_local(new.starts_at, new.studio_id);
+
+  if tg_op = 'UPDATE' and new.status is distinct from old.status then
+    case new.status
+      when 'pending_approval' then
+        perform public.notify(owner, 'booking_requested', 'New booking request',
+          new.artist_name || ' wants to book ' || new.hours || 'h on ' || when_text || '. Accept or decline.', new.id);
+      when 'confirmed' then
+        perform public.notify(new.artist_id, 'booking_confirmed', 'Booking confirmed', new.studio_name || ' · ' || when_text, new.id);
+        if old.status = 'awaiting_payment' then
+          perform public.notify(owner, 'booking_requested', 'New booking', new.artist_name || ' booked ' || new.hours || 'h on ' || when_text || '.', new.id);
+        end if;
+        update public.studios set booking_count = booking_count + 1 where id = new.studio_id;
+      when 'declined' then
+        perform public.notify(new.artist_id, 'booking_declined', 'Request declined',
+          new.studio_name || ' couldn''t take your session. Your card was not charged.' || coalesce(' “' || new.cancellation_reason || '”', ''), new.id);
+      when 'cancelled' then
+        if new.cancelled_by = 'artist' then
+          perform public.notify(owner, 'booking_cancelled', 'Booking cancelled', new.artist_name || ' cancelled the session on ' || when_text || '.', new.id);
+        else
+          perform public.notify(new.artist_id, 'booking_cancelled', 'Booking cancelled by studio',
+            new.studio_name || ' cancelled your session on ' || when_text || '. You''ll get a full refund.', new.id);
+        end if;
+        perform public.booking_system_message(new.id, 'Booking ' || new.reference || ' was cancelled by the ' || case when new.cancelled_by = 'artist' then 'artist' else 'studio' end || '.');
+      when 'completed' then
+        perform public.notify(new.artist_id, 'review_reminder', 'How was ' || new.studio_name || '?', 'Leave a review for your session.', new.id, null, new.studio_id);
+      when 'disputed' then
+        perform public.notify(owner, 'system', 'Problem reported', 'A problem was reported on booking ' || new.reference || '. Our team will contact you.', new.id);
+      else
+        null;
+    end case;
+  end if;
+
+  if tg_op = 'UPDATE' and new.starts_at is distinct from old.starts_at and new.status = 'confirmed' then
+    perform public.notify(case when new.changed_by = new.artist_id then owner else new.artist_id end, 'booking_changed', 'Booking moved',
+      new.reference || ' moved from ' || public.format_local(old.starts_at, new.studio_id) || ' to ' || when_text || '.', new.id);
+    perform public.booking_system_message(new.id, 'Booking moved from ' || public.format_local(old.starts_at, new.studio_id) || ' to ' || when_text || '.');
+  end if;
+
+  if tg_op = 'UPDATE' and new.refund_amount > old.refund_amount and new.payment_status in ('refunded', 'partially_refunded') and old.payment_status <> 'authorized' then
+    perform public.notify(new.artist_id, 'refund_issued', 'Refund on its way',
+      public.format_money(new.refund_amount - old.refund_amount, new.price ->> 'currency') || ' will be back on your card in 5–10 days.', new.id);
+  end if;
+
+  return new;
+end;
+$$;
+create trigger on_booking_change after update on public.bookings
+  for each row execute function public.on_booking_change();
+
+create or replace function public.open_dispute(p_booking_id uuid, p_reason text)
+returns void
+language plpgsql security definer set search_path = public
+as $$
+declare
+  b public.bookings;
+begin
+  select * into b from public.bookings where id = p_booking_id;
+  if b.id is null then raise exception 'not_found'; end if;
+  if b.artist_id <> auth.uid() and not public.owns_studio(b.studio_id) then raise exception 'forbidden' using errcode = '42501'; end if;
+  if b.status not in ('confirmed', 'completed') then raise exception 'You can only report a problem on a confirmed or completed booking.'; end if;
+  insert into public.disputes (booking_id, opened_by, reason) values (b.id, auth.uid(), p_reason);
+  update public.bookings set status = 'disputed', changed_by = auth.uid() where id = b.id;
+  perform public.notify(auth.uid(), 'system', 'We''re on it', 'Our team will review booking ' || b.reference || ' within 24 hours.', b.id);
+end;
+$$;
+
+-- ---------------------------------------------------------------------------
+-- Chat
+-- ---------------------------------------------------------------------------
+create or replace function public.get_or_create_conversation(p_studio_id uuid, p_booking_id uuid default null)
+returns public.conversations
+language plpgsql security definer set search_path = public
+as $$
+declare
+  me public.profiles;
+  s public.studios;
+  b public.bookings;
+  artist uuid;
+  convo public.conversations;
+begin
+  select * into me from public.profiles where id = auth.uid();
+  if me.id is null or me.status <> 'active' then raise exception 'forbidden' using errcode = '42501'; end if;
+  select * into s from public.studios where id = p_studio_id;
+  if s.id is null then raise exception 'not_found'; end if;
+
+  if p_booking_id is not null then
+    select * into b from public.bookings where id = p_booking_id and studio_id = p_studio_id;
+    if b.id is null then raise exception 'not_found'; end if;
+  end if;
+
+  if me.role = 'artist' then
+    if p_booking_id is null and not (s.status = 'approved' and s.is_active) then raise exception 'not_found'; end if;
+    if b.id is not null and b.artist_id <> me.id then raise exception 'forbidden' using errcode = '42501'; end if;
+    artist := me.id;
+  elsif s.owner_id = me.id and b.id is not null and public.owns_approved_studio(s.id) then
+    -- Studios can only start a conversation about one of their bookings.
+    artist := b.artist_id;
+  else
+    raise exception 'forbidden' using errcode = '42501';
+  end if;
+
+  select * into convo from public.conversations
+  where artist_id = artist and studio_id = s.id and booking_id is not distinct from p_booking_id;
+  if convo.id is not null then return convo; end if;
+
+  insert into public.conversations (artist_id, studio_id, booking_id, artist_name, studio_name, studio_photo_url)
+  values (
+    artist, s.id, p_booking_id,
+    coalesce(nullif((select artist_name from public.artist_profiles where id = artist), ''), 'Artist'),
+    s.name, s.photo_urls[1]
+  )
+  returning * into convo;
+  return convo;
+end;
+$$;
+
+create or replace function public.mark_conversation_read(p_conversation_id uuid)
+returns void
+language plpgsql security definer set search_path = public
+as $$
+begin
+  update public.conversations c set
+    artist_unread = case when c.artist_id = auth.uid() then 0 else c.artist_unread end,
+    studio_unread = case when public.owns_studio(c.studio_id) then 0 else c.studio_unread end
+  where c.id = p_conversation_id;
+end;
+$$;
+
+create or replace function public.on_message_insert()
+returns trigger
+language plpgsql security definer set search_path = public
+as $$
+declare
+  c public.conversations;
+  owner uuid;
+  from_artist boolean;
+begin
+  select * into c from public.conversations where id = new.conversation_id;
+  select owner_id into owner from public.studios where id = c.studio_id;
+  from_artist := new.sender_id = c.artist_id;
+
+  update public.conversations set
+    last_message_preview = left(new.body, 140),
+    last_message_at = new.created_at,
+    artist_unread = artist_unread + case when new.sender_id is null or not from_artist then 1 else 0 end,
+    studio_unread = studio_unread + case when new.sender_id is null or from_artist then 1 else 0 end
+  where id = c.id;
+
+  if new.kind = 'text' then
+    perform public.notify(
+      case when from_artist then owner else c.artist_id end,
+      'new_message',
+      case when from_artist then c.artist_name else c.studio_name end,
+      left(new.body, 140),
+      c.booking_id, c.id
+    );
+  end if;
+  return new;
+end;
+$$;
+create trigger on_message_insert after insert on public.messages
+  for each row execute function public.on_message_insert();
+
+-- ---------------------------------------------------------------------------
+-- Reviews
+-- ---------------------------------------------------------------------------
+-- SECURITY INVOKER on purpose: is_trusted() must see the real caller.
+create or replace function public.before_review_insert()
+returns trigger
+language plpgsql
+as $$
+begin
+  new.artist_name := coalesce(nullif((select artist_name from public.artist_profiles where id = new.artist_id), ''), new.artist_name);
+  if not public.is_trusted() then
+    new.studio_reply := null;
+    new.studio_replied_at := null;
+    new.is_hidden := false;
+    new.created_at := now();
+  end if;
+  return new;
+end;
+$$;
+create trigger before_review_insert before insert on public.reviews
+  for each row execute function public.before_review_insert();
+
+create or replace function public.refresh_studio_rating(p_studio_id uuid)
+returns void
+language sql security definer set search_path = public
+as $$
+  update public.studios s set
+    rating_average = coalesce((select round(avg(rating)::numeric, 1) from public.reviews r where r.studio_id = s.id and not r.is_hidden), 0),
+    review_count = (select count(*) from public.reviews r where r.studio_id = s.id and not r.is_hidden)
+  where s.id = p_studio_id;
+$$;
+
+create or replace function public.after_review_change()
+returns trigger
+language plpgsql security definer set search_path = public
+as $$
+declare
+  owner uuid;
+begin
+  perform public.refresh_studio_rating(new.studio_id);
+  if tg_op = 'INSERT' then
+    update public.bookings set has_review = true where id = new.booking_id;
+    select owner_id into owner from public.studios where id = new.studio_id;
+    perform public.notify(owner, 'new_review', 'New ' || new.rating || '★ review',
+      new.artist_name || ' reviewed your studio.', new.booking_id, null, new.studio_id);
+  end if;
+  return new;
+end;
+$$;
+create trigger after_review_insert after insert on public.reviews
+  for each row execute function public.after_review_change();
+create trigger after_review_visibility after update of is_hidden on public.reviews
+  for each row execute function public.after_review_change();
+
+create or replace function public.reply_to_review(p_review_id uuid, p_reply text)
+returns public.reviews
+language plpgsql security definer set search_path = public
+as $$
+declare
+  r public.reviews;
+begin
+  select * into r from public.reviews where id = p_review_id;
+  if r.id is null then raise exception 'not_found'; end if;
+  if not public.owns_approved_studio(r.studio_id) then raise exception 'forbidden' using errcode = '42501'; end if;
+  if char_length(trim(p_reply)) = 0 then raise exception 'Write a reply first.'; end if;
+  update public.reviews set studio_reply = trim(p_reply), studio_replied_at = now() where id = r.id returning * into r;
+  return r;
+end;
+$$;
+
+-- ---------------------------------------------------------------------------
+-- Payouts
+-- ---------------------------------------------------------------------------
+create or replace function public.on_payout_paid()
+returns trigger
+language plpgsql security definer set search_path = public
+as $$
+declare
+  owner uuid;
+begin
+  if new.status = 'paid' and old.status is distinct from 'paid' then
+    select owner_id into owner from public.studios where id = new.studio_id;
+    perform public.notify(owner, 'payout_sent', 'Payout sent', public.format_money(new.amount, new.currency) || ' is on its way to your bank.', null, null, new.studio_id);
+  end if;
+  return new;
+end;
+$$;
+create trigger on_payout_paid after update of status on public.payouts
+  for each row execute function public.on_payout_paid();
+
+-- ---------------------------------------------------------------------------
+-- Realtime: stream chat messages and notifications to the app.
+-- ---------------------------------------------------------------------------
+alter publication supabase_realtime add table public.messages, public.notifications;
+
+-- Called by edge functions when an automatic balance charge fails.
+create or replace function public.notify_payment_problem(p_booking_id uuid)
+returns void
+language plpgsql security definer set search_path = public
+as $$
+declare
+  b public.bookings;
+begin
+  select * into b from public.bookings where id = p_booking_id;
+  perform public.notify(b.artist_id, 'system', 'Payment problem',
+    'We couldn''t charge the remaining ' || public.format_money((b.price ->> 'due_later')::int, b.price ->> 'currency')
+    || ' for booking ' || b.reference || '. Please update your card or contact support.', b.id);
+end;
+$$;
+revoke execute on function public.notify_payment_problem from public, anon, authenticated;
+
+-- ---------------------------------------------------------------------
+-- 20260924000004_admin.sql
+-- ---------------------------------------------------------------------
+-- Sonora: admin dashboard RPCs. Every function checks public.is_admin().
+
+create or replace function public.require_admin()
+returns void
+language plpgsql stable security definer set search_path = public
+as $$
+begin
+  if not public.is_admin() then
+    raise exception 'forbidden' using errcode = '42501';
+  end if;
+end;
+$$;
+
+-- approve | reject | request_changes
+create or replace function public.admin_review_studio(p_studio_id uuid, p_decision text, p_note text default null)
+returns public.studios
+language plpgsql security definer set search_path = public
+as $$
+declare
+  s public.studios;
+  previous public.studio_status;
+  next_status public.studio_status;
+begin
+  perform public.require_admin();
+  select * into s from public.studios where id = p_studio_id for update;
+  if s.id is null then raise exception 'not_found'; end if;
+  previous := s.status;
+
+  next_status := case p_decision
+    when 'approve' then 'approved'::public.studio_status
+    when 'reject' then 'rejected'::public.studio_status
+    when 'request_changes' then 'changes_requested'::public.studio_status
+  end;
+  if next_status is null then raise exception 'Unknown decision %', p_decision; end if;
+  if next_status <> 'approved' and coalesce(trim(p_note), '') = '' then
+    raise exception 'Add a note explaining what the studio should change.';
+  end if;
+
+  update public.studios set
+    status = next_status,
+    is_active = (next_status = 'approved'),
+    is_verified = case when next_status = 'approved' then true else is_verified end,
+    admin_note = p_note,
+    reviewed_at = now(),
+    reviewed_by = auth.uid()
+  where id = s.id
+  returning * into s;
+
+  insert into public.studio_status_events (studio_id, from_status, to_status, note, actor_id)
+  values (s.id, previous, next_status, p_note, auth.uid());
+  return s;
+end;
+$$;
+
+create or replace function public.admin_set_studio_state(p_studio_id uuid, p_active boolean default null, p_verified boolean default null, p_suspended boolean default null, p_note text default null)
+returns public.studios
+language plpgsql security definer set search_path = public
+as $$
+declare
+  s public.studios;
+begin
+  perform public.require_admin();
+  select * into s from public.studios where id = p_studio_id for update;
+  if s.id is null then raise exception 'not_found'; end if;
+
+  if p_suspended is true and s.status <> 'suspended' then
+    update public.studios set status = 'suspended', is_active = false, admin_note = coalesce(p_note, admin_note) where id = s.id;
+    insert into public.studio_status_events (studio_id, from_status, to_status, note, actor_id) values (s.id, s.status, 'suspended', p_note, auth.uid());
+  elsif p_suspended is false and s.status = 'suspended' then
+    update public.studios set status = 'approved', admin_note = coalesce(p_note, admin_note) where id = s.id;
+    insert into public.studio_status_events (studio_id, from_status, to_status, note, actor_id) values (s.id, 'suspended', 'approved', p_note, auth.uid());
+  end if;
+  if p_active is not null then
+    update public.studios set is_active = p_active and status = 'approved' where id = s.id;
+  end if;
+  if p_verified is not null then
+    update public.studios set is_verified = p_verified where id = s.id;
+  end if;
+  select * into s from public.studios where id = p_studio_id;
+  return s;
+end;
+$$;
+
+-- active | suspended | banned. Suspending a studio owner also hides their studio.
+create or replace function public.admin_set_user_status(p_user_id uuid, p_status public.account_status, p_reason text default null)
+returns public.profiles
+language plpgsql security definer set search_path = public
+as $$
+declare
+  p public.profiles;
+begin
+  perform public.require_admin();
+  if p_user_id = auth.uid() then raise exception 'You cannot change your own status.'; end if;
+  update public.profiles set status = p_status, status_reason = p_reason where id = p_user_id returning * into p;
+  if p.id is null then raise exception 'not_found'; end if;
+  if p_status <> 'active' then
+    update public.studios set is_active = false where owner_id = p_user_id;
+    delete from public.device_tokens where user_id = p_user_id;
+  end if;
+  return p;
+end;
+$$;
+
+create or replace function public.admin_verify_user(p_user_id uuid, p_verified boolean)
+returns public.profiles
+language plpgsql security definer set search_path = public
+as $$
+declare
+  p public.profiles;
+begin
+  perform public.require_admin();
+  update public.profiles set is_verified = p_verified where id = p_user_id returning * into p;
+  update public.artist_profiles set is_verified = p_verified where id = p_user_id;
+  return p;
+end;
+$$;
+
+create or replace function public.admin_resolve_report(p_report_id uuid, p_status public.report_status, p_note text default null)
+returns public.reports
+language plpgsql security definer set search_path = public
+as $$
+declare
+  r public.reports;
+begin
+  perform public.require_admin();
+  update public.reports set status = p_status, admin_note = p_note, resolved_at = case when p_status = 'open' then null else now() end
+  where id = p_report_id returning * into r;
+  return r;
+end;
+$$;
+
+create or replace function public.admin_set_review_hidden(p_review_id uuid, p_hidden boolean)
+returns public.reviews
+language plpgsql security definer set search_path = public
+as $$
+declare
+  r public.reviews;
+begin
+  perform public.require_admin();
+  update public.reviews set is_hidden = p_hidden where id = p_review_id returning * into r;
+  return r;
+end;
+$$;
+
+-- Closes a dispute. Money movements (refunds) are done through the admin-refund edge function first.
+create or replace function public.admin_resolve_dispute(p_dispute_id uuid, p_resolution text, p_booking_status public.booking_status default 'completed')
+returns public.disputes
+language plpgsql security definer set search_path = public
+as $$
+declare
+  d public.disputes;
+begin
+  perform public.require_admin();
+  update public.disputes set status = 'resolved', resolution = p_resolution, resolved_at = now() where id = p_dispute_id returning * into d;
+  if d.id is null then raise exception 'not_found'; end if;
+  update public.bookings set status = p_booking_status, changed_by = auth.uid() where id = d.booking_id and status = 'disputed';
+  return d;
+end;
+$$;
+
+-- Numbers for the admin overview. Revenue figures are in minor units per currency.
+create or replace function public.admin_dashboard_stats(p_from timestamptz default now() - interval '30 days', p_to timestamptz default now())
+returns jsonb
+language plpgsql stable security definer set search_path = public
+as $$
+declare
+  result jsonb;
+begin
+  perform public.require_admin();
+  select jsonb_build_object(
+    'artists', (select count(*) from public.profiles where role = 'artist'),
+    'studio_owners', (select count(*) from public.profiles where role = 'studio_owner'),
+    'studios_live', (select count(*) from public.studios where status = 'approved' and is_active),
+    'studios_pending', (select count(*) from public.studios where status = 'pending_review'),
+    'bookings_total', (select count(*) from public.bookings where created_at between p_from and p_to and status <> 'awaiting_payment'),
+    'bookings_confirmed', (select count(*) from public.bookings where created_at between p_from and p_to and status in ('confirmed', 'completed')),
+    'bookings_cancelled', (select count(*) from public.bookings where created_at between p_from and p_to and status in ('cancelled', 'declined')),
+    'booking_rate', (
+      select case when count(*) = 0 then 0 else round(100.0 * count(*) filter (where status in ('confirmed', 'completed', 'disputed')) / count(*), 1) end
+      from public.bookings where created_at between p_from and p_to
+    ),
+    'open_reports', (select count(*) from public.reports where status = 'open'),
+    'open_disputes', (select count(*) from public.disputes where status = 'open'),
+    'failed_payments', (select count(*) from public.transactions where status = 'failed' and created_at between p_from and p_to),
+    -- Per currency. Platform earnings = 10% platform fee on completed sessions (card and cash).
+    'revenue', coalesce((
+      select jsonb_object_agg(currency, jsonb_build_object(
+        'gross', card_volume + cash_volume, 'card', card_volume, 'cash', cash_volume,
+        'platform', platform, 'refunds', refunds, 'fees_owed', fees_owed))
+      from (
+        select c.currency,
+          coalesce((select sum((b.price ->> 'total')::int) from public.bookings b
+                    where b.status = 'completed' and b.price ->> 'currency' = c.currency and b.ends_at between p_from and p_to
+                      and b.payment_method is distinct from 'cash'), 0) as card_volume,
+          coalesce((select sum((b.price ->> 'total')::int) from public.bookings b
+                    where b.status = 'completed' and b.price ->> 'currency' = c.currency and b.ends_at between p_from and p_to
+                      and b.payment_method = 'cash'), 0) as cash_volume,
+          coalesce((select sum((b.price ->> 'studio_commission')::int + (b.price ->> 'service_fee')::int) from public.bookings b
+                    where b.status = 'completed' and b.price ->> 'currency' = c.currency and b.ends_at between p_from and p_to), 0) as platform,
+          coalesce((select sum(t.amount) from public.transactions t
+                    where t.kind = 'refund' and t.status = 'succeeded' and t.currency = c.currency and t.created_at between p_from and p_to), 0) as refunds,
+          coalesce((select sum(l.amount) from public.studio_fee_ledger l where l.currency = c.currency), 0) as fees_owed
+        from (select distinct price ->> 'currency' as currency from public.bookings where status = 'completed') c
+      ) x
+    ), '{}'::jsonb),
+    'top_studios', coalesce((
+      select jsonb_agg(row_to_json(x)) from (
+        select s.id, s.name, s.address ->> 'city' as city, count(b.id) as bookings, s.rating_average as rating
+        from public.studios s join public.bookings b on b.studio_id = s.id
+        where b.created_at between p_from and p_to and b.status in ('confirmed', 'completed')
+        group by s.id order by count(b.id) desc limit 10
+      ) x
+    ), '[]'::jsonb),
+    'top_areas', coalesce((
+      select jsonb_agg(row_to_json(x)) from (
+        select s.address ->> 'city' as city, nullif(s.address ->> 'area', '') as area, count(b.id) as bookings
+        from public.studios s join public.bookings b on b.studio_id = s.id
+        where b.created_at between p_from and p_to and b.status in ('confirmed', 'completed')
+        group by 1, 2 order by count(b.id) desc limit 10
+      ) x
+    ), '[]'::jsonb),
+    'bookings_per_day', coalesce((
+      select jsonb_agg(row_to_json(x) order by x.day) from (
+        select date_trunc('day', created_at)::date as day, count(*) as bookings
+        from public.bookings where created_at between p_from and p_to and status <> 'awaiting_payment'
+        group by 1
+      ) x
+    ), '[]'::jsonb)
+  ) into result;
+  return result;
+end;
+$$;
+
+-- Admin-only view of users with their artist/studio info.
+create or replace view public.admin_users with (security_invoker = true) as
+select p.id, p.email, p.role, p.status, p.status_reason, p.is_verified, p.created_at,
+  a.artist_name, a.city as artist_city,
+  s.id as studio_id, s.name as studio_name,
+  (select count(*) from public.bookings b where b.artist_id = p.id) as booking_count
+from public.profiles p
+left join public.artist_profiles a on a.id = p.id
+left join public.studios s on s.owner_id = p.id;
+
+-- ---------------------------------------------------------------------
+-- 20260924000005_jobs.sql
+-- ---------------------------------------------------------------------
+-- Sonora: scheduled jobs (pg_cron) and push delivery (pg_net → send-push edge function).
+--
+-- Setup (once per project), in the SQL editor:
+--   select vault.create_secret('https://<project-ref>.supabase.co', 'project_url');
+--   select vault.create_secret('<service-role-key>', 'service_role_key');
+
+create extension if not exists pg_cron with schema pg_catalog;
+create extension if not exists pg_net with schema extensions;
+
+create or replace function public.call_edge_function(p_name text, p_body jsonb default '{}'::jsonb)
+returns void
+language plpgsql security definer set search_path = public
+as $$
+declare
+  base_url text := (select decrypted_secret from vault.decrypted_secrets where name = 'project_url');
+  key text := (select decrypted_secret from vault.decrypted_secrets where name = 'service_role_key');
+begin
+  if base_url is null or key is null then
+    return; -- not configured (e.g. local dev without secrets)
+  end if;
+  perform net.http_post(
+    url := base_url || '/functions/v1/' || p_name,
+    headers := jsonb_build_object('Content-Type', 'application/json', 'Authorization', 'Bearer ' || key),
+    body := p_body
+  );
+end;
+$$;
+revoke execute on function public.call_edge_function from public, anon, authenticated;
+
+-- Every new notification is pushed to the user's devices (the function applies their settings).
+create or replace function public.on_notification_insert()
+returns trigger
+language plpgsql security definer set search_path = public
+as $$
+begin
+  perform public.call_edge_function('send-push', jsonb_build_object('notification_id', new.id));
+  return new;
+end;
+$$;
+create trigger on_notification_insert after insert on public.notifications
+  for each row execute function public.on_notification_insert();
+
+-- Time-based booking transitions.
+create or replace function public.run_booking_housekeeping()
+returns void
+language plpgsql security definer set search_path = public
+as $$
+begin
+  -- Unpaid holds release the slot after 30 minutes.
+  update public.bookings set status = 'expired'
+  where status = 'awaiting_payment' and created_at < now() - interval '30 minutes';
+
+  -- Requests the studio never answered expire at session start (authorisation is released by the edge function).
+  update public.bookings set status = 'expired', payment_status = 'refunded'
+  where status = 'pending_approval' and starts_at < now();
+
+  -- Finished sessions complete (triggers review prompt; payouts/balance charges run in process-payouts).
+  update public.bookings set status = 'completed'
+  where status = 'confirmed' and ends_at < now();
+end;
+$$;
+
+-- Session reminders 24h and 2h before start.
+create or replace function public.queue_session_reminders()
+returns void
+language plpgsql security definer set search_path = public
+as $$
+declare
+  b record;
+begin
+  for b in
+    select * from public.bookings
+    where status = 'confirmed' and reminder_24h_sent_at is null
+      and starts_at between now() + interval '23 hours' and now() + interval '24 hours 15 minutes'
+  loop
+    perform public.notify(b.artist_id, 'session_reminder', 'Session tomorrow',
+      b.session_type_name || ' at ' || b.studio_name || ', ' || public.format_local(b.starts_at, b.studio_id) || '.', b.id);
+    update public.bookings set reminder_24h_sent_at = now() where id = b.id;
+  end loop;
+
+  for b in
+    select * from public.bookings
+    where status = 'confirmed' and reminder_2h_sent_at is null
+      and starts_at between now() + interval '1 hour 45 minutes' and now() + interval '2 hours 15 minutes'
+  loop
+    perform public.notify(b.artist_id, 'session_reminder', 'Session in 2 hours',
+      b.session_type_name || ' at ' || b.studio_name || '. See you there!', b.id);
+    update public.bookings set reminder_2h_sent_at = now() where id = b.id;
+  end loop;
+end;
+$$;
+
+select cron.schedule('sonora-booking-housekeeping', '*/10 * * * *', $$select public.run_booking_housekeeping()$$);
+select cron.schedule('sonora-session-reminders', '*/15 * * * *', $$select public.queue_session_reminders()$$);
+select cron.schedule('sonora-process-payouts', '7 * * * *', $$select public.call_edge_function('process-payouts')$$);
+
+-- ---------------------------------------------------------------------
+-- 20260925000001_cash_fees_compliance.sql
+-- ---------------------------------------------------------------------
+-- Sonora: cash payments, platform-fee ledger for studios, terms acceptance (GDPR) and approval gating.
+--
+-- Money model: Sonora takes 10% of every sale (price ->> 'studio_commission').
+--  * Card:  the artist pays Sonora, Sonora pays the studio 90% (payouts).
+--  * Cash:  the artist pays the studio at the session; the studio owes Sonora 10%.
+--           Owed fees are netted against the studio's next card payouts, invoiced, or paid manually.
+
+-- ---------------------------------------------------------------------------
+-- Fee ledger: positive = studio owes Sonora, negative = settled.
+-- ---------------------------------------------------------------------------
+create table public.studio_fee_ledger (
+  id uuid primary key default gen_random_uuid(),
+  studio_id uuid not null references public.studios (id) on delete cascade,
+  booking_id uuid references public.bookings (id),
+  payout_id uuid references public.payouts (id),
+  invoice_id uuid,
+  kind text not null check (kind in ('cash_commission', 'payout_offset', 'invoice_payment', 'manual_payment', 'waiver')),
+  amount integer not null,
+  currency text not null,
+  note text,
+  created_by uuid references public.profiles (id),
+  created_at timestamptz not null default now()
+);
+create index studio_fee_ledger_studio_idx on public.studio_fee_ledger (studio_id, created_at desc);
+create unique index studio_fee_ledger_commission_once on public.studio_fee_ledger (booking_id) where kind = 'cash_commission';
+create unique index studio_fee_ledger_offset_once on public.studio_fee_ledger (payout_id) where kind = 'payout_offset';
+
+create table public.studio_fee_invoices (
+  id uuid primary key default gen_random_uuid(),
+  studio_id uuid not null references public.studios (id) on delete cascade,
+  amount integer not null check (amount > 0),
+  currency text not null,
+  stripe_invoice_id text unique,
+  hosted_invoice_url text,
+  status text not null default 'open' check (status in ('open', 'paid', 'void')),
+  created_at timestamptz not null default now(),
+  paid_at timestamptz
+);
+
+create view public.studio_fee_balances with (security_invoker = true) as
+select l.studio_id, s.name as studio_name, l.currency, sum(l.amount)::int as balance,
+  max(l.created_at) filter (where l.kind = 'cash_commission') as last_commission_at
+from public.studio_fee_ledger l join public.studios s on s.id = l.studio_id
+group by l.studio_id, s.name, l.currency;
+
+alter table public.studio_fee_ledger enable row level security;
+alter table public.studio_fee_invoices enable row level security;
+create policy "fee_ledger: owner or admin read" on public.studio_fee_ledger for select
+  using (public.owns_studio(studio_id) or public.is_admin());
+create policy "fee_invoices: owner or admin read" on public.studio_fee_invoices for select
+  using (public.owns_studio(studio_id) or public.is_admin());
+
+-- A completed cash session makes the platform fee payable.
+create or replace function public.on_cash_booking_completed()
+returns trigger
+language plpgsql security definer set search_path = public
+as $$
+begin
+  if new.status = 'completed' and old.status is distinct from 'completed' and new.payment_method = 'cash' then
+    insert into public.studio_fee_ledger (studio_id, booking_id, kind, amount, currency, note)
+    values (new.studio_id, new.id, 'cash_commission', (new.price ->> 'studio_commission')::int, new.price ->> 'currency',
+            'Platform fee for cash booking ' || new.reference)
+    on conflict do nothing;
+  end if;
+  return new;
+end;
+$$;
+create trigger on_cash_booking_completed after update of status on public.bookings
+  for each row execute function public.on_cash_booking_completed();
+
+-- Studio confirms it received the cash.
+create or replace function public.mark_cash_received(p_booking_id uuid)
+returns public.bookings
+language plpgsql security definer set search_path = public
+as $$
+declare
+  b public.bookings;
+begin
+  select * into b from public.bookings where id = p_booking_id for update;
+  if b.id is null then raise exception 'not_found'; end if;
+  if not public.owns_approved_studio(b.studio_id) then raise exception 'forbidden' using errcode = '42501'; end if;
+  if b.payment_method is distinct from 'cash' then raise exception 'This booking was paid by card.'; end if;
+  if b.status not in ('confirmed', 'completed') or b.starts_at > now() then
+    raise exception 'You can confirm cash once the session has started.';
+  end if;
+  update public.bookings set payment_status = 'paid', cash_received_at = now(), changed_by = auth.uid()
+  where id = b.id returning * into b;
+  return b;
+end;
+$$;
+
+-- Cash bookings not confirmed by the studio are treated as paid 3 days after the session
+-- (the studio can open a dispute before that, e.g. for a no-show).
+create or replace function public.run_cash_housekeeping()
+returns void
+language sql security definer set search_path = public
+as $$
+  update public.bookings set payment_status = 'paid', cash_received_at = coalesce(cash_received_at, now())
+  where payment_method = 'cash' and payment_status = 'pay_at_studio'
+    and status = 'completed' and ends_at < now() - interval '3 days';
+$$;
+select cron.schedule('sonora-cash-housekeeping', '17 * * * *', $$select public.run_cash_housekeeping()$$);
+
+-- ---------------------------------------------------------------------------
+-- Terms acceptance (records version + time; required before using the app)
+-- ---------------------------------------------------------------------------
+create or replace function public.accept_terms(p_version text)
+returns public.profiles
+language plpgsql security definer set search_path = public
+as $$
+declare
+  p public.profiles;
+begin
+  if coalesce(trim(p_version), '') = '' then raise exception 'Missing terms version.'; end if;
+  update public.profiles set accepted_terms_version = p_version, accepted_terms_at = now()
+  where id = auth.uid() returning * into p;
+  if p.id is null then raise exception 'not_found'; end if;
+  return p;
+end;
+$$;
+
+-- ---------------------------------------------------------------------------
+-- Admin: settle or waive fees
+-- ---------------------------------------------------------------------------
+create or replace function public.admin_record_fee_settlement(p_studio_id uuid, p_amount integer, p_currency text, p_kind text, p_note text default null)
+returns public.studio_fee_ledger
+language plpgsql security definer set search_path = public
+as $$
+declare
+  row public.studio_fee_ledger;
+begin
+  perform public.require_admin();
+  if p_kind not in ('manual_payment', 'waiver') then raise exception 'Use manual_payment or waiver.'; end if;
+  if p_amount <= 0 then raise exception 'Amount must be positive.'; end if;
+  insert into public.studio_fee_ledger (studio_id, kind, amount, currency, note, created_by)
+  values (p_studio_id, p_kind, -p_amount, upper(p_currency), p_note, auth.uid())
+  returning * into row;
+  return row;
+end;
+$$;
+
+-- Keep the studio informed about what it owes.
+create or replace function public.on_fee_ledger_insert()
+returns trigger
+language plpgsql security definer set search_path = public
+as $$
+declare
+  owner uuid;
+begin
+  select owner_id into owner from public.studios where id = new.studio_id;
+  if new.kind = 'cash_commission' then
+    perform public.notify(owner, 'system', 'Platform fee added',
+      public.format_money(new.amount, new.currency) || ' (10%) for a cash booking. It will be deducted from your next payout.', new.booking_id, null, new.studio_id);
+  elsif new.kind in ('invoice_payment', 'manual_payment') then
+    perform public.notify(owner, 'system', 'Payment received', 'Thanks! We received ' || public.format_money(-new.amount, new.currency) || ' in platform fees.', null, null, new.studio_id);
+  end if;
+  return new;
+end;
+$$;
+create trigger on_fee_ledger_insert after insert on public.studio_fee_ledger
+  for each row execute function public.on_fee_ledger_insert();
+
+-- =====================================================================
+-- LAST STEP (run separately, with your own values):
+-- Lets scheduled jobs and push notifications call the edge functions.
+-- Service role key: Project Settings → API Keys → service_role / secret (keep it private).
+--
+-- select vault.create_secret('https://YOUR-PROJECT-REF.supabase.co', 'project_url');
+-- select vault.create_secret('YOUR-SERVICE-ROLE-KEY', 'service_role_key');
+-- =====================================================================
