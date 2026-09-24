@@ -1,6 +1,7 @@
 # Xcode
-*.xcodeproj/
-*.xcworkspace/
+# The generated Xcode project is committed (so Macs without XcodeGen can open it); user state is not.
+*.xcodeproj/project.xcworkspace/xcuserdata/
+*.xcodeproj/xcuserdata/
 xcuserdata/
 DerivedData/
 build/

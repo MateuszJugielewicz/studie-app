@@ -1,0 +1,754 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 54;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		02B24CF8A97394C1D567BB97 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60C1EFAAD689D6D5B159868B /* Theme.swift */; };
+		0778E1454ED2357FC7CA7681 /* LegalDocs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66A141E8D130EA01331C5668 /* LegalDocs.swift */; };
+		0BE2CCD6E0F3195F7CA4CC9C /* StudioEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F4D05B208337EDBFE998012 /* StudioEditorView.swift */; };
+		0C7605B4EEE1879924DD1F07 /* LegalViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 268B3A5CBBD2C0804FFCFED6 /* LegalViews.swift */; };
+		15FDCCF80320734DF202C757 /* BookingsViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 511BF32A0EC127C4C1890268 /* BookingsViews.swift */; };
+		173B499A4681D5099D0DE25A /* PaymentProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42513034E5D3A304F7C3A7B8 /* PaymentProcessor.swift */; };
+		1F2694FDB65234CCDDA8093C /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A93FE88DE5D655BF2551AA3 /* AppState.swift */; };
+		24EF9A61C4E2AAF4C1B0D870 /* PricingEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B01D30E9BACA37FE6D48631 /* PricingEngine.swift */; };
+		2B654B9B28DD2A5F3DBAC523 /* Social.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F0AEFBAA4D8F55DC26826A9 /* Social.swift */; };
+		2C7FB54A49752A503B711C36 /* SupabaseBackend.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03362CD60F7061D5E06F3B81 /* SupabaseBackend.swift */; };
+		30A20B792C0400E37D7913CA /* SonoraApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4D5FA4B91FF9E03B19661AF /* SonoraApp.swift */; };
+		328A0BF2F4C8C8F12938AE6E /* MockBackend.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE0B25C51FDBC85795CD2AAE /* MockBackend.swift */; };
+		38C7FE8C351B5D6FFD79EFF5 /* StudioDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 872A08ADFCDEE91F0211C5E1 /* StudioDetailView.swift */; };
+		4139ECAB7BB26D8716FE3C3C /* EarningsCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BE73D6F433FD0A89C726B21 /* EarningsCalculator.swift */; };
+		5E82B8056311865052CD8634 /* LocationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D74C56C781447B6B4D9A49A8 /* LocationService.swift */; };
+		5FD9D188CD1D481C55DCB643 /* DiscoverViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8381A51175EBA87178C2BA53 /* DiscoverViews.swift */; };
+		608ADAAC226C75614DC04DC9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5CE9C3955D350F753740356E /* Assets.xcassets */; };
+		6622B72D17E9886F7A8498DA /* PostgresCoding.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D0F7804A9C2C6CB4F550FE4 /* PostgresCoding.swift */; };
+		76594F5488804A06FF12089A /* Enums.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD1BBC0076C68AA6B1EE6CAD /* Enums.swift */; };
+		78575B27227CE830A1D143E6 /* Components.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C3EC5029EFF93BBA3E076CA /* Components.swift */; };
+		78EC697A50D0CD8C50474FBF /* SearchEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3108B196FE1AEBE835B634E0 /* SearchEngine.swift */; };
+		79B4E33FB29F6EF73AAB4431 /* ChatViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9CA86A39011659B6951499A2 /* ChatViews.swift */; };
+		803BB6715FBEAB4FFB789694 /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEABF8430ECFFB9DF4F88C1B /* User.swift */; };
+		886C400AA16EE16DEF099787 /* AppConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C625DD5076FE07F1D72281B /* AppConfig.swift */; };
+		A252DB08E9EA02D246D45411 /* ReviewViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 959F99494DD16682E5FCEEC3 /* ReviewViews.swift */; };
+		B5306ACBC47BA08436B09FE0 /* Studio.swift in Sources */ = {isa = PBXBuildFile; fileRef = 363D79B05A8B7A1569ABB782 /* Studio.swift */; };
+		BA3EC075C02A42AC5D2FE93B /* AuthViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E697103620660AE57F6688C /* AuthViews.swift */; };
+		BBA51995C062126410BCE53E /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 316E0EAD9341447D4414096E /* Supabase */; };
+		BCA4D39E63107383B923F1DD /* ArtistViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84189E59CE39C29801BFF603 /* ArtistViews.swift */; };
+		C408029B31B5A1F84AC33C75 /* MockData.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF0ED2B025869045BC3FA40C /* MockData.swift */; };
+		C4E41CD96B6B680491729FE3 /* Backend.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40569250BDA19339F1DFA520 /* Backend.swift */; };
+		C735B19E8F3BBEB0B31BAEC9 /* BookingFlowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6A6AA83F99904527FE16B0B /* BookingFlowView.swift */; };
+		C8FC8B0BB45C60AA3263C36D /* StripePaymentSheet in Frameworks */ = {isa = PBXBuildFile; productRef = 8D5489E0EA6DF55C8A80A951 /* StripePaymentSheet */; };
+		C93F77F6DF4DB780A95F8218 /* legal in Resources */ = {isa = PBXBuildFile; fileRef = 57A99F901016811FA8EA36EE /* legal */; };
+		D7E07927440C24FE4E7108C9 /* AvailabilityEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACDCA3B572C2BF922680807F /* AvailabilityEngine.swift */; };
+		DA09A23EA9D7E9B9EAAD5267 /* PushNotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA4C64C3A3ADB7177D5CC201 /* PushNotificationManager.swift */; };
+		E31DE46042C284CE47634000 /* CoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48AD051C0A31FD4316CC89FA /* CoreTests.swift */; };
+		EF14090CF8361830E3CDB85A /* Booking.swift in Sources */ = {isa = PBXBuildFile; fileRef = 711458412A58292C2332E290 /* Booking.swift */; };
+		F1F742C4C5B0F6FC9C5C1711 /* Money.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2F8A65C223055910C238929 /* Money.swift */; };
+		F3309BC3CA5297A5EBD7F520 /* StudioOwnerViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EFF72E9EA494CCBE1E14C45 /* StudioOwnerViews.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		1F7D74DC65BEAEC60DAAFCE7 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0B7A468144840195183618E9 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 55DCF1C4203562FB6F73BCAC;
+			remoteInfo = Sonora;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		03362CD60F7061D5E06F3B81 /* SupabaseBackend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseBackend.swift; sourceTree = "<group>"; };
+		0E697103620660AE57F6688C /* AuthViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthViews.swift; sourceTree = "<group>"; };
+		11C0E7C219C35CFCBF9CA7D5 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		268B3A5CBBD2C0804FFCFED6 /* LegalViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegalViews.swift; sourceTree = "<group>"; };
+		2C625DD5076FE07F1D72281B /* AppConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConfig.swift; sourceTree = "<group>"; };
+		3108B196FE1AEBE835B634E0 /* SearchEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchEngine.swift; sourceTree = "<group>"; };
+		363D79B05A8B7A1569ABB782 /* Studio.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Studio.swift; sourceTree = "<group>"; };
+		3C3EC5029EFF93BBA3E076CA /* Components.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Components.swift; sourceTree = "<group>"; };
+		40569250BDA19339F1DFA520 /* Backend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Backend.swift; sourceTree = "<group>"; };
+		42513034E5D3A304F7C3A7B8 /* PaymentProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaymentProcessor.swift; sourceTree = "<group>"; };
+		48AD051C0A31FD4316CC89FA /* CoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreTests.swift; sourceTree = "<group>"; };
+		4D0F7804A9C2C6CB4F550FE4 /* PostgresCoding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostgresCoding.swift; sourceTree = "<group>"; };
+		511BF32A0EC127C4C1890268 /* BookingsViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookingsViews.swift; sourceTree = "<group>"; };
+		57A99F901016811FA8EA36EE /* legal */ = {isa = PBXFileReference; lastKnownFileType = folder; name = legal; path = ../legal; sourceTree = SOURCE_ROOT; };
+		5A93FE88DE5D655BF2551AA3 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
+		5CE9C3955D350F753740356E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		60C1EFAAD689D6D5B159868B /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
+		66A141E8D130EA01331C5668 /* LegalDocs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegalDocs.swift; sourceTree = "<group>"; };
+		6B01D30E9BACA37FE6D48631 /* PricingEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PricingEngine.swift; sourceTree = "<group>"; };
+		711458412A58292C2332E290 /* Booking.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Booking.swift; sourceTree = "<group>"; };
+		8381A51175EBA87178C2BA53 /* DiscoverViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscoverViews.swift; sourceTree = "<group>"; };
+		84189E59CE39C29801BFF603 /* ArtistViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistViews.swift; sourceTree = "<group>"; };
+		872A08ADFCDEE91F0211C5E1 /* StudioDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StudioDetailView.swift; sourceTree = "<group>"; };
+		8BE73D6F433FD0A89C726B21 /* EarningsCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EarningsCalculator.swift; sourceTree = "<group>"; };
+		959F99494DD16682E5FCEEC3 /* ReviewViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewViews.swift; sourceTree = "<group>"; };
+		9CA86A39011659B6951499A2 /* ChatViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatViews.swift; sourceTree = "<group>"; };
+		9EFF72E9EA494CCBE1E14C45 /* StudioOwnerViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StudioOwnerViews.swift; sourceTree = "<group>"; };
+		9F0AEFBAA4D8F55DC26826A9 /* Social.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Social.swift; sourceTree = "<group>"; };
+		9F4D05B208337EDBFE998012 /* StudioEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StudioEditorView.swift; sourceTree = "<group>"; };
+		A4D5FA4B91FF9E03B19661AF /* SonoraApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SonoraApp.swift; sourceTree = "<group>"; };
+		ACDCA3B572C2BF922680807F /* AvailabilityEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AvailabilityEngine.swift; sourceTree = "<group>"; };
+		AD1BBC0076C68AA6B1EE6CAD /* Enums.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Enums.swift; sourceTree = "<group>"; };
+		AE4DE2C1CC5135BDA923ED94 /* Sonora.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Sonora.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AF0ED2B025869045BC3FA40C /* MockData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockData.swift; sourceTree = "<group>"; };
+		BA4C64C3A3ADB7177D5CC201 /* PushNotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushNotificationManager.swift; sourceTree = "<group>"; };
+		CE0B25C51FDBC85795CD2AAE /* MockBackend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockBackend.swift; sourceTree = "<group>"; };
+		D02C4FAEF68314D9F14F23C7 /* App.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = App.xcconfig; sourceTree = "<group>"; };
+		D74C56C781447B6B4D9A49A8 /* LocationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationService.swift; sourceTree = "<group>"; };
+		DA09589AEA3BD471D34BD7B9 /* Sonora.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Sonora.entitlements; sourceTree = "<group>"; };
+		E2F8A65C223055910C238929 /* Money.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Money.swift; sourceTree = "<group>"; };
+		F6A6AA83F99904527FE16B0B /* BookingFlowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookingFlowView.swift; sourceTree = "<group>"; };
+		F6EB6474140B706D62156D20 /* SonoraTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = SonoraTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		FEABF8430ECFFB9DF4F88C1B /* User.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		CC225DD27DA9E497D24EB605 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BBA51995C062126410BCE53E /* Supabase in Frameworks */,
+				C8FC8B0BB45C60AA3263C36D /* StripePaymentSheet in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		03C8EED6FB7A16335A4F29C4 /* Chat */ = {
+			isa = PBXGroup;
+			children = (
+				9CA86A39011659B6951499A2 /* ChatViews.swift */,
+			);
+			path = Chat;
+			sourceTree = "<group>";
+		};
+		0E0AF29D03BEF500AE61F5F1 /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				3C3EC5029EFF93BBA3E076CA /* Components.swift */,
+				60C1EFAAD689D6D5B159868B /* Theme.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
+		179C4345D556052A1FC91FA9 /* Artist */ = {
+			isa = PBXGroup;
+			children = (
+				84189E59CE39C29801BFF603 /* ArtistViews.swift */,
+			);
+			path = Artist;
+			sourceTree = "<group>";
+		};
+		1A707D667032AA64DFB16AFF /* Booking */ = {
+			isa = PBXGroup;
+			children = (
+				F6A6AA83F99904527FE16B0B /* BookingFlowView.swift */,
+				511BF32A0EC127C4C1890268 /* BookingsViews.swift */,
+			);
+			path = Booking;
+			sourceTree = "<group>";
+		};
+		20D52DEC60BD385A1833CC5F /* Discover */ = {
+			isa = PBXGroup;
+			children = (
+				8381A51175EBA87178C2BA53 /* DiscoverViews.swift */,
+			);
+			path = Discover;
+			sourceTree = "<group>";
+		};
+		2E17DCE5C5B2F897F9358D11 /* StudioOwner */ = {
+			isa = PBXGroup;
+			children = (
+				9F4D05B208337EDBFE998012 /* StudioEditorView.swift */,
+				9EFF72E9EA494CCBE1E14C45 /* StudioOwnerViews.swift */,
+			);
+			path = StudioOwner;
+			sourceTree = "<group>";
+		};
+		79921DADA45B0FC4A3E7E0A7 /* StudioDetail */ = {
+			isa = PBXGroup;
+			children = (
+				872A08ADFCDEE91F0211C5E1 /* StudioDetailView.swift */,
+			);
+			path = StudioDetail;
+			sourceTree = "<group>";
+		};
+		7B438B3773EFC137D5A7DC29 /* Features */ = {
+			isa = PBXGroup;
+			children = (
+				179C4345D556052A1FC91FA9 /* Artist */,
+				A39C1F3567886BCFFFBA6B0F /* Auth */,
+				1A707D667032AA64DFB16AFF /* Booking */,
+				03C8EED6FB7A16335A4F29C4 /* Chat */,
+				20D52DEC60BD385A1833CC5F /* Discover */,
+				FB795764B8B5E0261A77E195 /* Legal */,
+				B1C352715B43D456B4237C56 /* Reviews */,
+				79921DADA45B0FC4A3E7E0A7 /* StudioDetail */,
+				2E17DCE5C5B2F897F9358D11 /* StudioOwner */,
+			);
+			path = Features;
+			sourceTree = "<group>";
+		};
+		A39C1F3567886BCFFFBA6B0F /* Auth */ = {
+			isa = PBXGroup;
+			children = (
+				0E697103620660AE57F6688C /* AuthViews.swift */,
+			);
+			path = Auth;
+			sourceTree = "<group>";
+		};
+		AB3B48AC2795C6A56E4C2EBE /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				711458412A58292C2332E290 /* Booking.swift */,
+				AD1BBC0076C68AA6B1EE6CAD /* Enums.swift */,
+				9F0AEFBAA4D8F55DC26826A9 /* Social.swift */,
+				363D79B05A8B7A1569ABB782 /* Studio.swift */,
+				FEABF8430ECFFB9DF4F88C1B /* User.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		AE5F6AD903BDC440BB27C15E /* App */ = {
+			isa = PBXGroup;
+			children = (
+				2C625DD5076FE07F1D72281B /* AppConfig.swift */,
+				5A93FE88DE5D655BF2551AA3 /* AppState.swift */,
+				A4D5FA4B91FF9E03B19661AF /* SonoraApp.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		AF321FAF72F72DAA5E8601AC /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				5CE9C3955D350F753740356E /* Assets.xcassets */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		B1C352715B43D456B4237C56 /* Reviews */ = {
+			isa = PBXGroup;
+			children = (
+				959F99494DD16682E5FCEEC3 /* ReviewViews.swift */,
+			);
+			path = Reviews;
+			sourceTree = "<group>";
+		};
+		B75CFF8760F91CAAD453BF80 /* Config */ = {
+			isa = PBXGroup;
+			children = (
+				D02C4FAEF68314D9F14F23C7 /* App.xcconfig */,
+			);
+			path = Config;
+			sourceTree = "<group>";
+		};
+		DF9842D6AAC6282C3C27ED8A /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				40569250BDA19339F1DFA520 /* Backend.swift */,
+				D74C56C781447B6B4D9A49A8 /* LocationService.swift */,
+				CE0B25C51FDBC85795CD2AAE /* MockBackend.swift */,
+				AF0ED2B025869045BC3FA40C /* MockData.swift */,
+				42513034E5D3A304F7C3A7B8 /* PaymentProcessor.swift */,
+				BA4C64C3A3ADB7177D5CC201 /* PushNotificationManager.swift */,
+				03362CD60F7061D5E06F3B81 /* SupabaseBackend.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		E1605900CD13CBA41EECE540 = {
+			isa = PBXGroup;
+			children = (
+				B75CFF8760F91CAAD453BF80 /* Config */,
+				FF8098A8CF08BD776470B50A /* Sonora */,
+				E7176E8FFBACFB33CB8F65CD /* SonoraTests */,
+				E42B71D6751866D724FD16A4 /* studie-app */,
+				FCF45F887C42FB6B0820A910 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		E42B71D6751866D724FD16A4 /* studie-app */ = {
+			isa = PBXGroup;
+			children = (
+				57A99F901016811FA8EA36EE /* legal */,
+			);
+			name = "studie-app";
+			path = ..;
+			sourceTree = "<group>";
+		};
+		E7176E8FFBACFB33CB8F65CD /* SonoraTests */ = {
+			isa = PBXGroup;
+			children = (
+				48AD051C0A31FD4316CC89FA /* CoreTests.swift */,
+			);
+			path = SonoraTests;
+			sourceTree = "<group>";
+		};
+		F832903751349A639834E496 /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				ACDCA3B572C2BF922680807F /* AvailabilityEngine.swift */,
+				8BE73D6F433FD0A89C726B21 /* EarningsCalculator.swift */,
+				66A141E8D130EA01331C5668 /* LegalDocs.swift */,
+				E2F8A65C223055910C238929 /* Money.swift */,
+				4D0F7804A9C2C6CB4F550FE4 /* PostgresCoding.swift */,
+				6B01D30E9BACA37FE6D48631 /* PricingEngine.swift */,
+				3108B196FE1AEBE835B634E0 /* SearchEngine.swift */,
+			);
+			path = Core;
+			sourceTree = "<group>";
+		};
+		FB795764B8B5E0261A77E195 /* Legal */ = {
+			isa = PBXGroup;
+			children = (
+				268B3A5CBBD2C0804FFCFED6 /* LegalViews.swift */,
+			);
+			path = Legal;
+			sourceTree = "<group>";
+		};
+		FCF45F887C42FB6B0820A910 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				AE4DE2C1CC5135BDA923ED94 /* Sonora.app */,
+				F6EB6474140B706D62156D20 /* SonoraTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		FF8098A8CF08BD776470B50A /* Sonora */ = {
+			isa = PBXGroup;
+			children = (
+				11C0E7C219C35CFCBF9CA7D5 /* Info.plist */,
+				DA09589AEA3BD471D34BD7B9 /* Sonora.entitlements */,
+				AE5F6AD903BDC440BB27C15E /* App */,
+				0E0AF29D03BEF500AE61F5F1 /* Components */,
+				F832903751349A639834E496 /* Core */,
+				7B438B3773EFC137D5A7DC29 /* Features */,
+				AB3B48AC2795C6A56E4C2EBE /* Models */,
+				AF321FAF72F72DAA5E8601AC /* Resources */,
+				DF9842D6AAC6282C3C27ED8A /* Services */,
+			);
+			path = Sonora;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		204B51895052C774754710A0 /* SonoraTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 5A8BE133776CA7EEC32D81B1 /* Build configuration list for PBXNativeTarget "SonoraTests" */;
+			buildPhases = (
+				A24E241E8906507734F92937 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				54010DA5D3CA66659BA46809 /* PBXTargetDependency */,
+			);
+			name = SonoraTests;
+			packageProductDependencies = (
+			);
+			productName = SonoraTests;
+			productReference = F6EB6474140B706D62156D20 /* SonoraTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		55DCF1C4203562FB6F73BCAC /* Sonora */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = BC0C45EE2C04377A17E31C92 /* Build configuration list for PBXNativeTarget "Sonora" */;
+			buildPhases = (
+				6221E9760CFAF4C33DAAB73C /* Sources */,
+				8C159DC7073AE3D9912BFD49 /* Resources */,
+				CC225DD27DA9E497D24EB605 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Sonora;
+			packageProductDependencies = (
+				316E0EAD9341447D4414096E /* Supabase */,
+				8D5489E0EA6DF55C8A80A951 /* StripePaymentSheet */,
+			);
+			productName = Sonora;
+			productReference = AE4DE2C1CC5135BDA923ED94 /* Sonora.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		0B7A468144840195183618E9 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+				};
+			};
+			buildConfigurationList = 6AEE966077C8B4FAD3E22D80 /* Build configuration list for PBXProject "Sonora" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = E1605900CD13CBA41EECE540;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				61C054DB4E51797B55E0F27A /* XCRemoteSwiftPackageReference "stripe-ios-spm" */,
+				630F9F60D206CF57F83E67F8 /* XCRemoteSwiftPackageReference "supabase-swift" */,
+			);
+			preferredProjectObjectVersion = 54;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				55DCF1C4203562FB6F73BCAC /* Sonora */,
+				204B51895052C774754710A0 /* SonoraTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		8C159DC7073AE3D9912BFD49 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				608ADAAC226C75614DC04DC9 /* Assets.xcassets in Resources */,
+				C93F77F6DF4DB780A95F8218 /* legal in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		6221E9760CFAF4C33DAAB73C /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				886C400AA16EE16DEF099787 /* AppConfig.swift in Sources */,
+				1F2694FDB65234CCDDA8093C /* AppState.swift in Sources */,
+				BCA4D39E63107383B923F1DD /* ArtistViews.swift in Sources */,
+				BA3EC075C02A42AC5D2FE93B /* AuthViews.swift in Sources */,
+				D7E07927440C24FE4E7108C9 /* AvailabilityEngine.swift in Sources */,
+				C4E41CD96B6B680491729FE3 /* Backend.swift in Sources */,
+				EF14090CF8361830E3CDB85A /* Booking.swift in Sources */,
+				C735B19E8F3BBEB0B31BAEC9 /* BookingFlowView.swift in Sources */,
+				15FDCCF80320734DF202C757 /* BookingsViews.swift in Sources */,
+				79B4E33FB29F6EF73AAB4431 /* ChatViews.swift in Sources */,
+				78575B27227CE830A1D143E6 /* Components.swift in Sources */,
+				5FD9D188CD1D481C55DCB643 /* DiscoverViews.swift in Sources */,
+				4139ECAB7BB26D8716FE3C3C /* EarningsCalculator.swift in Sources */,
+				76594F5488804A06FF12089A /* Enums.swift in Sources */,
+				0778E1454ED2357FC7CA7681 /* LegalDocs.swift in Sources */,
+				0C7605B4EEE1879924DD1F07 /* LegalViews.swift in Sources */,
+				5E82B8056311865052CD8634 /* LocationService.swift in Sources */,
+				328A0BF2F4C8C8F12938AE6E /* MockBackend.swift in Sources */,
+				C408029B31B5A1F84AC33C75 /* MockData.swift in Sources */,
+				F1F742C4C5B0F6FC9C5C1711 /* Money.swift in Sources */,
+				173B499A4681D5099D0DE25A /* PaymentProcessor.swift in Sources */,
+				6622B72D17E9886F7A8498DA /* PostgresCoding.swift in Sources */,
+				24EF9A61C4E2AAF4C1B0D870 /* PricingEngine.swift in Sources */,
+				DA09A23EA9D7E9B9EAAD5267 /* PushNotificationManager.swift in Sources */,
+				A252DB08E9EA02D246D45411 /* ReviewViews.swift in Sources */,
+				78EC697A50D0CD8C50474FBF /* SearchEngine.swift in Sources */,
+				2B654B9B28DD2A5F3DBAC523 /* Social.swift in Sources */,
+				30A20B792C0400E37D7913CA /* SonoraApp.swift in Sources */,
+				B5306ACBC47BA08436B09FE0 /* Studio.swift in Sources */,
+				38C7FE8C351B5D6FFD79EFF5 /* StudioDetailView.swift in Sources */,
+				0BE2CCD6E0F3195F7CA4CC9C /* StudioEditorView.swift in Sources */,
+				F3309BC3CA5297A5EBD7F520 /* StudioOwnerViews.swift in Sources */,
+				2C7FB54A49752A503B711C36 /* SupabaseBackend.swift in Sources */,
+				02B24CF8A97394C1D567BB97 /* Theme.swift in Sources */,
+				803BB6715FBEAB4FFB789694 /* User.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A24E241E8906507734F92937 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E31DE46042C284CE47634000 /* CoreTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		54010DA5D3CA66659BA46809 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 55DCF1C4203562FB6F73BCAC /* Sonora */;
+			targetProxy = 1F7D74DC65BEAEC60DAAFCE7 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		163E9B3DFD630275C8B51DBE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Sonora/Sonora.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				INFOPLIST_FILE = Sonora/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.sonora.app;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		1AEB44081E43DF7E5B4FE623 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.sonora.SonoraTests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Sonora.app/Sonora";
+			};
+			name = Debug;
+		};
+		29838869743B3940BB019AF6 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = D02C4FAEF68314D9F14F23C7 /* App.xcconfig */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.10;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		34816F59A23BD40C264966F6 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = D02C4FAEF68314D9F14F23C7 /* App.xcconfig */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.10;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		4CF0772787A770A0D0EA9A17 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Sonora/Sonora.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				INFOPLIST_FILE = Sonora/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.sonora.app;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		9EDE09C67DA677AD2F5F352F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.sonora.SonoraTests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Sonora.app/Sonora";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		5A8BE133776CA7EEC32D81B1 /* Build configuration list for PBXNativeTarget "SonoraTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1AEB44081E43DF7E5B4FE623 /* Debug */,
+				9EDE09C67DA677AD2F5F352F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		6AEE966077C8B4FAD3E22D80 /* Build configuration list for PBXProject "Sonora" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				29838869743B3940BB019AF6 /* Debug */,
+				34816F59A23BD40C264966F6 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		BC0C45EE2C04377A17E31C92 /* Build configuration list for PBXNativeTarget "Sonora" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4CF0772787A770A0D0EA9A17 /* Debug */,
+				163E9B3DFD630275C8B51DBE /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		61C054DB4E51797B55E0F27A /* XCRemoteSwiftPackageReference "stripe-ios-spm" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/stripe/stripe-ios-spm";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 24.0.0;
+			};
+		};
+		630F9F60D206CF57F83E67F8 /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/supabase/supabase-swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.20.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		316E0EAD9341447D4414096E /* Supabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 630F9F60D206CF57F83E67F8 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Supabase;
+		};
+		8D5489E0EA6DF55C8A80A951 /* StripePaymentSheet */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 61C054DB4E51797B55E0F27A /* XCRemoteSwiftPackageReference "stripe-ios-spm" */;
+			productName = StripePaymentSheet;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 0B7A468144840195183618E9 /* Project object */;
+}

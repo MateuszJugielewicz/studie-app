@@ -20,13 +20,13 @@ Både appen og admin-dashboardet kører i **demo-mode** med indbygget testdata, 
 
 ### iOS-appen (demo-mode)
 
-Kræver Xcode 16 og [XcodeGen](https://github.com/yonaskolb/XcodeGen) (`brew install xcodegen`).
+Kræver Xcode 16 eller nyere. Projektfilen ligger i repoet:
 
 ```bash
-cd ios
-xcodegen generate
-open Sonora.xcodeproj
+open ios/Sonora.xcodeproj
 ```
+
+Ændrer du `ios/project.yml`, så generér projektet igen med [XcodeGen](https://github.com/yonaskolb/XcodeGen) (`xcodegen generate` i `ios/`).
 
 Kør på en simulator. Log ind med en demo-konto:
 
