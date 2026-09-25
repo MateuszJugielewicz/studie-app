@@ -316,33 +316,32 @@ struct ChangelogView: View {
     }
 }
 
-/// GDPR: lets the user download everything EasySesh stores about them.
+/// GDPR: lets the user download everything EasySesh stores about them. One tap builds the file
+/// and opens the share sheet (save to Files, AirDrop, mail…).
 struct DataExportButton: View {
     @Environment(AppState.self) private var app
     @State private var fileURL: URL?
+    @State private var isSharing = false
     @State private var isExporting = false
     @State private var error: String?
 
     var body: some View {
-        Group {
-            if let fileURL {
-                ShareLink(item: fileURL) {
-                    HStack {
-                        SettingsIcon(symbol: "square.and.arrow.up.fill", colors: TilePalette.mint)
-                        Text("Share my data file").foregroundStyle(Color.primary)
-                    }
-                }
-            } else {
-                Button {
-                    export()
-                } label: {
-                    HStack {
-                        SettingsIcon(symbol: "arrow.down.doc.fill", colors: TilePalette.ocean)
-                        Text(isExporting ? LocalizedStringKey("Preparing…") : LocalizedStringKey("Download my data")).foregroundStyle(Color.primary)
-                    }
-                }
-                .disabled(isExporting)
+        Button {
+            if fileURL != nil { isSharing = true } else { export() }
+        } label: {
+            HStack {
+                SettingsIcon(symbol: fileURL == nil ? "arrow.down.doc.fill" : "square.and.arrow.up.fill",
+                             colors: fileURL == nil ? TilePalette.ocean : TilePalette.mint)
+                Text(isExporting ? LocalizedStringKey("Preparing…")
+                     : fileURL == nil ? LocalizedStringKey("Download my data") : LocalizedStringKey("Share my data file"))
+                    .foregroundStyle(Color.primary)
+                Spacer()
+                if isExporting { ProgressView() }
             }
+        }
+        .disabled(isExporting)
+        .sheet(isPresented: $isSharing) {
+            if let fileURL { ShareSheet(items: [fileURL]).presentationDetents([.medium, .large]) }
         }
         .errorAlert($error)
     }
@@ -353,10 +352,23 @@ struct DataExportButton: View {
             defer { isExporting = false }
             do {
                 let data = try await app.backend.exportPersonalData()
-                let url = FileManager.default.temporaryDirectory.appendingPathComponent("easysesh-data-\(Date.now.formatted(.iso8601.year().month().day())).json")
-                try data.write(to: url, options: .completeFileProtection)
+                let name = "easysesh-data-\(Date.now.formatted(.iso8601.year().month().day())).json"
+                let url = FileManager.default.temporaryDirectory.appendingPathComponent(name)
+                try data.write(to: url, options: [.atomic, .completeFileProtection])
                 fileURL = url
+                isSharing = true
             } catch { self.error = error.userMessage }
         }
     }
+}
+
+/// The system share sheet (Save to Files, AirDrop, Mail…).
+struct ShareSheet: UIViewControllerRepresentable {
+    let items: [Any]
+
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        UIActivityViewController(activityItems: items, applicationActivities: nil)
+    }
+
+    func updateUIViewController(_ controller: UIActivityViewController, context: Context) {}
 }

@@ -188,9 +188,8 @@ final class SupabaseBackend: Backend {
     }
 
     func exportPersonalData() async throws -> Data {
-        let json: AnyJSON = try await mapped {
-            try await client.functions.invoke("export-data", options: FunctionInvokeOptions(body: [String: AnyJSON]()), decoder: JSONDecoder())
-        }
+        // Built in the database (export_my_data), so it works without the edge functions deployed.
+        let json: AnyJSON = try await rpc("export_my_data")
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
         return try encoder.encode(json)

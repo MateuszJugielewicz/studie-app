@@ -428,3 +428,11 @@ set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
 set request.jwt.claims = '{}';
 select 'own warnings' as label, count(*) as n from moderation_actions where action = 'warning' and acknowledged_at is null;
 reset role;
+
+-- download my data straight from the database
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
+set request.jwt.claims = '{}';
+select 'data export' as label, (export_my_data() -> 'account' ->> 'email') is not null as has_account,
+  jsonb_array_length(export_my_data() -> 'bookings_as_artist') > 0 as has_bookings;
+reset role;

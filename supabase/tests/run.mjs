@@ -115,3 +115,4 @@ expect("studio suspended 1 day", (r) => r.status === "suspended" && r.is_active 
 expect("moderation lifted", (r) => r.user_status === "active" && r.studio_status === "approved");
 expect("moderation history", (r) => Number(r.warnings) === 1 && Number(r.suspensions) === 1 && Number(r.lifted) === 1);
 expect("own warnings", (r) => Number(r.n) === 1);
+expect("data export", (r) => r.has_account === true && r.has_bookings === true);

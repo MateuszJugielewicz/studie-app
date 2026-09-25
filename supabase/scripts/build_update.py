@@ -60,6 +60,7 @@ parts = [
     "-- Changelog and terms updates ------------------------------------------\n" + idempotent(mig("20261007000001_changelog_terms_updates.sql")),
     "-- Moderation: warnings, timed suspensions and bans, history ------------\n" + idempotent(mig("20261008000001_moderation.sql")),
     "-- Old scheduled job names (sonora-*) removed ---------------------------\n" + idempotent(mig("20261009000001_rename_cron_jobs.sql")),
+    "-- Download my data without edge functions ------------------------------\n" + idempotent(mig("20261010000001_export_my_data.sql")),
     """-- Grants ---------------------------------------------------------------
 grant select, insert, update, delete on all tables in schema public to authenticated, service_role;
 grant execute on all functions in schema public to authenticated, service_role;
