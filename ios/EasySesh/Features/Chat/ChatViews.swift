@@ -367,6 +367,15 @@ struct ChatView: View {
     @State private var reporting: ChatMessage?
     @State private var booking: Booking?
     @State private var error: String?
+    /// The other side's photo and rating, loaded fresh from their profile.
+    @State private var partnerAvatar: String?
+    @State private var partnerRating: (average: Double, count: Int)?
+
+    private var isStudio: Bool { app.role == .studioOwner }
+    private var partnerName: String { conversation.title(for: app.role) }
+    private var partnerPhoto: String? {
+        partnerAvatar ?? (isStudio ? conversation.artistAvatarUrl : conversation.studioPhotoUrl)
+    }
 
     var body: some View {
         ScrollViewReader { proxy in
@@ -390,8 +399,12 @@ struct ChatView: View {
                     Text("Keep payments and bookings inside EasySesh – you're protected by our refund policy.")
                         .font(.caption2).foregroundStyle(.secondary).multilineTextAlignment(.center).padding(.bottom, 8)
 
-                    ForEach(messages) { message in
-                        MessageBubble(message: message, isMine: message.senderId == app.account?.id)
+                    ForEach(Array(messages.enumerated()), id: \.element.id) { index, message in
+                        let isMine = message.senderId == app.account?.id
+                        // Their picture sits next to the last message in each run of theirs.
+                        let lastInRun = index == messages.count - 1 || messages[index + 1].senderId != message.senderId
+                        MessageBubble(message: message, isMine: isMine,
+                                      avatarURL: partnerPhoto, name: partnerName, showAvatar: !isMine && lastInRun)
                             .id(message.id)
                             .contextMenu {
                                 Button("Copy", systemImage: "doc.on.doc") { UIPasteboard.general.string = message.body }
@@ -423,13 +436,23 @@ struct ChatView: View {
                     }
                 } label: {
                     HStack(spacing: 8) {
-                        Avatar(url: app.role == .studioOwner ? conversation.artistAvatarUrl : conversation.studioPhotoUrl,
-                               name: conversation.title(for: app.role), size: 28)
+                        Avatar(url: partnerPhoto, name: partnerName, size: 32)
+                            .overlay(Circle().strokeBorder(Theme.neon, lineWidth: 1.5))
                         VStack(alignment: .leading, spacing: 0) {
-                            Text(conversation.title(for: app.role)).font(.subheadline.weight(.bold)).lineLimit(1)
-                            Text(LocalizedStringKey(app.role == .studioOwner ? "View artist profile" : "View studio"))
-                                .font(.caption2).foregroundStyle(.secondary)
+                            Text(partnerName).font(.subheadline.weight(.bold)).lineLimit(1)
+                            if let rating = partnerRating, rating.count > 0 {
+                                HStack(spacing: 3) {
+                                    Image(systemName: "star.fill").foregroundStyle(Theme.accent)
+                                    Text(String(format: "%.1f", rating.average)).fontWeight(.bold)
+                                    Text("(\(rating.count))").foregroundStyle(.secondary)
+                                }
+                                .font(.caption2)
+                            } else {
+                                Text(partnerRating == nil ? LocalizedStringKey(isStudio ? "View artist profile" : "View studio") : LocalizedStringKey("No ratings yet"))
+                                    .font(.caption2).foregroundStyle(.secondary)
+                            }
                         }
+                        Image(systemName: "chevron.right").font(.system(size: 10, weight: .bold)).foregroundStyle(.tertiary)
                     }
                     .foregroundStyle(.primary)
                 }
@@ -508,6 +531,19 @@ struct ChatView: View {
             try await app.backend.markConversationRead(id: conversation.id)
             if let bookingId = conversation.bookingId { booking = try? await app.backend.booking(id: bookingId) }
         } catch { self.error = error.userMessage }
+        await loadPartner()
+    }
+
+    private func loadPartner() async {
+        if isStudio {
+            if let profile = try? await app.backend.artistProfile(id: conversation.artistId) {
+                partnerAvatar = profile.avatarUrl
+                partnerRating = (profile.ratingAverage ?? 0, profile.reviewCount ?? 0)
+            }
+        } else if let studio = try? await app.backend.studio(id: conversation.studioId) {
+            partnerAvatar = studio.photoUrls.first
+            partnerRating = (studio.ratingAverage, studio.reviewCount)
+        }
     }
 
     private func listen() async {
@@ -535,6 +571,9 @@ struct ChatView: View {
 struct MessageBubble: View {
     let message: ChatMessage
     let isMine: Bool
+    var avatarURL: String? = nil
+    var name: String = ""
+    var showAvatar = false
 
     var body: some View {
         if message.kind != .text {
@@ -545,8 +584,15 @@ struct MessageBubble: View {
                 .frame(maxWidth: .infinity)
                 .background(Theme.card, in: RoundedRectangle(cornerRadius: 10))
         } else {
-            HStack {
+            HStack(alignment: .bottom, spacing: 8) {
                 if isMine { Spacer(minLength: 48) }
+                if !isMine {
+                    // Keeps incoming bubbles aligned whether or not the picture is shown.
+                    Avatar(url: avatarURL, name: name, size: 26)
+                        .opacity(showAvatar ? 1 : 0)
+                        .padding(.bottom, 16)
+                        .accessibilityHidden(true)
+                }
                 VStack(alignment: isMine ? .trailing : .leading, spacing: 2) {
                     Text(message.body)
                         .padding(.horizontal, 14).padding(.vertical, 9)

@@ -44,6 +44,14 @@
 	</array>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>EasySeshApplePayMerchantId</key>
+	<string>$(EASYSESH_APPLE_PAY_MERCHANT_ID)</string>
+	<key>EasySeshStripePublishableKey</key>
+	<string>$(EASYSESH_STRIPE_PUBLISHABLE_KEY)</string>
+	<key>EasySeshSupabaseAnonKey</key>
+	<string>$(EASYSESH_SUPABASE_ANON_KEY)</string>
+	<key>EasySeshSupabaseURL</key>
+	<string>$(EASYSESH_SUPABASE_URL)</string>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
 		<string>comgooglemaps</string>
@@ -56,20 +64,15 @@
 	<string>EasySesh uses your location to show recording studios near you and the distance to them.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Choose photos for your artist or studio profile.</string>
-	<key>EasySeshApplePayMerchantId</key>
-	<string>$(EASYSESH_APPLE_PAY_MERCHANT_ID)</string>
-	<key>EasySeshStripePublishableKey</key>
-	<string>$(EASYSESH_STRIPE_PUBLISHABLE_KEY)</string>
-	<key>EasySeshSupabaseAnonKey</key>
-	<string>$(EASYSESH_SUPABASE_ANON_KEY)</string>
-	<key>EasySeshSupabaseURL</key>
-	<string>$(EASYSESH_SUPABASE_URL)</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>remote-notification</string>
 	</array>
 	<key>UILaunchScreen</key>
-	<dict/>
+	<dict>
+		<key>UIColorName</key>
+		<string>LaunchBackground</string>
+	</dict>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>

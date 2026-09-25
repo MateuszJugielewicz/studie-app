@@ -10,6 +10,7 @@
 		071514F0D9F02B1AC3387DFC /* Studio.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E67D7DABBFC049AFA7A2399 /* Studio.swift */; };
 		094C7A4510E0851B0779AC01 /* Screen.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE9620858D02D7F762E9CAE0 /* Screen.swift */; };
 		0E32266C545ABA7F937FA968 /* Booking.swift in Sources */ = {isa = PBXBuildFile; fileRef = 440F6A8DF7382EF10BF78A5A /* Booking.swift */; };
+		10CF7300A486BB0F1CE41222 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9046193D8D27CF08318D256D /* Assets.xcassets */; };
 		14F3C19784CE6C55C379A269 /* NavigationAppearance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FCCCBC5CA377E9FA3E4B2D2 /* NavigationAppearance.swift */; };
 		1557DC1A2F5566DB8FA18DC8 /* ArtistViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31CB82B652F09CBC1F7E7954 /* ArtistViews.swift */; };
 		16C922EA64AD489735F826F2 /* Badges.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6419613494A44FAF95C1CD8B /* Badges.swift */; };
@@ -105,6 +106,7 @@
 		7ADA8462A337B88D9E3DEBE9 /* Enums.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Enums.swift; sourceTree = "<group>"; };
 		7E1CCB09DB804B449D0FA9F6 /* MockData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockData.swift; sourceTree = "<group>"; };
 		8F98625F8965D81DA2D578CB /* App.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = App.xcconfig; sourceTree = "<group>"; };
+		9046193D8D27CF08318D256D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		93BC09B1CB1FF0D8754C4A21 /* Money.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Money.swift; sourceTree = "<group>"; };
 		988A248C85994B21D5B17D29 /* Components.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Components.swift; sourceTree = "<group>"; };
 		99C2B3E847D47BC838FC880C /* DiscoverViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscoverViews.swift; sourceTree = "<group>"; };
@@ -262,6 +264,7 @@
 		90F8548E332FFE7D34AB3C8C /* EasySesh */ = {
 			isa = PBXGroup;
 			children = (
+				9046193D8D27CF08318D256D /* Assets.xcassets */,
 				BB3C7CDB3C17DB05BF388A74 /* EasySesh.entitlements */,
 				2D17F41A216E9FCA8BF3164B /* Info.plist */,
 				64089147F002457F1D103BA6 /* Localizable.xcstrings */,
@@ -493,6 +496,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				10CF7300A486BB0F1CE41222 /* Assets.xcassets in Resources */,
 				C975AE7FCAF1CB3739894BCD /* Assets.xcassets in Resources */,
 				ADC98730C88A31617C372CC4 /* Localizable.xcstrings in Resources */,
 				4CF280154C6142E438D64758 /* legal in Resources */,
