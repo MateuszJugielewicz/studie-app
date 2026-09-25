@@ -38,6 +38,20 @@ struct Studio: Codable, Identifiable, Hashable {
     var submittedAt: Date?
     /// IANA time zone of the studio. Opening hours are interpreted in this zone.
     var timezone: String? = nil
+    /// Cosmetic "EasySesh team" badge (set by admins).
+    var hasAdminBadge: Bool? = nil
+    /// Special tags only admins can add, e.g. "Staff pick".
+    var adminTags: [String]? = nil
+    /// Paid or granted promotion: shown first in search with a "Promoted" tag until this date.
+    var promotedUntil: Date? = nil
+    /// Special deal: this studio's platform fee in percent (default 10).
+    var platformFeePercent: Int? = nil
+
+    var feePercent: Int { platformFeePercent ?? PlatformConfig.platformFeePercent }
+
+    var isPromoted: Bool { (promotedUntil ?? .distantPast) > .now }
+    var showsAdminBadge: Bool { hasAdminBadge == true }
+    var specialTags: [String] { adminTags ?? [] }
 
     var coordinate: CLLocationCoordinate2D {
         CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
@@ -230,6 +244,9 @@ struct BookingPolicy: Codable, Hashable {
     var terms: String = ""
     /// Artists may choose to pay cash at the session (only without a card deposit).
     var acceptsCash: Bool = true
+    /// Artists can check in when they arrive (recommended against fraud). When off, EasySesh
+    /// can't promise a refund if something goes wrong.
+    var checkInEnabled: Bool = true
 }
 
 extension BookingPolicy {
@@ -244,6 +261,7 @@ extension BookingPolicy {
         bufferMinutes = try c.decodeIfPresent(Int.self, forKey: .bufferMinutes) ?? d.bufferMinutes
         terms = try c.decodeIfPresent(String.self, forKey: .terms) ?? d.terms
         acceptsCash = try c.decodeIfPresent(Bool.self, forKey: .acceptsCash) ?? d.acceptsCash
+        checkInEnabled = try c.decodeIfPresent(Bool.self, forKey: .checkInEnabled) ?? d.checkInEnabled
     }
 }
 

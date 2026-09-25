@@ -12,6 +12,7 @@ struct StudioDetailView: View {
     @State private var showBooking = false
     @State private var showReport = false
     @State private var conversation: Conversation?
+    @State private var linkedArtist: ArtistProfile?
     @State private var error: String?
 
     var body: some View {
@@ -75,9 +76,35 @@ struct StudioDetailView: View {
 
     private func header(_ studio: Studio) -> some View {
         VStack(alignment: .leading, spacing: 8) {
+            if studio.isPromoted { PromotedTag() }
             HStack(alignment: .firstTextBaseline) {
                 Text(studio.name).font(.display(32)).tracking(-0.5)
                 if studio.isVerified { VerifiedBadge().font(.title2) }
+                if studio.showsAdminBadge { AdminBadge() }
+            }
+            if !studio.specialTags.isEmpty {
+                FlowLayout(spacing: 6) {
+                    ForEach(studio.specialTags, id: \.self) { SpecialTagChip(title: $0) }
+                }
+            }
+            if let linkedArtist {
+                NavigationLink { ArtistPublicProfileView(artistId: linkedArtist.id, initial: linkedArtist) } label: {
+                    HStack(spacing: 10) {
+                        Avatar(url: linkedArtist.avatarUrl, name: linkedArtist.artistName, size: 34)
+                            .overlay(Circle().strokeBorder(Theme.neon, lineWidth: 1.5))
+                        VStack(alignment: .leading, spacing: 1) {
+                            Text("Run by").font(.caption2.weight(.bold)).foregroundStyle(.secondary).textCase(.uppercase)
+                            HStack(spacing: 4) {
+                                Text(linkedArtist.artistName).font(.subheadline.weight(.bold)).foregroundStyle(.primary)
+                                if linkedArtist.hasAdminBadge == true { AdminBadge(compact: true) }
+                            }
+                        }
+                        Spacer()
+                        Image(systemName: "chevron.right").font(.caption.weight(.bold)).foregroundStyle(.tertiary)
+                    }
+                    .glassCard(padding: 10, cornerRadius: 18)
+                }
+                .buttonStyle(PressableCardStyle())
             }
             Text(studio.tagline).foregroundStyle(.secondary)
             HStack(spacing: 14) {
@@ -322,6 +349,9 @@ struct StudioDetailView: View {
         do {
             let loaded = try await app.backend.studio(id: studioId)
             studio = loaded
+            if let link = try? await app.backend.studioArtistLink(studioId: studioId), link.isAccepted {
+                linkedArtist = try? await app.backend.artistProfile(id: link.artistId)
+            }
             reviews = try await app.backend.reviews(studioId: studioId)
             nextSlots = await Self.nextSlots(for: loaded, backend: app.backend)
         } catch { self.error = error.userMessage }

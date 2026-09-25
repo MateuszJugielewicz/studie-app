@@ -25,6 +25,9 @@ final class MockBackend: Backend {
     private var notificationsById: [UUID: AppNotification] = [:]
     private var feeLedgerById: [UUID: FeeLedgerEntry] = [:]
     private var supportTicketsById: [UUID: SupportTicket] = [:]
+    private var promotionsById: [UUID: StudioPromotion] = [:]
+    private var artistReviewsById: [UUID: ArtistReview] = [:]
+    private var studioLinks: [UUID: StudioArtistLink] = [:]
     private var supportMessagesById: [UUID: SupportMessage] = [:]
     private var streams: [UUID: [UUID: AsyncStream<ChatMessage>.Continuation]] = [:]
     private var currentUserId: UUID?
@@ -875,6 +878,150 @@ final class MockBackend: Backend {
             }
             .filter { q.count < 2 ? $0.hasBooked : $0.artistName.lowercased().contains(q) }
             .sorted { $0.artistName < $1.artistName }
+    }
+
+    // MARK: Promotions
+
+    func promotions(studioId: UUID) async throws -> [StudioPromotion] {
+        _ = try requireOwner(of: studioId)
+        return promotionsById.values.filter { $0.studioId == studioId }.sorted { $0.createdAt > $1.createdAt }
+    }
+
+    func requestPromotion(_ package: PromotionPackage) async throws -> StudioPromotion {
+        let user = try requireUser()
+        guard let studio = studios.values.first(where: { $0.ownerId == user.id }) else { throw BackendError.forbidden }
+        _ = try requireApprovedOwner(of: studio.id)
+        guard package != .custom else { throw BackendError.validation("Unknown promotion package.") }
+        for (id, promotion) in promotionsById where promotion.studioId == studio.id && promotion.status == .pending {
+            promotionsById[id]?.status = .cancelled
+        }
+        let promotion = StudioPromotion(id: UUID(), studioId: studio.id, package: package, days: package.days,
+                                        amount: package.price(currency: studio.currency), currency: studio.currency,
+                                        status: .pending, source: "purchase", startsAt: nil, endsAt: nil, createdAt: .now)
+        promotionsById[promotion.id] = promotion
+        return promotion
+    }
+
+    func cancelPromotionRequest(id: UUID) async throws {
+        guard let promotion = promotionsById[id] else { throw BackendError.notFound }
+        _ = try requireOwner(of: promotion.studioId)
+        if promotion.status == .pending { promotionsById[id]?.status = .cancelled }
+    }
+
+    func preparePromotionPayment(promotionId: UUID) async throws -> PaymentIntentInfo {
+        throw BackendError.paymentFailed("Stripe is not configured.")
+    }
+
+    func confirmPromotionPayment(promotionId: UUID) async throws {
+        throw BackendError.paymentFailed("Stripe is not configured.")
+    }
+
+    /// Test helper: what an admin does after the studio paid outside the app.
+    func activatePromotion(id: UUID) {
+        guard var promotion = promotionsById[id], var studio = studios[promotion.studioId] else { return }
+        let start = max(Date.now, studio.promotedUntil ?? .now)
+        promotion.status = .active
+        promotion.startsAt = start
+        promotion.endsAt = start.adding(days: promotion.days)
+        promotionsById[id] = promotion
+        studio.promotedUntil = promotion.endsAt
+        studios[studio.id] = studio
+    }
+
+    // MARK: Artist ratings
+
+    func reviewArtist(bookingId: UUID, rating: Int, text: String) async throws -> ArtistReview {
+        guard let booking = bookings[bookingId] else { throw BackendError.notFound }
+        _ = try requireApprovedOwner(of: booking.studioId)
+        guard booking.status == .completed else { throw BackendError.validation("You can rate the artist after the session is completed.") }
+        guard (1...5).contains(rating) else { throw BackendError.validation("Pick 1 to 5 stars.") }
+        var review = artistReviewsById.values.first { $0.bookingId == bookingId }
+            ?? ArtistReview(id: UUID(), bookingId: bookingId, studioId: booking.studioId, artistId: booking.artistId,
+                            studioName: booking.studioName, rating: rating, text: text, createdAt: .now)
+        review.rating = rating
+        review.text = text
+        artistReviewsById[review.id] = review
+        let all = artistReviewsById.values.filter { $0.artistId == booking.artistId }
+        artistProfiles[booking.artistId]?.ratingAverage = Double(all.map(\.rating).reduce(0, +)) / Double(all.count)
+        artistProfiles[booking.artistId]?.reviewCount = all.count
+        return review
+    }
+
+    func artistReviews(artistId: UUID) async throws -> [ArtistReview] {
+        artistReviewsById.values.filter { $0.artistId == artistId }.sorted { $0.createdAt > $1.createdAt }
+    }
+
+    func artistReview(bookingId: UUID) async throws -> ArtistReview? {
+        artistReviewsById.values.first { $0.bookingId == bookingId }
+    }
+
+    // MARK: Check-in
+
+    func checkIn(bookingId: UUID, latitude: Double?, longitude: Double?) async throws -> Booking {
+        let user = try requireUser()
+        guard var booking = bookings[bookingId], booking.artistId == user.id else { throw BackendError.notFound }
+        guard studios[booking.studioId]?.bookingPolicy.checkInEnabled ?? true else {
+            throw BackendError.validation("This studio has turned off check-in.")
+        }
+        guard booking.canCheckIn() else { throw BackendError.validation("You can check in from 1 hour before your session until it ends.") }
+        booking.artistCheckedInAt = .now
+        bookings[bookingId] = booking
+        return booking
+    }
+
+    func confirmArrival(bookingId: UUID) async throws -> Booking {
+        guard var booking = bookings[bookingId] else { throw BackendError.notFound }
+        _ = try requireApprovedOwner(of: booking.studioId)
+        booking.studioConfirmedArrivalAt = booking.studioConfirmedArrivalAt ?? .now
+        bookings[bookingId] = booking
+        return booking
+    }
+
+    // MARK: Studio ↔ artist profile
+
+    func studioArtistLink(studioId: UUID) async throws -> StudioArtistLink? { studioLinks[studioId] }
+
+    func artistStudioLinks(artistId: UUID) async throws -> [StudioArtistLink] {
+        studioLinks.values.filter { $0.artistId == artistId }
+    }
+
+    func requestStudioArtistLink(artistId: UUID) async throws -> StudioArtistLink {
+        let user = try requireUser()
+        guard let studio = studios.values.first(where: { $0.ownerId == user.id }) else { throw BackendError.forbidden }
+        _ = try requireApprovedOwner(of: studio.id)
+        let link = StudioArtistLink(studioId: studio.id, artistId: artistId, status: "pending", createdAt: .now)
+        studioLinks[studio.id] = link
+        return link
+    }
+
+    func respondStudioArtistLink(studioId: UUID, accept: Bool) async throws {
+        let user = try requireUser()
+        guard studioLinks[studioId]?.artistId == user.id else { throw BackendError.notFound }
+        if accept { studioLinks[studioId]?.status = "accepted" } else { studioLinks[studioId] = nil }
+    }
+
+    func removeStudioArtistLink(studioId: UUID) async throws { studioLinks[studioId] = nil }
+
+    // MARK: Rating disputes & fee invoices
+
+    func disputeRating(kind: RatingKind, reviewId: UUID, reason: String) async throws {
+        guard reason.trimmingCharacters(in: .whitespaces).count >= 10 else {
+            throw BackendError.validation("Tell us why the rating is unfair (at least 10 characters).")
+        }
+    }
+
+    func feeInvoices(studioId: UUID) async throws -> [FeeInvoice] { [] }
+
+    // MARK: Notification deletion
+
+    func deleteNotification(id: UUID) async throws {
+        let user = try requireUser()
+        if notificationsById[id]?.userId == user.id { notificationsById[id] = nil }
+    }
+
+    func deleteAllNotifications() async throws {
+        let user = try requireUser()
+        notificationsById = notificationsById.filter { $0.value.userId != user.id }
     }
 
     // MARK: Support

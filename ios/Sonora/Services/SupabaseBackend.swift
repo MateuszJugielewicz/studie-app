@@ -322,15 +322,26 @@ final class SupabaseBackend: Backend {
 
     // MARK: - Bookings
 
+    // Booking actions run as database functions (no edge functions needed). Only steps that move
+    // card money (charging, capturing, refunding) go through the Stripe edge functions.
     func createBooking(_ request: BookingRequest) async throws -> Booking {
-        try await invoke("create-booking", [
-            "studio_id": .string(request.studio.id.uuidString),
-            "session_type_id": .string(request.sessionType.id),
-            "starts_at": .string(PostgresDate.format(request.startsAt)),
-            "hours": .integer(request.hours),
-            "add_ons": .array(request.addOns.filter { $0.value > 0 }.map { AnyJSON.object(["id": .string($0.key), "quantity": .integer($0.value)]) }),
-            "notes": .string(request.notes),
+        try await rpc("create_booking", [
+            "p_studio_id": .string(request.studio.id.uuidString),
+            "p_session_type_id": .string(request.sessionType.id),
+            "p_starts_at": .string(PostgresDate.format(request.startsAt)),
+            "p_hours": .integer(request.hours),
+            "p_add_ons": .array(request.addOns.filter { $0.value > 0 }.map { AnyJSON.object(["id": .string($0.key), "quantity": .integer($0.value)]) }),
+            "p_notes": .string(request.notes),
         ])
+    }
+
+    /// Runs the database version first; card bookings that need a refund/capture use the edge function.
+    private func bookingAction(_ rpcName: String, _ params: [String: AnyJSON], edge: String, _ edgeBody: [String: AnyJSON]) async throws -> Booking {
+        do {
+            return try await rpc(rpcName, params)
+        } catch BackendError.validation(let message) where message == "needs_payment_service" {
+            return try await invoke(edge, edgeBody)
+        }
     }
 
     func preparePayment(bookingId: UUID, method: PaymentMethod) async throws -> PaymentIntentInfo {
@@ -352,7 +363,7 @@ final class SupabaseBackend: Backend {
     }
 
     func confirmCashBooking(bookingId: UUID) async throws -> Booking {
-        try await invoke("confirm-cash-booking", ["booking_id": .string(bookingId.uuidString)])
+        try await rpc("confirm_cash_booking", ["p_booking_id": .string(bookingId.uuidString)])
     }
 
     func markCashReceived(bookingId: UUID) async throws -> Booking {
@@ -387,15 +398,30 @@ final class SupabaseBackend: Backend {
     }
 
     func cancelBooking(id: UUID, reason: String) async throws -> Booking {
-        try await invoke("cancel-booking", ["booking_id": .string(id.uuidString), "reason": .string(reason)])
+        try await bookingAction("cancel_booking", ["p_booking_id": .string(id.uuidString), "p_reason": .string(reason)],
+                                edge: "cancel-booking", ["booking_id": .string(id.uuidString), "reason": .string(reason)])
     }
 
     func rescheduleBooking(id: UUID, newStart: Date) async throws -> Booking {
-        try await invoke("reschedule-booking", ["booking_id": .string(id.uuidString), "starts_at": .string(PostgresDate.format(newStart))])
+        try await rpc("reschedule_booking", ["p_booking_id": .string(id.uuidString), "p_starts_at": .string(PostgresDate.format(newStart))])
     }
 
     func respondToBooking(id: UUID, accept: Bool, message: String?) async throws -> Booking {
-        try await invoke("respond-booking", ["booking_id": .string(id.uuidString), "accept": .bool(accept), "message": message.map { AnyJSON.string($0) } ?? AnyJSON.null])
+        let text = message.map { AnyJSON.string($0) } ?? AnyJSON.null
+        return try await bookingAction("respond_booking", ["p_booking_id": .string(id.uuidString), "p_accept": .bool(accept), "p_message": text],
+                                       edge: "respond-booking", ["booking_id": .string(id.uuidString), "accept": .bool(accept), "message": text])
+    }
+
+    func checkIn(bookingId: UUID, latitude: Double?, longitude: Double?) async throws -> Booking {
+        try await rpc("check_in_booking", [
+            "p_booking_id": .string(bookingId.uuidString),
+            "p_lat": latitude.map { AnyJSON.double($0) } ?? .null,
+            "p_lng": longitude.map { AnyJSON.double($0) } ?? .null,
+        ])
+    }
+
+    func confirmArrival(bookingId: UUID) async throws -> Booking {
+        try await rpc("confirm_artist_arrival", ["p_booking_id": .string(bookingId.uuidString)])
     }
 
     func openDispute(bookingId: UUID, reason: String) async throws {
@@ -466,6 +492,112 @@ final class SupabaseBackend: Backend {
 
     func searchArtists(query: String) async throws -> [ArtistSearchResult] {
         try await rpc("search_artists", ["p_query": .string(query)])
+    }
+
+    // MARK: Promotions
+
+    func promotions(studioId: UUID) async throws -> [StudioPromotion] {
+        try await mapped {
+            try await client.from("studio_promotions").select().eq("studio_id", value: studioId.uuidString)
+                .order("created_at", ascending: false).execute().value
+        }
+    }
+
+    func requestPromotion(_ package: PromotionPackage) async throws -> StudioPromotion {
+        try await rpc("request_promotion", ["p_package": .string(package.rawValue)])
+    }
+
+    func cancelPromotionRequest(id: UUID) async throws {
+        try await rpcVoid("cancel_promotion_request", ["p_promotion_id": .string(id.uuidString)])
+    }
+
+    func preparePromotionPayment(promotionId: UUID) async throws -> PaymentIntentInfo {
+        struct Response: Decodable {
+            let clientSecret: String
+            let customerId: String?
+            let ephemeralKey: String?
+            let amount: Int
+            let currency: String
+        }
+        let response: Response = try await invoke("promotion-payment", ["promotion_id": .string(promotionId.uuidString)])
+        return PaymentIntentInfo(bookingId: promotionId, clientSecret: response.clientSecret, customerId: response.customerId,
+                                 ephemeralKey: response.ephemeralKey, amount: response.amount, currency: response.currency.uppercased(), captureLater: false)
+    }
+
+    func confirmPromotionPayment(promotionId: UUID) async throws {
+        struct Response: Decodable { let status: String }
+        let _: Response = try await invoke("promotion-payment", ["promotion_id": .string(promotionId.uuidString), "confirm": .bool(true)])
+    }
+
+    // MARK: Artist ratings
+
+    func reviewArtist(bookingId: UUID, rating: Int, text: String) async throws -> ArtistReview {
+        try await rpc("review_artist", ["p_booking_id": .string(bookingId.uuidString), "p_rating": .integer(rating), "p_text": .string(text)])
+    }
+
+    func artistReviews(artistId: UUID) async throws -> [ArtistReview] {
+        try await mapped {
+            try await client.from("artist_reviews").select().eq("artist_id", value: artistId.uuidString)
+                .order("created_at", ascending: false).limit(50).execute().value
+        }
+    }
+
+    func artistReview(bookingId: UUID) async throws -> ArtistReview? {
+        let rows: [ArtistReview] = try await mapped {
+            try await client.from("artist_reviews").select().eq("booking_id", value: bookingId.uuidString).limit(1).execute().value
+        }
+        return rows.first
+    }
+
+    // MARK: Studio ↔ artist profile
+
+    func studioArtistLink(studioId: UUID) async throws -> StudioArtistLink? {
+        let rows: [StudioArtistLink] = try await mapped {
+            try await client.from("studio_artist_links").select().eq("studio_id", value: studioId.uuidString).limit(1).execute().value
+        }
+        return rows.first
+    }
+
+    func artistStudioLinks(artistId: UUID) async throws -> [StudioArtistLink] {
+        try await mapped {
+            try await client.from("studio_artist_links").select().eq("artist_id", value: artistId.uuidString).execute().value
+        }
+    }
+
+    func requestStudioArtistLink(artistId: UUID) async throws -> StudioArtistLink {
+        try await rpc("request_studio_artist_link", ["p_artist_id": .string(artistId.uuidString)])
+    }
+
+    func respondStudioArtistLink(studioId: UUID, accept: Bool) async throws {
+        try await rpcVoid("respond_studio_artist_link", ["p_studio_id": .string(studioId.uuidString), "p_accept": .bool(accept)])
+    }
+
+    func removeStudioArtistLink(studioId: UUID) async throws {
+        try await rpcVoid("remove_studio_artist_link", ["p_studio_id": .string(studioId.uuidString)])
+    }
+
+    // MARK: Rating disputes & fee invoices
+
+    func disputeRating(kind: RatingKind, reviewId: UUID, reason: String) async throws {
+        try await rpcVoid("dispute_rating", ["p_review_type": .string(kind.rawValue), "p_review_id": .string(reviewId.uuidString), "p_reason": .string(reason)])
+    }
+
+    func feeInvoices(studioId: UUID) async throws -> [FeeInvoice] {
+        try await mapped {
+            try await client.from("studio_fee_invoices").select().eq("studio_id", value: studioId.uuidString)
+                .order("created_at", ascending: false).execute().value
+        }
+    }
+
+    // MARK: Notification deletion
+
+    func deleteNotification(id: UUID) async throws {
+        try await mapped { _ = try await client.from("notifications").delete().eq("id", value: id.uuidString).execute() }
+    }
+
+    func deleteAllNotifications() async throws {
+        let id = try userId()
+        try await mapped { _ = try await client.from("notifications").delete().eq("user_id", value: id.uuidString).execute() }
     }
 
     // MARK: Support

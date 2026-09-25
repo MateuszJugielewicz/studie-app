@@ -49,6 +49,7 @@ struct ArtistSearchResult: Codable, Identifiable, Hashable {
     var isVerified: Bool
     /// Has booked this studio before (skips the message request).
     var hasBooked: Bool
+    var hasAdminBadge: Bool? = nil
 }
 
 struct ChatMessage: Codable, Identifiable, Hashable {
@@ -171,4 +172,116 @@ struct SupportMessage: Codable, Identifiable, Hashable {
     var fromAdmin: Bool
     var body: String
     var createdAt: Date
+}
+
+// MARK: - Artist ratings (given by studios)
+
+struct ArtistReview: Codable, Identifiable, Hashable {
+    let id: UUID
+    var bookingId: UUID
+    var studioId: UUID
+    var artistId: UUID
+    var studioName: String
+    var rating: Int
+    var text: String
+    var createdAt: Date
+}
+
+// MARK: - Promotions
+
+enum PromotionPackage: String, Codable, CaseIterable, Identifiable, Hashable {
+    case week
+    case twoWeeks = "two_weeks"
+    case month
+    case custom
+
+    var id: String { rawValue }
+    static var purchasable: [PromotionPackage] { [.week, .twoWeeks, .month] }
+
+    var days: Int {
+        switch self {
+        case .week: 7
+        case .twoWeeks: 14
+        case .month: 30
+        case .custom: 0
+        }
+    }
+
+    var title: String {
+        switch self {
+        case .week: "1 week"
+        case .twoWeeks: "2 weeks"
+        case .month: "1 month"
+        case .custom: "Promotion"
+        }
+    }
+
+    /// Same table as `promotion_price` in the database (which decides what is charged).
+    func price(currency: String) -> Int {
+        let table: [String: [Int]] = [
+            "DKK": [14900, 26900, 44900], "SEK": [21900, 39900, 65900], "NOK": [21900, 39900, 65900],
+            "GBP": [1600, 2900, 4900], "USD": [2100, 3900, 6500], "PLN": [8900, 15900, 25900],
+        ]
+        let prices = table[currency.uppercased()] ?? [1900, 3500, 5900]
+        switch self {
+        case .week: return prices[0]
+        case .twoWeeks: return prices[1]
+        case .month: return prices[2]
+        case .custom: return 0
+        }
+    }
+}
+
+enum PromotionStatus: String, Codable, Hashable {
+    case pending, active, expired, cancelled
+}
+
+struct StudioPromotion: Codable, Identifiable, Hashable {
+    let id: UUID
+    var studioId: UUID
+    var package: PromotionPackage
+    var days: Int
+    var amount: Int
+    var currency: String
+    var status: PromotionStatus
+    var source: String
+    var startsAt: Date?
+    var endsAt: Date?
+    var createdAt: Date
+}
+
+// MARK: - Studio ↔ artist profile connection
+
+struct StudioArtistLink: Codable, Hashable {
+    var studioId: UUID
+    var artistId: UUID
+    var status: String
+    var createdAt: Date
+
+    var isAccepted: Bool { status == "accepted" }
+}
+
+// MARK: - Rating disputes
+
+enum RatingKind: String, Codable, Hashable {
+    /// An artist's review of a studio (disputed by the studio).
+    case studioReview = "studio_review"
+    /// A studio's rating of an artist (disputed by the artist).
+    case artistReview = "artist_review"
+}
+
+// MARK: - Platform fee invoices
+
+struct FeeInvoice: Codable, Identifiable, Hashable {
+    let id: UUID
+    var studioId: UUID
+    var amount: Int
+    var currency: String
+    var status: String
+    var hostedInvoiceUrl: String?
+    var dueAt: Date?
+    var createdAt: Date
+
+    var isOverdue: Bool { status == "open" && (dueAt ?? .distantFuture) < .now }
+    var isInCollections: Bool { status == "collections" }
 }

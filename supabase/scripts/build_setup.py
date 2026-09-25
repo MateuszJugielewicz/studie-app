@@ -13,7 +13,7 @@ migrations = sorted(glob.glob(os.path.join(ROOT, "migrations", "*.sql")))
 body = {os.path.basename(p): open(p).read() for p in migrations}
 all_sql = "\n".join(body.values())
 
-tables = re.findall(r"create table public\.([a-z_]+)", all_sql)
+tables = list(dict.fromkeys(re.findall(r"create table (?:if not exists )?public\.([a-z_]+)", all_sql)))
 views = re.findall(r"create (?:or replace )?view public\.([a-z_]+)", all_sql)
 types = re.findall(r"create type public\.([a-z_]+)", all_sql)
 functions = sorted(set(re.findall(r"create or replace function public\.([a-z_]+)", all_sql)))
@@ -65,7 +65,9 @@ grant select, insert, update, delete on all tables in schema public to authentic
 grant select on public.platform_settings to anon;
 grant execute on all functions in schema public to authenticated, service_role;
 revoke execute on function public.notify, public.booking_system_message, public.call_edge_function,
-  public.notify_payment_problem, public.add_support_message from anon, authenticated;
+  public.notify_payment_problem, public.add_support_message, public.activate_promotion,
+  public.expire_promotions, public.create_fee_invoices, public.run_fee_enforcement,
+  public.refresh_artist_rating from anon, authenticated;
 """
 
 out = ["""-- =====================================================================

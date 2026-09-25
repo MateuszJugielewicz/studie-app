@@ -480,7 +480,7 @@ private struct RoleCard: View {
 }
 
 /// Frosted input row with a leading icon; glows while focused.
-private struct GlassField<Content: View>: View {
+struct GlassField<Content: View>: View {
     let symbol: String
     let isFocused: Bool
     @ViewBuilder let content: () -> Content

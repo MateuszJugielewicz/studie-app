@@ -52,20 +52,20 @@ as $$
 declare
   problems text[] := '{}';
 begin
-  if char_length(trim(s.name)) < 3 then problems := problems || 'Add your studio''s name.'; end if;
-  if char_length(s.description) < 40 then problems := problems || 'Write a description of at least 40 characters.'; end if;
-  if cardinality(s.photo_urls) = 0 then problems := problems || 'Add at least one photo.'; end if;
-  if coalesce(s.address ->> 'street', '') = '' or coalesce(s.address ->> 'city', '') = '' then problems := problems || 'Add the studio''s address.'; end if;
-  if s.latitude = 0 and s.longitude = 0 then problems := problems || 'Place your studio on the map.'; end if;
-  if coalesce(s.contact ->> 'email', '') = '' and coalesce(s.contact ->> 'phone', '') = '' then problems := problems || 'Add an email or phone number.'; end if;
+  if char_length(trim(s.name)) < 3 then problems := array_append(problems, 'Add your studio''s name.'::text); end if;
+  if char_length(s.description) < 40 then problems := array_append(problems, 'Write a description of at least 40 characters.'::text); end if;
+  if cardinality(s.photo_urls) = 0 then problems := array_append(problems, 'Add at least one photo.'::text); end if;
+  if coalesce(s.address ->> 'street', '') = '' or coalesce(s.address ->> 'city', '') = '' then problems := array_append(problems, 'Add the studio''s address.'::text); end if;
+  if s.latitude = 0 and s.longitude = 0 then problems := array_append(problems, 'Place your studio on the map.'::text); end if;
+  if coalesce(s.contact ->> 'email', '') = '' and coalesce(s.contact ->> 'phone', '') = '' then problems := array_append(problems, 'Add an email or phone number.'::text); end if;
   if jsonb_array_length(s.session_types) = 0 or exists (
        select 1 from jsonb_array_elements(s.session_types) as t where coalesce((t.value ->> 'hourly_rate')::int, 0) <= 0) then
-    problems := problems || 'Set a price for each session type.';
+    problems := array_append(problems, 'Set a price for each session type.'::text);
   end if;
   if not exists (select 1 from jsonb_array_elements(s.opening_hours) as h where not coalesce((h.value ->> 'is_closed')::boolean, false)) then
-    problems := problems || 'Set your opening hours.';
+    problems := array_append(problems, 'Set your opening hours.'::text);
   end if;
-  if cardinality(s.genres) = 0 then problems := problems || 'Pick at least one genre.'; end if;
+  if cardinality(s.genres) = 0 then problems := array_append(problems, 'Pick at least one genre.'::text); end if;
   return problems;
 end;
 $$;

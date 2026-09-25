@@ -25,6 +25,15 @@ struct Booking: Codable, Identifiable, Hashable {
     var updatedAt: Date
     var paymentMethod: PaymentMethod? = nil
     var cashReceivedAt: Date? = nil
+    /// Check-in on arrival (optional, recommended): when the artist checked in and how far away.
+    var artistCheckedInAt: Date? = nil
+    var artistCheckInDistanceM: Int? = nil
+    var studioConfirmedArrivalAt: Date? = nil
+
+    /// Check-in opens 1 hour before the session and closes when it ends.
+    func canCheckIn(now: Date = .now) -> Bool {
+        status == .confirmed && artistCheckedInAt == nil && now >= startsAt.addingTimeInterval(-3600) && now <= endsAt
+    }
 
     var isCash: Bool { paymentMethod == .cash }
 

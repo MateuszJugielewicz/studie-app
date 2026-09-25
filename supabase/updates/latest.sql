@@ -448,8 +448,1179 @@ left join public.artist_profiles a on a.id = t.user_id
 left join public.studios s on s.owner_id = t.user_id
 left join public.bookings b on b.id = t.booking_id;
 
+-- Admin badge, admin tags, promotions ----------------------------------
+-- EasySesh: admin badge (cosmetic), admin-only studio tags and paid promotions.
+
+-- ---------------------------------------------------------------------------
+-- Columns. All three are set by admins/the server only (see the guards below).
+-- ---------------------------------------------------------------------------
+alter table public.artist_profiles
+  add column if not exists has_admin_badge boolean not null default false;
+
+alter table public.studios
+  add column if not exists has_admin_badge boolean not null default false,
+  add column if not exists admin_tags text[] not null default '{}',
+  add column if not exists promoted_until timestamptz;
+
+create index if not exists if not exists studios_promoted_idx on public.studios (promoted_until) where promoted_until is not null;
+
+-- ---------------------------------------------------------------------------
+-- Guards: owners/artists can't give themselves a badge, tags or a promotion.
+-- ---------------------------------------------------------------------------
+create or replace function public.guard_artist_profiles()
+returns trigger language plpgsql as $$
+begin
+  if not public.is_trusted() then
+    if tg_op = 'INSERT' then
+      new.is_verified := false;
+      new.has_admin_badge := false;
+    else
+      new.is_verified := old.is_verified;
+      new.has_admin_badge := old.has_admin_badge;
+    end if;
+  end if;
+  new.updated_at := now();
+  return new;
+end;
+$$;
+
+create or replace function public.guard_studio_extras()
+returns trigger language plpgsql as $$
+begin
+  if not public.is_trusted() then
+    if tg_op = 'INSERT' then
+      new.has_admin_badge := false;
+      new.admin_tags := '{}';
+      new.promoted_until := null;
+    else
+      new.has_admin_badge := old.has_admin_badge;
+      new.admin_tags := old.admin_tags;
+      new.promoted_until := old.promoted_until;
+    end if;
+  end if;
+  return new;
+end;
+$$;
+drop trigger if exists guard_studio_extras on public.studios;
+create trigger guard_studio_extras before insert or update on public.studios
+  for each row execute function public.guard_studio_extras();
+
+-- ---------------------------------------------------------------------------
+-- Promotions
+-- ---------------------------------------------------------------------------
+create table if not exists public.studio_promotions (
+  id uuid primary key default gen_random_uuid(),
+  studio_id uuid not null references public.studios (id) on delete cascade,
+  package text not null check (package in ('week', 'two_weeks', 'month', 'custom')),
+  days integer not null check (days between 1 and 365),
+  amount integer not null default 0,
+  currency text not null default 'EUR',
+  status text not null default 'pending' check (status in ('pending', 'active', 'expired', 'cancelled')),
+  source text not null default 'purchase' check (source in ('purchase', 'admin')),
+  payment_intent_id text unique,
+  starts_at timestamptz,
+  ends_at timestamptz,
+  note text,
+  created_by uuid references public.profiles (id),
+  created_at timestamptz not null default now()
+);
+create index if not exists if not exists studio_promotions_studio_idx on public.studio_promotions (studio_id, created_at desc);
+
+alter table public.studio_promotions enable row level security;
+drop policy if exists "studio_promotions: owner or admin read" on public.studio_promotions;
+drop policy if exists "studio_promotions: owner or admin read" on public.studio_promotions;
+create policy "studio_promotions: owner or admin read" on public.studio_promotions for select
+  using (public.owns_studio(studio_id) or public.is_admin());
+
+-- Starts a paid or granted promotion: it runs after any promotion that is still active.
+create or replace function public.activate_promotion(p_promotion_id uuid)
+returns public.studio_promotions
+language plpgsql security definer set search_path = public
+as $$
+declare
+  v_studio uuid := (select p.studio_id from public.studio_promotions p where p.id = p_promotion_id);
+  v_days integer := (select p.days from public.studio_promotions p where p.id = p_promotion_id);
+  v_status text := (select p.status from public.studio_promotions p where p.id = p_promotion_id);
+  v_start timestamptz;
+begin
+  if v_studio is null then raise exception 'not_found'; end if;
+  if v_status = 'active' then
+    return (select p from public.studio_promotions p where p.id = p_promotion_id);
+  end if;
+  v_start := greatest(now(), coalesce((select s.promoted_until from public.studios s where s.id = v_studio), now()));
+  update public.studio_promotions
+  set status = 'active', starts_at = v_start, ends_at = v_start + make_interval(days => v_days)
+  where id = p_promotion_id;
+  update public.studios
+  set promoted_until = v_start + make_interval(days => v_days)
+  where id = v_studio;
+  perform public.notify((select s.owner_id from public.studios s where s.id = v_studio), 'system',
+    'Your studio is promoted',
+    'Your studio shows at the top of search with a Promoted tag until ' ||
+      to_char(v_start + make_interval(days => v_days), 'DD Mon YYYY') || '.',
+    null, null, v_studio);
+  return (select p from public.studio_promotions p where p.id = p_promotion_id);
+end;
+$$;
+revoke execute on function public.activate_promotion from public, anon, authenticated;
+
+-- Marks finished promotions as expired (called by the housekeeping job).
+create or replace function public.expire_promotions()
+returns integer
+language sql security definer set search_path = public
+as $$
+  with done as (
+    update public.studio_promotions set status = 'expired'
+    where status = 'active' and ends_at <= now()
+    returning 1
+  )
+  select count(*)::int from done;
+$$;
+revoke execute on function public.expire_promotions from public, anon, authenticated;
+
+-- Prices per package and currency (minor units). The app shows the same table (Promotions.swift).
+create or replace function public.promotion_price(p_package text, p_currency text)
+returns integer language sql immutable as $$
+  select case upper(coalesce(p_currency, 'EUR'))
+    when 'DKK' then case p_package when 'week' then 14900 when 'two_weeks' then 26900 when 'month' then 44900 end
+    when 'SEK' then case p_package when 'week' then 21900 when 'two_weeks' then 39900 when 'month' then 65900 end
+    when 'NOK' then case p_package when 'week' then 21900 when 'two_weeks' then 39900 when 'month' then 65900 end
+    when 'GBP' then case p_package when 'week' then 1600 when 'two_weeks' then 2900 when 'month' then 4900 end
+    when 'USD' then case p_package when 'week' then 2100 when 'two_weeks' then 3900 when 'month' then 6500 end
+    when 'PLN' then case p_package when 'week' then 8900 when 'two_weeks' then 15900 when 'month' then 25900 end
+    else case p_package when 'week' then 1900 when 'two_weeks' then 3500 when 'month' then 5900 end
+  end;
+$$;
+
+create or replace function public.promotion_days(p_package text)
+returns integer language sql immutable as $$
+  select case p_package when 'week' then 7 when 'two_weeks' then 14 when 'month' then 30 end;
+$$;
+
+-- Studio orders a promotion. It starts when paid in the app (Stripe) or when an admin activates it
+-- after payment by other means.
+create or replace function public.request_promotion(p_package text)
+returns public.studio_promotions
+language plpgsql security definer set search_path = public
+as $$
+declare
+  v_studio public.studios := (select s from public.studios s where s.owner_id = auth.uid() limit 1);
+  v_id uuid := gen_random_uuid();
+begin
+  if v_studio.id is null or not public.owns_approved_studio(v_studio.id) then
+    raise exception 'Only approved studios can be promoted.';
+  end if;
+  if public.promotion_days(p_package) is null then raise exception 'Unknown promotion package.'; end if;
+  -- Only one open request at a time: replace an unpaid one.
+  update public.studio_promotions set status = 'cancelled'
+  where studio_id = v_studio.id and status = 'pending' and source = 'purchase';
+  insert into public.studio_promotions (id, studio_id, package, days, amount, currency, source, created_by)
+  values (v_id, v_studio.id, p_package, public.promotion_days(p_package),
+          public.promotion_price(p_package, v_studio.currency), upper(v_studio.currency), 'purchase', auth.uid());
+  return (select p from public.studio_promotions p where p.id = v_id);
+end;
+$$;
+
+-- Studio withdraws an unpaid request.
+create or replace function public.cancel_promotion_request(p_promotion_id uuid)
+returns void
+language plpgsql security definer set search_path = public
+as $$
+begin
+  update public.studio_promotions p set status = 'cancelled'
+  where p.id = p_promotion_id and p.status = 'pending' and (public.owns_studio(p.studio_id) or public.is_admin());
+end;
+$$;
+
+-- Admin starts a requested promotion after the studio paid outside the app.
+create or replace function public.admin_activate_promotion(p_promotion_id uuid)
+returns public.studio_promotions
+language plpgsql security definer set search_path = public
+as $$
+begin
+  perform public.require_admin();
+  if not exists (select 1 from public.studio_promotions p where p.id = p_promotion_id and p.status = 'pending') then
+    raise exception 'This request is not pending.';
+  end if;
+  return public.activate_promotion(p_promotion_id);
+end;
+$$;
+
+-- Admin view of promotions with the studio name.
+drop view if exists public.admin_promotions;
+drop view if exists public.admin_promotions;
+create view public.admin_promotions with (security_invoker = true) as
+select p.*, s.name as studio_name, s.promoted_until
+from public.studio_promotions p join public.studios s on s.id = p.studio_id;
+
+-- ---------------------------------------------------------------------------
+-- Admin tools
+-- ---------------------------------------------------------------------------
+-- Cosmetic "EasySesh team" badge on the artist profile and the user's studio. No extra rights.
+create or replace function public.admin_set_admin_badge(p_user_id uuid, p_on boolean)
+returns void
+language plpgsql security definer set search_path = public
+as $$
+begin
+  perform public.require_admin();
+  update public.artist_profiles set has_admin_badge = p_on where id = p_user_id;
+  update public.studios set has_admin_badge = p_on where owner_id = p_user_id;
+end;
+$$;
+
+-- Special tags only admins can put on a studio (e.g. "Staff pick").
+create or replace function public.admin_set_studio_tags(p_studio_id uuid, p_tags text[])
+returns public.studios
+language plpgsql security definer set search_path = public
+as $$
+begin
+  perform public.require_admin();
+  update public.studios
+  set admin_tags = coalesce((
+    select array_agg(distinct left(btrim(t), 30)) from unnest(p_tags) as t where btrim(t) <> ''
+  ), '{}')
+  where id = p_studio_id;
+  if not found then raise exception 'not_found'; end if;
+  return (select s from public.studios s where s.id = p_studio_id);
+end;
+$$;
+
+-- Free promotion granted by an admin (e.g. launch offer or compensation).
+create or replace function public.admin_grant_promotion(p_studio_id uuid, p_days integer, p_note text default null)
+returns public.studio_promotions
+language plpgsql security definer set search_path = public
+as $$
+declare
+  v_id uuid := gen_random_uuid();
+begin
+  perform public.require_admin();
+  if not exists (select 1 from public.studios s where s.id = p_studio_id and s.status = 'approved') then
+    raise exception 'Only approved studios can be promoted.';
+  end if;
+  insert into public.studio_promotions (id, studio_id, package, days, source, note, created_by, currency)
+  select v_id, p_studio_id, 'custom', p_days, 'admin', p_note, auth.uid(), s.currency
+  from public.studios s where s.id = p_studio_id;
+  return public.activate_promotion(v_id);
+end;
+$$;
+
+-- Ends a studio's promotion now (admin).
+create or replace function public.admin_end_promotion(p_studio_id uuid)
+returns void
+language plpgsql security definer set search_path = public
+as $$
+begin
+  perform public.require_admin();
+  update public.studio_promotions set status = 'cancelled', ends_at = now()
+  where studio_id = p_studio_id and status = 'active';
+  update public.studios set promoted_until = null where id = p_studio_id;
+end;
+$$;
+
+-- Admin user list shows the badge.
+drop view if exists public.admin_users;
+drop view if exists public.admin_users;
+create view public.admin_users with (security_invoker = true) as
+select p.id, p.email, p.role, p.status, p.status_reason, p.is_verified, p.created_at,
+  a.artist_name, a.city as artist_city,
+  s.id as studio_id, s.name as studio_name,
+  coalesce(a.has_admin_badge, s.has_admin_badge, false) as has_admin_badge,
+  (select count(*) from public.bookings b where b.artist_id = p.id) as booking_count
+from public.profiles p
+left join public.artist_profiles a on a.id = p.id
+left join public.studios s on s.owner_id = p.id;
+
+-- Artist search (studios starting a chat) shows the badge too. Return type changes, so drop first.
+drop function if exists public.search_artists(text);
+create or replace function public.search_artists(p_query text)
+returns table (id uuid, artist_name text, city text, genres text[], avatar_url text, is_verified boolean, has_booked boolean, has_admin_badge boolean)
+language plpgsql stable security definer set search_path = public
+as $$
+declare
+  q text := btrim(coalesce(p_query, ''));
+  my_studio uuid := (select s.id from public.studios s where s.owner_id = auth.uid() limit 1);
+begin
+  if my_studio is null or not public.owns_approved_studio(my_studio) then
+    raise exception 'Only approved studios can message artists.' using errcode = '42501';
+  end if;
+  return query
+    select a.id, a.artist_name, a.city, a.genres, a.avatar_url, a.is_verified,
+      exists (select 1 from public.bookings b where b.artist_id = a.id and b.studio_id = my_studio) as has_booked,
+      a.has_admin_badge
+    from public.artist_profiles a
+    join public.profiles p on p.id = a.id
+    where p.status = 'active' and p.role = 'artist' and a.artist_name <> ''
+      and (char_length(q) < 2 and exists (select 1 from public.bookings b where b.artist_id = a.id and b.studio_id = my_studio)
+           or char_length(q) >= 2 and (a.artist_name ilike '%' || q || '%' or a.city ilike q || '%'))
+    order by 7 desc, 6 desc, 2
+    limit 30;
+end;
+$$;
+
+-- Promotions end on their own (promoted_until); this keeps the history tidy.
+select cron.schedule('easysesh-expire-promotions', '23 * * * *', $$select public.expire_promotions()$$);
+
+-- Bookings without edge functions --------------------------------------
+-- EasySesh: booking actions that don't move card money run in the database, so booking works
+-- before any edge function is deployed or Stripe is configured. Card flows (charging, capturing,
+-- refunding) still use the edge functions; these RPCs raise 'needs_payment_service' for them.
+-- Mirrors supabase/functions/_shared/pricing.ts and availability.ts.
+
+-- Integer percentage with half-up rounding (same as pricing.ts `percent`).
+create or replace function public.pct(p_amount integer, p_percent integer)
+returns integer language sql immutable as $$
+  select floor((p_amount::numeric * p_percent + 50) / 100)::int;
+$$;
+
+-- Whether [start, start + hours) fits the studio's opening hours (same day or an overnight window).
+create or replace function public.fits_opening_hours(p_studio public.studios, p_start timestamptz, p_hours integer)
+returns boolean
+language plpgsql stable set search_path = public
+as $$
+declare
+  v_local timestamp := p_start at time zone coalesce(nullif(p_studio.timezone, ''), 'UTC');
+  v_weekday integer := extract(dow from v_local)::int + 1;  -- 1 = Sunday
+  v_minute integer := extract(hour from v_local)::int * 60 + extract(minute from v_local)::int;
+  v_duration integer := p_hours * 60;
+  v_day integer;
+  v_offset integer;
+  v_hours jsonb;
+  v_opens integer;
+  v_closes integer;
+begin
+  for i in 0..1 loop
+    v_day := case when i = 0 then v_weekday when v_weekday = 1 then 7 else v_weekday - 1 end;
+    v_offset := i * 24 * 60;
+    v_hours := (select h from jsonb_array_elements(p_studio.opening_hours) as h where (h ->> 'weekday')::int = v_day limit 1);
+    continue when v_hours is null or coalesce((v_hours ->> 'is_closed')::boolean, false);
+    v_opens := (v_hours ->> 'opens_at')::int;
+    v_closes := (v_hours ->> 'closes_at')::int;
+    if v_closes <= v_opens then v_closes := v_closes + 24 * 60; end if;
+    if v_minute + v_offset >= v_opens and v_minute + v_offset + v_duration <= v_closes then
+      return true;
+    end if;
+  end loop;
+  return false;
+end;
+$$;
+
+-- Timing rules: notice, how far ahead, opening hours and conflicts (with buffer).
+create or replace function public.check_booking_slot(p_studio public.studios, p_start timestamptz, p_hours integer, p_ignore_booking uuid default null)
+returns void
+language plpgsql stable security definer set search_path = public
+as $$
+declare
+  v_policy jsonb := coalesce(p_studio.booking_policy, '{}'::jsonb);
+  v_notice integer := coalesce((v_policy ->> 'minimum_notice_hours')::int, 0);
+  v_ahead integer := coalesce((v_policy ->> 'max_advance_days')::int, 90);
+  v_buffer interval := make_interval(mins => coalesce((v_policy ->> 'buffer_minutes')::int, 0));
+  v_end timestamptz := p_start + make_interval(hours => p_hours);
+begin
+  if p_start < now() + make_interval(hours => v_notice) then
+    raise exception 'This studio needs at least % hours'' notice.', v_notice;
+  end if;
+  if p_start > now() + make_interval(days => v_ahead + 1) then
+    raise exception 'You can book at most % days ahead.', v_ahead;
+  end if;
+  if not public.fits_opening_hours(p_studio, p_start, p_hours) then
+    raise exception 'slot_unavailable';
+  end if;
+  if exists (
+    select 1 from public.bookings b
+    where b.studio_id = p_studio.id and b.id is distinct from p_ignore_booking
+      and b.status in ('awaiting_payment', 'pending_approval', 'confirmed')
+      and b.starts_at < v_end + v_buffer and b.ends_at > p_start - v_buffer
+  ) or exists (
+    select 1 from public.blocked_slots s
+    where s.studio_id = p_studio.id and s.starts_at < v_end + v_buffer and s.ends_at > p_start - v_buffer
+  ) then
+    raise exception 'slot_unavailable';
+  end if;
+end;
+$$;
+
+-- Artist creates a booking (held for 30 minutes in awaiting_payment). Price is computed here.
+create or replace function public.create_booking(
+  p_studio_id uuid,
+  p_session_type_id text,
+  p_starts_at timestamptz,
+  p_hours integer,
+  p_add_ons jsonb default '[]'::jsonb,
+  p_notes text default ''
+) returns public.bookings
+language plpgsql security definer set search_path = public
+as $$
+declare
+  v_studio public.studios;
+  v_type jsonb;
+  v_rate integer;
+  v_min integer;
+  v_session integer;
+  v_addons_amount integer := 0;
+  v_booked jsonb := '[]'::jsonb;
+  v_addon jsonb;
+  v_qty integer;
+  v_amount integer;
+  v_subtotal integer;
+  v_fee integer;
+  v_total integer;
+  v_deposit_pct integer;
+  v_deposit integer;
+  v_due_now integer;
+  v_commission integer;
+  v_id uuid := gen_random_uuid();
+  v_reference text;
+  v_artist_name text;
+begin
+  if not exists (select 1 from public.profiles p where p.id = auth.uid() and p.role = 'artist' and p.status = 'active') then
+    raise exception 'Only artist accounts can book sessions.';
+  end if;
+  v_studio := (select s from public.studios s where s.id = p_studio_id);
+  if v_studio.id is null or v_studio.status <> 'approved' or not v_studio.is_active then
+    raise exception 'not_found';
+  end if;
+
+  v_type := (select t from jsonb_array_elements(v_studio.session_types) as t where t ->> 'id' = p_session_type_id limit 1);
+  if v_type is null then raise exception 'Unknown session type.'; end if;
+  v_rate := (v_type ->> 'hourly_rate')::int;
+  v_min := coalesce((v_type ->> 'minimum_hours')::int, 1);
+  if p_hours is null or p_hours < v_min then
+    raise exception 'Minimum % hours for %.', v_min, v_type ->> 'name';
+  end if;
+  if p_hours > 12 then raise exception 'Sessions can be at most 12 hours.'; end if;
+
+  perform public.check_booking_slot(v_studio, p_starts_at, p_hours);
+
+  -- Add-ons: [{ "id": "...", "quantity": n }]
+  for v_addon in select a from jsonb_array_elements(coalesce(v_studio.add_ons, '[]'::jsonb)) as a loop
+    v_qty := least(greatest(coalesce((
+      select floor((x ->> 'quantity')::numeric)::int from jsonb_array_elements(coalesce(p_add_ons, '[]'::jsonb)) as x
+      where x ->> 'id' = v_addon ->> 'id' limit 1), 0), 0), 50);
+    continue when v_qty = 0;
+    v_amount := case v_addon ->> 'unit'
+      when 'per_hour' then (v_addon ->> 'price')::int * p_hours
+      when 'per_session' then (v_addon ->> 'price')::int
+      else (v_addon ->> 'price')::int * v_qty
+    end;
+    v_addons_amount := v_addons_amount + v_amount;
+    v_booked := v_booked || jsonb_build_object('id', v_addon ->> 'id', 'name', v_addon ->> 'name', 'quantity', v_qty, 'amount', v_amount);
+  end loop;
+
+  v_session := v_rate * p_hours;
+  v_subtotal := v_session + v_addons_amount;
+  v_fee := 0;  -- artists pay the studio's price; EasySesh takes 10% from the studio
+  v_total := v_subtotal + v_fee;
+  v_deposit_pct := least(greatest(coalesce((v_studio.booking_policy ->> 'deposit_percent')::int, 0), 0), 100);
+  v_deposit := case when v_deposit_pct > 0 and v_deposit_pct < 100 then public.pct(v_subtotal, v_deposit_pct) else 0 end;
+  v_due_now := case when v_deposit > 0 then v_deposit + v_fee else v_total end;
+  v_commission := public.pct(v_subtotal, coalesce(v_studio.platform_fee_percent, 10));
+
+  v_reference := 'ES-' || upper(substr(md5(gen_random_uuid()::text || clock_timestamp()::text), 1, 6));
+  v_artist_name := coalesce(nullif((select a.artist_name from public.artist_profiles a where a.id = auth.uid()), ''),
+                            (select p.email from public.profiles p where p.id = auth.uid()));
+
+  begin
+    insert into public.bookings (id, reference, artist_id, studio_id, artist_name, studio_name, session_type_id, session_type_name,
+      starts_at, ends_at, hours, add_ons, price, notes, changed_by)
+    values (v_id, v_reference, auth.uid(), v_studio.id, v_artist_name, v_studio.name, p_session_type_id, v_type ->> 'name',
+      p_starts_at, p_starts_at + make_interval(hours => p_hours), p_hours, v_booked,
+      jsonb_build_object(
+        'currency', v_studio.currency, 'hourly_rate', v_rate, 'hours', p_hours,
+        'session_amount', v_session, 'add_ons_amount', v_addons_amount, 'subtotal', v_subtotal,
+        'service_fee', v_fee, 'total', v_total, 'deposit_amount', v_deposit,
+        'due_now', v_due_now, 'due_later', v_total - v_due_now,
+        'studio_commission', v_commission, 'studio_payout', v_subtotal - v_commission),
+      left(coalesce(p_notes, ''), 1000), auth.uid());
+  exception when exclusion_violation then
+    raise exception 'slot_unavailable' using errcode = '23P01';
+  end;
+  return (select b from public.bookings b where b.id = v_id);
+end;
+$$;
+
+-- Artist chooses to pay cash at the studio.
+create or replace function public.confirm_cash_booking(p_booking_id uuid)
+returns public.bookings
+language plpgsql security definer set search_path = public
+as $$
+declare
+  v_booking public.bookings := (select b from public.bookings b where b.id = p_booking_id);
+  v_studio public.studios;
+  v_policy jsonb;
+begin
+  if v_booking.id is null or v_booking.artist_id <> auth.uid() then raise exception 'not_found'; end if;
+  if v_booking.status <> 'awaiting_payment' then raise exception 'This booking is no longer awaiting payment.'; end if;
+  v_studio := (select s from public.studios s where s.id = v_booking.studio_id);
+  v_policy := coalesce(v_studio.booking_policy, '{}'::jsonb);
+  if not coalesce((v_policy ->> 'accepts_cash')::boolean, true) or coalesce((v_policy ->> 'deposit_percent')::int, 0) > 0 then
+    raise exception 'This studio only accepts payment in the app.';
+  end if;
+  update public.bookings set
+    status = case when coalesce((v_policy ->> 'instant_book')::boolean, true) then 'confirmed'::public.booking_status else 'pending_approval'::public.booking_status end,
+    payment_method = 'cash', payment_status = 'pay_at_studio', changed_by = auth.uid()
+  where id = p_booking_id;
+  return (select b from public.bookings b where b.id = p_booking_id);
+end;
+$$;
+
+-- Who is acting on a booking: 'artist' or 'studio_owner' (approved studio only).
+create or replace function public.booking_actor(p_booking public.bookings)
+returns text
+language plpgsql stable security definer set search_path = public
+as $$
+begin
+  if p_booking.artist_id = auth.uid() then return 'artist'; end if;
+  if public.owns_approved_studio(p_booking.studio_id) then return 'studio_owner'; end if;
+  raise exception 'forbidden' using errcode = '42501';
+end;
+$$;
+
+-- Card money involved → the payment service (edge function) has to handle refunds/captures.
+create or replace function public.booking_has_card_money(p_booking public.bookings)
+returns boolean language sql immutable as $$
+  select coalesce(p_booking.payment_method::text, '') <> 'cash'
+     and p_booking.payment_status not in ('unpaid', 'pay_at_studio', 'failed');
+$$;
+
+create or replace function public.cancel_booking(p_booking_id uuid, p_reason text default '')
+returns public.bookings
+language plpgsql security definer set search_path = public
+as $$
+declare
+  v_booking public.bookings := (select b from public.bookings b where b.id = p_booking_id);
+  v_actor text;
+  v_reason text := left(btrim(coalesce(p_reason, '')), 500);
+begin
+  if v_booking.id is null then raise exception 'not_found'; end if;
+  v_actor := public.booking_actor(v_booking);
+  if v_booking.status not in ('pending_approval', 'confirmed') or v_booking.starts_at <= now() then
+    raise exception 'This booking can no longer be cancelled.';
+  end if;
+  if v_actor = 'studio_owner' and v_reason = '' then
+    raise exception 'Please tell the artist why you''re cancelling.';
+  end if;
+  if public.booking_has_card_money(v_booking) then raise exception 'needs_payment_service'; end if;
+  update public.bookings set
+    status = 'cancelled', cancelled_by = v_actor::public.user_role, cancellation_reason = nullif(v_reason, ''),
+    payment_status = 'unpaid', changed_by = auth.uid()
+  where id = p_booking_id;
+  return (select b from public.bookings b where b.id = p_booking_id);
+end;
+$$;
+
+create or replace function public.respond_booking(p_booking_id uuid, p_accept boolean, p_message text default null)
+returns public.bookings
+language plpgsql security definer set search_path = public
+as $$
+declare
+  v_booking public.bookings := (select b from public.bookings b where b.id = p_booking_id);
+begin
+  if v_booking.id is null then raise exception 'not_found'; end if;
+  if not public.owns_approved_studio(v_booking.studio_id) then raise exception 'forbidden' using errcode = '42501'; end if;
+  if v_booking.status <> 'pending_approval' then raise exception 'This request has already been handled.'; end if;
+  if public.booking_has_card_money(v_booking) then raise exception 'needs_payment_service'; end if;
+  if p_accept then
+    update public.bookings set status = 'confirmed', changed_by = auth.uid() where id = p_booking_id;
+  else
+    update public.bookings set status = 'declined', payment_status = 'unpaid',
+      cancellation_reason = nullif(left(btrim(coalesce(p_message, '')), 500), ''), changed_by = auth.uid()
+    where id = p_booking_id;
+  end if;
+  return (select b from public.bookings b where b.id = p_booking_id);
+end;
+$$;
+
+-- Same duration and price, new start time. No money moves, so this never needs the payment service.
+create or replace function public.reschedule_booking(p_booking_id uuid, p_starts_at timestamptz)
+returns public.bookings
+language plpgsql security definer set search_path = public
+as $$
+declare
+  v_booking public.bookings := (select b from public.bookings b where b.id = p_booking_id);
+  v_studio public.studios;
+begin
+  if v_booking.id is null then raise exception 'not_found'; end if;
+  perform public.booking_actor(v_booking);
+  if v_booking.status <> 'confirmed' or v_booking.starts_at <= now() then
+    raise exception 'This booking can''t be changed.';
+  end if;
+  v_studio := (select s from public.studios s where s.id = v_booking.studio_id);
+  perform public.check_booking_slot(v_studio, p_starts_at, v_booking.hours, v_booking.id);
+  begin
+    update public.bookings set starts_at = p_starts_at, ends_at = p_starts_at + make_interval(hours => v_booking.hours),
+      changed_by = auth.uid()
+    where id = p_booking_id;
+  exception when exclusion_violation then
+    raise exception 'slot_unavailable' using errcode = '23P01';
+  end;
+  return (select b from public.bookings b where b.id = p_booking_id);
+end;
+$$;
+
+-- Artist ratings, deleting notifications -------------------------------
+-- EasySesh: studios rate artists after a completed session; users can delete their notifications.
+
+-- Notifications: swipe to delete.
+drop policy if exists "notifications: own delete" on public.notifications;
+drop policy if exists "notifications: own delete" on public.notifications;
+create policy "notifications: own delete" on public.notifications for delete using (user_id = auth.uid());
+
+-- Artist ratings (given by studios).
+alter table public.artist_profiles
+  add column if not exists rating_average numeric(3, 2) not null default 0,
+  add column if not exists review_count integer not null default 0;
+
+create table if not exists public.artist_reviews (
+  id uuid primary key default gen_random_uuid(),
+  booking_id uuid not null unique references public.bookings (id) on delete cascade,
+  studio_id uuid not null references public.studios (id) on delete cascade,
+  artist_id uuid not null references public.profiles (id) on delete cascade,
+  studio_name text not null,
+  rating smallint not null check (rating between 1 and 5),
+  text text not null default '',
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create index if not exists if not exists artist_reviews_artist_idx on public.artist_reviews (artist_id, created_at desc);
+
+alter table public.artist_reviews enable row level security;
+drop policy if exists "artist_reviews: read" on public.artist_reviews;
+drop policy if exists "artist_reviews: read" on public.artist_reviews;
+create policy "artist_reviews: read" on public.artist_reviews for select to authenticated using (true);
+
+-- Artists can't edit their own rating numbers.
+create or replace function public.guard_artist_profiles()
+returns trigger language plpgsql as $$
+begin
+  if not public.is_trusted() then
+    if tg_op = 'INSERT' then
+      new.is_verified := false;
+      new.has_admin_badge := false;
+      new.rating_average := 0;
+      new.review_count := 0;
+    else
+      new.is_verified := old.is_verified;
+      new.has_admin_badge := old.has_admin_badge;
+      new.rating_average := old.rating_average;
+      new.review_count := old.review_count;
+    end if;
+  end if;
+  new.updated_at := now();
+  return new;
+end;
+$$;
+
+-- Studio rates the artist of one of its completed bookings (can update it later).
+create or replace function public.review_artist(p_booking_id uuid, p_rating integer, p_text text default '')
+returns public.artist_reviews
+language plpgsql security definer set search_path = public
+as $$
+declare
+  v_booking public.bookings := (select b from public.bookings b where b.id = p_booking_id);
+  v_is_new boolean;
+begin
+  if v_booking.id is null then raise exception 'not_found'; end if;
+  if not public.owns_approved_studio(v_booking.studio_id) then raise exception 'forbidden' using errcode = '42501'; end if;
+  if v_booking.status <> 'completed' then raise exception 'You can rate the artist after the session is completed.'; end if;
+  if p_rating is null or p_rating not between 1 and 5 then raise exception 'Pick 1 to 5 stars.'; end if;
+  v_is_new := not exists (select 1 from public.artist_reviews r where r.booking_id = p_booking_id);
+
+  insert into public.artist_reviews (booking_id, studio_id, artist_id, studio_name, rating, text)
+  values (v_booking.id, v_booking.studio_id, v_booking.artist_id, v_booking.studio_name, p_rating, left(btrim(coalesce(p_text, '')), 1000))
+  on conflict (booking_id) do update set rating = excluded.rating, text = excluded.text, updated_at = now();
+
+  -- Ratings removed after a dispute (is_hidden, added later) don't count.
+  update public.artist_profiles a set
+    rating_average = coalesce((select round(avg(r.rating)::numeric, 2) from public.artist_reviews r where r.artist_id = a.id and not r.is_hidden), 0),
+    review_count = (select count(*) from public.artist_reviews r where r.artist_id = a.id and not r.is_hidden)
+  where a.id = v_booking.artist_id;
+
+  if v_is_new then
+    perform public.notify(v_booking.artist_id, 'new_review', v_booking.studio_name || ' rated you',
+      repeat('★', p_rating) || repeat('☆', 5 - p_rating), v_booking.id, null, v_booking.studio_id);
+  end if;
+  return (select r from public.artist_reviews r where r.booking_id = p_booking_id);
+end;
+$$;
+
+-- Platform fee enforcement ---------------------------------------------
+-- EasySesh: collecting platform fees studios owe for cash bookings.
+--  1. Fees are deducted from the studio's next card payout (process-payouts, unchanged).
+--  2. Whatever is still owed on the 1st of the month is invoiced, due in 14 days.
+--  3. Overdue: reminder at the due date, final notice after 7 days.
+--  4. 14 days after the due date the studio is suspended (removed from EasySesh) and the invoice
+--     goes to debt collection / legal action. Admins can record payment and reinstate the studio.
+
+alter table public.studio_fee_invoices
+  add column if not exists due_at timestamptz,
+  add column if not exists reminder_sent_at timestamptz,
+  add column if not exists final_notice_at timestamptz,
+  add column if not exists collections_at timestamptz;
+update public.studio_fee_invoices set due_at = created_at + interval '14 days' where due_at is null;
+alter table public.studio_fee_invoices alter column due_at set default now() + interval '14 days';
+
+alter table public.studio_fee_invoices drop constraint if exists studio_fee_invoices_status_check;
+alter table public.studio_fee_invoices add constraint studio_fee_invoices_status_check
+  check (status in ('open', 'paid', 'void', 'collections'));
+
+-- Invoices whatever is still owed after payouts. Runs monthly; safe to run again.
+create or replace function public.create_fee_invoices()
+returns integer
+language plpgsql security definer set search_path = public
+as $$
+declare
+  v_row record;
+  v_count integer := 0;
+begin
+  for v_row in
+    select l.studio_id, l.currency, sum(l.amount)::int as balance,
+      coalesce((select sum(i.amount) from public.studio_fee_invoices i
+                where i.studio_id = l.studio_id and i.currency = l.currency and i.status in ('open', 'collections')), 0)::int as invoiced
+    from public.studio_fee_ledger l
+    group by l.studio_id, l.currency
+  loop
+    continue when v_row.balance - v_row.invoiced <= 0;
+    insert into public.studio_fee_invoices (studio_id, amount, currency, due_at)
+    values (v_row.studio_id, v_row.balance - v_row.invoiced, v_row.currency, now() + interval '14 days');
+    perform public.notify((select s.owner_id from public.studios s where s.id = v_row.studio_id), 'system',
+      'Invoice for platform fees',
+      'You owe ' || public.format_money(v_row.balance - v_row.invoiced, v_row.currency) ||
+      ' in platform fees for cash bookings that could not be deducted from payouts. Please pay within 14 days (' ||
+      to_char(now() + interval '14 days', 'DD Mon YYYY') || ').', null, null, v_row.studio_id);
+    v_count := v_count + 1;
+  end loop;
+  return v_count;
+end;
+$$;
+revoke execute on function public.create_fee_invoices from public, anon, authenticated;
+
+-- Reminders, final notice, suspension and debt collection. Runs daily.
+create or replace function public.run_fee_enforcement()
+returns void
+language plpgsql security definer set search_path = public
+as $$
+declare
+  v_invoice record;
+  v_owner uuid;
+begin
+  for v_invoice in select i.* from public.studio_fee_invoices i where i.status = 'open' and i.due_at < now() loop
+    v_owner := (select s.owner_id from public.studios s where s.id = v_invoice.studio_id);
+
+    if v_invoice.due_at < now() - interval '14 days' then
+      update public.studio_fee_invoices set status = 'collections', collections_at = now() where id = v_invoice.id;
+      update public.studios set status = 'suspended', is_active = false,
+        admin_note = 'Suspended for unpaid platform fees (' || public.format_money(v_invoice.amount, v_invoice.currency) ||
+                     '). The debt has been handed over for collection.'
+      where id = v_invoice.studio_id and status <> 'suspended';
+      perform public.notify(v_owner, 'system', 'Studio suspended – unpaid platform fees',
+        'Your invoice of ' || public.format_money(v_invoice.amount, v_invoice.currency) ||
+        ' is more than 14 days overdue. Your studio has been removed from EasySesh and the debt has been handed over for collection and legal action. Contact support to settle it.',
+        null, null, v_invoice.studio_id);
+    elsif v_invoice.due_at < now() - interval '7 days' and v_invoice.final_notice_at is null then
+      update public.studio_fee_invoices set final_notice_at = now() where id = v_invoice.id;
+      perform public.notify(v_owner, 'system', 'Final notice: unpaid platform fees',
+        'Your invoice of ' || public.format_money(v_invoice.amount, v_invoice.currency) ||
+        ' is overdue. Pay within 7 days, otherwise your studio will be removed from EasySesh and the debt handed over for collection and legal action.',
+        null, null, v_invoice.studio_id);
+    elsif v_invoice.reminder_sent_at is null then
+      update public.studio_fee_invoices set reminder_sent_at = now() where id = v_invoice.id;
+      perform public.notify(v_owner, 'system', 'Reminder: platform fee invoice due',
+        'Your invoice of ' || public.format_money(v_invoice.amount, v_invoice.currency) || ' was due on ' ||
+        to_char(v_invoice.due_at, 'DD Mon YYYY') || '. Please pay it as soon as possible.', null, null, v_invoice.studio_id);
+    end if;
+  end loop;
+end;
+$$;
+revoke execute on function public.run_fee_enforcement from public, anon, authenticated;
+
+-- When payments bring the balance to zero, open invoices are marked paid.
+create or replace function public.settle_fee_invoices()
+returns trigger
+language plpgsql security definer set search_path = public
+as $$
+begin
+  if new.amount < 0 and (select coalesce(sum(l.amount), 0) from public.studio_fee_ledger l
+                          where l.studio_id = new.studio_id and l.currency = new.currency) <= 0 then
+    update public.studio_fee_invoices set status = 'paid', paid_at = now()
+    where studio_id = new.studio_id and currency = new.currency and status in ('open', 'collections');
+  end if;
+  return new;
+end;
+$$;
+drop trigger if exists settle_fee_invoices on public.studio_fee_ledger;
+create trigger settle_fee_invoices after insert on public.studio_fee_ledger
+  for each row execute function public.settle_fee_invoices();
+
+-- Admin: reinstate a studio that was suspended for unpaid fees once the debt is settled.
+create or replace function public.admin_reinstate_studio(p_studio_id uuid)
+returns public.studios
+language plpgsql security definer set search_path = public
+as $$
+begin
+  perform public.require_admin();
+  if (select coalesce(sum(l.amount), 0) from public.studio_fee_ledger l where l.studio_id = p_studio_id) > 0 then
+    raise exception 'This studio still owes platform fees. Record the payment first.';
+  end if;
+  update public.studios set status = 'approved', is_active = true, admin_note = null where id = p_studio_id;
+  return (select s from public.studios s where s.id = p_studio_id);
+end;
+$$;
+
+select cron.schedule('easysesh-fee-invoices', '10 6 1 * *', $$select public.create_fee_invoices()$$);
+select cron.schedule('easysesh-fee-enforcement', '20 6 * * *', $$select public.run_fee_enforcement()$$);
+
+-- Special deals, contact rules, rating disputes ------------------------
+-- EasySesh: per-studio platform fee (special deals), email + phone required in applications,
+-- and disputes of ratings (studios dispute artists' reviews, artists dispute studios' ratings).
+
+-- ---------------------------------------------------------------------------
+-- Special deals: each studio can have its own platform fee (default 10%), set by an admin.
+-- ---------------------------------------------------------------------------
+alter table public.studios
+  add column if not exists platform_fee_percent smallint not null default 10 check (platform_fee_percent between 0 and 30);
+
+create or replace function public.guard_studio_extras()
+returns trigger language plpgsql as $$
+begin
+  if not public.is_trusted() then
+    if tg_op = 'INSERT' then
+      new.has_admin_badge := false;
+      new.admin_tags := '{}';
+      new.promoted_until := null;
+      new.platform_fee_percent := 10;
+    else
+      new.has_admin_badge := old.has_admin_badge;
+      new.admin_tags := old.admin_tags;
+      new.promoted_until := old.promoted_until;
+      new.platform_fee_percent := old.platform_fee_percent;
+    end if;
+  end if;
+  return new;
+end;
+$$;
+
+create or replace function public.admin_set_platform_fee(p_studio_id uuid, p_percent integer)
+returns public.studios
+language plpgsql security definer set search_path = public
+as $$
+begin
+  perform public.require_admin();
+  if p_percent is null or p_percent not between 0 and 30 then raise exception 'The platform fee must be between 0 and 30%%.'; end if;
+  update public.studios set platform_fee_percent = p_percent where id = p_studio_id;
+  if not found then raise exception 'not_found'; end if;
+  return (select s from public.studios s where s.id = p_studio_id);
+end;
+$$;
+
+-- ---------------------------------------------------------------------------
+-- Applications need both an email address and a phone number.
+-- ---------------------------------------------------------------------------
+create or replace function public.studio_validation_problems(s public.studios)
+returns text[]
+language plpgsql stable
+as $$
+declare
+  problems text[] := '{}';
+begin
+  if char_length(trim(s.name)) < 3 then problems := array_append(problems, 'Add your studio''s name.'::text); end if;
+  if char_length(s.description) < 40 then problems := array_append(problems, 'Write a description of at least 40 characters.'::text); end if;
+  if cardinality(s.photo_urls) = 0 then problems := array_append(problems, 'Add at least one photo.'::text); end if;
+  if coalesce(s.address ->> 'street', '') = '' or coalesce(s.address ->> 'city', '') = '' then problems := array_append(problems, 'Add the studio''s address.'::text); end if;
+  if s.latitude = 0 and s.longitude = 0 then problems := array_append(problems, 'Place your studio on the map.'::text); end if;
+  if coalesce(s.contact ->> 'email', '') !~ '^[^@[:space:]]+@[^@[:space:]]+\.[^@[:space:]]+$' then problems := array_append(problems, 'Add a valid email address.'::text); end if;
+  if length(regexp_replace(coalesce(s.contact ->> 'phone', ''), '[^0-9]', '', 'g')) < 6 then problems := array_append(problems, 'Add a phone number.'::text); end if;
+  if jsonb_array_length(s.session_types) = 0 or exists (
+       select 1 from jsonb_array_elements(s.session_types) as t where coalesce((t.value ->> 'hourly_rate')::int, 0) <= 0) then
+    problems := array_append(problems, 'Set a price for each session type.'::text);
+  end if;
+  if not exists (select 1 from jsonb_array_elements(s.opening_hours) as h where not coalesce((h.value ->> 'is_closed')::boolean, false)) then
+    problems := array_append(problems, 'Set your opening hours.'::text);
+  end if;
+  if cardinality(s.genres) = 0 then problems := array_append(problems, 'Pick at least one genre.'::text); end if;
+  return problems;
+end;
+$$;
+
+-- ---------------------------------------------------------------------------
+-- Rating disputes
+-- ---------------------------------------------------------------------------
+alter table public.artist_reviews add column if not exists is_hidden boolean not null default false;
+
+create table if not exists public.rating_disputes (
+  id uuid primary key default gen_random_uuid(),
+  review_type text not null check (review_type in ('studio_review', 'artist_review')),
+  review_id uuid not null,
+  opened_by uuid not null references public.profiles (id) on delete cascade,
+  reason text not null check (char_length(reason) between 10 and 1000),
+  status text not null default 'open' check (status in ('open', 'removed', 'kept')),
+  admin_note text,
+  created_at timestamptz not null default now(),
+  resolved_at timestamptz,
+  unique (review_type, review_id)
+);
+alter table public.rating_disputes enable row level security;
+drop policy if exists "rating_disputes: own or admin read" on public.rating_disputes;
+drop policy if exists "rating_disputes: own or admin read" on public.rating_disputes;
+create policy "rating_disputes: own or admin read" on public.rating_disputes for select
+  using (opened_by = auth.uid() or public.is_admin());
+
+create or replace function public.refresh_artist_rating(p_artist_id uuid)
+returns void language sql security definer set search_path = public as $$
+  update public.artist_profiles a set
+    rating_average = coalesce((select round(avg(r.rating)::numeric, 2) from public.artist_reviews r where r.artist_id = a.id and not r.is_hidden), 0),
+    review_count = (select count(*) from public.artist_reviews r where r.artist_id = a.id and not r.is_hidden)
+  where a.id = p_artist_id;
+$$;
+revoke execute on function public.refresh_artist_rating from public, anon, authenticated;
+
+-- The rated party disputes a rating: the studio (review of its studio) or the artist (rating by a studio).
+create or replace function public.dispute_rating(p_review_type text, p_review_id uuid, p_reason text)
+returns public.rating_disputes
+language plpgsql security definer set search_path = public
+as $$
+declare
+  v_reason text := btrim(coalesce(p_reason, ''));
+  v_allowed boolean;
+  v_id uuid := gen_random_uuid();
+begin
+  if char_length(v_reason) < 10 then raise exception 'Tell us why the rating is unfair (at least 10 characters).'; end if;
+  v_allowed := case p_review_type
+    when 'studio_review' then exists (select 1 from public.reviews r where r.id = p_review_id and public.owns_studio(r.studio_id))
+    when 'artist_review' then exists (select 1 from public.artist_reviews r where r.id = p_review_id and r.artist_id = auth.uid())
+    else false end;
+  if not v_allowed then raise exception 'forbidden' using errcode = '42501'; end if;
+  if exists (select 1 from public.rating_disputes d where d.review_type = p_review_type and d.review_id = p_review_id) then
+    raise exception 'This rating has already been disputed.';
+  end if;
+  insert into public.rating_disputes (id, review_type, review_id, opened_by, reason)
+  values (v_id, p_review_type, p_review_id, auth.uid(), left(v_reason, 1000));
+  return (select d from public.rating_disputes d where d.id = v_id);
+end;
+$$;
+
+-- Admin decides: remove the rating (hidden and no longer counted) or keep it.
+create or replace function public.admin_resolve_rating_dispute(p_dispute_id uuid, p_remove boolean, p_note text default null)
+returns public.rating_disputes
+language plpgsql security definer set search_path = public
+as $$
+declare
+  v_dispute public.rating_disputes := (select d from public.rating_disputes d where d.id = p_dispute_id);
+  v_artist uuid;
+begin
+  perform public.require_admin();
+  if v_dispute.id is null then raise exception 'not_found'; end if;
+  if v_dispute.status <> 'open' then raise exception 'This dispute is already resolved.'; end if;
+  if p_remove then
+    if v_dispute.review_type = 'studio_review' then
+      update public.reviews set is_hidden = true where id = v_dispute.review_id;
+    else
+      update public.artist_reviews set is_hidden = true where id = v_dispute.review_id;
+      v_artist := (select r.artist_id from public.artist_reviews r where r.id = v_dispute.review_id);
+      perform public.refresh_artist_rating(v_artist);
+    end if;
+  end if;
+  update public.rating_disputes set status = case when p_remove then 'removed' else 'kept' end,
+    admin_note = nullif(btrim(coalesce(p_note, '')), ''), resolved_at = now()
+  where id = p_dispute_id;
+  perform public.notify(v_dispute.opened_by, 'system',
+    case when p_remove then 'Rating removed' else 'Rating dispute reviewed' end,
+    case when p_remove then 'We reviewed your dispute and removed the rating.'
+         else 'We reviewed your dispute and the rating stays.' end || coalesce(' ' || nullif(btrim(p_note), ''), ''));
+  return (select d from public.rating_disputes d where d.id = p_dispute_id);
+end;
+$$;
+
+-- Admin list with the rating's content.
+drop view if exists public.admin_rating_disputes;
+drop view if exists public.admin_rating_disputes;
+create view public.admin_rating_disputes with (security_invoker = true) as
+select d.*,
+  coalesce(sr.rating, ar.rating) as rating,
+  coalesce(sr.text, ar.text) as review_text,
+  case when d.review_type = 'studio_review' then sr.artist_name else ar.studio_name end as reviewer_name,
+  case when d.review_type = 'studio_review' then st.name else ap.artist_name end as rated_name
+from public.rating_disputes d
+left join public.reviews sr on d.review_type = 'studio_review' and sr.id = d.review_id
+left join public.studios st on st.id = sr.studio_id
+left join public.artist_reviews ar on d.review_type = 'artist_review' and ar.id = d.review_id
+left join public.artist_profiles ap on ap.id = ar.artist_id;
+
+-- Studio <-> artist profile connections --------------------------------
+-- EasySesh: connect a studio to an artist profile (e.g. an artist who also runs a studio).
+-- The studio asks, the artist confirms; both profiles then show the connection.
+
+create table if not exists public.studio_artist_links (
+  studio_id uuid primary key references public.studios (id) on delete cascade,
+  artist_id uuid not null references public.profiles (id) on delete cascade,
+  status text not null default 'pending' check (status in ('pending', 'accepted')),
+  created_at timestamptz not null default now()
+);
+create index if not exists if not exists studio_artist_links_artist_idx on public.studio_artist_links (artist_id);
+
+alter table public.studio_artist_links enable row level security;
+drop policy if exists "studio_artist_links: read" on public.studio_artist_links;
+drop policy if exists "studio_artist_links: read" on public.studio_artist_links;
+create policy "studio_artist_links: read" on public.studio_artist_links for select to authenticated
+  using (status = 'accepted' or artist_id = auth.uid() or public.owns_studio(studio_id) or public.is_admin());
+
+-- Studio owner asks an artist to connect profiles.
+create or replace function public.request_studio_artist_link(p_artist_id uuid)
+returns public.studio_artist_links
+language plpgsql security definer set search_path = public
+as $$
+declare
+  v_studio public.studios := (select s from public.studios s where s.owner_id = auth.uid() limit 1);
+begin
+  if v_studio.id is null or not public.owns_approved_studio(v_studio.id) then
+    raise exception 'Only approved studios can connect an artist profile.';
+  end if;
+  if not exists (select 1 from public.profiles p where p.id = p_artist_id and p.role = 'artist' and p.status = 'active') then
+    raise exception 'not_found';
+  end if;
+  insert into public.studio_artist_links (studio_id, artist_id, status)
+  values (v_studio.id, p_artist_id, 'pending')
+  on conflict (studio_id) do update set artist_id = excluded.artist_id, status = 'pending', created_at = now();
+  perform public.notify(p_artist_id, 'system', 'Connect your studio?',
+    v_studio.name || ' wants to show your artist profile on its page, and the studio on your profile. Confirm it on your profile.',
+    null, null, v_studio.id);
+  return (select l from public.studio_artist_links l where l.studio_id = v_studio.id);
+end;
+$$;
+
+-- Artist confirms or declines a connection request.
+create or replace function public.respond_studio_artist_link(p_studio_id uuid, p_accept boolean)
+returns void
+language plpgsql security definer set search_path = public
+as $$
+begin
+  if p_accept then
+    update public.studio_artist_links set status = 'accepted' where studio_id = p_studio_id and artist_id = auth.uid();
+  else
+    delete from public.studio_artist_links where studio_id = p_studio_id and artist_id = auth.uid();
+  end if;
+  if not found and p_accept then raise exception 'not_found'; end if;
+end;
+$$;
+
+-- Either side removes the connection.
+create or replace function public.remove_studio_artist_link(p_studio_id uuid)
+returns void
+language plpgsql security definer set search_path = public
+as $$
+begin
+  delete from public.studio_artist_links l
+  where l.studio_id = p_studio_id and (l.artist_id = auth.uid() or public.owns_studio(l.studio_id));
+end;
+$$;
+
+-- Booking requests expire after 24 hours -------------------------------
+-- EasySesh: booking requests (studios without instant booking) must be answered within 24 hours,
+-- otherwise they expire and the artist is told. Studios are paid only after a completed session
+-- (process-payouts schedules payouts for completed bookings only, 2 days after the session ends).
+
+create or replace function public.run_booking_housekeeping()
+returns void
+language plpgsql security definer set search_path = public
+as $$
+declare
+  v_expired record;
+begin
+  -- Unpaid holds release the slot after 30 minutes.
+  update public.bookings set status = 'expired'
+  where status = 'awaiting_payment' and created_at < now() - interval '30 minutes';
+
+  -- Requests the studio didn't answer within 24 hours (or before the session starts) expire.
+  -- Card authorisations are released by the edge function; cash bookings had nothing charged.
+  for v_expired in
+    update public.bookings set status = 'expired',
+      payment_status = case when payment_method = 'cash' then 'unpaid'::public.payment_status else 'refunded'::public.payment_status end
+    where status = 'pending_approval' and (starts_at < now() or created_at < now() - interval '24 hours')
+    returning id, artist_id, studio_name
+  loop
+    perform public.notify(v_expired.artist_id, 'booking_declined', 'Request expired',
+      v_expired.studio_name || ' didn''t answer within 24 hours, so your request expired. Nothing was charged.', v_expired.id);
+  end loop;
+
+  -- Finished sessions complete (triggers review prompt; payouts/balance charges run in process-payouts).
+  update public.bookings set status = 'completed'
+  where status = 'confirmed' and ends_at < now();
+end;
+$$;
+
+-- Check-in on arrival ---------------------------------------------------
+-- EasySesh: optional check-in when the artist arrives, and the studio confirming the arrival.
+-- Records time and (for the artist) how far the phone was from the studio, as evidence in
+-- no-show or payment disputes. EasySesh recommends it; a studio can switch it off, in which case
+-- EasySesh can't promise a refund if something goes wrong.
+
+alter table public.bookings
+  add column if not exists artist_checked_in_at timestamptz,
+  add column if not exists artist_check_in_distance_m integer,
+  add column if not exists studio_confirmed_arrival_at timestamptz;
+
+-- Great-circle distance in metres.
+create or replace function public.distance_m(p_lat1 double precision, p_lng1 double precision, p_lat2 double precision, p_lng2 double precision)
+returns integer language sql immutable as $$
+  select round(6371000 * 2 * asin(sqrt(
+    power(sin(radians(p_lat2 - p_lat1) / 2), 2) +
+    cos(radians(p_lat1)) * cos(radians(p_lat2)) * power(sin(radians(p_lng2 - p_lng1) / 2), 2)
+  )))::int;
+$$;
+
+-- Artist checks in (from 60 minutes before the session until it ends). Location is optional.
+create or replace function public.check_in_booking(p_booking_id uuid, p_lat double precision default null, p_lng double precision default null)
+returns public.bookings
+language plpgsql security definer set search_path = public
+as $$
+declare
+  v_booking public.bookings := (select b from public.bookings b where b.id = p_booking_id);
+  v_studio public.studios;
+  v_distance integer;
+begin
+  if v_booking.id is null or v_booking.artist_id <> auth.uid() then raise exception 'not_found'; end if;
+  if v_booking.status <> 'confirmed' then raise exception 'Only confirmed bookings can be checked in.'; end if;
+  if now() < v_booking.starts_at - interval '60 minutes' or now() > v_booking.ends_at then
+    raise exception 'You can check in from 1 hour before your session until it ends.';
+  end if;
+  if v_booking.artist_checked_in_at is not null then return v_booking; end if;
+  v_studio := (select s from public.studios s where s.id = v_booking.studio_id);
+  -- Studios can switch check-in off (booking_policy.check_in_enabled); EasySesh recommends keeping it on.
+  if not coalesce((v_studio.booking_policy ->> 'check_in_enabled')::boolean, true) then
+    raise exception 'This studio has turned off check-in.';
+  end if;
+  if p_lat is not null and p_lng is not null then
+    v_distance := public.distance_m(p_lat, p_lng, v_studio.latitude, v_studio.longitude);
+  end if;
+  update public.bookings set artist_checked_in_at = now(), artist_check_in_distance_m = v_distance
+  where id = p_booking_id;
+  perform public.notify(v_studio.owner_id, 'booking_changed', v_booking.artist_name || ' has arrived',
+    'Checked in for ' || v_booking.session_type_name ||
+      case when v_distance is null then '.' when v_distance <= 300 then ' at the studio.' else ' (' || v_distance || ' m from the studio).' end,
+    v_booking.id, null, v_booking.studio_id);
+  return (select b from public.bookings b where b.id = p_booking_id);
+end;
+$$;
+
+-- Studio confirms the artist showed up.
+create or replace function public.confirm_artist_arrival(p_booking_id uuid)
+returns public.bookings
+language plpgsql security definer set search_path = public
+as $$
+declare
+  v_booking public.bookings := (select b from public.bookings b where b.id = p_booking_id);
+begin
+  if v_booking.id is null or not public.owns_approved_studio(v_booking.studio_id) then raise exception 'not_found'; end if;
+  if v_booking.status not in ('confirmed', 'completed') then raise exception 'Only confirmed bookings can be marked as arrived.'; end if;
+  if now() < v_booking.starts_at - interval '60 minutes' then raise exception 'The session hasn''t started yet.'; end if;
+  update public.bookings set studio_confirmed_arrival_at = coalesce(studio_confirmed_arrival_at, now()) where id = p_booking_id;
+  return (select b from public.bookings b where b.id = p_booking_id);
+end;
+$$;
+
 -- Grants ---------------------------------------------------------------
 grant select, insert, update, delete on all tables in schema public to authenticated, service_role;
 grant execute on all functions in schema public to authenticated, service_role;
 revoke execute on function public.notify, public.booking_system_message, public.call_edge_function,
-  public.notify_payment_problem, public.add_support_message from anon, authenticated;
+  public.notify_payment_problem, public.add_support_message, public.activate_promotion,
+  public.expire_promotions, public.create_fee_invoices, public.run_fee_enforcement,
+  public.refresh_artist_rating from anon, authenticated;

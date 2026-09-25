@@ -232,64 +232,102 @@ struct ArtistProfileEditor: View {
     @State private var isUploading = false
     @State private var error: String?
 
+    @FocusState private var focus: EditorField?
+
+    enum EditorField: Hashable { case name, city, bio, link(SocialPlatform) }
+
+    private var canSave: Bool {
+        !isSaving && !profile.artistName.trimmingCharacters(in: .whitespaces).isEmpty && !profile.city.isEmpty
+    }
+
     var body: some View {
-        Form {
-            if isOnboarding {
-                Section {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 22) {
+                if isOnboarding {
                     VStack(alignment: .leading, spacing: 6) {
-                        Text("Set up your artist profile").font(.title2.bold())
+                        Text("Set up your artist profile")
+                            .font(.system(size: 30, weight: .heavy))
+                            .tracking(-0.6)
                         Text("Studios see this when you book or message them.").foregroundStyle(.secondary)
                     }
-                    .listRowBackground(Color.clear)
+                    .padding(.top, 8)
                 }
-            }
 
-            Section {
-                HStack {
-                    Spacer()
-                    PhotosPicker(selection: $photoItem, matching: .images) {
-                        ZStack(alignment: .bottomTrailing) {
-                            Avatar(url: profile.avatarUrl, name: profile.artistName.isEmpty ? "?" : profile.artistName, size: 96)
-                            Image(systemName: isUploading ? "hourglass.circle.fill" : "camera.circle.fill")
-                                .font(.title)
-                                .foregroundStyle(.white, Theme.accent)
+                avatarPicker
+
+                editorSection("About you") {
+                    GlassField(symbol: "person.fill", isFocused: focus == .name) {
+                        TextField("Artist name", text: $profile.artistName)
+                            .textContentType(.nickname)
+                            .focused($focus, equals: .name)
+                            .submitLabel(.next)
+                            .onSubmit { focus = .city }
+                    }
+                    GlassField(symbol: "mappin.and.ellipse", isFocused: focus == .city) {
+                        TextField("City", text: $profile.city)
+                            .textContentType(.addressCity)
+                            .focused($focus, equals: .city)
+                            .submitLabel(.next)
+                            .onSubmit { focus = .bio }
+                    }
+                    bioField
+                }
+
+                editorSection("Genres", trailing: genres.isEmpty ? nil : String(localized: "\(genres.count) selected")) {
+                    FlowLayout(spacing: 8) {
+                        ForEach(Genre.allCases) { genre in
+                            let isOn = genres.contains(genre)
+                            Button {
+                                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                                    if isOn { genres.remove(genre) } else { genres.insert(genre) }
+                                }
+                            } label: {
+                                Chip(title: genre.title, symbol: isOn ? "checkmark" : nil, isSelected: isOn)
+                            }
+                            .buttonStyle(PressableCardStyle())
                         }
                     }
-                    Spacer()
+                    .haptic(.selection, trigger: genres)
                 }
-                .listRowBackground(Color.clear)
-            }
 
-            Section("About you") {
-                TextField("Artist name", text: $profile.artistName)
-                TextField("City", text: $profile.city)
-                TextField("Short bio", text: $profile.bio, axis: .vertical).lineLimit(3...6)
-            }
-
-            Section("Genres") {
-                ChipPicker(items: Genre.allCases, selection: $genres, title: { $0.title })
-                    .padding(.vertical, 4)
-            }
-
-            Section {
-                ForEach(SocialPlatform.allCases) { platform in
-                    HStack {
-                        Image(systemName: platform.symbol).frame(width: 22).foregroundStyle(Theme.accent)
-                        TextField(platform.title, text: linkBinding(platform))
-                            .keyboardType(.URL)
-                            .textInputAutocapitalization(.never)
-                            .autocorrectionDisabled()
+                editorSection("Links", footer: "Paste profile links, e.g. https://open.spotify.com/artist/…") {
+                    VStack(spacing: 10) {
+                        ForEach(SocialPlatform.allCases) { platform in
+                            HStack(spacing: 12) {
+                                IconTile(symbol: platform.symbol, size: 36, colors: platform.brandColors)
+                                GlassField(symbol: "link", isFocused: focus == .link(platform)) {
+                                    TextField(platform.title, text: linkBinding(platform))
+                                        .keyboardType(.URL)
+                                        .textInputAutocapitalization(.never)
+                                        .autocorrectionDisabled()
+                                        .focused($focus, equals: .link(platform))
+                                }
+                            }
+                        }
                     }
                 }
-            } header: {
-                Text("Links")
-            } footer: {
-                Text("Paste profile links, e.g. https://open.spotify.com/artist/…")
+
+                Button {
+                    save()
+                } label: {
+                    HStack(spacing: 8) {
+                        if isSaving { ProgressView().tint(.white) }
+                        Text(isOnboarding ? LocalizedStringKey("Continue") : LocalizedStringKey("Save"))
+                    }
+                }
+                .buttonStyle(.primary)
+                .disabled(!canSave)
+                .padding(.top, 4)
             }
+            .padding(.horizontal, 20)
+            .padding(.bottom, 32)
+            .animation(.spring(response: 0.35, dampingFraction: 0.85), value: focus)
         }
-        .sonoraGrouped()
+        .scrollDismissesKeyboard(.interactively)
+        .auroraBackground(height: 420)
         .navigationTitle(isOnboarding ? "Welcome" : "Edit profile")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(.hidden, for: .navigationBar)
         .toolbar {
             if !isOnboarding {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
@@ -300,12 +338,86 @@ struct ArtistProfileEditor: View {
             }
             ToolbarItem(placement: .confirmationAction) {
                 Button(isOnboarding ? "Continue" : "Save") { save() }
-                    .disabled(isSaving || profile.artistName.trimmingCharacters(in: .whitespaces).isEmpty || profile.city.isEmpty)
+                    .fontWeight(.bold)
+                    .disabled(!canSave)
             }
         }
         .onAppear { genres = Set(profile.genres) }
         .onChange(of: photoItem) { _, item in upload(item) }
         .errorAlert($error)
+    }
+
+    private var avatarPicker: some View {
+        VStack(spacing: 10) {
+            PhotosPicker(selection: $photoItem, matching: .images) {
+                ZStack {
+                    Circle()
+                        .fill(Theme.neon)
+                        .frame(width: 136, height: 136)
+                        .blur(radius: 20)
+                        .opacity(0.5)
+                    Avatar(url: profile.avatarUrl, name: profile.artistName.isEmpty ? "?" : profile.artistName, size: 116)
+                        .padding(4)
+                        .overlay(Circle().strokeBorder(Theme.neon, lineWidth: 3))
+                        .overlay {
+                            if isUploading {
+                                Circle().fill(.black.opacity(0.45)).padding(4)
+                                ProgressView().tint(.white)
+                            }
+                        }
+                }
+                .overlay(alignment: .bottomTrailing) {
+                    Image(systemName: "camera.fill")
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundStyle(.white)
+                        .frame(width: 36, height: 36)
+                        .background(Theme.neon, in: Circle())
+                        .overlay(Circle().strokeBorder(Color.white.opacity(0.85), lineWidth: 2))
+                        .offset(x: -4, y: -4)
+                }
+            }
+            .buttonStyle(PressableCardStyle())
+            .accessibilityLabel("Change photo")
+            Text(profile.artistName.isEmpty ? "Add a photo" : profile.artistName)
+                .font(.headline)
+                .foregroundStyle(profile.artistName.isEmpty ? Color.secondary : Color.primary)
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    private var bioField: some View {
+        let shape = RoundedRectangle(cornerRadius: 18, style: .continuous)
+        let isFocused = focus == .bio
+        return VStack(alignment: .trailing, spacing: 4) {
+            TextField("Short bio", text: $profile.bio, axis: .vertical)
+                .lineLimit(3...8)
+                .focused($focus, equals: .bio)
+            Text("\(profile.bio.count)/300")
+                .font(.caption2.weight(.semibold))
+                .monospacedDigit()
+                .foregroundStyle(profile.bio.count > 300 ? Theme.warning : Color.secondary)
+        }
+        .padding(16)
+        .background(.ultraThinMaterial, in: shape)
+        .overlay(shape.strokeBorder(isFocused ? AnyShapeStyle(Theme.neon) : AnyShapeStyle(Color.primary.opacity(0.1)), lineWidth: isFocused ? 1.6 : 1))
+        .neonGlow(Theme.magenta, radius: 10, active: isFocused)
+    }
+
+    private func editorSection<Content: View>(_ title: LocalizedStringKey, trailing: String? = nil, footer: LocalizedStringKey? = nil,
+                                             @ViewBuilder content: () -> Content) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                Text(title).eyebrow()
+                Spacer()
+                if let trailing {
+                    Text(trailing).font(.caption.weight(.bold)).foregroundStyle(Theme.accent)
+                }
+            }
+            content()
+            if let footer {
+                Text(footer).font(.caption).foregroundStyle(.secondary)
+            }
+        }
     }
 
     private func linkBinding(_ platform: SocialPlatform) -> Binding<String> {
@@ -494,6 +606,22 @@ struct SettingsView: View {
         HStack {
             SettingsIcon(symbol: symbol, colors: colors)
             Text(title).foregroundStyle(Color.primary)
+        }
+    }
+}
+
+extension SocialPlatform {
+
+    /// Colours for the platform's icon tile.
+    var brandColors: [Color] {
+        switch self {
+        case .spotify: [Color(red: 0.11, green: 0.73, blue: 0.33), Color(red: 0.05, green: 0.5, blue: 0.25)]
+        case .appleMusic: [Color(red: 0.98, green: 0.26, blue: 0.41), Color(red: 0.99, green: 0.44, blue: 0.3)]
+        case .instagram: [Color(red: 0.51, green: 0.23, blue: 0.71), Color(red: 0.99, green: 0.35, blue: 0.3)]
+        case .tiktok: [Color(red: 0.1, green: 0.1, blue: 0.12), Color(red: 0.0, green: 0.83, blue: 0.87)]
+        case .youtube: [Color(red: 1.0, green: 0.2, blue: 0.2), Color(red: 0.75, green: 0.05, blue: 0.05)]
+        case .soundcloud: [Color(red: 1.0, green: 0.6, blue: 0.1), Color(red: 1.0, green: 0.33, blue: 0.0)]
+        case .website: [Color(red: 0.45, green: 0.4, blue: 1.0), Color(red: 0.25, green: 0.8, blue: 1.0)]
         }
     }
 }

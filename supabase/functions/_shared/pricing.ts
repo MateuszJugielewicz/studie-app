@@ -43,7 +43,8 @@ export function quote(
   const depositPercent = Math.min(Math.max(studio.booking_policy?.deposit_percent ?? 0, 0), 100);
   const deposit = depositPercent > 0 && depositPercent < 100 ? percent(subtotal, depositPercent) : 0;
   const dueNow = deposit > 0 ? deposit + serviceFee : total;
-  const commission = percent(subtotal, PLATFORM_FEE_PERCENT);
+  // Studios can have a special deal (their own platform fee), set by an admin.
+  const commission = percent(subtotal, studio.platform_fee_percent ?? PLATFORM_FEE_PERCENT);
 
   return {
     currency: studio.currency,

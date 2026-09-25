@@ -17,7 +17,7 @@ set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000b';
 set request.jwt.claims = '{}';
 insert into studios (owner_id, name, description, photo_urls, address, latitude, longitude, contact, session_types, genres, opening_hours, status, is_verified, rating_average)
 values ('00000000-0000-0000-0000-00000000000b', 'Test Studio', repeat('x', 50), '{a.jpg}', '{"street":"S 1","postal_code":"1","city":"Athens","area":"Psyri","country":"GR"}', 37.9, 23.7,
- '{"phone":"1","email":"a@b.c","website":""}', '[{"id":"rec","name":"Recording","details":"","hourly_rate":2500,"minimum_hours":2,"includes_engineer":false}]', '{pop}',
+ '{"phone":"+30 210 123 4567","email":"hello@studio.gr","website":""}', '[{"id":"rec","name":"Recording","details":"","hourly_rate":2500,"minimum_hours":2,"includes_engineer":false}]', '{pop}',
  '[{"weekday":2,"is_closed":false,"opens_at":600,"closes_at":1320}]', 'approved', true, 5);
 select name, status, is_verified, rating_average, price_from from studios;
 -- owner tries to self-approve via update
@@ -227,4 +227,162 @@ do $$ begin
 exception when others then create temp table rate_other as select 'rating others denied' r;
 end $$;
 select * from rate_other;
+reset role;
+
+-- badges, admin tags, promotions: only admins, owners/artists can't set them themselves
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
+set request.jwt.claims = '{}';
+update artist_profiles set has_admin_badge = true where id = auth.uid();
+select 'self badge' as label, has_admin_badge from artist_profiles where id = auth.uid();
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000b';
+update studios set admin_tags = '{Hacked}', promoted_until = now() + interval '1 year', has_admin_badge = true;
+select 'self promo' as label, admin_tags, promoted_until, has_admin_badge from studios;
+do $$ begin
+  perform admin_grant_promotion((select id from studios), 7, 'nope');
+  create temp table owner_grant as select 'NOT BLOCKED' r;
+exception when others then create temp table owner_grant as select 'owner grant denied' r;
+end $$;
+select * from owner_grant;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000c';
+set request.jwt.claims = '{"aal":"aal2"}';
+select admin_set_admin_badge('00000000-0000-0000-0000-00000000000a', true);
+select 'admin tags' as label, array_length((admin_set_studio_tags((select id from studios), array['Staff pick', ' ', 'Staff pick', 'Top engineer'])).admin_tags, 1) as n;
+select 'granted' as label, (admin_grant_promotion((select id from studios), 7, 'launch')).status as status;
+select 'promoted' as label, (promoted_until > now() + interval '6 days') as ok from studios;
+select 'badge set' as label, has_admin_badge from artist_profiles where id = '00000000-0000-0000-0000-00000000000a';
+reset role;
+
+-- bookings in the database (no edge functions / Stripe needed)
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
+set request.jwt.claims = '{}';
+create temp table db_booking as
+  select * from create_booking((select id from studios), 'rec', date_trunc('week', now()) + interval '7 days 12 hours', 2, '[]', 'first session');
+select 'db booking' as label, status, (price ->> 'subtotal')::int as subtotal, reference like 'ES-%' as ref_ok from db_booking;
+do $$ begin
+  perform create_booking((select id from studios), 'rec', date_trunc('week', now()) + interval '7 days 12 hours', 2, '[]', '');
+  create temp table db_clash as select 'NOT BLOCKED' r;
+exception when others then create temp table db_clash as select 'db clash blocked' r;
+end $$;
+select * from db_clash;
+do $$ begin
+  perform create_booking((select id from studios), 'rec', date_trunc('week', now()) + interval '7 days 21 hours', 2, '[]', '');
+  create temp table db_hours as select 'NOT BLOCKED' r;
+exception when others then create temp table db_hours as select 'db closed hours blocked' r;
+end $$;
+select * from db_hours;
+select 'db cash' as label, (confirm_cash_booking((select id from db_booking))).status as status;
+select 'db moved' as label, extract(hour from (reschedule_booking((select id from db_booking), date_trunc('week', now()) + interval '7 days 15 hours')).starts_at at time zone 'UTC')::int as hour;
+select 'db cancelled' as label, (cancel_booking((select id from db_booking), 'changed plans')).status as status;
+reset role;
+
+-- studios rate artists; notifications can be deleted
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000b';
+set request.jwt.claims = '{}';
+select 'artist rated' as label, (review_artist((select id from bookings where reference = 'SON-CASH'), 4, 'Great energy')).rating as rating;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
+select 'artist rating' as label, rating_average::float as avg, review_count from artist_profiles where id = auth.uid();
+update artist_profiles set rating_average = 5, review_count = 99 where id = auth.uid();
+select 'rating locked' as label, review_count from artist_profiles where id = auth.uid();
+do $$ begin
+  perform review_artist((select id from bookings where reference = 'SON-CASH'), 5, 'self');
+  create temp table self_review as select 'NOT BLOCKED' r;
+exception when others then create temp table self_review as select 'artist self review denied' r;
+end $$;
+select * from self_review;
+delete from notifications where user_id = auth.uid();
+select 'notifications deleted' as label, count(*) as n from notifications where user_id = auth.uid();
+reset role;
+
+-- promotion requests: studio orders, admin activates
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000b';
+set request.jwt.claims = '{}';
+create temp table promo_request as select * from request_promotion('two_weeks');
+select 'promo requested' as label, status, days, amount, currency from promo_request;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000c';
+set request.jwt.claims = '{"aal":"aal2"}';
+select 'promo activated' as label, (admin_activate_promotion((select id from promo_request))).status as status;
+select 'promo pending list' as label, count(*) as n from admin_promotions where status = 'pending';
+reset role;
+
+-- platform fee enforcement: invoice → reminder → final notice → suspension/collections
+insert into studio_fee_ledger (studio_id, kind, amount, currency, note) select id, 'cash_commission', 700, 'EUR', 'test fee' from studios;
+select 'fee invoices created' as label, create_fee_invoices() as n;
+update studio_fee_invoices set due_at = now() - interval '1 day' where status = 'open';
+select run_fee_enforcement();
+select 'fee reminder' as label, count(*) as n from studio_fee_invoices where reminder_sent_at is not null;
+update studio_fee_invoices set due_at = now() - interval '8 days' where status = 'open';
+select run_fee_enforcement();
+select 'fee final notice' as label, count(*) as n from studio_fee_invoices where final_notice_at is not null;
+update studio_fee_invoices set due_at = now() - interval '15 days' where status = 'open';
+select run_fee_enforcement();
+select 'fee collections' as label, (select status from studio_fee_invoices order by created_at desc limit 1) as invoice_status,
+  (select status::text from studios limit 1) as studio_status, (select is_active from studios limit 1) as active;
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000c';
+set request.jwt.claims = '{"aal":"aal2"}';
+select admin_record_fee_settlement((select id from studios), 700, 'EUR', 'manual_payment', 'bank transfer');
+select 'fee reinstated' as label, (admin_reinstate_studio((select id from studios))).status::text as status,
+  (select status from studio_fee_invoices order by created_at desc limit 1) as invoice_status;
+reset role;
+
+-- special deals (own platform fee), contact rules, rating disputes
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000c';
+set request.jwt.claims = '{"aal":"aal2"}';
+select 'fee deal' as label, (admin_set_platform_fee((select id from studios), 5)).platform_fee_percent as pct;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
+set request.jwt.claims = '{}';
+select 'deal booking' as label, (price ->> 'studio_commission')::int as commission, (price ->> 'subtotal')::int as subtotal
+  from create_booking((select id from studios), 'rec', date_trunc('week', now()) + interval '14 days 12 hours', 2, '[]', '');
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000b';
+update studios set platform_fee_percent = 0;
+select 'deal locked' as label, platform_fee_percent from studios;
+select 'contact rules' as label,
+  'Add a phone number.' = any(studio_validation_problems(jsonb_populate_record(null::studios,
+    to_jsonb(st) || '{"contact":{"phone":"","email":"hello@studio.gr","website":""}}'))) as needs_phone
+  from studios st;
+-- studio disputes the artist's review of it
+create temp table rd as select * from dispute_rating('studio_review', (select id from reviews limit 1), 'This review is from someone who never came.');
+select 'rating disputed' as label, status from rd;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000c';
+set request.jwt.claims = '{"aal":"aal2"}';
+create temp table rd_done as select * from admin_resolve_rating_dispute((select id from rd), true, 'Fake review');
+select 'dispute resolved' as label, (select status from rd_done) as status, (select is_hidden from reviews limit 1) as hidden;
+reset role;
+
+-- studio ↔ artist profile connection
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000b';
+set request.jwt.claims = '{}';
+select 'link requested' as label, (request_studio_artist_link('00000000-0000-0000-0000-00000000000a')).status as status;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000d';
+select 'link hidden while pending' as label, count(*) as n from studio_artist_links;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
+select respond_studio_artist_link((select studio_id from studio_artist_links limit 1), true);
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000d';
+select 'link public' as label, status from studio_artist_links;
+reset role;
+
+-- unanswered requests expire after 24 hours
+insert into bookings (reference, artist_id, studio_id, artist_name, studio_name, session_type_id, session_type_name, starts_at, ends_at, hours, price, status, payment_method, payment_status, created_at)
+select 'ES-REQ', '00000000-0000-0000-0000-00000000000a', id, 'Nova', name, 'rec', 'Recording', now() + interval '20 days', now() + interval '20 days 2 hours', 2,
+  '{"currency":"EUR","subtotal":5000,"total":5000,"studio_commission":500,"service_fee":0,"studio_payout":4500}', 'pending_approval', 'cash', 'pay_at_studio', now() - interval '25 hours' from studios;
+select run_booking_housekeeping();
+select 'request expired' as label, status, payment_status from bookings where reference = 'ES-REQ';
+
+-- check-in on arrival
+insert into bookings (reference, artist_id, studio_id, artist_name, studio_name, session_type_id, session_type_name, starts_at, ends_at, hours, price, status, payment_method, payment_status)
+select 'ES-NOW', '00000000-0000-0000-0000-00000000000a', id, 'Nova', name, 'rec', 'Recording', now() + interval '20 minutes', now() + interval '2 hours 20 minutes', 2,
+  '{"currency":"EUR","subtotal":5000,"total":5000,"studio_commission":500,"service_fee":0,"studio_payout":4500}', 'confirmed', 'cash', 'pay_at_studio' from studios;
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
+set request.jwt.claims = '{}';
+select 'checked in' as label, (b).artist_checked_in_at is not null as ok, (b).artist_check_in_distance_m as dist
+  from (select check_in_booking((select id from bookings where reference = 'ES-NOW'), 37.9001, 23.7001) as b) q;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000b';
+select 'arrival confirmed' as label, (confirm_artist_arrival((select id from bookings where reference = 'ES-NOW'))).studio_confirmed_arrival_at is not null as ok;
 reset role;

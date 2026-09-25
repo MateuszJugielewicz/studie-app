@@ -8,7 +8,7 @@ import { paddedRange, validateTiming } from "../_shared/availability.ts";
 function reference(): string {
   const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   const bytes = crypto.getRandomValues(new Uint8Array(6));
-  return "SON-" + Array.from(bytes, (b) => alphabet[b % alphabet.length]).join("");
+  return "ES-" + Array.from(bytes, (b) => alphabet[b % alphabet.length]).join("");
 }
 
 Deno.serve(handler(async (req, body) => {

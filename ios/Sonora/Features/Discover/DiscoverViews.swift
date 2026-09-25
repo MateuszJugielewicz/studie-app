@@ -48,6 +48,8 @@ struct DiscoverView: View {
     @State private var showFilters = false
     @State private var path = NavigationPath()
 
+    @FocusState private var searchFocused: Bool
+
     var body: some View {
         NavigationStack(path: $path) {
             let origin = app.location.effectiveLocation
@@ -57,19 +59,43 @@ struct DiscoverView: View {
             Group {
                 if showMap {
                     StudioMapView(results: results, metric: metric) { path.append($0.studio) }
-                } else {
-                    ScrollView {
-                        LazyVStack(spacing: 28) {
-                            AreaSummaryCard(summary: model.summary(origin: origin, areaName: app.location.cityName ?? String(localized: "Your area"), radiusKm: app.account?.settings.searchRadiusKm ?? 5),
-                                            totalCount: results.count, isSearching: !model.filters.query.isEmpty)
-                            if model.isLoading {
-                                ProgressView().padding(40)
-                            } else if results.isEmpty {
-                                ContentUnavailableView("No studios found", systemImage: "waveform.slash", description: Text("Try widening your filters or search area."))
-                                if model.filters.activeCount > 0 {
-                                    Button("Clear filters") { model.filters = SearchFilters() }
+                        .safeAreaInset(edge: .top) {
+                            VStack(spacing: 10) {
+                                HStack(spacing: 10) {
+                                    searchField
+                                    GlassIconButton(symbol: "list.bullet", label: "Show list") {
+                                        withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) { showMap = false }
+                                    }
                                 }
+                                controlsRow(count: results.count)
                             }
+                            .padding(.horizontal)
+                            .padding(.bottom, 8)
+                        }
+                        .toolbar(.hidden, for: .navigationBar)
+                        .transition(.opacity)
+                } else {
+                    SonoraScreen("Find a studio", eyebrow: app.location.cityName ?? Date.now.greeting,
+                                 refresh: { await model.load(app.backend) }) {
+                        GlassIconButton(symbol: "map", label: "Show map") {
+                            searchFocused = false
+                            withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) { showMap = true }
+                        }
+                    } content: {
+                        searchField
+                        controlsRow(count: results.count)
+                        AreaSummaryCard(summary: model.summary(origin: origin, areaName: app.location.cityName ?? String(localized: "Your area"), radiusKm: app.account?.settings.searchRadiusKm ?? 5),
+                                        totalCount: results.count, isSearching: !model.filters.query.isEmpty)
+                        if model.isLoading {
+                            ProgressView().frame(maxWidth: .infinity).padding(40)
+                        } else if results.isEmpty {
+                            GlassEmptyState(title: "No studios found", symbol: "waveform.slash", message: "Try widening your filters or search area.")
+                            if model.filters.activeCount > 0 {
+                                Button("Clear filters") { withAnimation(.snappy) { model.filters = SearchFilters() } }
+                                    .buttonStyle(.secondary)
+                            }
+                        }
+                        LazyVStack(spacing: 24) {
                             ForEach(results) { result in
                                 NavigationLink(value: result.studio) {
                                     StudioCard(result: result, metric: metric)
@@ -78,24 +104,9 @@ struct DiscoverView: View {
                                 .scrollReveal()
                             }
                         }
-                        .padding()
                     }
-                    .refreshable { await Task { await model.load(app.backend) }.value }
-                }
-            }
-            .auroraBackground()
-            .sonoraGrouped()
-            .navigationTitle("Find a studio")
-            .searchable(text: $model.filters.query, prompt: "Studio, area or city")
-            .safeAreaInset(edge: .top) { toolbarRow(count: results.count) }
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        withAnimation { showMap.toggle() }
-                    } label: {
-                        Image(systemName: showMap ? "list.bullet" : "map")
-                    }
-                    .accessibilityLabel(showMap ? "Show list" : "Show map")
+                    .scrollDismissesKeyboard(.interactively)
+                    .transition(.opacity)
                 }
             }
             .navigationDestination(for: Studio.self) { studio in
@@ -119,25 +130,85 @@ struct DiscoverView: View {
         }
     }
 
-    private func toolbarRow(count: Int) -> some View {
+    private var searchField: some View {
+        GlassField(symbol: "magnifyingglass", isFocused: searchFocused) {
+            TextField("Studio, area or city", text: $model.filters.query)
+                .focused($searchFocused)
+                .submitLabel(.search)
+                .autocorrectionDisabled()
+                .onSubmit { searchFocused = false }
+            if !model.filters.query.isEmpty {
+                Button {
+                    withAnimation(.snappy) { model.filters.query = "" }
+                } label: {
+                    Image(systemName: "xmark.circle.fill").foregroundStyle(.secondary)
+                }
+                .buttonStyle(.plain)
+                .transition(.scale.combined(with: .opacity))
+                .accessibilityLabel("Clear search")
+            }
+        }
+        .animation(.spring(response: 0.3, dampingFraction: 0.8), value: searchFocused)
+        .animation(.spring(response: 0.3, dampingFraction: 0.8), value: model.filters.query.isEmpty)
+    }
+
+    private func controlsRow(count: Int) -> some View {
         HStack(spacing: 8) {
             Button { showFilters = true } label: {
-                Chip(title: model.filters.activeCount > 0 ? "Filters · \(model.filters.activeCount)" : "Filters", symbol: "line.3.horizontal.decrease", isSelected: model.filters.activeCount > 0)
+                FilterPill(title: model.filters.activeCount > 0 ? String(localized: "Filters · \(model.filters.activeCount)") : String(localized: "Filters"),
+                           symbol: "slider.horizontal.3", isActive: model.filters.activeCount > 0)
             }
+            .buttonStyle(PressableCardStyle())
             Menu {
                 Picker("Sort", selection: $model.sort) {
-                    ForEach(StudioSort.allCases) { Text($0.title).tag($0) }
+                    ForEach(StudioSort.allCases) { Text(localized: $0.title).tag($0) }
                 }
             } label: {
-                Chip(title: model.sort.title, symbol: "arrow.up.arrow.down")
+                FilterPill(title: model.sort.title, symbol: "arrow.up.arrow.down", isActive: false)
             }
-            Spacer()
-            Text("\(count) studios").font(.footnote).foregroundStyle(.secondary)
+            Spacer(minLength: 4)
+            HStack(spacing: 5) {
+                Circle().fill(Theme.neon).frame(width: 7, height: 7).neonGlow(Theme.magenta, radius: 4)
+                Text("\(count) studios")
+                    .font(.footnote.weight(.bold))
+                    .monospacedDigit()
+                    .contentTransition(.numericText())
+            }
+            .padding(.horizontal, 12).padding(.vertical, 8)
+            .background(Theme.card.opacity(0.78), in: Capsule())
+            .overlay(Capsule().strokeBorder(Theme.glassEdge, lineWidth: 0.8))
+            .animation(.snappy, value: count)
         }
-        .buttonStyle(.plain)
-        .padding(.horizontal)
-        .padding(.vertical, 8)
-        .background(.bar)
+        .haptic(.selection, trigger: model.sort)
+    }
+}
+
+/// Pill used for Filters / Sort: glass when idle, neon when a filter is active.
+struct FilterPill: View {
+    let title: String
+    let symbol: String
+    let isActive: Bool
+
+    var body: some View {
+        HStack(spacing: 7) {
+            Image(systemName: symbol)
+                .font(.system(size: 13, weight: .bold))
+                .foregroundStyle(isActive ? AnyShapeStyle(Color.white) : AnyShapeStyle(Theme.neon))
+            Text(localized: title)
+                .font(.subheadline.weight(.semibold))
+                .lineLimit(1)
+        }
+        .foregroundStyle(isActive ? Color.white : Color.primary)
+        .padding(.horizontal, 14).padding(.vertical, 9)
+        .background {
+            if isActive {
+                Capsule().fill(Theme.neon).neonGlow(Theme.magenta, radius: 8)
+            } else {
+                Capsule().fill(Theme.card.opacity(0.78))
+                    .overlay(Capsule().strokeBorder(Theme.glassEdge, lineWidth: 0.8))
+            }
+        }
+        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isActive)
     }
 }
 
@@ -203,15 +274,20 @@ struct StudioCard: View {
                         .padding(10)
                     }
                 }
+                .overlay(alignment: .topTrailing) {
+                    if studio.isPromoted { PromotedTag().padding(10) }
+                }
                 .overlay(
                     RoundedRectangle(cornerRadius: Theme.corner, style: .continuous)
-                        .strokeBorder(Theme.glassEdge, lineWidth: 0.8)
+                        .strokeBorder(studio.isPromoted ? AnyShapeStyle(Theme.neon) : AnyShapeStyle(Theme.glassEdge),
+                                      lineWidth: studio.isPromoted ? 1.5 : 0.8)
                 )
 
             VStack(alignment: .leading, spacing: 3) {
                 HStack(alignment: .firstTextBaseline, spacing: 4) {
                     Text(studio.name).font(.headline).lineLimit(1)
                     if studio.isVerified { VerifiedBadge() }
+                    if studio.showsAdminBadge { AdminBadge(compact: true) }
                     Spacer(minLength: 8)
                     RatingLabel(rating: studio.ratingAverage, count: studio.reviewCount, compact: true)
                 }
@@ -219,6 +295,12 @@ struct StudioCard: View {
                 (Text(Money.format(studio.priceFrom, currency: studio.currency)).fontWeight(.semibold) + Text(" / hour").foregroundColor(.secondary))
                     .font(.subheadline)
                     .padding(.top, 2)
+                if !studio.specialTags.isEmpty {
+                    HStack(spacing: 6) {
+                        ForEach(studio.specialTags.prefix(2), id: \.self) { SpecialTagChip(title: $0) }
+                    }
+                    .padding(.top, 4)
+                }
             }
         }
         .contentShape(Rectangle())

@@ -98,6 +98,10 @@ protocol Backend: AnyObject {
     func rescheduleBooking(id: UUID, newStart: Date) async throws -> Booking
     func respondToBooking(id: UUID, accept: Bool, message: String?) async throws -> Booking
     func openDispute(bookingId: UUID, reason: String) async throws
+    /// Artist checks in on arrival (location optional).
+    func checkIn(bookingId: UUID, latitude: Double?, longitude: Double?) async throws -> Booking
+    /// Studio confirms the artist arrived.
+    func confirmArrival(bookingId: UUID) async throws -> Booking
 
     // MARK: Payments
     func transactions(bookingId: UUID) async throws -> [PaymentTransaction]
@@ -135,7 +139,36 @@ protocol Backend: AnyObject {
     /// Rate a closed request (1–5 stars, optional comment).
     func rateSupportTicket(id: UUID, rating: Int, comment: String) async throws -> SupportTicket
 
+    // MARK: Promotions
+    func promotions(studioId: UUID) async throws -> [StudioPromotion]
+    /// Orders a promotion (pending until paid in the app or activated by EasySesh).
+    func requestPromotion(_ package: PromotionPackage) async throws -> StudioPromotion
+    func cancelPromotionRequest(id: UUID) async throws
+    /// Card payment for a pending promotion (needs Stripe).
+    func preparePromotionPayment(promotionId: UUID) async throws -> PaymentIntentInfo
+    func confirmPromotionPayment(promotionId: UUID) async throws
+
+    // MARK: Artist ratings
+    func reviewArtist(bookingId: UUID, rating: Int, text: String) async throws -> ArtistReview
+    func artistReviews(artistId: UUID) async throws -> [ArtistReview]
+    func artistReview(bookingId: UUID) async throws -> ArtistReview?
+
+    // MARK: Studio ↔ artist profile
+    /// Accepted connection for a studio (or pending, for its owner).
+    func studioArtistLink(studioId: UUID) async throws -> StudioArtistLink?
+    /// Connections that involve this artist (accepted, and pending ones for the artist).
+    func artistStudioLinks(artistId: UUID) async throws -> [StudioArtistLink]
+    func requestStudioArtistLink(artistId: UUID) async throws -> StudioArtistLink
+    func respondStudioArtistLink(studioId: UUID, accept: Bool) async throws
+    func removeStudioArtistLink(studioId: UUID) async throws
+
+    // MARK: Rating disputes & fee invoices
+    func disputeRating(kind: RatingKind, reviewId: UUID, reason: String) async throws
+    func feeInvoices(studioId: UUID) async throws -> [FeeInvoice]
+
     // MARK: Notifications
+    func deleteNotification(id: UUID) async throws
+    func deleteAllNotifications() async throws
     func notifications() async throws -> [AppNotification]
     func markNotificationRead(id: UUID) async throws
     func markAllNotificationsRead() async throws

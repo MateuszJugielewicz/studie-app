@@ -9,7 +9,9 @@ enum StudioValidator {
         if studio.photoUrls.isEmpty { problems.append("Add at least one photo.") }
         if studio.address.street.isEmpty || studio.address.city.isEmpty { problems.append("Add the studio's address.") }
         if studio.latitude == 0 && studio.longitude == 0 { problems.append("Place your studio on the map.") }
-        if studio.contact.email.isEmpty && studio.contact.phone.isEmpty { problems.append("Add an email or phone number.") }
+        let email = studio.contact.email.trimmingCharacters(in: .whitespaces)
+        if email.range(of: #"^[^@\s]+@[^@\s]+\.[^@\s]+$"#, options: .regularExpression) == nil { problems.append("Add a valid email address.") }
+        if studio.contact.phone.filter(\.isNumber).count < 6 { problems.append("Add a phone number.") }
         if studio.sessionTypes.isEmpty || studio.sessionTypes.contains(where: { $0.hourlyRate <= 0 }) { problems.append("Set a price for each session type.") }
         if studio.openingHours.allSatisfy(\.isClosed) { problems.append("Set your opening hours.") }
         if studio.genres.isEmpty { problems.append("Pick at least one genre.") }

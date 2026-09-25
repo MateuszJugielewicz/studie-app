@@ -123,7 +123,8 @@ struct SearchEngine {
                 return lhs.studio.bookingCount > rhs.studio.bookingCount
             }
         }
-        return results
+        // Promoted studios (paid ads) are shown first; the chosen sort applies within each group.
+        return results.filter(\.studio.isPromoted) + results.filter { !$0.studio.isPromoted }
     }
 
     /// "Athens · 12 studios within 5 km · from €15/hour"
@@ -162,6 +163,7 @@ enum SearchText {
         parts += countryNames(address.country)
         if let alias = cityAliases[address.city.lowercased()] { parts.append(alias) }
         parts += studio.genres.map(\.title)
+        parts += studio.specialTags
         parts += studio.equipment.map(\.name)
         return parts.joined(separator: " ")
     }

@@ -174,6 +174,14 @@ final class SearchTests: XCTestCase {
         XCTAssertEqual(summary.priceFrom, 1500)
     }
 
+    func testSocialLinksAcceptUsernames() {
+        XCTAssertEqual(SocialLink(platform: .instagram, url: "jugielewicz").resolvedURL?.absoluteString, "https://www.instagram.com/jugielewicz")
+        XCTAssertEqual(SocialLink(platform: .tiktok, url: "@nova").resolvedURL?.absoluteString, "https://www.tiktok.com/@nova")
+        XCTAssertEqual(SocialLink(platform: .website, url: "mystudio.dk").resolvedURL?.absoluteString, "https://mystudio.dk")
+        XCTAssertEqual(SocialLink(platform: .spotify, url: "https://open.spotify.com/artist/1").resolvedURL?.absoluteString, "https://open.spotify.com/artist/1")
+        XCTAssertNil(SocialLink(platform: .instagram, url: "  ").resolvedURL)
+    }
+
     func testTextSearchFindsStudiosAnywhere() {
         var studios = MockData.studios()
         studios[0].address.city = "København"
@@ -255,7 +263,8 @@ final class MockBackendTests: XCTestCase {
         studio.address = StudioAddress(street: "Main 1", postalCode: "1000", city: "Athens", area: "Plaka", country: "Greece")
         studio.latitude = 37.97
         studio.longitude = 23.73
-        studio.contact.email = "a@b.c"
+        studio.contact.email = "hello@studio.dk"
+        studio.contact.phone = "+45 12 34 56 78"
         studio.genres = [.pop]
         studio.status = .approved // must be ignored
         studio = try await backend.saveStudio(studio)
@@ -337,6 +346,21 @@ final class MockBackendTests: XCTestCase {
             _ = try await backend.startConversation(artistId: artist.id, body: "Hello?")
             XCTFail("Declined requests must block the studio")
         } catch {}
+    }
+
+    func testPromotionRequestAndActivation() async throws {
+        let backend = MockBackend(latency: .zero)
+        _ = try await backend.signIn(email: "studio@demo.sonora", password: MockData.demoPassword)
+        let request = try await backend.requestPromotion(.twoWeeks)
+        XCTAssertEqual(request.status, .pending)
+        XCTAssertEqual(request.days, 14)
+        backend.activatePromotion(id: request.id)
+        let studio = try await backend.studio(id: MockData.ownedStudioId)
+        XCTAssertTrue(studio.isPromoted)
+        // Promoted studios come first in search, whatever the sort.
+        let results = SearchEngine().search(studios: MockData.studios().map { $0.id == studio.id ? studio : $0 },
+                                            filters: SearchFilters(), sort: .cheapest, origin: nil)
+        XCTAssertEqual(results.first?.id, studio.id)
     }
 
     func testCashBookingAccruesPlatformFee() async throws {

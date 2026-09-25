@@ -53,6 +53,11 @@ struct ArtistProfile: Codable, Identifiable, Hashable {
     var avatarUrl: String?
     var links: [SocialLink]
     var isVerified: Bool
+    /// Cosmetic "EasySesh team" badge (set by admins).
+    var hasAdminBadge: Bool? = nil
+    /// Average of the ratings studios gave this artist (1–5), and how many.
+    var ratingAverage: Double? = nil
+    var reviewCount: Int? = nil
 
     static func empty(id: UUID) -> ArtistProfile {
         ArtistProfile(id: id, artistName: "", genres: [], city: "", bio: "", avatarUrl: nil, links: [], isVerified: false)
@@ -65,4 +70,30 @@ struct SocialLink: Codable, Hashable, Identifiable {
     var platform: SocialPlatform
     var url: String
     var id: String { platform.rawValue + url }
+
+    /// A tappable address, also when people typed just their username ("jugielewicz", "@name")
+    /// or a site without "https://".
+    var resolvedURL: URL? { SocialLink.resolve(url, platform: platform) }
+
+    static func resolve(_ raw: String, platform: SocialPlatform) -> URL? {
+        let text = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !text.isEmpty else { return nil }
+        let lower = text.lowercased()
+        if lower.hasPrefix("http://") || lower.hasPrefix("https://") { return URL(string: text) }
+        // Looks like a domain or path ("open.spotify.com/…", "mysite.dk")
+        if text.contains(".") && !text.hasPrefix("@") && !text.contains(" ") {
+            return URL(string: "https://" + text)
+        }
+        let handle = text.trimmingCharacters(in: CharacterSet(charactersIn: "@/ "))
+            .addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? text
+        switch platform {
+        case .instagram: return URL(string: "https://www.instagram.com/\(handle)")
+        case .tiktok: return URL(string: "https://www.tiktok.com/@\(handle)")
+        case .youtube: return URL(string: "https://www.youtube.com/@\(handle)")
+        case .soundcloud: return URL(string: "https://soundcloud.com/\(handle)")
+        case .spotify: return URL(string: "https://open.spotify.com/search/\(handle)")
+        case .appleMusic: return URL(string: "https://music.apple.com/search?term=\(handle)")
+        case .website: return URL(string: "https://\(handle)")
+        }
+    }
 }

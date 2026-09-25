@@ -47,11 +47,21 @@ parts = [
     "-- Support --------------------------------------------------------------\n" + idempotent(mig("20260926000001_support.sql")),
     "-- Message requests -----------------------------------------------------\n" + idempotent(mig("20260927000001_message_requests.sql")),
     "-- Support ratings ------------------------------------------------------\n" + idempotent(mig("20260928000001_support_ratings.sql")),
+    "-- Admin badge, admin tags, promotions ----------------------------------\n" + idempotent(mig("20260929000001_badges_tags_promotions.sql")),
+    "-- Bookings without edge functions --------------------------------------\n" + idempotent(mig("20260930000001_bookings_in_db.sql")),
+    "-- Artist ratings, deleting notifications -------------------------------\n" + idempotent(mig("20261001000001_artist_ratings_notifications.sql")),
+    "-- Platform fee enforcement ---------------------------------------------\n" + idempotent(mig("20261002000001_fee_enforcement.sql")),
+    "-- Special deals, contact rules, rating disputes ------------------------\n" + idempotent(mig("20261003000001_deals_contact_rating_disputes.sql")),
+    "-- Studio <-> artist profile connections --------------------------------\n" + idempotent(mig("20261004000001_studio_artist_links.sql")),
+    "-- Booking requests expire after 24 hours -------------------------------\n" + idempotent(mig("20261005000001_request_expiry.sql")),
+    "-- Check-in on arrival ---------------------------------------------------\n" + idempotent(mig("20261006000001_check_in.sql")),
     """-- Grants ---------------------------------------------------------------
 grant select, insert, update, delete on all tables in schema public to authenticated, service_role;
 grant execute on all functions in schema public to authenticated, service_role;
 revoke execute on function public.notify, public.booking_system_message, public.call_edge_function,
-  public.notify_payment_problem, public.add_support_message from anon, authenticated;
+  public.notify_payment_problem, public.add_support_message, public.activate_promotion,
+  public.expire_promotions, public.create_fee_invoices, public.run_fee_enforcement,
+  public.refresh_artist_rating from anon, authenticated;
 """,
 ]
 out = "\n".join(parts)

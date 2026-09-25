@@ -461,11 +461,18 @@ struct StudioPolicyEditor: View {
                 Text("House rules")
             }
             Section {
-                Toggle("Instant booking", isOn: $studio.bookingPolicy.instantBook)
+                Picker("How artists book", selection: $studio.bookingPolicy.instantBook) {
+                    Label("Instant booking", systemImage: "bolt.fill").tag(true)
+                    Label("Request – I approve within 24 hours", systemImage: "hourglass").tag(false)
+                }
+                .pickerStyle(.inline)
+                .labelsHidden()
+            } header: {
+                Text("How artists book")
             } footer: {
                 Text(studio.bookingPolicy.instantBook
-                     ? "Artists are confirmed immediately when they pay."
-                     : "You accept or decline each request. The artist's card is authorised and only charged when you accept.")
+                     ? LocalizedStringKey("Artists are confirmed immediately when they book.")
+                     : LocalizedStringKey("You accept or decline each request within 24 hours; unanswered requests expire. Card payments are only charged when you accept."))
             }
             Section {
                 Picker("Cancellation policy", selection: $studio.bookingPolicy.cancellationPolicy) {
@@ -487,7 +494,7 @@ struct StudioPolicyEditor: View {
             } footer: {
                 Text(studio.bookingPolicy.depositPercent > 0
                      ? "Cash isn't available when you require a deposit."
-                     : "Artists can choose to pay you in cash at the session. EasySesh's \(PlatformConfig.platformFeePercent)% platform fee on cash bookings is deducted from your next payout or invoiced monthly. Cash bookings have no card guarantee for no-shows.")
+                     : "Artists can choose to pay you in cash at the session. EasySesh's \(studio.feePercent)% platform fee on cash bookings is deducted from your next payout or invoiced monthly. Cash bookings have no card guarantee for no-shows.")
             }
             Section("Scheduling") {
                 Stepper("Min. notice: \(studio.bookingPolicy.minimumNoticeHours) h", value: $studio.bookingPolicy.minimumNoticeHours, in: 0...72)
@@ -524,7 +531,7 @@ struct PayoutAccountEditor: View {
                 }
                 TextField("Account holder / company name", text: $holder)
             } footer: {
-                Text("Payouts are sent \(PlatformConfig.payoutDelayDays) days after each completed session, minus EasySesh's \(PlatformConfig.platformFeePercent)% platform fee. Platform fees for cash bookings are deducted from the same payouts.")
+                Text("You're paid only after a session is completed: payouts are sent \(PlatformConfig.payoutDelayDays) days after each completed session, minus EasySesh's \(app.ownedStudio?.feePercent ?? PlatformConfig.platformFeePercent)% platform fee. Platform fees for cash bookings are deducted from the same payouts.")
             }
             Section {
                 Button(saved ? "Saved" : "Save") { save() }

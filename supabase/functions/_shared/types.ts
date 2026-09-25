@@ -48,6 +48,8 @@ export interface Studio {
   owner_id: string;
   name: string;
   timezone: string;
+  /** Special deal: this studio's platform fee (default 10). */
+  platform_fee_percent?: number;
   currency: string;
   session_types: SessionType[];
   add_ons: ServiceAddOn[];

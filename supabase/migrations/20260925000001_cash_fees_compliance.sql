@@ -150,7 +150,7 @@ begin
   select owner_id into owner from public.studios where id = new.studio_id;
   if new.kind = 'cash_commission' then
     perform public.notify(owner, 'system', 'Platform fee added',
-      public.format_money(new.amount, new.currency) || ' (10%) for a cash booking. It will be deducted from your next payout.', new.booking_id, null, new.studio_id);
+      public.format_money(new.amount, new.currency) || ' for a cash booking. It will be deducted from your next payout.', new.booking_id, null, new.studio_id);
   elsif new.kind in ('invoice_payment', 'manual_payment') then
     perform public.notify(owner, 'system', 'Payment received', 'Thanks! We received ' || public.format_money(-new.amount, new.currency) || ' in platform fees.', null, null, new.studio_id);
   end if;
