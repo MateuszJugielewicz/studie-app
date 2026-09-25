@@ -5,6 +5,8 @@ enum BackendError: LocalizedError, Equatable {
     case notFound
     case forbidden
     case accountSuspended
+    /// Suspended or banned by the EasySesh team, possibly for a limited period.
+    case accountRestricted(banned: Bool, until: Date?, reason: String?)
     case invalidCredentials
     case emailInUse
     case slotUnavailable
@@ -18,6 +20,7 @@ enum BackendError: LocalizedError, Equatable {
         case .notFound: "We couldn't find that."
         case .forbidden: "You don't have access to this."
         case .accountSuspended: "This account is suspended. Contact support."
+        case .accountRestricted(let banned, let until, let reason): Self.restrictionMessage(banned: banned, until: until, reason: reason)
         case .invalidCredentials: "Wrong email or password."
         case .emailInUse: "An account with this email already exists."
         case .slotUnavailable: "That time is no longer available. Please pick another slot."
@@ -25,6 +28,20 @@ enum BackendError: LocalizedError, Equatable {
         case .paymentFailed(let message): "Payment failed: \(message)"
         case .server(let message): message
         }
+    }
+}
+
+extension BackendError {
+    static func restrictionMessage(banned: Bool, until: Date?, reason: String?) -> String {
+        var parts: [String] = [banned ? L10n.tr("This account is banned.") : L10n.tr("This account is suspended.")]
+        if let until {
+            let date = until.formatted(date: .abbreviated, time: .shortened)
+            parts.append(L10n.format("Until %@.", date))
+        } else {
+            parts.append(L10n.tr("Contact support if you think this is a mistake."))
+        }
+        if let reason, !reason.isEmpty { parts.append(L10n.format("Reason: %@", reason)) }
+        return parts.joined(separator: " ")
     }
 }
 
@@ -164,6 +181,15 @@ protocol Backend: AnyObject {
 
     // MARK: Rating disputes & fee invoices
     func disputeRating(kind: RatingKind, reviewId: UUID, reason: String) async throws
+
+    // Moderation
+    func unacknowledgedWarnings() async throws -> [ModerationWarning]
+    func acknowledgeWarning(id: UUID) async throws
+
+    // Changelog & terms updates
+    func changelog() async throws -> [ChangelogEntry]
+    /// The terms version everyone must have accepted (the admin bumps it with a legal update).
+    func currentTermsVersion() async throws -> String
     func feeInvoices(studioId: UUID) async throws -> [FeeInvoice]
 
     // MARK: Notifications

@@ -315,7 +315,8 @@ extension Error {
     /// Message for the user; empty for cancellations, which the error alert ignores.
     var userMessage: String {
         if isCancellation { return "" }
-        return (self as? LocalizedError)?.errorDescription ?? localizedDescription
+        // Messages from the app and the server are English keys; show them in the chosen language.
+        return L10n.tr((self as? LocalizedError)?.errorDescription ?? localizedDescription)
     }
 }
 

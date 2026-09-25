@@ -313,6 +313,7 @@ final class MockBackend: Backend {
     }
 
     func acceptTerms(version: String) async throws -> UserAccount {
+        guard version >= termsVersion else { throw BackendError.validation("Please update the app to read and accept the latest terms.") }
         var user = try requireUser()
         user.acceptedTermsVersion = version
         user.acceptedTermsAt = .now
@@ -1011,6 +1012,35 @@ final class MockBackend: Backend {
     }
 
     func feeInvoices(studioId: UUID) async throws -> [FeeInvoice] { [] }
+
+    // MARK: Moderation
+
+    var warnings: [UUID: [ModerationWarning]] = [:]
+
+    func unacknowledgedWarnings() async throws -> [ModerationWarning] {
+        let user = try requireUser()
+        return (warnings[user.id] ?? []).filter { $0.acknowledgedAt == nil }
+    }
+
+    func acknowledgeWarning(id: UUID) async throws {
+        let user = try requireUser()
+        if let index = warnings[user.id]?.firstIndex(where: { $0.id == id }) { warnings[user.id]?[index].acknowledgedAt = .now }
+    }
+
+    // MARK: Changelog & terms updates
+
+    var changelogEntries: [ChangelogEntry] = []
+    var termsVersion = LegalDocument.currentVersion
+
+    func changelog() async throws -> [ChangelogEntry] { changelogEntries.sorted { $0.publishedAt > $1.publishedAt } }
+
+    func currentTermsVersion() async throws -> String { termsVersion }
+
+    /// Test helper: what the admin dashboard does.
+    func publishChangelog(title: String, body: String, legalUpdate: Bool) {
+        if legalUpdate { termsVersion = "\(termsVersion).1" }
+        changelogEntries.append(ChangelogEntry(id: UUID(), version: termsVersion, title: title, body: body, audience: "all", isLegalUpdate: legalUpdate, publishedAt: .now))
+    }
 
     // MARK: Notification deletion
 

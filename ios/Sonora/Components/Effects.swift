@@ -122,6 +122,8 @@ struct SonoraTabContainer<Content: View>: View {
 
     @State private var visited: Set<AppTab> = []
     @State private var keyboardVisible = false
+    /// Bumped when the selected tab is tapped again, rebuilding it at its first page.
+    @State private var resets: [AppTab: Int] = [:]
 
     init(selection: Binding<AppTab>, tour: TabTour? = nil, tabs: [TabSpec], @ViewBuilder content: @escaping (AppTab) -> Content) {
         _selection = selection
@@ -139,6 +141,7 @@ struct SonoraTabContainer<Content: View>: View {
                     let isSelected = spec.tab == selection
                     if isSelected || visited.contains(spec.tab) {
                         content(spec.tab)
+                            .id(resets[spec.tab, default: 0])
                             .opacity(isSelected ? 1 : 0)
                             .allowsHitTesting(isSelected)
                             .accessibilityHidden(!isSelected)
@@ -149,7 +152,11 @@ struct SonoraTabContainer<Content: View>: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
 
             if !keyboardVisible {
-                SonoraTabBar(selection: $selection, tabs: tabs)
+                SonoraTabBar(selection: $selection, tabs: tabs) { tab in
+                    // Tapping the tab you're on takes you back to where that tab starts,
+                    // e.g. from a studio page back to Discover.
+                    withAnimation(.easeInOut(duration: 0.25)) { resets[tab, default: 0] += 1 }
+                }
                     .padding(.top, 6)
                     .frame(maxWidth: .infinity)
                     .background(Theme.background.ignoresSafeArea(edges: .bottom))
@@ -174,6 +181,7 @@ struct SonoraTabContainer<Content: View>: View {
 struct SonoraTabBar: View {
     @Binding var selection: AppTab
     let tabs: [TabSpec]
+    var onReselect: (AppTab) -> Void = { _ in }
     @Namespace private var pill
     @State private var width: CGFloat = 0
     @State private var isDragging = false
@@ -225,7 +233,7 @@ struct SonoraTabBar: View {
     private func item(_ spec: TabSpec) -> some View {
         let isSelected = spec.tab == selection
         return Button {
-            guard selection != spec.tab else { return }
+            guard selection != spec.tab else { return onReselect(spec.tab) }
             withAnimation(.spring(response: 0.4, dampingFraction: 0.78)) { selection = spec.tab }
         } label: {
             VStack(spacing: 3) {

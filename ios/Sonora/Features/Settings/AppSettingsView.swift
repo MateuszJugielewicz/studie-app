@@ -99,6 +99,7 @@ struct AppSettingsView: View {
 
             Section("About") {
                 LabeledContent("Version", value: Self.version)
+                NavigationLink { ChangelogView() } label: { Text("What's new") }
                 NavigationLink { LegalListView() } label: { Text("Terms, privacy & policies") }
             }
         }

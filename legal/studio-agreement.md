@@ -11,12 +11,26 @@ Version 2026-09-25 · Between [COMPANY NAME] ("EasySesh") and the business listi
 ## 2. Listing
 - The Studio keeps its listing, prices, calendar and opening hours up to date, and blocks times it can't offer.
 - Photos and descriptions must match reality. Misleading listings may be suspended.
+- The Studio chooses whether bookings are confirmed instantly or sent as requests. Requests must be answered within 24 hours, otherwise they expire.
+- The application must include a working email address and phone number for the Studio.
 
-## 3. Platform fee: 10%
-EasySesh charges a **platform fee of 10%** of the price of every booking made through EasySesh (session price including add-ons, excluding refunded amounts).
-- **Card payments:** EasySesh collects the payment from the artist and pays the Studio 90% via Stripe Connect, normally 2 days after the completed session.
-- **Cash payments:** the artist pays the Studio directly. The 10% fee becomes payable to EasySesh when the session is completed. EasySesh deducts it from the Studio's next card payouts. Any balance not covered within 30 days is invoiced, with payment due within 14 days.
+## 2a. Check-in
+Artists can check in in the app when they arrive, and the Studio can confirm their arrival. EasySesh recommends keeping check-in turned on, as it protects both sides against fraud. The Studio may turn check-in off, but EasySesh then cannot promise artists a refund if something goes wrong, and disputes about sessions without a check-in may be decided on the other evidence available.
+
+## 2b. Promotion
+The Studio can buy a promotion for a fixed period. A promoted studio is marked "Promoted" and shown higher in search results. Promotions are paid in advance and are not refunded if the Studio ends them early or is suspended. EasySesh may also add special tags to a listing at its own discretion.
+
+## 3. Platform fee
+EasySesh charges a **platform fee of 10%** of the price of every booking made through EasySesh (session price including add-ons, excluding refunded amounts), unless a different rate (a special deal) was agreed when the Studio's application was approved. The rate that applies is shown in the Studio's earnings in the app.
+- **Card payments:** EasySesh collects the payment from the artist and pays the Studio the price minus the fee via Stripe Connect. Payouts are only made **after the session has been completed**, normally 2 days later.
+- **Cash payments:** the artist pays the Studio directly. The fee becomes payable to EasySesh when the session is completed.
 - The Studio must mark cash as received in the app. If it doesn't, cash is treated as received 3 days after the session, unless the Studio has reported a no-show or problem.
+
+## 3a. Fees owed to EasySesh
+- Fees owed are first **deducted from the Studio's next payout**.
+- Whatever can't be deducted is **invoiced** at the start of the following month, with payment due within 14 days.
+- If the invoice isn't paid on time, EasySesh sends a reminder and, 7 days after the due date, a final notice.
+- If the invoice is still unpaid 14 days after the due date, the Studio is **suspended and removed from EasySesh**, and the debt is handed over to **debt collection and legal action**. Collection costs and statutory interest may be added. The Studio can be reinstated once the debt is paid in full.
 - Fees are exclusive of VAT, which is added where applicable. The Studio is responsible for its own taxes and for reporting its income, including cash income.
 
 ## 4. Payouts

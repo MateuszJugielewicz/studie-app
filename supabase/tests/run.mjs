@@ -103,3 +103,15 @@ if (!rows.some((r) => r.r === "blocked ok")) {
   console.error("FAILED: overlapping booking was not blocked");
   process.exitCode = 1;
 }
+expect("changelog visible", (r) => Number(r.n) === 1 && r.bumped === true);
+expect("terms accepted", (r) => r.ok === true);
+if (!rows.some((r) => r.r === "old terms refused")) {
+  console.error("FAILED: accepting outdated terms was not refused");
+  process.exitCode = 1;
+}
+expect("warned", (r) => r.action === "warning");
+expect("suspended 3 days", (r) => r.status === "suspended" && Number(r.days) === 3);
+expect("studio suspended 1 day", (r) => r.status === "suspended" && r.is_active === false);
+expect("moderation lifted", (r) => r.user_status === "active" && r.studio_status === "approved");
+expect("moderation history", (r) => Number(r.warnings) === 1 && Number(r.suspensions) === 1 && Number(r.lifted) === 1);
+expect("own warnings", (r) => Number(r.n) === 1);

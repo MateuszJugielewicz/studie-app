@@ -40,12 +40,13 @@ struct SonoraApp: App {
 
 struct RootView: View {
     @Environment(AppState.self) private var app
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
         Group {
             if app.isBootstrapping {
                 SplashView()
-            } else if let account = app.account, account.role != .admin, account.acceptedTermsVersion != LegalDocument.currentVersion {
+            } else if app.needsTermsAcceptance {
                 TermsAcceptanceView()
             } else if let account = app.account {
                 switch account.role {
@@ -65,6 +66,21 @@ struct RootView: View {
             }
         }
         .animation(.smooth(duration: 0.45), value: app.account?.id)
+        .sheet(item: Binding(
+            get: { app.isBootstrapping || app.needsTermsAcceptance ? nil : app.warnings.first },
+            set: { _ in }
+        )) { warning in
+            NavigationStack { WarningSheet(warning: warning) }
+        }
+        .sheet(isPresented: Binding(
+            get: { !app.isBootstrapping && !app.needsTermsAcceptance && app.warnings.isEmpty && app.account?.role != .admin && !app.unseenChangelog.isEmpty },
+            set: { if !$0 { app.markChangelogSeen() } }
+        )) {
+            WhatsNewSheet(entries: app.unseenChangelog)
+        }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active { Task { await app.refreshUpdates() } }
+        }
     }
 }
 

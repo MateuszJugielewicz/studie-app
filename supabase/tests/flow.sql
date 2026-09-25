@@ -386,3 +386,45 @@ select 'checked in' as label, (b).artist_checked_in_at is not null as ok, (b).ar
 set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000b';
 select 'arrival confirmed' as label, (confirm_artist_arrival((select id from bookings where reference = 'ES-NOW'))).studio_confirmed_arrival_at is not null as ok;
 reset role;
+
+-- changelog + legal update forces everyone to accept again
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000c';
+set request.jwt.claims = '{"aal":"aal2"}';
+create temp table cl as select * from admin_publish_changelog('2.0', 'Updated terms', 'New check-in rules.', 'all', true);
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
+set request.jwt.claims = '{}';
+select 'changelog visible' as label, count(*) as n, current_terms_version() > '2026-09-25' as bumped from app_changelog;
+do $$ begin
+  perform accept_terms('2026-09-25');
+  create temp table old_terms as select 'NOT BLOCKED' r;
+exception when others then create temp table old_terms as select 'old terms refused' r;
+end $$;
+select * from old_terms;
+select 'terms accepted' as label, (accept_terms(current_terms_version())).accepted_terms_version = current_terms_version() as ok;
+reset role;
+
+-- moderation: warning, timed suspension that lifts itself, history
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000c';
+set request.jwt.claims = '{"aal":"aal2"}';
+select 'warned' as label, (admin_warn('00000000-0000-0000-0000-00000000000a', 'Be respectful in messages.')).action as action;
+select 'suspended 3 days' as label, (p).status, round(extract(epoch from (p).status_until - now()) / 86400) as days
+  from (select admin_moderate_user('00000000-0000-0000-0000-00000000000a', 'suspend', 3, 'Spam') as p) q;
+select 'studio suspended 1 day' as label, (s).status, (s).is_active
+  from (select admin_moderate_studio((select id from studios limit 1), 'suspend', 1, 'Misleading photos') as s) q;
+reset role;
+update profiles set status_until = now() - interval '1 minute' where id = '00000000-0000-0000-0000-00000000000a';
+update studios set suspended_until = now() - interval '1 minute';
+select lift_expired_moderation();
+select 'moderation lifted' as label, (select status from profiles where id = '00000000-0000-0000-0000-00000000000a') as user_status,
+  (select status from studios limit 1) as studio_status;
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000c';
+set request.jwt.claims = '{"aal":"aal2"}';
+select 'moderation history' as label, count(*) filter (where kind = 'warning') as warnings, count(*) filter (where kind = 'suspension') as suspensions,
+  count(*) filter (where kind = 'lifted') as lifted from admin_moderation_history where user_id = '00000000-0000-0000-0000-00000000000a';
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
+set request.jwt.claims = '{}';
+select 'own warnings' as label, count(*) as n from moderation_actions where action = 'warning' and acknowledged_at is null;
+reset role;

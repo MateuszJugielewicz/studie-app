@@ -101,9 +101,15 @@ final class SupabaseBackend: Backend {
     }
 
     private func ensureActive(_ account: UserAccount) async throws -> UserAccount {
+        var account = account
+        // A suspension whose period is over is lifted right away instead of waiting for the job.
+        if account.status != .active, let until = account.statusUntil, until <= .now,
+           let lifted: UserAccount = try? await rpc("lift_my_expired_restriction") {
+            account = lifted
+        }
         guard account.status == .active else {
             try? await client.auth.signOut()
-            throw BackendError.accountSuspended
+            throw BackendError.accountRestricted(banned: account.status == .banned, until: account.statusUntil, reason: account.statusReason)
         }
         return account
     }
@@ -580,6 +586,29 @@ final class SupabaseBackend: Backend {
 
     func disputeRating(kind: RatingKind, reviewId: UUID, reason: String) async throws {
         try await rpcVoid("dispute_rating", ["p_review_type": .string(kind.rawValue), "p_review_id": .string(reviewId.uuidString), "p_reason": .string(reason)])
+    }
+
+    func unacknowledgedWarnings() async throws -> [ModerationWarning] {
+        let all: [ModerationWarning] = try await mapped {
+            try await client.from("moderation_actions").select("id, reason, created_at, acknowledged_at")
+                .eq("action", value: "warning")
+                .order("created_at", ascending: true).limit(50).execute().value
+        }
+        return all.filter { $0.acknowledgedAt == nil }
+    }
+
+    func acknowledgeWarning(id: UUID) async throws {
+        try await rpcVoid("acknowledge_warning", ["p_id": .string(id.uuidString)])
+    }
+
+    func changelog() async throws -> [ChangelogEntry] {
+        try await mapped {
+            try await client.from("app_changelog").select().order("published_at", ascending: false).limit(30).execute().value
+        }
+    }
+
+    func currentTermsVersion() async throws -> String {
+        try await rpc("current_terms_version", [:])
     }
 
     func feeInvoices(studioId: UUID) async throws -> [FeeInvoice] {

@@ -2,6 +2,7 @@ import SwiftUI
 
 /// Renders a bundled Markdown legal document (headings, bullets, paragraphs with inline formatting).
 struct LegalDocumentView: View {
+    @Environment(AppPreferences.self) private var preferences
     let document: LegalDocument
 
     var body: some View {
@@ -28,7 +29,7 @@ struct LegalDocumentView: View {
         }
         .background(Theme.background)
         .sonoraGrouped()
-        .navigationTitle(document.title)
+        .navigationTitle(Text(localized: document.title))
         .navigationBarTitleDisplayMode(.inline)
     }
 
@@ -45,7 +46,7 @@ struct LegalDocumentView: View {
             if !paragraph.isEmpty { result.append(.paragraph(paragraph.joined(separator: " "))) }
             paragraph = []
         }
-        for raw in document.markdown.components(separatedBy: .newlines) {
+        for raw in document.markdown(language: preferences.language.rawValue).components(separatedBy: .newlines) {
             let line = raw.trimmingCharacters(in: .whitespaces)
             if line.isEmpty || line.hasPrefix("<!--") {
                 flush()
@@ -69,6 +70,8 @@ struct LegalDocumentView: View {
 }
 
 struct LegalListView: View {
+    @Environment(AppState.self) private var app
+
     var body: some View {
         List {
             Section {
@@ -76,11 +79,11 @@ struct LegalListView: View {
                     NavigationLink {
                         LegalDocumentView(document: document)
                     } label: {
-                        Label(document.title, systemImage: document.symbol)
+                        Label { Text(localized: document.title) } icon: { Image(systemName: document.symbol) }
                     }
                 }
             } footer: {
-                Text("Version \(LegalDocument.currentVersion). Questions? \(AppConfig.supportEmail)")
+                Text("Version \(app.requiredTermsVersion). Questions? \(AppConfig.supportEmail)")
             }
         }
         .sonoraGrouped()
@@ -88,62 +91,228 @@ struct LegalListView: View {
     }
 }
 
-/// Shown when the signed-in user hasn't accepted the current terms (new account via Apple/Google, or updated terms).
+/// Shown when the signed-in user hasn't accepted the current terms (new account via Apple/Google,
+/// or after the EasySesh team published a legal update). Every document has to be opened before
+/// the user can accept.
 struct TermsAcceptanceView: View {
     @Environment(AppState.self) private var app
+    @State private var opened: Set<LegalDocument> = []
     @State private var agreed = false
     @State private var isSaving = false
     @State private var error: String?
 
+    private var documents: [LegalDocument] { LegalDocument.required(for: app.role) }
+    private var isUpdate: Bool { app.account?.acceptedTermsVersion != nil }
+    private var allRead: Bool { documents.allSatisfy(opened.contains) }
+
     var body: some View {
         NavigationStack {
-            Form {
-                Section {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
                     VStack(alignment: .leading, spacing: 8) {
                         SonoraLogo(size: 22)
-                        Text(app.account?.acceptedTermsVersion == nil ? "Before you start" : "We've updated our terms")
-                            .font(.title2.bold())
-                        Text("Please read and accept the documents below to use EasySesh.")
+                        Text(isUpdate ? LocalizedStringKey("We've updated our terms") : LocalizedStringKey("Before you start"))
+                            .font(.system(size: 30, weight: .heavy)).tracking(-0.6)
+                        Text(isUpdate
+                             ? LocalizedStringKey("Please read the updated documents again and accept them to keep using EasySesh.")
+                             : LocalizedStringKey("Please read and accept the documents below to use EasySesh."))
                             .foregroundStyle(.secondary)
                     }
-                    .listRowBackground(Color.clear)
-                }
-                Section {
-                    ForEach(LegalDocument.required(for: app.role)) { document in
-                        NavigationLink {
-                            LegalDocumentView(document: document)
-                        } label: {
-                            Label(document.title, systemImage: document.symbol)
+                    .padding(.top, 8)
+
+                    if let update = app.pendingLegalUpdate {
+                        VStack(alignment: .leading, spacing: 6) {
+                            Label("What changed", systemImage: "sparkles").font(.caption.weight(.heavy)).textCase(.uppercase).foregroundStyle(Theme.accent)
+                            Text(update.title).font(.headline)
+                            if !update.body.isEmpty { Text(update.body).font(.subheadline).foregroundStyle(.secondary) }
+                        }
+                        .glassCard()
+                    }
+
+                    VStack(spacing: 0) {
+                        ForEach(documents) { document in
+                            NavigationLink {
+                                LegalDocumentView(document: document)
+                                    .onAppear { opened.insert(document) }
+                            } label: {
+                                HStack(spacing: 12) {
+                                    IconTile(symbol: document.symbol, size: 36, colors: opened.contains(document) ? TilePalette.mint : TilePalette.violet)
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text(localized: document.title).font(.subheadline.weight(.semibold)).foregroundStyle(.primary)
+                                        Text(opened.contains(document) ? LocalizedStringKey("Read") : LocalizedStringKey("Tap to read"))
+                                            .font(.caption).foregroundStyle(.secondary)
+                                    }
+                                    Spacer()
+                                    Image(systemName: opened.contains(document) ? "checkmark.circle.fill" : "chevron.right")
+                                        .foregroundStyle(opened.contains(document) ? Theme.positive : Color.secondary)
+                                }
+                                .padding(.vertical, 10)
+                            }
+                            if document != documents.last { Divider().opacity(0.4) }
                         }
                     }
-                }
-                Section {
-                    Toggle("I have read and accept these documents", isOn: $agreed)
-                } footer: {
+                    .glassCard(padding: 12)
+
+                    Toggle(isOn: $agreed) {
+                        Text("I have read and accept these documents").font(.subheadline.weight(.semibold))
+                    }
+                    .tint(Theme.accent)
+                    .disabled(!allRead)
+                    .glassCard(padding: 14)
+
+                    if !allRead {
+                        Label("Open each document to continue.", systemImage: "hand.point.up.left.fill")
+                            .font(.caption).foregroundStyle(.secondary)
+                    }
+
+                    Button {
+                        accept()
+                    } label: {
+                        Text(isSaving ? LocalizedStringKey("Saving…") : LocalizedStringKey("Accept and continue"))
+                    }
+                    .buttonStyle(.primary)
+                    .disabled(!agreed || !allRead || isSaving)
+
                     Text("We record the version and time of your acceptance. You can withdraw consent by deleting your account in Settings.")
+                        .font(.caption).foregroundStyle(.tertiary)
                 }
+                .padding(20)
             }
-            .sonoraGrouped()
-            .navigationTitle("Terms")
+            .auroraBackground(height: 360)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Sign out") { Task { await app.signOut() } }
                 }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Accept") {
-                        isSaving = true
-                        Task {
-                            defer { isSaving = false }
-                            do { app.updateAccount(try await app.backend.acceptTerms(version: LegalDocument.currentVersion)) }
-                            catch { self.error = error.userMessage }
-                        }
-                    }
-                    .disabled(!agreed || isSaving)
-                }
             }
             .errorAlert($error)
         }
+    }
+
+    private func accept() {
+        isSaving = true
+        Task {
+            defer { isSaving = false }
+            do { app.updateAccount(try await app.backend.acceptTerms(version: app.requiredTermsVersion)) }
+            catch { self.error = error.userMessage }
+        }
+    }
+}
+
+/// A warning from the EasySesh team. It stays until the user confirms they've read it.
+struct WarningSheet: View {
+    @Environment(AppState.self) private var app
+    let warning: ModerationWarning
+    @State private var isSaving = false
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                HStack(spacing: 12) {
+                    IconTile(symbol: "exclamationmark.triangle.fill", size: 48, colors: TilePalette.signal)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Warning from EasySesh").font(.title3.weight(.heavy))
+                        Text(warning.createdAt.formatted(date: .abbreviated, time: .shortened)).font(.caption).foregroundStyle(.secondary)
+                    }
+                }
+                Text(warning.reason)
+                    .font(.body)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .glassCard()
+                Text("Please follow our Community Guidelines. Further breaches can lead to your account being suspended or banned.")
+                    .font(.subheadline).foregroundStyle(.secondary)
+                NavigationLink { LegalDocumentView(document: .communityGuidelines) } label: {
+                    Label("Read the Community Guidelines", systemImage: "person.3.fill").font(.subheadline.weight(.semibold))
+                }
+                Button {
+                    isSaving = true
+                    Task { await app.acknowledgeWarning(warning); isSaving = false }
+                } label: {
+                    Text("I understand")
+                }
+                .buttonStyle(.primary)
+                .disabled(isSaving)
+            }
+            .padding(20)
+        }
+        .auroraBackground(height: 300)
+        .interactiveDismissDisabled()
+    }
+}
+
+/// "What's new": update notes from the EasySesh team, shown once after they're published.
+struct WhatsNewSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    let entries: [ChangelogEntry]
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    HStack(spacing: 12) {
+                        IconTile(symbol: "sparkles", size: 44, colors: TilePalette.violet)
+                        Text("What's new").font(.system(size: 30, weight: .heavy)).tracking(-0.6)
+                    }
+                    ForEach(entries) { entry in
+                        VStack(alignment: .leading, spacing: 6) {
+                            HStack {
+                                Text(entry.version).font(.caption.weight(.heavy)).foregroundStyle(Theme.accent)
+                                Spacer()
+                                Text(entry.publishedAt.formatted(date: .abbreviated, time: .omitted)).font(.caption2).foregroundStyle(.tertiary)
+                            }
+                            Text(entry.title).font(.headline)
+                            if !entry.body.isEmpty {
+                                Text(entry.body).font(.subheadline).foregroundStyle(.secondary)
+                            }
+                        }
+                        .glassCard()
+                    }
+                    Button("Got it") { dismiss() }.buttonStyle(.primary)
+                }
+                .padding(20)
+            }
+            .auroraBackground(height: 300)
+            .navigationBarTitleDisplayMode(.inline)
+        }
+        .presentationDetents([.medium, .large])
+    }
+}
+
+/// All update notes, for Settings.
+struct ChangelogView: View {
+    @Environment(AppState.self) private var app
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 12) {
+                if app.changelog.isEmpty {
+                    GlassEmptyState(title: "No updates yet", symbol: "sparkles", message: "Update notes from the EasySesh team show up here.")
+                }
+                ForEach(app.changelog) { entry in
+                    VStack(alignment: .leading, spacing: 6) {
+                        HStack {
+                            Text(entry.version).font(.caption.weight(.heavy)).foregroundStyle(Theme.accent)
+                            if entry.isLegalUpdate {
+                                Text("Legal update").font(.caption2.weight(.bold))
+                                    .padding(.horizontal, 7).padding(.vertical, 3)
+                                    .background(Theme.violet.opacity(0.15), in: Capsule())
+                                    .foregroundStyle(Theme.violet)
+                            }
+                            Spacer()
+                            Text(entry.publishedAt.formatted(date: .abbreviated, time: .omitted)).font(.caption2).foregroundStyle(.tertiary)
+                        }
+                        Text(entry.title).font(.headline)
+                        if !entry.body.isEmpty { Text(entry.body).font(.subheadline).foregroundStyle(.secondary) }
+                    }
+                    .glassCard()
+                }
+            }
+            .padding()
+        }
+        .auroraBackground(height: 300)
+        .navigationTitle("What's new")
+        .navigationBarTitleDisplayMode(.inline)
+        .refreshable { await Task { await app.refreshUpdates() }.value }
     }
 }
 

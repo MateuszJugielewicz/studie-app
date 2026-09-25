@@ -272,6 +272,36 @@ enum RatingKind: String, Codable, Hashable {
 
 // MARK: - Platform fee invoices
 
+/// A warning from the EasySesh team, shown until the user acknowledges it.
+struct ModerationWarning: Codable, Identifiable, Hashable {
+    let id: UUID
+    var reason: String
+    var createdAt: Date
+    var acknowledgedAt: Date?
+}
+
+/// An update note written by the EasySesh team ("What's new"). A legal update means everyone
+/// has to read and accept the documents again.
+struct ChangelogEntry: Codable, Identifiable, Hashable {
+    let id: UUID
+    var version: String
+    var title: String
+    var body: String
+    var audience: String
+    var isLegalUpdate: Bool
+    var publishedAt: Date
+
+    func isFor(_ role: UserRole) -> Bool { audience == "all" || audience == role.rawValue }
+}
+
+extension LegalDocument {
+    /// Terms versions are dates ("2026-09-25", optionally with a suffix), so they compare as text.
+    static func newest(_ a: String, _ b: String?) -> String {
+        guard let b, b > a else { return a }
+        return b
+    }
+}
+
 struct FeeInvoice: Codable, Identifiable, Hashable {
     let id: UUID
     var studioId: UUID

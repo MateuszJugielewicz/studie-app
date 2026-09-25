@@ -55,6 +55,8 @@ parts = [
     "-- Studio <-> artist profile connections --------------------------------\n" + idempotent(mig("20261004000001_studio_artist_links.sql")),
     "-- Booking requests expire after 24 hours -------------------------------\n" + idempotent(mig("20261005000001_request_expiry.sql")),
     "-- Check-in on arrival ---------------------------------------------------\n" + idempotent(mig("20261006000001_check_in.sql")),
+    "-- Changelog and terms updates ------------------------------------------\n" + idempotent(mig("20261007000001_changelog_terms_updates.sql")),
+    "-- Moderation: warnings, timed suspensions and bans, history ------------\n" + idempotent(mig("20261008000001_moderation.sql")),
     """-- Grants ---------------------------------------------------------------
 grant select, insert, update, delete on all tables in schema public to authenticated, service_role;
 grant execute on all functions in schema public to authenticated, service_role;

@@ -36,11 +36,19 @@ enum LegalDocument: String, CaseIterable, Identifiable {
         }
     }
 
-    var markdown: String {
+    var markdown: String { markdown(language: "en") }
+
+    /// The document in the app's language (legal/<code>/<name>.md), falling back to English.
+    func markdown(language: String) -> String {
+        if language != "en",
+           let url = Bundle.main.url(forResource: rawValue, withExtension: "md", subdirectory: "legal/\(language)"),
+           let text = try? String(contentsOf: url, encoding: .utf8) {
+            return text
+        }
         guard let url = Bundle.main.url(forResource: rawValue, withExtension: "md", subdirectory: "legal")
             ?? Bundle.main.url(forResource: rawValue, withExtension: "md"),
               let text = try? String(contentsOf: url, encoding: .utf8) else {
-            return "# \(title)\n\nThis document could not be loaded. Read it at https://sonora.app/legal/\(rawValue)"
+            return "# \(title)\n\nThis document could not be loaded. Read it at https://easysesh.app/legal/\(rawValue)"
         }
         return text
     }

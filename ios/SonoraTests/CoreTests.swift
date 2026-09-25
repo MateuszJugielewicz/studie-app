@@ -287,6 +287,22 @@ final class MockBackendTests: XCTestCase {
         _ = try await backend.addBlockedSlot(BlockedSlot(id: UUID(), studioId: studio.id, startsAt: .now, endsAt: .now.adding(hours: 1), reason: ""))
     }
 
+    func testLegalUpdateRequiresAcceptingAgain() async throws {
+        let backend = MockBackend(latency: .zero)
+        let artist = try await backend.signIn(email: "artist@demo.sonora", password: MockData.demoPassword)
+        backend.publishChangelog(title: "New check-in rules", body: "", legalUpdate: true)
+        let required = LegalDocument.newest(LegalDocument.currentVersion, try await backend.currentTermsVersion())
+        XCTAssertLessThan(artist.acceptedTermsVersion ?? "", required)
+        do {
+            _ = try await backend.acceptTerms(version: LegalDocument.currentVersion)
+            XCTFail("Accepting the old version must be refused")
+        } catch {}
+        let accepted = try await backend.acceptTerms(version: required)
+        XCTAssertEqual(accepted.acceptedTermsVersion, required)
+        let entries = try await backend.changelog()
+        XCTAssertEqual(entries.first?.isLegalUpdate, true)
+    }
+
     func testArtistCannotCreateStudio() async throws {
         let backend = MockBackend(latency: .zero)
         let artist = try await backend.signIn(email: "artist@demo.sonora", password: MockData.demoPassword)

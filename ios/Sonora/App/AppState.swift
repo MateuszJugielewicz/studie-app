@@ -40,6 +40,57 @@ final class AppState {
 
     var role: UserRole { account?.role ?? .artist }
 
+    /// Terms version the user must have accepted: the newer of the app's and the server's.
+    private(set) var requiredTermsVersion = LegalDocument.currentVersion
+    /// Update notes from the EasySesh team, newest first, for this user's role.
+    private(set) var changelog: [ChangelogEntry] = []
+
+    var needsTermsAcceptance: Bool {
+        guard let account, account.role != .admin else { return false }
+        return (account.acceptedTermsVersion ?? "") < requiredTermsVersion
+    }
+
+    /// The latest legal update the user hasn't accepted yet, to show what changed.
+    var pendingLegalUpdate: ChangelogEntry? {
+        changelog.first { $0.isLegalUpdate && $0.version > (account?.acceptedTermsVersion ?? "") }
+    }
+
+    /// Changelog entries the user hasn't seen yet (only ones published since they joined).
+    var unseenChangelog: [ChangelogEntry] {
+        guard let account else { return [] }
+        let seen = changelogSeenAt ?? account.createdAt
+        return changelog.filter { $0.publishedAt > seen }
+    }
+
+    private var changelogSeenAt: Date?
+
+    func markChangelogSeen() {
+        guard let account, let newest = changelog.first?.publishedAt else { return }
+        changelogSeenAt = newest
+        UserDefaults.standard.set(newest, forKey: "easysesh.changelog.seen.\(account.id)")
+    }
+
+    /// Warnings from the EasySesh team the user hasn't acknowledged yet.
+    private(set) var warnings: [ModerationWarning] = []
+
+    func acknowledgeWarning(_ warning: ModerationWarning) async {
+        try? await backend.acknowledgeWarning(id: warning.id)
+        warnings.removeAll { $0.id == warning.id }
+    }
+
+    /// Checks for new update notes, legal updates and warnings.
+    func refreshUpdates() async {
+        guard let account else { return }
+        if account.role != .admin { warnings = (try? await backend.unacknowledgedWarnings()) ?? warnings }
+        changelogSeenAt = UserDefaults.standard.object(forKey: "easysesh.changelog.seen.\(account.id)") as? Date
+        if let version = try? await backend.currentTermsVersion() {
+            requiredTermsVersion = LegalDocument.newest(LegalDocument.currentVersion, version)
+        }
+        if let entries = try? await backend.changelog() {
+            changelog = entries.filter { $0.isFor(account.role) }
+        }
+    }
+
     init(backend: Backend) {
         self.backend = backend
         self.push = PushNotificationManager()
@@ -85,6 +136,7 @@ final class AppState {
         case .admin:
             break
         }
+        await refreshUpdates()
         await refreshBadges()
         if account.settings.pushEnabled { await push.requestAuthorization() }
     }
@@ -112,6 +164,7 @@ final class AppState {
 
     func refreshBadges() async {
         guard account != nil else { return }
+        await refreshUpdates()
         notifications = (try? await backend.notifications()) ?? notifications
         if let conversations = try? await backend.conversations() {
             unreadMessages = conversations.reduce(0) { $0 + $1.badgeCount(for: role) }

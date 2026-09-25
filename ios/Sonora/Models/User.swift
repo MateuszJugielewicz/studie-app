@@ -12,6 +12,9 @@ struct UserAccount: Codable, Identifiable, Hashable {
     /// Version of the terms & privacy policy the user accepted (GDPR consent record).
     var acceptedTermsVersion: String? = nil
     var acceptedTermsAt: Date? = nil
+    /// When a suspension or ban ends (nil = until lifted by the team).
+    var statusUntil: Date? = nil
+    var statusReason: String? = nil
 }
 
 struct UserSettings: Codable, Hashable {
