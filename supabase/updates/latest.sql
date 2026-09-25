@@ -1649,7 +1649,10 @@ create table if not exists public.app_terms (
   version text not null,
   updated_at timestamptz not null default now()
 );
-insert into public.app_terms (id, version) values (true, '2026-09-25') on conflict (id) do nothing;
+-- 2026-09-26: terms, privacy, refunds, studio agreement and guidelines updated (check-in, cash
+-- refunds, fee collection, promotions, moderation) – everyone accepts again.
+insert into public.app_terms (id, version) values (true, '2026-09-26')
+  on conflict (id) do update set version = greatest(public.app_terms.version, excluded.version), updated_at = now();
 alter table public.app_terms enable row level security;
 drop policy if exists "terms: everyone reads" on public.app_terms;
 drop policy if exists "terms: everyone reads" on public.app_terms;

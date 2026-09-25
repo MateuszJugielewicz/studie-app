@@ -1,7 +1,7 @@
 <!-- DRAFT – review before launch. -->
 # Cookie Policy
 
-Version 2026-09-25
+Version 2026-09-26
 
 ## The EasySesh app
 The iOS app does not use cookies or advertising identifiers, and it does not track you across other apps or websites. It stores the following on your device:

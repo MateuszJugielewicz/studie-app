@@ -1,7 +1,7 @@
 <!-- DRAFT – must be reviewed by a qualified lawyer / DPO before launch. Replace every [PLACEHOLDER]. -->
 # Privacy Policy
 
-Version 2026-09-25
+Version 2026-09-26
 
 [COMPANY NAME], [ADDRESS], company no. [CVR/VAT NO.], is the **data controller** for personal data processed in EasySesh. Contact: [PRIVACY EMAIL].
 
@@ -13,6 +13,9 @@ Version 2026-09-25
 - **Messages** between artists and studios, and **reviews** and **reports**.
 - **Device data:** push notification token, app version.
 - **Location:** only while you use the app and only if you allow it. It is used on your device to show nearby studios and distances, and is **not stored** on our servers.
+- **Check-in:** if you check in on arrival, we store the time and, if you allow location, how far you were from the studio (not your coordinates). This is used as evidence if there is a dispute about a session.
+- **Ratings:** ratings studios give artists and artists give studios, and any disputes about them.
+- **Moderation records:** warnings, suspensions and bans, with the reason and period.
 - **Consent records:** which version of these documents you accepted, and when.
 
 ## Why we use it (legal basis, GDPR art. 6)
@@ -50,4 +53,4 @@ Data is encrypted in transit (TLS) and at rest. Access is restricted by role and
 EasySesh is not directed at children under 13, and users under 18 need permission from a parent or guardian.
 
 ## Changes
-We tell you in the app about material changes to this policy.
+We tell you in the app about material changes to this policy, and ask you to read and accept the updated version before you continue.

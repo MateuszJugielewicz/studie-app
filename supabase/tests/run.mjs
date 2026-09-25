@@ -52,7 +52,7 @@ expect("cash received", (r) => r.status === "paid");
 expect("owner sees ledger", (r) => Number(r.n) === 1);
 expect("settled", (r) => r.amount === -500);
 expect("balance after", (r) => r.balance === 0);
-expect("terms", (r) => r.version === "2026-09-25");
+expect("terms", (r) => r.version === "2026-09-26");
 expect("ticket created", (r) => r.status === "open");
 expect("owner sees tickets", (r) => Number(r.n) === 0);
 expect("admin inbox", (r) => !!r.user_name && r.admin_unread === 1);

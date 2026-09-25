@@ -1,7 +1,7 @@
 <!-- DRAFT – review before launch. -->
 # Refund & Cancellation Policy
 
-Version 2026-09-25
+Version 2026-09-26
 
 Each studio chooses one of three cancellation policies. The policy is shown on the studio profile and at checkout.
 

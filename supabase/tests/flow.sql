@@ -146,7 +146,7 @@ set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000c';
 set request.jwt.claims = '{"aal":"aal2"}';
 select 'settled' as label, (admin_record_fee_settlement((select id from studios), 500, 'EUR', 'manual_payment', 'bank transfer')).amount as amount;
 select 'balance after' as label, balance from studio_fee_balances;
-select 'terms' as label, (accept_terms('2026-09-25')).accepted_terms_version as version;
+select 'terms' as label, (accept_terms('2026-09-26')).accepted_terms_version as version;
 reset role;
 
 -- support: artist opens a ticket, admin answers, other users can't see or post
@@ -394,7 +394,7 @@ set request.jwt.claims = '{"aal":"aal2"}';
 create temp table cl as select * from admin_publish_changelog('2.0', 'Updated terms', 'New check-in rules.', 'all', true);
 set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
 set request.jwt.claims = '{}';
-select 'changelog visible' as label, count(*) as n, current_terms_version() > '2026-09-25' as bumped from app_changelog;
+select 'changelog visible' as label, count(*) as n, current_terms_version() > '2026-09-26' as bumped from app_changelog;
 do $$ begin
   perform accept_terms('2026-09-25');
   create temp table old_terms as select 'NOT BLOCKED' r;

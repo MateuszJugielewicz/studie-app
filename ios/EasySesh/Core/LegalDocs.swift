@@ -10,7 +10,7 @@ enum LegalDocument: String, CaseIterable, Identifiable {
     case communityGuidelines = "community-guidelines"
 
     /// Bump when a document changes materially; users must accept again.
-    static let currentVersion = "2026-09-25"
+    static let currentVersion = "2026-09-26"
 
     var id: String { rawValue }
 

@@ -1,7 +1,7 @@
 <!-- DRAFT – must be reviewed by a qualified lawyer before launch. -->
 # Studio Agreement
 
-Version 2026-09-25 · Between [COMPANY NAME] ("EasySesh") and the business listing a studio ("Studio"). This agreement comes in addition to the Terms & Conditions.
+Version 2026-09-26 · Between [COMPANY NAME] ("EasySesh") and the business listing a studio ("Studio"). This agreement comes in addition to the Terms & Conditions.
 
 ## 1. Application and approval
 - The Studio applies with correct and complete information: photos of the actual rooms, its address, prices, equipment and opening hours.
@@ -53,3 +53,6 @@ Either party may end this agreement at any time. Obligations for bookings alread
 
 ## 10. Liability
 The Studio is responsible for the sessions it delivers, its premises and its equipment, and holds appropriate liability insurance.
+
+## 11. Changes
+EasySesh may update this agreement. If a change is material, the Studio is told in the app and must read and accept the new version to keep using the studio tools.
