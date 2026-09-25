@@ -117,8 +117,9 @@ final class AppPreferences {
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
-        language = defaults.string(forKey: Keys.language).flatMap(AppLanguage.init(rawValue:)) ?? .deviceDefault
-        L10n.languageCode = language.rawValue
+        let savedLanguage = defaults.string(forKey: Keys.language).flatMap(AppLanguage.init(rawValue:)) ?? .deviceDefault
+        language = savedLanguage
+        L10n.languageCode = savedLanguage.rawValue
         appearance = defaults.string(forKey: Keys.appearance).flatMap(AppAppearance.init(rawValue:)) ?? .system
         reduceEffects = defaults.bool(forKey: Keys.reduceEffects)
         hapticsEnabled = defaults.object(forKey: Keys.haptics) as? Bool ?? true
