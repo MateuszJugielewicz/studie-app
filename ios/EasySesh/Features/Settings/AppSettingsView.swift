@@ -26,7 +26,7 @@ struct AppSettingsView: View {
 
             Section {
                 Picker(selection: $preferences.appearance) {
-                    ForEach(AppAppearance.allCases) { Text(localized: $0.title).tag($0) }
+                    ForEach(AppAppearance.allCases) { Text($0.title).tag($0) }
                 } label: {
                     HStack {
                         SettingsIcon(symbol: "circle.lefthalf.filled", colors: TilePalette.violet)

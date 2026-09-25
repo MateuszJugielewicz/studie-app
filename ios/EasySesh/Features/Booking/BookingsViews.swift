@@ -26,7 +26,7 @@ struct ArtistBookingsView: View {
     var body: some View {
         NavigationStack(path: $path) {
             EasySeshScreen("Sessions", eyebrow: upcoming.isEmpty ? nil : L10n.format("%lld coming up", upcoming.count), refresh: { await load() }) {
-                GlassSegmentedControl(selection: $mode, options: Mode.allCases, title: \.rawValue, symbol: \.symbol)
+                GlassSegmentedControl(selection: $mode, options: Mode.allCases, title: { $0.rawValue }, symbol: { $0.symbol })
 
                 switch mode {
                 case .upcoming:

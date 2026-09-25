@@ -174,7 +174,7 @@ private struct IntroFeaturePage: View {
             .frame(height: 260)
 
             VStack(spacing: 12) {
-                Text(localized: feature.title)
+                Text(feature.title)
                     .font(.system(size: 32, weight: .heavy))
                     .tracking(-0.6)
                     .multilineTextAlignment(.center)
