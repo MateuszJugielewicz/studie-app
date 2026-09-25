@@ -314,4 +314,13 @@ struct FeeInvoice: Codable, Identifiable, Hashable {
 
     var isOverdue: Bool { status == "open" && (dueAt ?? .distantFuture) < .now }
     var isInCollections: Bool { status == "collections" }
+
+    var statusTitle: String {
+        switch status {
+        case "paid": "Paid"
+        case "collections": "Debt collection"
+        case "void": "Cancelled"
+        default: isOverdue ? "Overdue" : "Open"
+        }
+    }
 }

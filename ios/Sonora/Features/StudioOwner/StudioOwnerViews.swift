@@ -381,7 +381,7 @@ private struct EarningsHeroCard: View {
             HStack {
                 Label("Next payout \(Money.format(summary.pendingPayout, currency: studio.currency))", systemImage: "arrow.down.circle.fill")
                 Spacer()
-                Text("\(PlatformConfig.platformFeePercent)% platform fee").opacity(0.75)
+                Text("\(studio.feePercent)% platform fee").opacity(0.75)
             }
             .font(.caption.weight(.semibold))
         }
@@ -711,6 +711,7 @@ struct EarningsView: View {
     let bookings: [Booking]
     let payouts: [Payout]
     var fees: [FeeLedgerEntry] = []
+    @State private var invoices: [FeeInvoice] = []
 
     var body: some View {
         let summary = EarningsCalculator.summary(bookings: bookings, payouts: payouts, currency: studio.currency)
@@ -719,7 +720,7 @@ struct EarningsView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Earned this month").font(.caption).foregroundStyle(.secondary)
                     Text(Money.format(summary.netThisMonth, currency: studio.currency)).font(.largeTitle.bold())
-                    Text("\(Money.format(summary.grossThisMonth, currency: studio.currency)) booked · \(PlatformConfig.platformFeePercent)% platform fee")
+                    Text("\(Money.format(summary.grossThisMonth, currency: studio.currency)) booked · \(studio.feePercent)% platform fee")
                         .font(.caption).foregroundStyle(.secondary)
                 }
                 Chart(summary.monthly) { item in
@@ -770,7 +771,35 @@ struct EarningsView: View {
             } header: {
                 Text("Cash bookings & platform fees")
             } footer: {
-                Text("For cash bookings you collect the full price; EasySesh's \(PlatformConfig.platformFeePercent)% fee is deducted from your next card payout. Anything left is invoiced monthly.")
+                Text("For cash bookings you collect the full price; EasySesh's \(studio.feePercent)% fee is deducted from your next payout. Anything left is invoiced monthly and must be paid within 14 days. Unpaid invoices lead to suspension from EasySesh and debt collection.")
+            }
+
+            if !invoices.isEmpty {
+                Section {
+                    ForEach(invoices) { invoice in
+                        HStack {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(Money.format(invoice.amount, currency: invoice.currency)).font(.headline)
+                                if let due = invoice.dueAt {
+                                    Text("Due \(due.formatted(date: .abbreviated, time: .omitted))").font(.caption)
+                                        .foregroundStyle(invoice.isOverdue ? Color.red : Color.secondary)
+                                }
+                            }
+                            Spacer()
+                            if let link = invoice.hostedInvoiceUrl, let url = URL(string: link), invoice.status != "paid" {
+                                Link("Pay", destination: url).font(.subheadline.weight(.bold))
+                            }
+                            StatusPill(text: invoice.statusTitle, color: invoice.status == "paid" ? Theme.positive : (invoice.isOverdue || invoice.isInCollections) ? Color.red : Theme.warning)
+                        }
+                    }
+                } header: {
+                    Text("Invoices")
+                } footer: {
+                    if invoices.contains(where: { $0.isOverdue || $0.isInCollections }) {
+                        Text("You have an overdue invoice. Pay it now to avoid suspension and debt collection. Contact support if you think this is a mistake.")
+                            .foregroundStyle(Color.red)
+                    }
+                }
             }
 
             Section {
@@ -780,6 +809,7 @@ struct EarningsView: View {
         }
         .sonoraGrouped()
         .navigationTitle("Earnings")
+        .task { invoices = (try? await app.backend.feeInvoices(studioId: studio.id)) ?? invoices }
     }
 }
 
@@ -804,6 +834,8 @@ struct StudioSettingsView: View {
                         tile("Opening hours", "When you're bookable", "clock.fill", TilePalette.ocean) {
                             StudioSectionEditor(title: "Opening hours") { OpeningHoursEditor(hours: $0.openingHours) }
                         }
+                        tile("Promote", studio.isPromoted ? "Promoted now" : "Top of search", "megaphone.fill", TilePalette.signal) { PromotionView(studio: studio) }
+                        tile("Artist profile", "Connect yours", "link", TilePalette.violet) { StudioArtistLinkView(studio: studio) }
                         tile("Payouts", "Bank details", "building.columns.fill", TilePalette.mint) { PayoutAccountEditor(studioId: studio.id) }
                         tile("Account", "Notifications & data", "person.crop.circle.fill", TilePalette.muted) { SettingsView() }
                         tile("App settings", "Language, look, storage", "slider.horizontal.3", TilePalette.ocean) { AppSettingsView() }
@@ -832,13 +864,15 @@ struct StudioSettingsView: View {
                     VStack(alignment: .leading, spacing: 6) {
                         HStack(spacing: 6) {
                             PulseDot(color: Theme.positive, isActive: studio.isActive)
-                            Text(studio.isActive ? "Live" : studio.status.title).font(.caption.weight(.bold)).textCase(.uppercase).tracking(0.8)
+                            Text(localized: studio.isActive ? "Live" : studio.status.title).font(.caption.weight(.bold)).textCase(.uppercase).tracking(0.8)
                         }
                         .padding(.horizontal, 10).padding(.vertical, 5)
                         .background(.ultraThinMaterial, in: Capsule())
+                        if studio.isPromoted { PromotedTag() }
                         HStack(spacing: 6) {
                             Text(studio.name).font(.title2.weight(.heavy)).lineLimit(1)
                             if studio.isVerified { VerifiedBadge() }
+                            if studio.showsAdminBadge { AdminBadge() }
                         }
                         Text(studio.address.publicArea).font(.subheadline).opacity(0.85)
                     }
@@ -877,7 +911,7 @@ struct StudioSettingsView: View {
     private func stat(_ value: String, _ title: String) -> some View {
         VStack(spacing: 2) {
             Text(value).font(.headline.weight(.heavy)).monospacedDigit().lineLimit(1).minimumScaleFactor(0.7)
-            Text(title).font(.caption2.weight(.medium)).foregroundStyle(.secondary)
+            Text(localized: title).font(.caption2.weight(.medium)).foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity)
     }

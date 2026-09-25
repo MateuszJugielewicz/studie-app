@@ -238,6 +238,16 @@ struct CheckoutView: View {
     private var cardAvailable: Bool { AppConfig.stripePublishableKey != nil }
     private var cashAvailable: Bool { PricingEngine.acceptsCash(request.studio) }
 
+    private var payButtonTitle: LocalizedStringKey {
+        let amount = Money.format(price.dueNow, currency: price.currency)
+        switch (payWithCash, request.studio.bookingPolicy.instantBook) {
+        case (true, true): return "Book · pay cash at the studio"
+        case (true, false): return "Request to book · pay cash"
+        case (false, true): return "Pay \(amount)"
+        case (false, false): return "Request to book · \(amount)"
+        }
+    }
+
     private var price: PriceBreakdown {
         PricingEngine.quote(studio: request.studio, sessionType: request.sessionType, hours: request.hours, addOns: request.addOns)
     }
@@ -275,6 +285,9 @@ struct CheckoutView: View {
                 Section {
                     Label("Pay \(Money.format(price.total, currency: price.currency)) in cash at the session.", systemImage: "banknote")
                         .font(.footnote)
+                    Label("When you pay cash we cannot guarantee a refund, as EasySesh does not handle the cash. We will, however, look into it and try to help.", systemImage: "exclamationmark.triangle")
+                        .font(.footnote)
+                        .foregroundStyle(Theme.warning)
                 }
             } else if cardAvailable {
                 Section {
@@ -298,8 +311,21 @@ struct CheckoutView: View {
                     .font(.footnote)
                 }
             } footer: {
-                if !request.studio.bookingPolicy.instantBook && !payWithCash {
-                    Text("This studio confirms requests manually. Your card is authorised now and only charged if they accept.")
+                if !request.studio.bookingPolicy.instantBook {
+                    Text(payWithCash
+                         ? LocalizedStringKey("This studio confirms requests manually, within 24 hours.")
+                         : LocalizedStringKey("This studio confirms requests manually, within 24 hours. Your card is authorised now and only charged if they accept."))
+                }
+            }
+
+            Section {
+                if request.studio.bookingPolicy.checkInEnabled {
+                    Label("Check in in the app when you arrive. EasySesh recommends it: it protects you against fraud and helps us sort out any problem.", systemImage: "location.circle")
+                        .font(.footnote)
+                } else {
+                    Label("This studio has turned off check-in. EasySesh can't promise a refund if something goes wrong with this session.", systemImage: "exclamationmark.triangle")
+                        .font(.footnote)
+                        .foregroundStyle(Theme.warning)
                 }
             }
         }
@@ -310,9 +336,7 @@ struct CheckoutView: View {
                 if isPaying {
                     ProgressView().tint(.white)
                 } else {
-                    Text(payWithCash
-                         ? (request.studio.bookingPolicy.instantBook ? "Book · pay cash at the studio" : "Request to book · pay cash")
-                         : (request.studio.bookingPolicy.instantBook ? "Pay \(Money.format(price.dueNow, currency: price.currency))" : "Request to book · \(Money.format(price.dueNow, currency: price.currency))"))
+                    Text(payButtonTitle)
                 }
             }
             .buttonStyle(.primary)

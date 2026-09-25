@@ -6,6 +6,10 @@ struct SonoraApp: App {
     @State private var appState = AppState.makeDefault()
     @State private var preferences = AppPreferences()
 
+    init() {
+        NavigationAppearance.apply()
+    }
+
     var body: some Scene {
         WindowGroup {
             Group {

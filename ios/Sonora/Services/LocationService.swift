@@ -33,6 +33,18 @@ final class LocationService: NSObject, CLLocationManagerDelegate {
         }
     }
 
+    /// A current position for check-in: asks for one and waits up to 8 seconds.
+    func freshLocation() async -> CLLocation? {
+        guard isAuthorized else { return nil }
+        let asked = Date.now
+        manager.requestLocation()
+        for _ in 0..<32 {
+            if let location, location.timestamp >= asked.addingTimeInterval(-60) { return location }
+            try? await Task.sleep(for: .milliseconds(250))
+        }
+        return location.flatMap { $0.timestamp > asked.addingTimeInterval(-600) ? $0 : nil }
+    }
+
     nonisolated func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
         let status = manager.authorizationStatus
         Task { @MainActor in

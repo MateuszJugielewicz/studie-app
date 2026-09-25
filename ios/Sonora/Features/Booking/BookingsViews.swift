@@ -9,52 +9,71 @@ struct ArtistBookingsView: View {
     @State private var isLoading = true
     @State private var reviewing: Booking?
 
-    enum Mode: String, CaseIterable { case upcoming = "Upcoming", calendar = "Calendar", past = "Past" }
+    enum Mode: String, CaseIterable {
+        case upcoming = "Upcoming", calendar = "Calendar", past = "Past"
+
+        var symbol: String {
+            switch self {
+            case .upcoming: "sparkles"
+            case .calendar: "calendar"
+            case .past: "clock.arrow.circlepath"
+            }
+        }
+    }
+
+    private var upcoming: [Booking] { bookings.filter { $0.isUpcoming }.sorted { $0.startsAt < $1.startsAt } }
 
     var body: some View {
         NavigationStack(path: $path) {
-            List {
-                Picker("View", selection: $mode) {
-                    ForEach(Mode.allCases, id: \.self) { Text($0.rawValue) }
-                }
-                .pickerStyle(.segmented)
-                .listRowBackground(Color.clear)
+            SonoraScreen("Sessions", eyebrow: upcoming.isEmpty ? nil : L10n.format("%lld coming up", upcoming.count), refresh: { await load() }) {
+                GlassSegmentedControl(selection: $mode, options: Mode.allCases, title: \.rawValue, symbol: \.symbol)
 
                 switch mode {
                 case .upcoming:
-                    let upcoming = bookings.filter { $0.isUpcoming }.sorted { $0.startsAt < $1.startsAt }
                     if upcoming.isEmpty && !isLoading {
-                        ContentUnavailableView("No upcoming sessions", systemImage: "calendar", description: Text("Find a studio and book your next session."))
+                        GlassEmptyState(title: "No upcoming sessions", symbol: "calendar", message: "Find a studio and book your next session.")
                     }
                     ForEach(upcoming) { row($0) }
                 case .calendar:
                     MonthCalendar(selectedDay: $selectedDay, markedDays: Set(bookings.filter { !$0.status.isClosed || $0.status == .completed }.map { $0.startsAt.startOfDay }))
-                        .listRowBackground(Color.clear)
+                        .glassCard(padding: 12)
                     let dayBookings = bookings.filter { Calendar.current.isDate($0.startsAt, inSameDayAs: selectedDay) }
                     if dayBookings.isEmpty {
-                        Text("Nothing booked on \(selectedDay.formatted(date: .abbreviated, time: .omitted)).").foregroundStyle(.secondary)
+                        Text("Nothing booked on \(selectedDay.formatted(date: .abbreviated, time: .omitted)).")
+                            .font(.subheadline).foregroundStyle(.secondary)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 8)
                     }
                     ForEach(dayBookings) { row($0) }
                 case .past:
                     let toReview = bookings.filter(\.canReview)
                     if !toReview.isEmpty {
-                        Section("Waiting for your review") {
-                            ForEach(toReview) { booking in
-                                Button { reviewing = booking } label: {
-                                    Label("Review \(booking.studioName)", systemImage: "star.bubble")
+                        GlowSectionHeader(title: "Waiting for your review", count: toReview.count)
+                        ForEach(toReview) { booking in
+                            Button { reviewing = booking } label: {
+                                HStack(spacing: 12) {
+                                    IconTile(symbol: "star.bubble.fill", size: 38, colors: TilePalette.signal)
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text("Review \(booking.studioName)").font(.subheadline.weight(.semibold)).foregroundStyle(.primary)
+                                        Text(booking.startsAt.formatted(date: .abbreviated, time: .omitted)).font(.caption).foregroundStyle(.secondary)
+                                    }
+                                    Spacer()
+                                    Image(systemName: "chevron.right").font(.caption.weight(.bold)).foregroundStyle(.tertiary)
                                 }
+                                .glassCard(padding: 12)
                             }
+                            .buttonStyle(PressableCardStyle())
                         }
                     }
-                    Section("History") {
-                        ForEach(bookings.filter { !$0.isUpcoming }) { row($0) }
+                    let history = bookings.filter { !$0.isUpcoming }
+                    GlowSectionHeader(title: "History", count: history.count)
+                    if history.isEmpty && !isLoading {
+                        GlassEmptyState(title: "No past sessions", symbol: "clock.arrow.circlepath", message: "Sessions you've had show up here with receipts.")
                     }
+                    ForEach(history) { row($0) }
                 }
             }
-            .sonoraGrouped()
-            .navigationTitle("Bookings")
             .navigationDestination(for: Booking.self) { BookingDetailView(bookingId: $0.id, initial: $0) }
-            .refreshable { await Task { await load() }.value }
             .task { await load() }
             .onChange(of: app.pendingDeepLink) { openDeepLink() }
             .sheet(item: $reviewing) { booking in
@@ -64,7 +83,12 @@ struct ArtistBookingsView: View {
     }
 
     private func row(_ booking: Booking) -> some View {
-        NavigationLink(value: booking) { BookingRow(booking: booking, perspective: .artist) }
+        NavigationLink(value: booking) {
+            BookingRow(booking: booking, perspective: .artist)
+                .foregroundStyle(.primary)
+                .glassCard(padding: 12)
+        }
+        .buttonStyle(PressableCardStyle())
     }
 
     private func load() async {
@@ -211,9 +235,10 @@ struct BookingDetailView: View {
     @State private var conversation: Conversation?
     @State private var isWorking = false
     @State private var error: String?
+    @State private var ratedArtist = false
 
     enum Sheet: Identifiable {
-        case cancel, reschedule, review, dispute, decline, reportParty
+        case cancel, reschedule, review, dispute, decline, reportParty, rateArtist
         var id: Self { self }
     }
 
@@ -223,6 +248,7 @@ struct BookingDetailView: View {
     var body: some View {
         List {
             summarySection
+            checkInSection
             requestSection
             actionsSection
             paymentSection
@@ -250,6 +276,8 @@ struct BookingDetailView: View {
                 }
             case .reportParty:
                 ReportSheet(target: isStudio ? .user : .studio, targetId: isStudio ? booking.artistId : booking.studioId)
+            case .rateArtist:
+                RateArtistSheet(booking: booking) { ratedArtist = true }
             case .decline:
                 TextPromptSheet(title: "Decline request", placeholder: "Optional message to the artist", action: "Decline", allowEmpty: true) { text in
                     initial = try await app.backend.respondToBooking(id: booking.id, accept: false, message: text.isEmpty ? nil : text)
@@ -287,6 +315,93 @@ struct BookingDetailView: View {
         }
     }
 
+    /// Check-in on arrival: optional, recommended by EasySesh as protection against fraud.
+    @ViewBuilder private var checkInSection: some View {
+        if [.confirmed, .completed, .disputed].contains(booking.status) {
+            Section {
+                if let checkedIn = booking.artistCheckedInAt {
+                    HStack(spacing: 12) {
+                        IconTile(symbol: "checkmark.seal.fill", size: 34, colors: TilePalette.mint)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(isStudio ? "Artist checked in" : "You checked in").font(.subheadline.weight(.semibold))
+                            Text(checkInDetail(checkedIn)).font(.caption).foregroundStyle(.secondary)
+                        }
+                    }
+                } else if studio?.bookingPolicy.checkInEnabled == false {
+                    Label {
+                        Text(isStudio
+                             ? "Check-in is turned off for your studio. EasySesh can't promise the artist a refund if something goes wrong."
+                             : "This studio has turned off check-in. EasySesh can't promise a refund if something goes wrong with this session.")
+                            .font(.subheadline)
+                    } icon: {
+                        Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.orange)
+                    }
+                } else if !isStudio && booking.canCheckIn() {
+                    Button { checkIn() } label: {
+                        HStack(spacing: 12) {
+                            IconTile(symbol: "location.circle.fill", size: 34, colors: TilePalette.signal)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Check in").font(.headline).foregroundStyle(.primary)
+                                Text("Tap when you've arrived at the studio").font(.caption).foregroundStyle(.secondary)
+                            }
+                        }
+                    }
+                } else if booking.status == .confirmed {
+                    Label(isStudio ? "The artist hasn't checked in yet." : "Check-in opens 1 hour before your session.", systemImage: "clock")
+                        .font(.subheadline).foregroundStyle(.secondary)
+                }
+                if let confirmed = booking.studioConfirmedArrivalAt {
+                    Label(isStudio ? "You confirmed the artist arrived · \(confirmed.formatted(date: .omitted, time: .shortened))" : "The studio confirmed you arrived · \(confirmed.formatted(date: .omitted, time: .shortened))", systemImage: "person.fill.checkmark")
+                        .font(.subheadline)
+                } else if isStudio && booking.status == .confirmed && booking.startsAt.addingTimeInterval(-3600) <= .now {
+                    Button { confirmArrival() } label: { Label("Confirm the artist arrived", systemImage: "person.fill.checkmark") }
+                }
+            } header: {
+                Text("Check-in")
+            } footer: {
+                if studio?.bookingPolicy.checkInEnabled != false && booking.artistCheckedInAt == nil && booking.status == .confirmed {
+                    Text(isStudio
+                         ? "Checking in records that the artist arrived. It protects both of you against fraud and helps EasySesh settle disputes."
+                         : "EasySesh recommends checking in when you arrive. It protects you against fraud and helps us settle any dispute. Your location is only used if you allow it.")
+                }
+            }
+        }
+    }
+
+    private func checkInDetail(_ date: Date) -> String {
+        let time = date.formatted(date: .abbreviated, time: .shortened)
+        guard let distance = booking.artistCheckInDistanceM else { return time }
+        let place = distance < 1000 ? "\(distance) m" : String(format: "%.1f km", Double(distance) / 1000)
+        return L10n.format("%@ · %@ from the studio", time, place)
+    }
+
+    private func checkIn() {
+        isWorking = true
+        Task {
+            defer { isWorking = false }
+            app.location.requestPermission()
+            let location = await app.location.freshLocation()
+            do {
+                initial = try await app.backend.checkIn(bookingId: booking.id, latitude: location?.coordinate.latitude, longitude: location?.coordinate.longitude)
+            } catch { self.error = error.userMessage }
+        }
+    }
+
+    private func confirmArrival() {
+        isWorking = true
+        Task {
+            defer { isWorking = false }
+            do { initial = try await app.backend.confirmArrival(bookingId: booking.id) }
+            catch { self.error = error.userMessage }
+        }
+    }
+
+    /// The fee on this booking (special deals can differ from the standard 10%).
+    private var feePercent: Int {
+        guard booking.price.subtotal > 0 else { return PlatformConfig.platformFeePercent }
+        return Int((Double(booking.price.studioCommission) / Double(booking.price.subtotal) * 100).rounded())
+    }
+
     @ViewBuilder private var requestSection: some View {
         if isStudio && booking.status == .pendingApproval {
             Section {
@@ -303,6 +418,18 @@ struct BookingDetailView: View {
     @ViewBuilder private var actionsSection: some View {
         Section("Actions") {
             Button { openChat() } label: { Label(isStudio ? "Message artist" : "Message studio", systemImage: "bubble.left.and.bubble.right") }
+            if isStudio {
+                NavigationLink { ArtistPublicProfileView(artistId: booking.artistId, initial: nil) } label: {
+                    Label("View artist profile", systemImage: "person.crop.circle")
+                }
+                if booking.status == .completed && !ratedArtist {
+                    Button { sheet = .rateArtist } label: { Label("Rate the artist", systemImage: "star.bubble") }
+                }
+            } else if let studio {
+                NavigationLink { StudioDetailView(studioId: studio.id, initial: studio) } label: {
+                    Label("View studio", systemImage: "building.2")
+                }
+            }
             if let studio, !isStudio, booking.status == .confirmed {
                 Button { LocationService.openDirections(to: studio) } label: { Label("Directions", systemImage: "arrow.triangle.turn.up.right.diamond") }
             }
@@ -331,7 +458,7 @@ struct BookingDetailView: View {
         Section {
             if isStudio {
                 PriceRow(title: "Session price", amount: booking.price.subtotal, currency: booking.price.currency)
-                PriceRow(title: "EasySesh platform fee (\(PlatformConfig.platformFeePercent)%)", amount: -booking.price.studioCommission, currency: booking.price.currency)
+                PriceRow(title: L10n.format("EasySesh platform fee (%lld%%)", feePercent), amount: -booking.price.studioCommission, currency: booking.price.currency)
                 PriceRow(title: booking.isCash ? "Yours to keep" : "Your payout", amount: booking.price.studioPayout, currency: booking.price.currency, emphasized: true)
             } else {
                 PriceBreakdownView(price: booking.price)
@@ -356,9 +483,12 @@ struct BookingDetailView: View {
             Text("Payment")
         } footer: {
             if booking.isCash {
-                Text(isStudio
-                     ? "Cash booking: collect \(Money.format(booking.price.total, currency: booking.price.currency)) at the session. EasySesh's \(PlatformConfig.platformFeePercent)% fee is deducted from your next payout or invoiced."
-                     : "Pay \(Money.format(booking.price.total, currency: booking.price.currency)) in cash at the studio.")
+                if isStudio {
+                    Text("Cash booking: collect \(Money.format(booking.price.total, currency: booking.price.currency)) at the session. EasySesh's \(feePercent)% fee is deducted from your next payout or invoiced.")
+                } else {
+                    Text("Pay \(Money.format(booking.price.total, currency: booking.price.currency)) in cash at the studio.") + Text(" ") +
+                    Text("When you pay cash we cannot guarantee a refund, as EasySesh does not handle the cash. We will, however, look into it and try to help.")
+                }
             }
         }
     }
@@ -394,6 +524,9 @@ struct BookingDetailView: View {
             initial = try await app.backend.booking(id: bookingId)
             transactions = try await app.backend.transactions(bookingId: bookingId)
             if studio == nil { studio = try? await app.backend.studio(id: booking.studioId) }
+            if isStudio && booking.status == .completed, let reviews = try? await app.backend.artistReviews(artistId: booking.artistId) {
+                ratedArtist = reviews.contains { $0.bookingId == booking.id }
+            }
         } catch { self.error = error.userMessage }
     }
 

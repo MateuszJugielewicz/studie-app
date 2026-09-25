@@ -327,3 +327,46 @@ private struct SonoraGroupedStyle: ViewModifier {
             .tint(Theme.accent)
     }
 }
+
+/// Segmented control in the house style: a glass capsule with a neon pill that slides between options.
+struct GlassSegmentedControl<Option: Hashable>: View {
+    @Binding var selection: Option
+    let options: [Option]
+    let title: (Option) -> String
+    var symbol: ((Option) -> String)? = nil
+    @Namespace private var pill
+
+    var body: some View {
+        HStack(spacing: 4) {
+            ForEach(options, id: \.self) { option in
+                let isSelected = option == selection
+                Button {
+                    withAnimation(.spring(response: 0.35, dampingFraction: 0.78)) { selection = option }
+                } label: {
+                    HStack(spacing: 6) {
+                        if let symbol { Image(systemName: symbol(option)).font(.system(size: 13, weight: .bold)) }
+                        Text(localized: title(option)).font(.subheadline.weight(.semibold)).lineLimit(1).minimumScaleFactor(0.8)
+                    }
+                    .foregroundStyle(isSelected ? Theme.onAccent : Color.secondary)
+                    .frame(maxWidth: .infinity, minHeight: 38)
+                    .background {
+                        if isSelected {
+                            Capsule()
+                                .fill(Theme.neon)
+                                .overlay(Capsule().strokeBorder(Color.white.opacity(0.25), lineWidth: 0.8))
+                                .neonGlow(Theme.magenta, radius: 10)
+                                .matchedGeometryEffect(id: "pill", in: pill)
+                        }
+                    }
+                    .contentShape(Capsule())
+                }
+                .buttonStyle(.plain)
+                .accessibilityAddTraits(isSelected ? .isSelected : [])
+            }
+        }
+        .padding(4)
+        .background(.ultraThinMaterial, in: Capsule())
+        .overlay(Capsule().strokeBorder(Theme.glassEdge, lineWidth: 0.8))
+        .haptic(.selection, trigger: selection)
+    }
+}

@@ -496,6 +496,20 @@ struct StudioPolicyEditor: View {
                      ? "Cash isn't available when you require a deposit."
                      : "Artists can choose to pay you in cash at the session. EasySesh's \(studio.feePercent)% platform fee on cash bookings is deducted from your next payout or invoiced monthly. Cash bookings have no card guarantee for no-shows.")
             }
+            Section {
+                Toggle(isOn: $studio.bookingPolicy.checkInEnabled) {
+                    Label("Check-in on arrival", systemImage: "location.circle.fill")
+                }
+            } header: {
+                Text("Check-in")
+            } footer: {
+                if studio.bookingPolicy.checkInEnabled {
+                    Text("Recommended. Artists can check in in the app when they arrive and you can confirm it. It protects both of you against fraud and helps EasySesh settle disputes.")
+                } else {
+                    Text("Check-in is off. EasySesh can't promise artists a refund if something goes wrong, and artists see this before they book. Disputes are decided on the other evidence available.")
+                        .foregroundStyle(Theme.warning)
+                }
+            }
             Section("Scheduling") {
                 Stepper("Min. notice: \(studio.bookingPolicy.minimumNoticeHours) h", value: $studio.bookingPolicy.minimumNoticeHours, in: 0...72)
                 Stepper("Book up to \(studio.bookingPolicy.maxAdvanceDays) days ahead", value: $studio.bookingPolicy.maxAdvanceDays, in: 7...365, step: 7)

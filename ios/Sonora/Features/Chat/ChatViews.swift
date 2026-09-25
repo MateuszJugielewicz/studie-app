@@ -301,6 +301,7 @@ struct NewMessageSheet: View {
                                 HStack(spacing: 4) {
                                     Text(artist.artistName).font(.headline).foregroundStyle(.primary)
                                     if artist.isVerified { VerifiedBadge() }
+                                    if artist.hasAdminBadge == true { AdminBadge(compact: true) }
                                 }
                                 Text([artist.city, artist.genres.prefix(2).joined(separator: ", ")].filter { !$0.isEmpty }.joined(separator: " · "))
                                     .font(.caption).foregroundStyle(.secondary)
@@ -413,6 +414,30 @@ struct ChatView: View {
         .sonoraGrouped()
         .navigationTitle(conversation.title(for: app.role))
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            // Tap the name to see who you're talking to.
+            ToolbarItem(placement: .principal) {
+                NavigationLink {
+                    if app.role == .studioOwner {
+                        ArtistPublicProfileView(artistId: conversation.artistId, initial: nil)
+                    } else {
+                        StudioDetailView(studioId: conversation.studioId, initial: nil)
+                    }
+                } label: {
+                    HStack(spacing: 8) {
+                        Avatar(url: app.role == .studioOwner ? conversation.artistAvatarUrl : conversation.studioPhotoUrl,
+                               name: conversation.title(for: app.role), size: 28)
+                        VStack(alignment: .leading, spacing: 0) {
+                            Text(conversation.title(for: app.role)).font(.subheadline.weight(.bold)).lineLimit(1)
+                            Text(app.role == .studioOwner ? "View artist profile" : "View studio")
+                                .font(.caption2).foregroundStyle(.secondary)
+                        }
+                    }
+                    .foregroundStyle(.primary)
+                }
+                .accessibilityLabel(Text(app.role == .studioOwner ? "View artist profile" : "View studio"))
+            }
+        }
         .sheet(item: $reporting) { ReportSheet(target: .message, targetId: $0.id) }
         .task { await load() }
         .task { await listen() }
@@ -539,15 +564,21 @@ struct MessageBubble: View {
 
 struct NotificationsView: View {
     @Environment(AppState.self) private var app
+    @State private var confirmClear = false
 
     var body: some View {
         let fresh = app.notifications.filter { !$0.isRead }
         let earlier = app.notifications.filter(\.isRead)
         NavigationStack {
-            SonoraScreen("Inbox", eyebrow: fresh.isEmpty ? String(localized: "Notifications") : String(localized: "\(fresh.count) new"), refresh: { await app.refreshBadges() }) {
-                if !fresh.isEmpty {
-                    GlassIconButton(symbol: "checkmark.circle", label: "Mark all read") {
-                        Task { await app.markAllNotificationsRead() }
+            SonoraScreen("Inbox", eyebrow: fresh.isEmpty ? L10n.tr("Notifications") : L10n.format("%lld new", fresh.count), refresh: { await app.refreshBadges() }) {
+                HStack(spacing: 8) {
+                    if !fresh.isEmpty {
+                        GlassIconButton(symbol: "checkmark.circle", label: "Mark all read") {
+                            Task { await app.markAllNotificationsRead() }
+                        }
+                    }
+                    if !app.notifications.isEmpty {
+                        GlassIconButton(symbol: "trash", label: "Clear all") { confirmClear = true }
                     }
                 }
             } content: {
@@ -555,16 +586,24 @@ struct NotificationsView: View {
                     GlassEmptyState(title: "You're all caught up", symbol: "bell.badge.fill", message: "Bookings, messages and payouts show up here.")
                 }
                 if !fresh.isEmpty {
-                    GlowSectionHeader(title: String(localized: "New"), count: fresh.count)
+                    GlowSectionHeader(title: "New", count: fresh.count)
                     ForEach(fresh) { note in row(note) }
                 }
                 if !earlier.isEmpty {
-                    GlowSectionHeader(title: String(localized: "Earlier"))
+                    GlowSectionHeader(title: "Earlier")
                     ForEach(earlier) { note in row(note) }
+                }
+                if !app.notifications.isEmpty {
+                    Label("Swipe left on a notification to delete it", systemImage: "hand.draw")
+                        .font(.caption).foregroundStyle(.tertiary)
+                        .frame(maxWidth: .infinity)
                 }
             }
             .animation(.spring(response: 0.4, dampingFraction: 0.85), value: app.notifications)
             .task { await app.refreshBadges() }
+            .confirmationDialog("Delete all notifications?", isPresented: $confirmClear, titleVisibility: .visible) {
+                Button("Delete all", role: .destructive) { Task { await app.deleteAllNotifications() } }
+            }
         }
     }
 
@@ -577,7 +616,7 @@ struct NotificationsView: View {
                 IconTile(symbol: note.kind.symbol, size: 40, colors: note.isRead ? TilePalette.muted : palette(for: note.kind))
                 VStack(alignment: .leading, spacing: 3) {
                     HStack(alignment: .firstTextBaseline) {
-                        Text(note.title).font(.subheadline.weight(note.isRead ? .semibold : .heavy)).lineLimit(2)
+                        Text(localized: note.title).font(.subheadline.weight(note.isRead ? .semibold : .heavy)).lineLimit(2)
                         Spacer(minLength: 6)
                         Text(note.createdAt.formatted(.relative(presentation: .named))).font(.caption2).foregroundStyle(.tertiary)
                     }
@@ -593,8 +632,9 @@ struct NotificationsView: View {
             }
         }
         .buttonStyle(PressableCardStyle())
+        .swipeToDelete { Task { await app.deleteNotification(note) } }
         .scrollReveal()
-        .transition(.asymmetric(insertion: .move(edge: .top).combined(with: .opacity), removal: .opacity))
+        .transition(.asymmetric(insertion: .move(edge: .top).combined(with: .opacity), removal: .move(edge: .leading).combined(with: .opacity)))
     }
 
     private func palette(for kind: NotificationKind) -> [Color] {

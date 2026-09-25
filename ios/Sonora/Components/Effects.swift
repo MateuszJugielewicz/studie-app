@@ -283,3 +283,65 @@ struct SonoraTabBar: View {
         .accessibilityAddTraits(isSelected ? [.isSelected, .isButton] : .isButton)
     }
 }
+
+// MARK: - Swipe to delete
+
+/// Swipe a card to the left to reveal a delete button; swipe far to delete right away.
+/// For cards in a ScrollView, where List's swipe actions aren't available.
+struct SwipeToDelete: ViewModifier {
+    let onDelete: () -> Void
+    @State private var offset: CGFloat = 0
+    @State private var isHorizontal: Bool?
+    private let reveal: CGFloat = 84
+    private let commit: CGFloat = 180
+
+    func body(content: Content) -> some View {
+        ZStack(alignment: .trailing) {
+            if offset < 0 {
+                Button(role: .destructive) { delete() } label: {
+                    Image(systemName: "trash.fill")
+                        .font(.system(size: 18, weight: .bold))
+                        .foregroundStyle(.white)
+                        .frame(width: max(56, min(-offset - 12, reveal - 12)), height: 56)
+                        .background(Color.red.gradient, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+                        .scaleEffect(-offset > commit ? 1.1 : 1)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Delete")
+                .transition(.opacity)
+            }
+            content
+                .offset(x: offset)
+        }
+        .simultaneousGesture(
+            DragGesture(minimumDistance: 18)
+                .onChanged { value in
+                    if isHorizontal == nil { isHorizontal = abs(value.translation.width) > abs(value.translation.height) }
+                    guard isHorizontal == true else { return }
+                    let base = offset <= -reveal + 1 && value.translation.width > 0 ? -reveal : 0
+                    offset = min(0, base + value.translation.width)
+                }
+                .onEnded { value in
+                    defer { isHorizontal = nil }
+                    guard isHorizontal == true else { return }
+                    if -value.predictedEndTranslation.width > commit * 1.4 || -offset > commit {
+                        delete()
+                    } else {
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) { offset = -offset > reveal / 2 ? -reveal : 0 }
+                    }
+                }
+        )
+        .accessibilityAction(named: Text("Delete")) { onDelete() }
+    }
+
+    private func delete() {
+        withAnimation(.easeIn(duration: 0.2)) { offset = -600 }
+        onDelete()
+    }
+}
+
+extension View {
+    func swipeToDelete(_ onDelete: @escaping () -> Void) -> some View {
+        modifier(SwipeToDelete(onDelete: onDelete))
+    }
+}

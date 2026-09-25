@@ -184,6 +184,18 @@ final class AppState {
         push.setBadge(0)
     }
 
+    func deleteNotification(_ note: AppNotification) async {
+        notifications.removeAll { $0.id == note.id }
+        push.setBadge(unreadNotifications)
+        try? await backend.deleteNotification(id: note.id)
+    }
+
+    func deleteAllNotifications() async {
+        notifications.removeAll()
+        push.setBadge(0)
+        try? await backend.deleteAllNotifications()
+    }
+
     // MARK: Navigation
 
     func open(_ link: DeepLink) {

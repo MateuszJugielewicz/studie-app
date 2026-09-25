@@ -355,6 +355,16 @@ enum NotificationKind: String, Codable, CaseIterable, Hashable {
 
 enum ReportTarget: String, Codable, CaseIterable, Hashable {
     case user, studio, review, message, booking
+
+    var reportTitle: String {
+        switch self {
+        case .user: "Report user"
+        case .studio: "Report studio"
+        case .review: "Report review"
+        case .message: "Report message"
+        case .booking: "Report booking"
+        }
+    }
 }
 
 enum ReportReason: String, Codable, CaseIterable, Identifiable, Hashable {
@@ -377,6 +387,30 @@ enum ReportReason: String, Codable, CaseIterable, Identifiable, Hashable {
         case .fraud: "Fraud or scam"
         case .noShow: "No-show"
         case .other: "Something else"
+        }
+    }
+
+    var hint: String {
+        switch self {
+        case .fake: "Fake profile, photos or information"
+        case .spam: "Advertising, repeated or unwanted messages"
+        case .abusive: "Insults, threats or harassment"
+        case .inappropriate: "Offensive, sexual or violent content"
+        case .fraud: "Asking to pay outside EasySesh, scams or stolen cards"
+        case .noShow: "Didn't turn up or the studio was closed"
+        case .other: "Anything else that breaks our rules"
+        }
+    }
+
+    var symbol: String {
+        switch self {
+        case .fake: "person.crop.circle.badge.questionmark"
+        case .spam: "envelope.badge"
+        case .abusive: "hand.raised.fill"
+        case .inappropriate: "eye.slash.fill"
+        case .fraud: "creditcard.trianglebadge.exclamationmark"
+        case .noShow: "calendar.badge.exclamationmark"
+        case .other: "ellipsis.bubble.fill"
         }
     }
 }

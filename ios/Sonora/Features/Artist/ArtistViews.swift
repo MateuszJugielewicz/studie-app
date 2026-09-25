@@ -41,6 +41,7 @@ struct ArtistProfileView: View {
     @Environment(AppState.self) private var app
     @State private var isEditing = false
     @State private var bookings: [Booking] = []
+    @State private var pendingStudioLinks = 0
 
     private let columns = [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)]
 
@@ -54,8 +55,28 @@ struct ArtistProfileView: View {
                     stats
                     if !profile.links.isEmpty { links(profile) }
                     if !profile.isVerified { verificationCard }
+                    if pendingStudioLinks > 0 {
+                        NavigationLink { ArtistPublicProfileView(artistId: profile.id, initial: profile) } label: {
+                            HStack(spacing: 12) {
+                                IconTile(symbol: "link", size: 36, colors: TilePalette.violet)
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("A studio wants to connect").font(.subheadline.weight(.bold)).foregroundStyle(.primary)
+                                    Text("Confirm to show it on your profile").font(.caption).foregroundStyle(.secondary)
+                                }
+                                Spacer()
+                                PulseDot(color: Theme.accent, isActive: true)
+                            }
+                            .glassCard(padding: 14)
+                        }
+                        .buttonStyle(PressableCardStyle())
+                    }
                 }
                 LazyVGrid(columns: columns, spacing: 12) {
+                    if let profile = app.artistProfile {
+                        tile("Public profile", "Studio & ratings", "person.text.rectangle.fill", TilePalette.signal) {
+                            ArtistPublicProfileView(artistId: profile.id, initial: profile)
+                        }
+                    }
                     tile("Sessions", "History & receipts", "clock.arrow.circlepath", TilePalette.ocean) { BookingHistoryView() }
                     tile("Account", "Notifications & data", "person.crop.circle.fill", TilePalette.muted) { SettingsView() }
                     tile("App settings", "Language, look, storage", "slider.horizontal.3", TilePalette.violet) { AppSettingsView() }
@@ -86,6 +107,9 @@ struct ArtistProfileView: View {
         bookings = (try? await app.backend.artistBookings()) ?? bookings
         if let id = app.account?.id, let profile = try? await app.backend.artistProfile(id: id) {
             app.artistProfile = profile
+        }
+        if let id = app.account?.id, let links = try? await app.backend.artistStudioLinks(artistId: id) {
+            pendingStudioLinks = links.filter { !$0.isAccepted }.count
         }
     }
 
@@ -119,10 +143,11 @@ struct ArtistProfileView: View {
 
             VStack(spacing: 6) {
                 HStack(spacing: 6) {
-                    Text(profile.artistName.isEmpty ? "Artist" : profile.artistName)
+                    Text(profile.artistName.isEmpty ? L10n.tr("Artist") : profile.artistName)
                         .font(.system(size: 26, weight: .heavy))
                         .tracking(-0.5)
                     if profile.isVerified { VerifiedBadge() }
+                    if profile.hasAdminBadge == true { AdminBadge() }
                 }
                 if !profile.city.isEmpty {
                     Label(profile.city, systemImage: "mappin.and.ellipse")
@@ -172,7 +197,7 @@ struct ArtistProfileView: View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
                 ForEach(profile.links) { link in
-                    if let url = URL(string: link.url) {
+                    if let url = link.resolvedURL {
                         Link(destination: url) {
                             Label { Text(localized: link.platform.title) } icon: { Image(systemName: link.platform.symbol) }
                                 .font(.subheadline.weight(.semibold))

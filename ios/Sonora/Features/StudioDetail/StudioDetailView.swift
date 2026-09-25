@@ -39,8 +39,15 @@ struct StudioDetailView: View {
                     if !nextSlots.isEmpty { availabilitySection(studio) }
                     pricingSection(studio)
                     textSection("About", studio.description)
-                    if let video = studio.videoUrl, let url = URL(string: video) {
-                        Link(destination: url) { Label("Watch studio tour", systemImage: "play.rectangle.fill") }
+                    if studio.videoUrl != nil || !studio.contact.website.isEmpty {
+                        HStack(spacing: 10) {
+                            if let video = studio.videoUrl, let url = SocialLink.resolve(video, platform: .youtube) {
+                                Link(destination: url) { linkChip("Studio tour", symbol: "play.rectangle.fill") }
+                            }
+                            if let url = SocialLink.resolve(studio.contact.website, platform: .website) {
+                                Link(destination: url) { linkChip("Website", symbol: "globe") }
+                            }
+                        }
                     }
                     facilitiesSection(studio)
                     equipmentSection(studio)
@@ -190,6 +197,14 @@ struct StudioDetailView: View {
                     .font(.footnote).foregroundStyle(.secondary)
             }
         }
+    }
+
+    private func linkChip(_ title: LocalizedStringKey, symbol: String) -> some View {
+        Label(title, systemImage: symbol)
+            .font(.subheadline.weight(.semibold))
+            .padding(.horizontal, 14).padding(.vertical, 9)
+            .background(Theme.card.opacity(0.78), in: Capsule())
+            .overlay(Capsule().strokeBorder(Theme.glassEdge, lineWidth: 0.8))
     }
 
     private func textSection(_ title: String, _ text: String) -> some View {
