@@ -53,7 +53,7 @@ struct StudioEditorView: View {
             let problems = StudioValidator.problems(in: studio)
             if isApplication && !problems.isEmpty {
                 Section("Still missing") {
-                    ForEach(problems, id: \.self) { Label { Text(localized: $0) } icon: { Image(systemName: "exclamationmark.circle") }.foregroundStyle(Theme.warning).font(.footnote) }
+                    ForEach(problems, id: \.self) { problem in Label { Text(localized: problem) } icon: { Image(systemName: "exclamationmark.circle") }.foregroundStyle(Theme.warning).font(.footnote) }
                 }
             }
         }
