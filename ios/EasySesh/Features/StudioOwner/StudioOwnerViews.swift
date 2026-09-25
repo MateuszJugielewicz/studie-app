@@ -34,7 +34,7 @@ struct ApplicationStatusView: View {
     @State private var error: String?
 
     var body: some View {
-        EasySeshScreen("Application", eyebrow: studio.name.isEmpty ? String(localized: "Your studio") : studio.name,
+        EasySeshScreen("Application", eyebrow: studio.name.isEmpty ? L10n.tr("Your studio") : studio.name,
                      refresh: { app.ownedStudio = (try? await app.backend.ownedStudio()) ?? app.ownedStudio }) {
             statusCard
             if let note = studio.adminNote, !note.isEmpty {
@@ -381,7 +381,7 @@ private struct EarningsHeroCard: View {
             HStack {
                 Label("Next payout \(Money.format(summary.pendingPayout, currency: studio.currency))", systemImage: "arrow.down.circle.fill")
                 Spacer()
-                Text("\(studio.feePercent)% platform fee").opacity(0.75)
+                Text(L10n.format("%lld%% platform fee", studio.feePercent)).opacity(0.75)
             }
             .font(.caption.weight(.semibold))
         }
@@ -474,8 +474,8 @@ struct LiveToggleCard: View {
                 PulseDot(color: Theme.positive, isActive: studio.isActive)
                     .id(studio.isActive)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(studio.isActive ? "Live on EasySesh" : "Paused").font(.headline)
-                    Text(studio.isActive ? "Artists can find and book you." : "Hidden from search. Existing bookings are kept.")
+                    Text(LocalizedStringKey(studio.isActive ? "Live on EasySesh" : "Paused")).font(.headline)
+                    Text(LocalizedStringKey(studio.isActive ? "Artists can find and book you." : "Hidden from search. Existing bookings are kept."))
                         .font(.caption).foregroundStyle(.secondary)
                 }
             }
@@ -720,7 +720,7 @@ struct EarningsView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Earned this month").font(.caption).foregroundStyle(.secondary)
                     Text(Money.format(summary.netThisMonth, currency: studio.currency)).font(.largeTitle.bold())
-                    Text("\(Money.format(summary.grossThisMonth, currency: studio.currency)) booked · \(studio.feePercent)% platform fee")
+                    Text(L10n.format("%@ booked · %lld%% platform fee", Money.format(summary.grossThisMonth, currency: studio.currency), studio.feePercent))
                         .font(.caption).foregroundStyle(.secondary)
                 }
                 Chart(summary.monthly) { item in
@@ -745,7 +745,7 @@ struct EarningsView: View {
                     HStack {
                         VStack(alignment: .leading) {
                             Text(Money.format(payout.amount, currency: payout.currency)).font(.headline)
-                            Text(payout.status == .paid ? "Paid \((payout.paidAt ?? payout.scheduledFor).formatted(date: .abbreviated, time: .omitted))" : "Expected \(payout.scheduledFor.formatted(date: .abbreviated, time: .omitted))")
+                            Text(payout.status == .paid ? L10n.format("Paid %@", (payout.paidAt ?? payout.scheduledFor).formatted(date: .abbreviated, time: .omitted)) : L10n.format("Expected %@", payout.scheduledFor.formatted(date: .abbreviated, time: .omitted)))
                                 .font(.caption).foregroundStyle(.secondary)
                         }
                         Spacer()
@@ -760,7 +760,7 @@ struct EarningsView: View {
                 ForEach(fees) { entry in
                     HStack {
                         VStack(alignment: .leading) {
-                            Text(entry.kind.title)
+                            Text(localized: entry.kind.title)
                             Text(entry.createdAt.formatted(date: .abbreviated, time: .omitted)).font(.caption).foregroundStyle(.secondary)
                         }
                         Spacer()
@@ -771,7 +771,7 @@ struct EarningsView: View {
             } header: {
                 Text("Cash bookings & platform fees")
             } footer: {
-                Text("For cash bookings you collect the full price; EasySesh's \(studio.feePercent)% fee is deducted from your next payout. Anything left is invoiced monthly and must be paid within 14 days. Unpaid invoices lead to suspension from EasySesh and debt collection.")
+                Text(L10n.format("For cash bookings you collect the full price; EasySesh's %lld%% fee is deducted from your next payout. Anything left is invoiced monthly and must be paid within 14 days. Unpaid invoices lead to suspension from EasySesh and debt collection.", studio.feePercent))
             }
 
             if !invoices.isEmpty {

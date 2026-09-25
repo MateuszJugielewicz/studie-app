@@ -125,8 +125,8 @@ struct StudioDetailView: View {
             .font(.subheadline)
             FlowLayout(spacing: 8) {
                 if studio.bookingPolicy.instantBook { Chip(title: "Instant book", symbol: "bolt.fill") }
-                Chip(title: "Up to \(studio.capacity) people", symbol: "person.2")
-                Chip(title: "\(studio.bookingCount) sessions booked", symbol: "calendar")
+                Chip(title: L10n.format("Up to %lld people", studio.capacity), symbol: "person.2")
+                Chip(title: L10n.format("%lld sessions booked", studio.bookingCount), symbol: "calendar")
             }
             .padding(.top, 4)
         }
@@ -193,7 +193,7 @@ struct StudioDetailView: View {
                 }
             }
             if studio.bookingPolicy.depositPercent > 0 {
-                Label("\(studio.bookingPolicy.depositPercent)% deposit at booking, the rest is charged after your session.", systemImage: "creditcard")
+                Label(L10n.format("%lld%% deposit at booking, the rest is charged after your session.", studio.bookingPolicy.depositPercent), systemImage: "creditcard")
                     .font(.footnote).foregroundStyle(.secondary)
             }
         }
@@ -232,7 +232,7 @@ struct StudioDetailView: View {
                 let items = studio.equipment.filter { $0.category == category }
                 if !items.isEmpty {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(category.title).font(.subheadline.bold())
+                        Text(localized: category.title).font(.subheadline.bold())
                         ForEach(items) { Text("• \($0.name)").font(.subheadline).foregroundStyle(.secondary) }
                     }
                 }
@@ -271,7 +271,7 @@ struct StudioDetailView: View {
                     HStack {
                         Text(hours.weekdayName)
                         Spacer()
-                        Text(hours.label).foregroundStyle(hours.isClosed ? Color.secondary : Color.primary)
+                        Text(localized: hours.label).foregroundStyle(hours.isClosed ? Color.secondary : Color.primary)
                     }
                     .font(.subheadline)
                 }
@@ -286,8 +286,8 @@ struct StudioDetailView: View {
                 Label(rule, systemImage: "checkmark.circle").font(.subheadline)
             }
             VStack(alignment: .leading, spacing: 4) {
-                Text("Cancellation: \(studio.bookingPolicy.cancellationPolicy.title)").font(.subheadline.bold())
-                Text(studio.bookingPolicy.cancellationPolicy.summary).font(.footnote).foregroundStyle(.secondary)
+                Text("Cancellation: \(L10n.tr(studio.bookingPolicy.cancellationPolicy.title))").font(.subheadline.bold())
+                Text(localized: studio.bookingPolicy.cancellationPolicy.summary).font(.footnote).foregroundStyle(.secondary)
                 if !studio.bookingPolicy.terms.isEmpty {
                     Text(studio.bookingPolicy.terms).font(.footnote).foregroundStyle(.secondary)
                 }
@@ -338,7 +338,7 @@ struct StudioDetailView: View {
         HStack(spacing: 12) {
             VStack(alignment: .leading) {
                 Text("From \(Money.format(studio.priceFrom, currency: studio.currency))/h").font(.headline)
-                Text(studio.bookingPolicy.instantBook ? "Instant confirmation" : "Studio confirms within 24h").font(.caption).foregroundStyle(.secondary)
+                Text(LocalizedStringKey(studio.bookingPolicy.instantBook ? "Instant confirmation" : "Studio confirms within 24h")).font(.caption).foregroundStyle(.secondary)
             }
             Spacer()
             if app.role == .artist {

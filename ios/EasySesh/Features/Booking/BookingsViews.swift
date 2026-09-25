@@ -323,15 +323,13 @@ struct BookingDetailView: View {
                     HStack(spacing: 12) {
                         IconTile(symbol: "checkmark.seal.fill", size: 34, colors: TilePalette.mint)
                         VStack(alignment: .leading, spacing: 2) {
-                            Text(isStudio ? "Artist checked in" : "You checked in").font(.subheadline.weight(.semibold))
+                            Text(LocalizedStringKey(isStudio ? "Artist checked in" : "You checked in")).font(.subheadline.weight(.semibold))
                             Text(checkInDetail(checkedIn)).font(.caption).foregroundStyle(.secondary)
                         }
                     }
                 } else if studio?.bookingPolicy.checkInEnabled == false {
                     Label {
-                        Text(isStudio
-                             ? "Check-in is turned off for your studio. EasySesh can't promise the artist a refund if something goes wrong."
-                             : "This studio has turned off check-in. EasySesh can't promise a refund if something goes wrong with this session.")
+                        Text(LocalizedStringKey(isStudio ? "Check-in is turned off for your studio. EasySesh can't promise the artist a refund if something goes wrong." : "This studio has turned off check-in. EasySesh can't promise a refund if something goes wrong with this session."))
                             .font(.subheadline)
                     } icon: {
                         Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.orange)
@@ -347,11 +345,11 @@ struct BookingDetailView: View {
                         }
                     }
                 } else if booking.status == .confirmed {
-                    Label(isStudio ? "The artist hasn't checked in yet." : "Check-in opens 1 hour before your session.", systemImage: "clock")
+                    Label(LocalizedStringKey(isStudio ? "The artist hasn't checked in yet." : "Check-in opens 1 hour before your session."), systemImage: "clock")
                         .font(.subheadline).foregroundStyle(.secondary)
                 }
                 if let confirmed = booking.studioConfirmedArrivalAt {
-                    Label(isStudio ? "You confirmed the artist arrived · \(confirmed.formatted(date: .omitted, time: .shortened))" : "The studio confirmed you arrived · \(confirmed.formatted(date: .omitted, time: .shortened))", systemImage: "person.fill.checkmark")
+                    Label(L10n.format(isStudio ? "You confirmed the artist arrived · %@" : "The studio confirmed you arrived · %@", confirmed.formatted(date: .omitted, time: .shortened)), systemImage: "person.fill.checkmark")
                         .font(.subheadline)
                 } else if isStudio && booking.status == .confirmed && booking.startsAt.addingTimeInterval(-3600) <= .now {
                     Button { confirmArrival() } label: { Label("Confirm the artist arrived", systemImage: "person.fill.checkmark") }
@@ -360,9 +358,7 @@ struct BookingDetailView: View {
                 Text("Check-in")
             } footer: {
                 if studio?.bookingPolicy.checkInEnabled != false && booking.artistCheckedInAt == nil && booking.status == .confirmed {
-                    Text(isStudio
-                         ? "Checking in records that the artist arrived. It protects both of you against fraud and helps EasySesh settle disputes."
-                         : "EasySesh recommends checking in when you arrive. It protects you against fraud and helps us settle any dispute. Your location is only used if you allow it.")
+                    Text(LocalizedStringKey(isStudio ? "Checking in records that the artist arrived. It protects both of you against fraud and helps EasySesh settle disputes." : "EasySesh recommends checking in when you arrive. It protects you against fraud and helps us settle any dispute. Your location is only used if you allow it."))
                 }
             }
         }
@@ -408,16 +404,14 @@ struct BookingDetailView: View {
                 Button { respond(accept: true) } label: { Label("Accept booking", systemImage: "checkmark.circle.fill") }
                 Button(role: .destructive) { sheet = .decline } label: { Label("Decline", systemImage: "xmark.circle") }
             } footer: {
-                Text(booking.isCash
-                     ? "The artist will pay cash at the session."
-                     : "The artist's card is authorised. Accepting charges it; declining releases the hold.")
+                Text(LocalizedStringKey(booking.isCash ? "The artist will pay cash at the session." : "The artist's card is authorised. Accepting charges it; declining releases the hold."))
             }
         }
     }
 
     @ViewBuilder private var actionsSection: some View {
         Section("Actions") {
-            Button { openChat() } label: { Label(isStudio ? "Message artist" : "Message studio", systemImage: "bubble.left.and.bubble.right") }
+            Button { openChat() } label: { Label(LocalizedStringKey(isStudio ? "Message artist" : "Message studio"), systemImage: "bubble.left.and.bubble.right") }
             if isStudio {
                 NavigationLink { ArtistPublicProfileView(artistId: booking.artistId, initial: nil) } label: {
                     Label("View artist profile", systemImage: "person.crop.circle")
@@ -446,7 +440,7 @@ struct BookingDetailView: View {
                 Button { sheet = .dispute } label: { Label("Report a problem", systemImage: "exclamationmark.bubble") }
             }
             Button { sheet = .reportParty } label: {
-                Label(isStudio ? "Report artist" : "Report studio", systemImage: "flag")
+                Label(LocalizedStringKey(isStudio ? "Report artist" : "Report studio"), systemImage: "flag")
             }
             NavigationLink { SupportCenterView(booking: booking) } label: {
                 Label("Contact EasySesh support", systemImage: "questionmark.circle")
@@ -484,7 +478,7 @@ struct BookingDetailView: View {
         } footer: {
             if booking.isCash {
                 if isStudio {
-                    Text("Cash booking: collect \(Money.format(booking.price.total, currency: booking.price.currency)) at the session. EasySesh's \(feePercent)% fee is deducted from your next payout or invoiced.")
+                    Text(L10n.format("Cash booking: collect %@ at the session. EasySesh's %lld%% fee is deducted from your next payout or invoiced.", Money.format(booking.price.total, currency: booking.price.currency), feePercent))
                 } else {
                     Text("Pay \(Money.format(booking.price.total, currency: booking.price.currency)) in cash at the studio.") + Text(" ") +
                     Text("When you pay cash we cannot guarantee a refund, as EasySesh does not handle the cash. We will, however, look into it and try to help.")
@@ -574,10 +568,10 @@ struct CancelBookingSheet: View {
                     PriceRow(title: "Paid so far", amount: booking.paymentStatus == .authorized ? 0 : amountPaid, currency: booking.price.currency)
                     PriceRow(title: isStudio ? "Artist is refunded" : "You'll get back", amount: refund, currency: booking.price.currency, emphasized: true)
                 } footer: {
-                    Text(isStudio ? "When a studio cancels, the artist always gets a full refund. Frequent cancellations affect your listing." : "\(policy.title) policy: \(policy.summary)")
+                    Text(isStudio ? L10n.tr("When a studio cancels, the artist always gets a full refund. Frequent cancellations affect your listing.") : L10n.format("%@ policy: %@", L10n.tr(policy.title), L10n.tr(policy.summary)))
                 }
                 Section("Reason") {
-                    TextField(isStudio ? "Let the artist know why" : "Optional", text: $reason, axis: .vertical).lineLimit(2...5)
+                    TextField(LocalizedStringKey(isStudio ? "Let the artist know why" : "Optional"), text: $reason, axis: .vertical).lineLimit(2...5)
                 }
             }
             .easyseshGrouped()
@@ -720,7 +714,7 @@ struct ReceiptView: View {
             Section {
                 VStack(spacing: 6) {
                     EasySeshLogo(size: 20)
-                    Text(transaction.kind == .refund ? "Refund receipt" : "Payment receipt").font(.headline)
+                    Text(LocalizedStringKey(transaction.kind == .refund ? "Refund receipt" : "Payment receipt")).font(.headline)
                     Text(Money.format(transaction.amount, currency: transaction.currency)).font(.display(40))
                 }
                 .frame(maxWidth: .infinity)

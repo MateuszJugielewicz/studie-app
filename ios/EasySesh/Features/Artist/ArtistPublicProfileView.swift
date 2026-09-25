@@ -32,7 +32,7 @@ struct ArtistPublicProfileView: View {
             .padding(.bottom, 32)
         }
         .auroraBackground(height: 420)
-        .navigationTitle(shown?.artistName ?? String(localized: "Artist"))
+        .navigationTitle(shown?.artistName ?? L10n.tr("Artist"))
         .navigationBarTitleDisplayMode(.inline)
         .refreshable { await Task { await load() }.value }
         .task { await load() }
@@ -128,7 +128,7 @@ struct ArtistPublicProfileView: View {
                         IconTile(symbol: "link", size: 36, colors: TilePalette.violet)
                         VStack(alignment: .leading, spacing: 2) {
                             Text("Connect your studio?").font(.subheadline.weight(.bold))
-                            Text("\(studios[link.studioId]?.name ?? String(localized: "A studio")) wants to show your artist profile on its page, and the studio on your profile.")
+                            Text(L10n.format("%@ wants to show your artist profile on its page, and the studio on your profile.", studios[link.studioId]?.name ?? L10n.tr("A studio")))
                                 .font(.caption).foregroundStyle(.secondary)
                         }
                     }
@@ -141,7 +141,7 @@ struct ArtistPublicProfileView: View {
             }
         }
         if !accepted.isEmpty {
-            GlowSectionHeader(title: String(localized: "Studio"))
+            GlowSectionHeader(title: "Studio")
             ForEach(accepted, id: \.studioId) { link in
                 if let studio = studios[link.studioId] {
                     NavigationLink { StudioDetailView(studioId: studio.id, initial: studio) } label: {
@@ -177,7 +177,7 @@ struct ArtistPublicProfileView: View {
 
     @ViewBuilder private var ratingsSection: some View {
         let visible = reviews
-        GlowSectionHeader(title: String(localized: "Ratings from studios"), count: visible.count)
+        GlowSectionHeader(title: "Ratings from studios", count: visible.count)
         if visible.isEmpty {
             GlassEmptyState(title: "No ratings yet", symbol: "star.bubble.fill", message: "Studios can rate artists after a completed session.")
         }

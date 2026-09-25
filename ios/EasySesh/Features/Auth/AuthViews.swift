@@ -277,7 +277,7 @@ struct AuthView: View {
                         Task {
                             do {
                                 try await app.backend.sendPasswordReset(email: email)
-                                info = String(localized: "Check your inbox for a reset link.")
+                                info = L10n.tr("Check your inbox for a reset link.")
                             } catch { self.error = error.userMessage }
                         }
                     }

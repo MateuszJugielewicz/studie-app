@@ -85,7 +85,7 @@ struct BookingFlowView: View {
                     if draft.isLoadingSlots {
                         ProgressView()
                     } else if draft.slots.isEmpty {
-                        Text(AvailabilityEngine().openingWindow(for: draft.studio, on: draft.day) == nil ? "The studio is closed this day." : "No free \(draft.hours)-hour slots this day. Try fewer hours or another date.")
+                        Text(AvailabilityEngine().openingWindow(for: draft.studio, on: draft.day) == nil ? L10n.tr("The studio is closed this day.") : L10n.format("No free %lld-hour slots this day. Try fewer hours or another date.", draft.hours))
                             .foregroundStyle(.secondary)
                     } else {
                         LazyVGrid(columns: [GridItem(.adaptive(minimum: 84))], spacing: 8) {
@@ -145,7 +145,7 @@ struct BookingFlowView: View {
                 Button {
                     goToCheckout = true
                 } label: {
-                    Text(draft.selectedSlot == nil ? "Pick a time" : "Continue · \(Money.format(draft.quote?.total ?? 0, currency: draft.studio.currency))")
+                    Text(draft.selectedSlot == nil ? L10n.tr("Pick a time") : L10n.format("Continue · %@", Money.format(draft.quote?.total ?? 0, currency: draft.studio.currency)))
                 }
                 .buttonStyle(.primary)
                 .disabled(draft.request == nil)
@@ -182,7 +182,7 @@ struct AddOnRow: View {
             if addOn.unit == .perTrack {
                 Stepper(value: $quantity, in: 0...20) {
                     label
-                    if quantity > 0 { Text("\(quantity) track\(quantity == 1 ? "" : "s")").font(.caption).foregroundStyle(Theme.accent) }
+                    if quantity > 0 { Text(quantity == 1 ? L10n.tr("1 track") : L10n.format("%lld tracks", quantity)).font(.caption).foregroundStyle(Theme.accent) }
                 }
             } else {
                 Toggle(isOn: Binding(get: { quantity > 0 }, set: { quantity = $0 ? 1 : 0 })) { label }
@@ -305,8 +305,8 @@ struct CheckoutView: View {
             Section {
                 Toggle(isOn: $agreed) {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("I agree to the studio's rules and the \(request.studio.bookingPolicy.cancellationPolicy.title.lowercased()) cancellation policy.")
-                        Text(request.studio.bookingPolicy.cancellationPolicy.summary).font(.caption).foregroundStyle(.secondary)
+                        Text("I agree to the studio's rules and the \(L10n.tr(request.studio.bookingPolicy.cancellationPolicy.title).lowercased()) cancellation policy.")
+                        Text(localized: request.studio.bookingPolicy.cancellationPolicy.summary).font(.caption).foregroundStyle(.secondary)
                     }
                     .font(.footnote)
                 }
@@ -390,11 +390,13 @@ struct BookingConfirmationView: View {
                     .font(.system(size: 72))
                     .foregroundStyle(booking.status == .confirmed ? Theme.positive : Theme.warning)
                     .padding(.top, 32)
-                Text(booking.status == .confirmed ? "You're booked!" : "Request sent")
+                Text(LocalizedStringKey(booking.status == .confirmed ? "You're booked!" : "Request sent"))
                     .font(.largeTitle.bold())
                 Text(booking.status == .confirmed
-                     ? (booking.isCash ? "Pay \(Money.format(booking.price.total, currency: booking.price.currency)) in cash at the studio. We'll remind you before your session." : "We've sent a confirmation and receipt. We'll remind you before your session.")
-                     : "\(booking.studioName) will respond within 24 hours." + (booking.isCash ? "" : " You're only charged if they accept."))
+                     ? (booking.isCash
+                        ? L10n.format("Pay %@ in cash at the studio. We'll remind you before your session.", Money.format(booking.price.total, currency: booking.price.currency))
+                        : L10n.tr("We've sent a confirmation and receipt. We'll remind you before your session."))
+                     : L10n.format("%@ will respond within 24 hours.", booking.studioName) + (booking.isCash ? "" : " " + L10n.tr("You're only charged if they accept.")))
                     .multilineTextAlignment(.center)
                     .foregroundStyle(.secondary)
 
@@ -415,7 +417,7 @@ struct BookingConfirmationView: View {
                         } catch { self.error = error.userMessage }
                     }
                 } label: {
-                    Label(addedToCalendar ? "Added to calendar" : "Add to calendar", systemImage: addedToCalendar ? "checkmark" : "calendar.badge.plus")
+                    Label(LocalizedStringKey(addedToCalendar ? "Added to calendar" : "Add to calendar"), systemImage: addedToCalendar ? "checkmark" : "calendar.badge.plus")
                 }
                 .buttonStyle(.bordered)
                 .disabled(addedToCalendar)
@@ -444,7 +446,7 @@ enum CalendarExporter {
         event.title = "\(booking.sessionTypeName) · \(booking.studioName)"
         event.startDate = booking.startsAt
         event.endDate = booking.endsAt
-        event.notes = "EasySesh booking \(booking.reference)"
+        event.notes = L10n.format("EasySesh booking %@", booking.reference)
         event.calendar = store.defaultCalendarForNewEvents
         event.addAlarm(EKAlarm(relativeOffset: -3600))
         try store.save(event, span: .thisEvent)

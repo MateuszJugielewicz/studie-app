@@ -26,7 +26,7 @@ struct AppSettingsView: View {
 
             Section {
                 Picker(selection: $preferences.appearance) {
-                    ForEach(AppAppearance.allCases) { Text($0.title).tag($0) }
+                    ForEach(AppAppearance.allCases) { Text(localized: $0.title).tag($0) }
                 } label: {
                     HStack {
                         SettingsIcon(symbol: "circle.lefthalf.filled", colors: TilePalette.violet)
@@ -186,7 +186,7 @@ struct ChangePasswordView: View {
     private var problem: String? {
         if password.isEmpty { return nil }
         if let problem = PasswordPolicy.problem(password) { return problem }
-        if !confirmation.isEmpty && confirmation != password { return String(localized: "The passwords don't match.") }
+        if !confirmation.isEmpty && confirmation != password { return L10n.tr("The passwords don't match.") }
         return nil
     }
 

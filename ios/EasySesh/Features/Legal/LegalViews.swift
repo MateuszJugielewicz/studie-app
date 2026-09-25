@@ -123,7 +123,7 @@ struct TermsAcceptanceView: View {
                     if let update = app.pendingLegalUpdate {
                         VStack(alignment: .leading, spacing: 6) {
                             Label("What changed", systemImage: "sparkles").font(.caption.weight(.heavy)).textCase(.uppercase).foregroundStyle(Theme.accent)
-                            Text(update.title).font(.headline)
+                            Text(localized: update.title).font(.headline)
                             if !update.body.isEmpty { Text(update.body).font(.subheadline).foregroundStyle(.secondary) }
                         }
                         .glassCard()
@@ -260,7 +260,7 @@ struct WhatsNewSheet: View {
                                 Spacer()
                                 Text(entry.publishedAt.formatted(date: .abbreviated, time: .omitted)).font(.caption2).foregroundStyle(.tertiary)
                             }
-                            Text(entry.title).font(.headline)
+                            Text(localized: entry.title).font(.headline)
                             if !entry.body.isEmpty {
                                 Text(entry.body).font(.subheadline).foregroundStyle(.secondary)
                             }
@@ -301,7 +301,7 @@ struct ChangelogView: View {
                             Spacer()
                             Text(entry.publishedAt.formatted(date: .abbreviated, time: .omitted)).font(.caption2).foregroundStyle(.tertiary)
                         }
-                        Text(entry.title).font(.headline)
+                        Text(localized: entry.title).font(.headline)
                         if !entry.body.isEmpty { Text(entry.body).font(.subheadline).foregroundStyle(.secondary) }
                     }
                     .glassCard()

@@ -61,7 +61,7 @@ enum LegalDocument: String, CaseIterable, Identifiable {
 
 enum PasswordPolicy {
     static let minimumLength = 10
-    static let hint = "At least \(minimumLength) characters with upper- and lowercase letters and a number."
+    static var hint: String { L10n.format("At least %lld characters with upper- and lowercase letters and a number.", minimumLength) }
 
     static func problem(_ password: String) -> String? {
         let ok = password.count >= minimumLength

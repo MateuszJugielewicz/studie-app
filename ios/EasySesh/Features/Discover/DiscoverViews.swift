@@ -84,7 +84,7 @@ struct DiscoverView: View {
                     } content: {
                         searchField
                         controlsRow(count: results.count)
-                        AreaSummaryCard(summary: model.summary(origin: origin, areaName: app.location.cityName ?? String(localized: "Your area"), radiusKm: app.account?.settings.searchRadiusKm ?? 5),
+                        AreaSummaryCard(summary: model.summary(origin: origin, areaName: app.location.cityName ?? L10n.tr("Your area"), radiusKm: app.account?.settings.searchRadiusKm ?? 5),
                                         totalCount: results.count, isSearching: !model.filters.query.isEmpty)
                         if model.isLoading {
                             ProgressView().frame(maxWidth: .infinity).padding(40)
@@ -155,7 +155,7 @@ struct DiscoverView: View {
     private func controlsRow(count: Int) -> some View {
         HStack(spacing: 8) {
             Button { showFilters = true } label: {
-                FilterPill(title: model.filters.activeCount > 0 ? String(localized: "Filters · \(model.filters.activeCount)") : String(localized: "Filters"),
+                FilterPill(title: model.filters.activeCount > 0 ? L10n.format("Filters · %lld", model.filters.activeCount) : L10n.tr("Filters"),
                            symbol: "slider.horizontal.3", isActive: model.filters.activeCount > 0)
             }
             .buttonStyle(PressableCardStyle())
@@ -219,8 +219,8 @@ struct AreaSummaryCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(isSearching ? "Results" : "Near you").eyebrow()
-            Text(isSearching ? String(localized: "\(totalCount) studios") : summary.areaName)
+            Text(LocalizedStringKey(isSearching ? "Results" : "Near you")).eyebrow()
+            Text(isSearching ? L10n.format("%lld studios", totalCount) : summary.areaName)
                 .font(.display(30))
                 .tracking(-0.5)
                 .contentTransition(.numericText())
@@ -428,7 +428,7 @@ struct FilterSheet: View {
                 Section("Distance") {
                     Picker("Distance", selection: $draft.maxDistanceKm) {
                         ForEach(distanceSteps, id: \.self) { value in
-                            Text(value.map { "\(Int($0)) km" } ?? "Any").tag(value)
+                            Text(value.map { L10n.format("%lld km", Int($0)) } ?? L10n.tr("Any")).tag(value)
                         }
                     }
                     .pickerStyle(.segmented)

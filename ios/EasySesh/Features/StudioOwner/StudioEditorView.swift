@@ -53,15 +53,15 @@ struct StudioEditorView: View {
             let problems = StudioValidator.problems(in: studio)
             if isApplication && !problems.isEmpty {
                 Section("Still missing") {
-                    ForEach(problems, id: \.self) { Label($0, systemImage: "exclamationmark.circle").foregroundStyle(Theme.warning).font(.footnote) }
+                    ForEach(problems, id: \.self) { Label { Text(localized: $0) } icon: { Image(systemName: "exclamationmark.circle") }.foregroundStyle(Theme.warning).font(.footnote) }
                 }
             }
         }
         .easyseshGrouped()
-        .navigationTitle(isApplication ? "Studio application" : "Edit studio")
+        .navigationTitle(LocalizedStringKey(isApplication ? "Studio application" : "Edit studio"))
         .toolbar {
             ToolbarItem(placement: .confirmationAction) {
-                Button(isSaving ? "Saving…" : "Save") { save() }.disabled(isSaving)
+                Button(LocalizedStringKey(isSaving ? "Saving…" : "Save")) { save() }.disabled(isSaving)
             }
         }
         .errorAlert($error)
@@ -72,7 +72,7 @@ struct StudioEditorView: View {
             destination()
         } label: {
             HStack {
-                Label(title, systemImage: symbol)
+                Label { Text(localized: title) } icon: { Image(systemName: symbol) }
                 Spacer()
                 Image(systemName: done ? "checkmark.circle.fill" : "circle").foregroundStyle(done ? Theme.positive : Color.secondary)
             }
@@ -195,7 +195,7 @@ struct StudioLocationEditor: View {
                 Button {
                     locate()
                 } label: {
-                    Label(isLocating ? "Finding…" : "Find on map", systemImage: "location.magnifyingglass")
+                    Label(LocalizedStringKey(isLocating ? "Finding…" : "Find on map"), systemImage: "location.magnifyingglass")
                 }
                 .disabled(isLocating || studio.address.city.isEmpty)
                 if studio.latitude != 0 || studio.longitude != 0 {
@@ -205,7 +205,7 @@ struct StudioLocationEditor: View {
                     .frame(height: 180)
                     .listRowInsets(EdgeInsets())
                 }
-                if let message { Text(message).font(.footnote).foregroundStyle(.secondary) }
+                if let message { Text(localized: message).font(.footnote).foregroundStyle(.secondary) }
             }
             Section("Contact") {
                 TextField("Phone", text: $studio.contact.phone).keyboardType(.phonePad)
@@ -266,12 +266,12 @@ struct StudioPricingEditor: View {
                 ForEach($studio.addOns) { $addOn in
                     VStack(alignment: .leading, spacing: 8) {
                         Picker("Type", selection: $addOn.kind) {
-                            ForEach(AddOnKind.allCases, id: \.self) { Text($0.title).tag($0) }
+                            ForEach(AddOnKind.allCases, id: \.self) { Text(localized: $0.title).tag($0) }
                         }
                         TextField("Name", text: $addOn.name)
                         MoneyField(title: "Price", amount: $addOn.price, currency: studio.currency)
                         Picker("Charged", selection: $addOn.unit) {
-                            ForEach(PriceUnit.allCases, id: \.self) { Text($0.suffix).tag($0) }
+                            ForEach(PriceUnit.allCases, id: \.self) { Text(localized: $0.suffix).tag($0) }
                         }
                         .pickerStyle(.segmented)
                     }
@@ -298,7 +298,7 @@ struct MoneyField: View {
 
     var body: some View {
         HStack {
-            Text(title)
+            Text(localized: title)
             Spacer()
             TextField("0", text: $text)
                 .keyboardType(.decimalPad)
@@ -387,7 +387,7 @@ struct StudioFeaturesEditor: View {
                     let items = studio.equipment.filter { $0.category == category }
                     if !items.isEmpty {
                         VStack(alignment: .leading, spacing: 4) {
-                            Text(category.title).font(.caption.bold()).foregroundStyle(.secondary)
+                            Text(localized: category.title).font(.caption.bold()).foregroundStyle(.secondary)
                             ForEach(items) { item in
                                 HStack {
                                     Text(item.name)
@@ -400,7 +400,7 @@ struct StudioFeaturesEditor: View {
                     }
                 }
                 Picker("Category", selection: $newCategory) {
-                    ForEach(EquipmentCategory.allCases) { Text($0.title).tag($0) }
+                    ForEach(EquipmentCategory.allCases) { Text(localized: $0.title).tag($0) }
                 }
                 HStack {
                     TextField("e.g. Neumann U87 Ai", text: $newItem)
@@ -476,14 +476,14 @@ struct StudioPolicyEditor: View {
             }
             Section {
                 Picker("Cancellation policy", selection: $studio.bookingPolicy.cancellationPolicy) {
-                    ForEach(CancellationPolicy.allCases) { Text($0.title).tag($0) }
+                    ForEach(CancellationPolicy.allCases) { Text(localized: $0.title).tag($0) }
                 }
-                Text(studio.bookingPolicy.cancellationPolicy.summary).font(.footnote).foregroundStyle(.secondary)
+                Text(localized: studio.bookingPolicy.cancellationPolicy.summary).font(.footnote).foregroundStyle(.secondary)
             }
             Section {
                 Picker("Deposit", selection: $studio.bookingPolicy.depositPercent) {
                     Text("No deposit – full payment").tag(0)
-                    ForEach([20, 30, 50], id: \.self) { Text("\($0)% deposit").tag($0) }
+                    ForEach([20, 30, 50], id: \.self) { Text(L10n.format("%lld%% deposit", $0)).tag($0) }
                 }
             } footer: {
                 Text("With a deposit, the rest is charged automatically after the session.")
@@ -493,8 +493,8 @@ struct StudioPolicyEditor: View {
                     .disabled(studio.bookingPolicy.depositPercent > 0)
             } footer: {
                 Text(studio.bookingPolicy.depositPercent > 0
-                     ? "Cash isn't available when you require a deposit."
-                     : "Artists can choose to pay you in cash at the session. EasySesh's \(studio.feePercent)% platform fee on cash bookings is deducted from your next payout or invoiced monthly. Cash bookings have no card guarantee for no-shows.")
+                     ? L10n.tr("Cash isn't available when you require a deposit.")
+                     : L10n.format("Artists can choose to pay you in cash at the session. EasySesh's %lld%% platform fee on cash bookings is deducted from your next payout or invoiced monthly. Cash bookings have no card guarantee for no-shows.", studio.feePercent))
             }
             Section {
                 Toggle(isOn: $studio.bookingPolicy.checkInEnabled) {
@@ -538,17 +538,17 @@ struct PayoutAccountEditor: View {
         Form {
             Section {
                 if let account, account.payoutsEnabled {
-                    Label(account.ibanLast4.isEmpty ? "Payouts enabled" : "Payouts enabled to •••• \(account.ibanLast4)", systemImage: "checkmark.seal.fill")
+                    Label(account.ibanLast4.isEmpty ? L10n.tr("Payouts enabled") : L10n.format("Payouts enabled to •••• %@", account.ibanLast4), systemImage: "checkmark.seal.fill")
                         .foregroundStyle(Theme.positive)
                 } else {
                     Label("Payouts not set up yet", systemImage: "exclamationmark.triangle").foregroundStyle(Theme.warning)
                 }
                 TextField("Account holder / company name", text: $holder)
             } footer: {
-                Text("You're paid only after a session is completed: payouts are sent \(PlatformConfig.payoutDelayDays) days after each completed session, minus EasySesh's \(app.ownedStudio?.feePercent ?? PlatformConfig.platformFeePercent)% platform fee. Platform fees for cash bookings are deducted from the same payouts.")
+                Text(L10n.format("You're paid only after a session is completed: payouts are sent %lld days after each completed session, minus EasySesh's %lld%% platform fee. Platform fees for cash bookings are deducted from the same payouts.", PlatformConfig.payoutDelayDays, app.ownedStudio?.feePercent ?? PlatformConfig.platformFeePercent))
             }
             Section {
-                Button(saved ? "Saved" : "Save") { save() }
+                Button(LocalizedStringKey(saved ? "Saved" : "Save")) { save() }
                     .disabled(holder.isEmpty)
             }
             Section {

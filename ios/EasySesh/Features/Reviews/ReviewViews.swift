@@ -33,7 +33,7 @@ struct ReviewSummaryView: View {
 
     private func bar(_ title: String, _ value: Double) -> some View {
         HStack {
-            Text(title).font(.caption).frame(width: 72, alignment: .leading)
+            Text(localized: title).font(.caption).frame(width: 72, alignment: .leading)
             ProgressView(value: value, total: 5).tint(.primary)
             Text(String(format: "%.1f", value)).font(.caption.monospacedDigit())
         }
@@ -263,7 +263,7 @@ struct ReportSheet: View {
                 }
             }
 
-            GlowSectionHeader(title: String(localized: "What's wrong?"))
+            GlowSectionHeader(title: "What's wrong?")
             VStack(spacing: 8) {
                 ForEach(ReportReason.allCases) { option in
                     let isSelected = reason == option
@@ -290,7 +290,7 @@ struct ReportSheet: View {
                 }
             }
 
-            GlowSectionHeader(title: String(localized: "Details (optional)"))
+            GlowSectionHeader(title: "Details (optional)")
             TextField("Tell us what happened. Dates, messages and names help us act faster.", text: $details, axis: .vertical)
                 .lineLimit(3...8)
                 .padding(14)

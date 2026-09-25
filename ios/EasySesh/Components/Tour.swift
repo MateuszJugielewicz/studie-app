@@ -116,7 +116,7 @@ struct TourOverlay: View {
                     .symbolEffect(.bounce, value: index)
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Step \(index + 1) of \(tour.steps.count)").eyebrow()
-                    Text(step.title).font(.title3.weight(.heavy))
+                    Text(localized: step.title).font(.title3.weight(.heavy))
                 }
             }
             Text(step.message)

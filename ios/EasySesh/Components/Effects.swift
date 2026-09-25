@@ -279,7 +279,7 @@ struct EasySeshTabBar: View {
             .anchorPreference(key: TabItemAnchorKey.self, value: .bounds) { [spec.tab: $0] }
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(spec.badge > 0 ? "\(spec.title), \(spec.badge) unread" : spec.title)
+        .accessibilityLabel(spec.badge > 0 ? L10n.format("%@, %lld unread", L10n.tr(spec.title), spec.badge) : L10n.tr(spec.title))
         .accessibilityAddTraits(isSelected ? [.isSelected, .isButton] : .isButton)
     }
 }

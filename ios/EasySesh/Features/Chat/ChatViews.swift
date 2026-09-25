@@ -6,9 +6,9 @@ enum ConversationFilter: String, CaseIterable, Identifiable {
 
     func title(for role: UserRole) -> String {
         switch self {
-        case .all: String(localized: "All")
-        case .unread: String(localized: "Unread")
-        case .requests: role == .artist ? String(localized: "Requests") : String(localized: "Sent requests")
+        case .all: L10n.tr("All")
+        case .unread: L10n.tr("Unread")
+        case .requests: role == .artist ? L10n.tr("Requests") : L10n.tr("Sent requests")
         }
     }
 }
@@ -85,7 +85,7 @@ struct ConversationsView: View {
 
     private var eyebrow: String {
         let unread = conversations.reduce(0) { $0 + $1.badgeCount(for: app.role) }
-        return unread > 0 ? String(localized: "\(unread) unread") : String(localized: "Inbox")
+        return unread > 0 ? L10n.format("%lld unread", unread) : L10n.tr("Inbox")
     }
 
     private var filterChips: some View {
@@ -125,7 +125,7 @@ struct ConversationsView: View {
                 IconTile(symbol: "tray.full.fill", size: 36, colors: TilePalette.violet)
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Message requests").font(.subheadline.weight(.bold))
-                    Text(requests.count == 1 ? "1 studio wants to talk to you" : "\(requests.count) studios want to talk to you")
+                    Text(requests.count == 1 ? L10n.tr("1 studio wants to talk to you") : L10n.format("%lld studios want to talk to you", requests.count))
                         .font(.caption).foregroundStyle(.secondary)
                 }
                 Spacer()
@@ -138,9 +138,9 @@ struct ConversationsView: View {
 
     private var emptyTitle: String {
         switch filter {
-        case .all: String(localized: "No messages yet")
-        case .unread: String(localized: "You're all caught up")
-        case .requests: app.role == .artist ? String(localized: "No message requests") : String(localized: "No pending requests")
+        case .all: L10n.tr("No messages yet")
+        case .unread: L10n.tr("You're all caught up")
+        case .requests: app.role == .artist ? L10n.tr("No message requests") : L10n.tr("No pending requests")
         }
     }
 
@@ -148,12 +148,12 @@ struct ConversationsView: View {
         switch filter {
         case .requests:
             app.role == .artist
-                ? String(localized: "When a studio you haven't booked writes to you, it shows up here first.")
-                : String(localized: "Artists you message who haven't booked you yet see it as a request until they accept.")
+                ? L10n.tr("When a studio you haven't booked writes to you, it shows up here first.")
+                : L10n.tr("Artists you message who haven't booked you yet see it as a request until they accept.")
         default:
             app.role == .artist
-                ? String(localized: "Message a studio from its profile or from one of your bookings.")
-                : String(localized: "Artists can message you about your studio and bookings. Tap ✎ to write to an artist.")
+                ? L10n.tr("Message a studio from its profile or from one of your bookings.")
+                : L10n.tr("Artists can message you about your studio and bookings. Tap ✎ to write to an artist.")
         }
     }
 
@@ -270,13 +270,13 @@ struct NewMessageSheet: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
-                Button(selected == nil ? "Cancel" : "Back") {
+                Button(LocalizedStringKey(selected == nil ? "Cancel" : "Back")) {
                     if selected == nil { dismiss() } else { withAnimation(.snappy) { selected = nil } }
                 }
             }
             if selected != nil {
                 ToolbarItem(placement: .confirmationAction) {
-                    Button(isSending ? "Sending…" : "Send") { send() }
+                    Button(LocalizedStringKey(isSending ? "Sending…" : "Send")) { send() }
                         .disabled(isSending || message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
             }
@@ -288,7 +288,7 @@ struct NewMessageSheet: View {
         List {
             Section {
                 if results.isEmpty {
-                    Text(query.count < 2 ? "Artists who booked you appear here. Search to find others by name or city." : "No artists found.")
+                    Text(LocalizedStringKey(query.count < 2 ? "Artists who booked you appear here. Search to find others by name or city." : "No artists found."))
                         .font(.subheadline).foregroundStyle(.secondary)
                 }
                 ForEach(results) { artist in
@@ -314,7 +314,7 @@ struct NewMessageSheet: View {
                     }
                 }
             } header: {
-                Text(query.count < 2 ? "Your artists" : "Artists")
+                Text(LocalizedStringKey(query.count < 2 ? "Your artists" : "Artists"))
             }
         }
         .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search artists")
@@ -331,9 +331,7 @@ struct NewMessageSheet: View {
                     Avatar(url: artist.avatarUrl, name: artist.artistName, size: 52)
                     VStack(alignment: .leading, spacing: 2) {
                         Text(artist.artistName).font(.headline)
-                        Text(artist.hasBooked
-                             ? "Goes straight to their inbox."
-                             : "They'll get it as a message request and can accept or delete it.")
+                        Text(LocalizedStringKey(artist.hasBooked ? "Goes straight to their inbox." : "They'll get it as a message request and can accept or delete it."))
                             .font(.caption).foregroundStyle(.secondary)
                     }
                 }
@@ -429,13 +427,13 @@ struct ChatView: View {
                                name: conversation.title(for: app.role), size: 28)
                         VStack(alignment: .leading, spacing: 0) {
                             Text(conversation.title(for: app.role)).font(.subheadline.weight(.bold)).lineLimit(1)
-                            Text(app.role == .studioOwner ? "View artist profile" : "View studio")
+                            Text(LocalizedStringKey(app.role == .studioOwner ? "View artist profile" : "View studio"))
                                 .font(.caption2).foregroundStyle(.secondary)
                         }
                     }
                     .foregroundStyle(.primary)
                 }
-                .accessibilityLabel(Text(app.role == .studioOwner ? "View artist profile" : "View studio"))
+                .accessibilityLabel(Text(LocalizedStringKey(app.role == .studioOwner ? "View artist profile" : "View studio")))
             }
         }
         .sheet(item: $reporting) { ReportSheet(target: .message, targetId: $0.id) }

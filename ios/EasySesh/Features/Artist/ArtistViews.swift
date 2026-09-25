@@ -298,7 +298,7 @@ struct ArtistProfileEditor: View {
                     bioField
                 }
 
-                editorSection("Genres", trailing: genres.isEmpty ? nil : String(localized: "\(genres.count) selected")) {
+                editorSection("Genres", trailing: genres.isEmpty ? nil : L10n.format("%lld selected", genres.count)) {
                     FlowLayout(spacing: 8) {
                         ForEach(Genre.allCases) { genre in
                             let isOn = genres.contains(genre)
@@ -350,7 +350,7 @@ struct ArtistProfileEditor: View {
         }
         .scrollDismissesKeyboard(.interactively)
         .auroraBackground(height: 420)
-        .navigationTitle(isOnboarding ? "Welcome" : "Edit profile")
+        .navigationTitle(LocalizedStringKey(isOnboarding ? "Welcome" : "Edit profile"))
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(.hidden, for: .navigationBar)
         .toolbar {
@@ -362,7 +362,7 @@ struct ArtistProfileEditor: View {
                 }
             }
             ToolbarItem(placement: .confirmationAction) {
-                Button(isOnboarding ? "Continue" : "Save") { save() }
+                Button(LocalizedStringKey(isOnboarding ? "Continue" : "Save")) { save() }
                     .fontWeight(.bold)
                     .disabled(!canSave)
             }

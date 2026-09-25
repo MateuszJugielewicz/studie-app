@@ -92,7 +92,7 @@ struct StarPicker: View {
 
     var body: some View {
         HStack {
-            Text(title)
+            Text(localized: title)
             Spacer()
             HStack(spacing: 6) {
                 ForEach(1...5, id: \.self) { index in
@@ -277,7 +277,7 @@ struct PriceRow: View {
 
     var body: some View {
         HStack {
-            Text(title)
+            Text(localized: title)
             Spacer()
             Text(Money.format(amount, currency: currency))
         }

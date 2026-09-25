@@ -192,7 +192,7 @@ struct GlassIconButton: View {
     var body: some View {
         Button(action: action) { GlassIcon(symbol: symbol) }
             .buttonStyle(PressableCardStyle())
-            .accessibilityLabel(label)
+            .accessibilityLabel(Text(localized: label))
     }
 }
 

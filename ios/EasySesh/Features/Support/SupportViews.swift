@@ -187,7 +187,7 @@ struct NewSupportTicketView: View {
         .toolbar {
             ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
             ToolbarItem(placement: .confirmationAction) {
-                Button(isSending ? "Sending…" : "Send") { send() }.disabled(!canSend)
+                Button(LocalizedStringKey(isSending ? "Sending…" : "Send")) { send() }.disabled(!canSend)
             }
         }
         .onAppear {
