@@ -1,36 +1,32 @@
 import { useState } from "react";
-import { ActionButton, Badge, PageState, Search, Tabs } from "../components";
+import { ActionButton, Badge, Modal, PageState, Search, Tabs } from "../components";
+import { ModerationPanel } from "../moderation";
 import { useApi, useLoad } from "../lib/apiContext";
 import { date, label } from "../lib/format";
-import type { AccountStatus, AdminUser } from "../lib/types";
+import type { AdminUser } from "../lib/types";
 
-type Tab = "artist" | "studio_owner" | "suspended" | "admin";
+type Tab = "artist" | "studio_owner" | "suspended" | "warned" | "admin";
 
 export default function UsersPage() {
   const api = useApi();
   const { data, loading, error, reload } = useLoad(() => api.users());
   const [tab, setTab] = useState<Tab>("artist");
   const [query, setQuery] = useState("");
-  const [reasons, setReasons] = useState<Record<string, string>>({});
-  const [resetResult, setResetResult] = useState<{ email: string; password?: string } | null>(null);
-  const [copied, setCopied] = useState(false);
-
-  const resetPassword = (user: AdminUser, mode: "email" | "temporary") => async () => {
-    setCopied(false);
-    setResetResult(await api.resetPassword(user.id, mode));
-  };
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const users = data ?? [];
+  const selected = users.find((u) => u.id === selectedId) ?? null;
   const q = query.toLowerCase();
-  const rows = users
-    .filter((u) => (tab === "suspended" ? u.status !== "active" : u.role === tab))
-    .filter((u) => !q || `${u.email} ${u.artist_name ?? ""} ${u.studio_name ?? ""} ${u.artist_city ?? ""}`.toLowerCase().includes(q));
-
-  const setStatus = (user: AdminUser, status: AccountStatus) => async () => {
-    const reason = status === "active" ? undefined : (reasons[user.id]?.trim() || (status === "banned" ? "Banned by admin" : "Suspended by admin"));
-    await api.setUserStatus(user.id, status, reason);
-    await reload();
+  const filters: Record<Tab, (u: AdminUser) => boolean> = {
+    artist: (u) => u.role === "artist",
+    studio_owner: (u) => u.role === "studio_owner",
+    suspended: (u) => u.status !== "active",
+    warned: (u) => (u.warning_count ?? 0) > 0,
+    admin: (u) => u.role === "admin",
   };
+  const rows = users
+    .filter(filters[tab])
+    .filter((u) => !q || `${u.email} ${u.artist_name ?? ""} ${u.studio_name ?? ""} ${u.artist_city ?? ""}`.toLowerCase().includes(q));
 
   return (
     <>
@@ -42,77 +38,108 @@ export default function UsersPage() {
         value={tab}
         onChange={setTab}
         tabs={[
-          { id: "artist", title: "Artists", count: users.filter((u) => u.role === "artist").length },
-          { id: "studio_owner", title: "Studios", count: users.filter((u) => u.role === "studio_owner").length },
-          { id: "suspended", title: "Suspended / banned", count: users.filter((u) => u.status !== "active").length },
+          { id: "artist", title: "Artists", count: users.filter(filters.artist).length },
+          { id: "studio_owner", title: "Studios", count: users.filter(filters.studio_owner).length },
+          { id: "suspended", title: "Suspended / banned", count: users.filter(filters.suspended).length },
+          { id: "warned", title: "Warned", count: users.filter(filters.warned).length },
           { id: "admin", title: "Admins" },
         ]}
       />
-      {resetResult && (
-        <div className="card notice">
-          <div className="row between">
-            {resetResult.password ? (
-              <div>
-                <strong>Temporary password for {resetResult.email}</strong>
-                <div className="row gap wrap">
-                  <span className="mono big-mono">{resetResult.password}</span>
-                  <button className="secondary" onClick={async () => { await navigator.clipboard.writeText(resetResult.password!); setCopied(true); }}>
-                    {copied ? "Copied" : "Copy"}
-                  </button>
-                </div>
-                <div className="muted small">Shown only once. Give it to the user privately; they should change it in Settings → Change password. They also got a notification.</div>
-              </div>
-            ) : (
-              <div><strong>Reset email sent to {resetResult.email}.</strong><div className="muted small">The link lets them choose a new password in the app.</div></div>
-            )}
-            <button className="ghost" onClick={() => setResetResult(null)}>Close</button>
-          </div>
-        </div>
-      )}
       <PageState loading={loading && !data} error={error} empty={rows.length === 0}>
         <div className="card flush">
-          <table>
-            <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Verified</th><th>Bookings</th><th>Joined</th><th></th></tr></thead>
+          <table className="clickable">
+            <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Warnings</th><th>Verified</th><th>Bookings</th><th>Joined</th></tr></thead>
             <tbody>
               {rows.map((u) => (
-                <tr key={u.id}>
-                  <td className="strong">{u.artist_name || u.studio_name || "–"}<div className="muted small">{u.artist_city}</div></td>
+                <tr key={u.id} onClick={() => setSelectedId(u.id)}>
+                  <td className="strong">
+                    {u.artist_name || u.studio_name || "–"}
+                    {u.has_admin_badge && <span className="badge blue" style={{ marginLeft: 6 }}>Team</span>}
+                    <div className="muted small">{u.artist_city}</div>
+                  </td>
                   <td>{u.email}</td>
                   <td>{label(u.role)}</td>
-                  <td><Badge value={u.status} />{u.status_reason && <div className="muted small">{u.status_reason}</div>}</td>
+                  <td>
+                    <Badge value={u.status} />
+                    {u.status !== "active" && <div className="muted small">{u.status_until ? `until ${date(u.status_until, true)}` : "until lifted"}</div>}
+                    {u.status_reason && <div className="muted small">{u.status_reason}</div>}
+                  </td>
+                  <td>{u.warning_count ? <Badge value="pending" text={String(u.warning_count)} /> : <span className="muted">0</span>}</td>
                   <td>{u.is_verified ? "Yes" : <span className="muted">No</span>}</td>
                   <td>{u.booking_count}</td>
                   <td>{date(u.created_at)}</td>
-                  <td className="actions">
-                    {u.role !== "admin" && (
-                      <>
-                        <ActionButton kind="secondary" onClick={async () => { await api.verifyUser(u.id, !u.is_verified); await reload(); }}>
-                          {u.is_verified ? "Unverify" : "Verify"}
-                        </ActionButton>
-                        <ActionButton kind="secondary" confirm={`Send a password reset email to ${u.email}?`} onClick={resetPassword(u, "email")}>
-                          Reset password
-                        </ActionButton>
-                        <ActionButton kind="secondary" confirm={`Set a temporary password for ${u.email}? Their current password stops working.`} onClick={resetPassword(u, "temporary")}>
-                          Temp password
-                        </ActionButton>
-                        {u.status === "active" ? (
-                          <>
-                            <input className="reason" placeholder="Reason (optional)" value={reasons[u.id] ?? ""} onChange={(e) => setReasons({ ...reasons, [u.id]: e.target.value })} />
-                            <ActionButton kind="secondary" confirm={`Suspend ${u.email}?`} onClick={setStatus(u, "suspended")}>Suspend</ActionButton>
-                            <ActionButton kind="danger" confirm={`Ban ${u.email} permanently?`} onClick={setStatus(u, "banned")}>Ban</ActionButton>
-                          </>
-                        ) : (
-                          <ActionButton kind="secondary" onClick={setStatus(u, "active")}>Reactivate</ActionButton>
-                        )}
-                      </>
-                    )}
-                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
       </PageState>
+      {selected && <UserModal user={selected} onClose={() => setSelectedId(null)} onChanged={reload} />}
     </>
+  );
+}
+
+function UserModal({ user, onClose, onChanged }: { user: AdminUser; onClose: () => void; onChanged: () => Promise<void> }) {
+  const api = useApi();
+  const [resetResult, setResetResult] = useState<{ email: string; password?: string } | null>(null);
+  const [copied, setCopied] = useState(false);
+  const isAdmin = user.role === "admin";
+
+  const resetPassword = (mode: "email" | "temporary") => async () => {
+    setCopied(false);
+    setResetResult(await api.resetPassword(user.id, mode));
+  };
+
+  return (
+    <Modal title={user.artist_name || user.studio_name || user.email} onClose={onClose}>
+      <div className="row gap wrap">
+        <Badge value={user.status} />
+        <span className="muted">{label(user.role)} · {user.email} · joined {date(user.created_at)}</span>
+        {user.studio_name && <span className="muted">· studio: {user.studio_name}</span>}
+      </div>
+
+      {!isAdmin && (
+        <div className="row gap wrap">
+          <ActionButton kind="secondary" onClick={async () => { await api.verifyUser(user.id, !user.is_verified); await onChanged(); }}>
+            {user.is_verified ? "Remove verification" : "Verify"}
+          </ActionButton>
+          <ActionButton kind="secondary" onClick={async () => { await api.setAdminBadge(user.id, !user.has_admin_badge); await onChanged(); }}>
+            {user.has_admin_badge ? "Remove team badge" : "Give team badge"}
+          </ActionButton>
+          <ActionButton kind="secondary" confirm={`Send a password reset email to ${user.email}?`} onClick={resetPassword("email")}>Reset password</ActionButton>
+          <ActionButton kind="secondary" confirm={`Set a temporary password for ${user.email}? Their current password stops working.`} onClick={resetPassword("temporary")}>Temp password</ActionButton>
+        </div>
+      )}
+      {!isAdmin && <p className="muted small">The team badge is only a label on the profile ("EasySesh team"). It gives no admin rights.</p>}
+
+      {resetResult && (
+        <div className="card notice">
+          {resetResult.password ? (
+            <div>
+              <strong>Temporary password for {resetResult.email}</strong>
+              <div className="row gap wrap">
+                <span className="mono big-mono">{resetResult.password}</span>
+                <button className="secondary" onClick={async () => { await navigator.clipboard.writeText(resetResult.password!); setCopied(true); }}>
+                  {copied ? "Copied" : "Copy"}
+                </button>
+              </div>
+              <div className="muted small">Shown only once. Give it to the user privately; they should change it in Settings → Change password.</div>
+            </div>
+          ) : (
+            <div><strong>Reset email sent to {resetResult.email}.</strong></div>
+          )}
+        </div>
+      )}
+
+      {!isAdmin && (
+        <ModerationPanel
+          userId={user.id}
+          studioId={user.studio_id}
+          status={user.status}
+          statusUntil={user.status_until}
+          onChanged={onChanged}
+        />
+      )}
+    </Modal>
   );
 }

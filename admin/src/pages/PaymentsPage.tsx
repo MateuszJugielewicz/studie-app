@@ -4,7 +4,7 @@ import type { FeeBalance } from "../lib/types";
 import { useApi, useLoad } from "../lib/apiContext";
 import { date, label, money, moneyTotals, sumByCurrency } from "../lib/format";
 
-type Tab = "transactions" | "fees" | "payouts" | "cash" | "refunds" | "failures";
+type Tab = "transactions" | "fees" | "payouts" | "cash" | "invoices" | "refunds" | "failures";
 
 export default function PaymentsPage() {
   const api = useApi();
@@ -28,7 +28,7 @@ export default function PaymentsPage() {
       <header className="page-header"><h1>Payments</h1></header>
       <section className="grid stats">
         <Stat title="Payment volume" value={moneyTotals(sumByCurrency(charges, (t) => t.currency, (t) => t.amount))} />
-        <Stat title="Platform fees (10%)" value={moneyTotals(sumByCurrency(charges, (t) => t.currency, (t) => t.platform_fee))} />
+        <Stat title="Platform fees" value={moneyTotals(sumByCurrency(charges, (t) => t.currency, (t) => t.platform_fee))} />
         <Stat title="Paid to studios" value={moneyTotals(sumByCurrency(po.filter((p) => p.status === "paid"), (p) => p.currency, (p) => p.amount))} />
         <Stat title="Upcoming payouts" value={moneyTotals(sumByCurrency(po.filter((p) => p.status === "scheduled" || p.status === "in_transit"), (p) => p.currency, (p) => p.amount))} />
         <Stat title="Refunded" value={moneyTotals(sumByCurrency(refunds, (t) => t.currency, (t) => t.amount))} />
@@ -42,6 +42,7 @@ export default function PaymentsPage() {
           { id: "fees", title: "Platform fees" },
           { id: "payouts", title: "Studio payouts", count: po.length },
           { id: "cash", title: "Cash & fees owed", count: (balances.data ?? []).filter((b) => b.balance > 0).length },
+          { id: "invoices", title: "Fee invoices", count: (invoices.data ?? []).filter((i) => i.status === "open" || i.status === "collections").length },
           { id: "refunds", title: "Refunds", count: refunds.length },
           { id: "failures", title: "Payment failures", count: failures.length },
         ]}
@@ -51,7 +52,7 @@ export default function PaymentsPage() {
           {tab === "cash" ? (
             <>
               <p className="muted small" style={{ padding: "12px 16px 0" }}>
-                For cash bookings the studio collects the money and owes EasySesh 10%. Fees are deducted automatically from the studio's next card payout; invoice or record a payment for the rest.
+                For cash bookings the studio collects the money and owes EasySesh its platform fee (10%, or its special deal). Fees are deducted automatically from the studio's next payout. What's left is invoiced on the 1st of each month (due in 14 days); reminders go out automatically, and 14 days after the due date the studio is suspended and the debt goes to collection.
               </p>
               <table>
                 <thead><tr><th>Studio</th><th>Owed</th><th>Last cash booking</th><th>Open invoices</th><th></th></tr></thead>
@@ -60,13 +61,43 @@ export default function PaymentsPage() {
                     <FeeRow
                       key={`${b.studio_id}-${b.currency}`}
                       balance={b}
-                      openInvoices={(invoices.data ?? []).filter((i) => i.studio_id === b.studio_id && i.currency === b.currency && i.status === "open").reduce((s, i) => s + i.amount, 0)}
+                      openInvoices={(invoices.data ?? []).filter((i) => i.studio_id === b.studio_id && i.currency === b.currency && (i.status === "open" || i.status === "collections")).reduce((s, i) => s + i.amount, 0)}
                       onChanged={async () => { await balances.reload(); await invoices.reload(); }}
                     />
                   ))}
                 </tbody>
               </table>
             </>
+          ) : tab === "invoices" ? (
+            <table>
+              <thead><tr><th>Studio</th><th>Amount</th><th>Status</th><th>Created</th><th>Due</th><th>Paid</th><th></th></tr></thead>
+              <tbody>
+                {(invoices.data ?? []).map((i) => {
+                  const overdue = i.status === "open" && i.due_at && new Date(i.due_at) < new Date();
+                  return (
+                    <tr key={i.id}>
+                      <td>{studioName(i.studio_id)}</td>
+                      <td className="strong">{money(i.amount, i.currency)}</td>
+                      <td><Badge value={i.status === "collections" ? "failed" : overdue ? "disputed" : i.status} text={i.status === "collections" ? "Debt collection" : overdue ? "Overdue" : label(i.status)} /></td>
+                      <td>{date(i.created_at)}</td>
+                      <td>{date(i.due_at)}</td>
+                      <td>{date(i.paid_at)}</td>
+                      <td className="actions">
+                        {i.hosted_invoice_url && <a href={i.hosted_invoice_url} target="_blank" rel="noreferrer">Invoice</a>}
+                        {(i.status === "open" || i.status === "collections") && (
+                          <ActionButton kind="secondary" confirm="Record that this invoice was paid (bank transfer etc.)?" onClick={async () => { await api.recordFeeSettlement(i.studio_id, i.amount, i.currency, "manual_payment", `Invoice ${i.id.slice(0, 8)} paid`); await invoices.reload(); await balances.reload(); }}>
+                            Record payment
+                          </ActionButton>
+                        )}
+                        {i.status === "collections" && (
+                          <ActionButton kind="secondary" confirm="Reinstate the studio? Only once the debt is settled." onClick={async () => { await api.reinstateStudio(i.studio_id); await invoices.reload(); }}>Reinstate studio</ActionButton>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           ) : tab === "payouts" ? (
             <table>
               <thead><tr><th>Studio</th><th>Amount</th><th>Status</th><th>Scheduled</th><th>Paid</th><th>Bookings</th><th>Note</th></tr></thead>

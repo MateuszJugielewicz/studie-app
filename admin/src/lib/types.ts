@@ -15,13 +15,16 @@ export interface AdminUser {
   role: UserRole;
   status: AccountStatus;
   status_reason: string | null;
+  status_until: string | null;
   is_verified: boolean;
   created_at: string;
   artist_name: string | null;
   artist_city: string | null;
   studio_id: string | null;
   studio_name: string | null;
+  has_admin_badge: boolean;
   booking_count: number;
+  warning_count: number;
 }
 
 export interface SessionType { id: string; name: string; details: string; hourly_rate: number; minimum_hours: number; includes_engineer: boolean }
@@ -52,7 +55,12 @@ export interface Studio {
   genres: string[];
   opening_hours: OpeningHours[];
   rules: string[];
-  booking_policy: { instant_book?: boolean; cancellation_policy?: string; deposit_percent?: number; terms?: string };
+  booking_policy: { instant_book?: boolean; cancellation_policy?: string; deposit_percent?: number; terms?: string; accepts_cash?: boolean; check_in_enabled?: boolean };
+  has_admin_badge: boolean | null;
+  admin_tags: string[] | null;
+  promoted_until: string | null;
+  platform_fee_percent: number | null;
+  suspended_until: string | null;
   status: StudioStatus;
   is_active: boolean;
   is_verified: boolean;
@@ -112,10 +120,11 @@ export interface FeeInvoice {
   studio_id: string;
   amount: number;
   currency: string;
-  status: "open" | "paid" | "void";
+  status: "open" | "paid" | "void" | "collections";
   hosted_invoice_url: string | null;
   created_at: string;
   paid_at: string | null;
+  due_at: string | null;
 }
 
 export type MfaState =
@@ -253,4 +262,62 @@ export interface SupportMessage {
   from_admin: boolean;
   body: string;
   created_at: string;
+}
+
+export interface Promotion {
+  id: string;
+  studio_id: string;
+  studio_name: string;
+  package: "week" | "two_weeks" | "month" | "custom";
+  days: number;
+  amount: number;
+  currency: string;
+  status: "pending" | "active" | "expired" | "cancelled";
+  source: "purchase" | "admin";
+  starts_at: string | null;
+  ends_at: string | null;
+  note: string | null;
+  created_at: string;
+  promoted_until: string | null;
+}
+
+export interface RatingDispute {
+  id: string;
+  review_type: "studio_review" | "artist_review";
+  review_id: string;
+  reason: string;
+  status: "open" | "removed" | "kept";
+  admin_note: string | null;
+  created_at: string;
+  resolved_at: string | null;
+  rating: number | null;
+  review_text: string | null;
+  reviewer_name: string | null;
+  rated_name: string | null;
+}
+
+export interface ChangelogEntry {
+  id: string;
+  version: string;
+  title: string;
+  body: string;
+  audience: "all" | "artist" | "studio_owner";
+  is_legal_update: boolean;
+  published_at: string;
+}
+
+export interface TermsStatus { version: string; accepted: number; total: number }
+
+export type ModerationKind = "warning" | "suspension" | "ban" | "lifted" | "report" | "studio_status";
+
+export interface ModerationEvent {
+  id: string;
+  user_id: string | null;
+  studio_id: string | null;
+  kind: ModerationKind;
+  details: string;
+  ends_at: string | null;
+  acknowledged_at: string | null;
+  created_at: string;
+  actor_email: string | null;
 }

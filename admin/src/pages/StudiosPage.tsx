@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from "react";
 import { ActionButton, Badge, Modal, PageState, Search, Tabs } from "../components";
 import { useApi, useLoad } from "../lib/apiContext";
+import { ModerationPanel } from "../moderation";
 import { date, label, money } from "../lib/format";
 import type { Studio } from "../lib/types";
 
@@ -13,9 +14,10 @@ export default function StudiosPage() {
   const { data, loading, error, reload } = useLoad(() => api.studios());
   const [tab, setTab] = useState<Tab>("applications");
   const [query, setQuery] = useState("");
-  const [selected, setSelected] = useState<Studio | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const studios = data ?? [];
+  const selected = studios.find((s) => s.id === selectedId) ?? null;
   const filters: Record<Tab, (s: Studio) => boolean> = {
     applications: (s) => s.status === "pending_review",
     approved: (s) => s.status === "approved",
@@ -51,7 +53,7 @@ export default function StudiosPage() {
             <thead><tr><th>Studio</th><th>Area</th><th>From</th><th>Status</th><th>Live</th><th>Rating</th><th>Bookings</th><th>Submitted</th></tr></thead>
             <tbody>
               {rows.map((s) => (
-                <tr key={s.id} onClick={() => setSelected(s)}>
+                <tr key={s.id} onClick={() => setSelectedId(s.id)}>
                   <td>
                     <div className="row">
                       <img className="thumb" src={s.photo_urls[0]} alt="" />
@@ -73,12 +75,10 @@ export default function StudiosPage() {
       </PageState>
       {selected && (
         <StudioModal
+          key={selected.id + selected.status + (selected.promoted_until ?? "")}
           studio={selected}
-          onClose={() => setSelected(null)}
-          onChanged={async () => {
-            await reload();
-            setSelected(null);
-          }}
+          onClose={() => setSelectedId(null)}
+          onChanged={reload}
         />
       )}
     </>
@@ -91,8 +91,17 @@ function StudioModal({ studio, onClose, onChanged }: { studio: Studio; onClose: 
   const [note, setNote] = useState(studio.admin_note ?? "");
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState({ name: studio.name, tagline: studio.tagline, description: studio.description, capacity: studio.capacity });
+  const [fee, setFee] = useState(studio.platform_fee_percent == null ? "" : String(studio.platform_fee_percent));
+  const [tags, setTags] = useState<string[]>(studio.admin_tags ?? []);
+  const [newTag, setNewTag] = useState("");
+  const [promoDays, setPromoDays] = useState(7);
+  const feeValue = fee.trim() === "" ? null : Number(fee);
+  const feeValid = feeValue === null || (Number.isInteger(feeValue) && feeValue >= 0 && feeValue <= 30);
+  const promoted = studio.promoted_until && new Date(studio.promoted_until) > new Date();
 
   const decide = (decision: "approve" | "reject" | "request_changes") => async () => {
+    // The special deal is saved together with the approval.
+    if (decision === "approve" && feeValue !== (studio.platform_fee_percent ?? null)) await api.setPlatformFee(studio.id, feeValue);
     await api.reviewStudio(studio.id, decision, note.trim() || undefined);
     await onChanged();
   };
@@ -105,7 +114,7 @@ function StudioModal({ studio, onClose, onChanged }: { studio: Studio; onClose: 
         <>
           {(studio.status === "pending_review" || studio.status === "changes_requested" || studio.status === "rejected") && (
             <>
-              <ActionButton onClick={decide("approve")}>Approve</ActionButton>
+              <ActionButton onClick={decide("approve")} disabled={!feeValid}>{feeValue !== null ? `Approve with ${feeValue}% fee` : "Approve"}</ActionButton>
               <ActionButton kind="secondary" onClick={decide("request_changes")} disabled={!note.trim()}>Request changes</ActionButton>
               <ActionButton kind="danger" onClick={decide("reject")} disabled={!note.trim()} confirm="Reject this studio?">Reject</ActionButton>
             </>
@@ -115,13 +124,10 @@ function StudioModal({ studio, onClose, onChanged }: { studio: Studio; onClose: 
               <ActionButton kind="secondary" onClick={async () => { await api.setStudioState(studio.id, { active: !studio.is_active }); await onChanged(); }}>
                 {studio.is_active ? "Mark inactive" : "Mark active"}
               </ActionButton>
-              <ActionButton kind="danger" confirm="Suspend this studio? It will be hidden from artists." onClick={async () => { await api.setStudioState(studio.id, { suspended: true, note: note || undefined }); await onChanged(); }}>
-                Suspend
-              </ActionButton>
             </>
           )}
           {studio.status === "suspended" && (
-            <ActionButton kind="secondary" onClick={async () => { await api.setStudioState(studio.id, { suspended: false }); await onChanged(); }}>Lift suspension</ActionButton>
+            <ActionButton kind="secondary" confirm="Reinstate this studio? Use this once unpaid fees are settled." onClick={async () => { await api.reinstateStudio(studio.id); await onChanged(); }}>Reinstate (fees settled)</ActionButton>
           )}
           <ActionButton kind="secondary" onClick={async () => { await api.setStudioState(studio.id, { verified: !studio.is_verified }); await onChanged(); }}>
             {studio.is_verified ? "Remove verification" : "Verify studio"}
@@ -131,8 +137,12 @@ function StudioModal({ studio, onClose, onChanged }: { studio: Studio; onClose: 
     >
       <div className="row gap">
         <Badge value={studio.status} />
+        {studio.status === "suspended" && <span className="muted small">{studio.suspended_until ? `until ${date(studio.suspended_until, true)}` : "until lifted"}</span>}
         {studio.is_active && <Badge value="active" text="Live" />}
         {studio.is_verified && <Badge value="approved" text="Verified" />}
+        {promoted && <Badge value="pending" text={`Promoted until ${date(studio.promoted_until, true)}`} />}
+        {studio.platform_fee_percent != null && <Badge value="confirmed" text={`Special deal: ${studio.platform_fee_percent}% fee`} />}
+        {studio.has_admin_badge && <span className="badge blue">Team</span>}
       </div>
 
       <div className="photos">
@@ -184,12 +194,49 @@ function StudioModal({ studio, onClose, onChanged }: { studio: Studio; onClose: 
         <Detail title="Rules">{studio.rules.join(" · ") || "–"}</Detail>
       </div>
 
+      <div className="details">
+        <Detail title="Special deal (platform fee)">
+          <div className="row gap">
+            <input type="number" min={0} max={30} placeholder="Standard (10)" value={fee} onChange={(e) => setFee(e.target.value)} style={{ width: 130 }} />
+            <span>%</span>
+            <ActionButton kind="secondary" disabled={!feeValid} onClick={async () => { await api.setPlatformFee(studio.id, feeValue); await onChanged(); }}>Save fee</ActionButton>
+          </div>
+          <div className="muted small">Leave empty for the standard fee. Applies to new bookings. Also saved when you approve.</div>
+        </Detail>
+        <Detail title="Special tags (only admins can add)">
+          <div className="chips">
+            {tags.map((t) => <span key={t} className="chip">★ {t}<button aria-label={`Remove ${t}`} onClick={() => setTags(tags.filter((x) => x !== t))}>×</button></span>)}
+            {tags.length === 0 && <span className="muted small">No tags</span>}
+          </div>
+          <div className="row gap">
+            <input placeholder="e.g. Staff pick" value={newTag} onChange={(e) => setNewTag(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && newTag.trim()) { setTags([...new Set([...tags, newTag.trim()])]); setNewTag(""); } }} />
+            <button className="secondary" disabled={!newTag.trim()} onClick={() => { setTags([...new Set([...tags, newTag.trim()])]); setNewTag(""); }}>Add</button>
+            <ActionButton kind="secondary" onClick={async () => { await api.setStudioTags(studio.id, tags); await onChanged(); }}>Save tags</ActionButton>
+          </div>
+        </Detail>
+        <Detail title="Promotion">
+          {promoted ? (
+            <div className="row gap">
+              <span>Promoted until {date(studio.promoted_until, true)}</span>
+              <ActionButton kind="danger" confirm="End the promotion now?" onClick={async () => { await api.endPromotion(studio.id); await onChanged(); }}>End promotion</ActionButton>
+            </div>
+          ) : <span className="muted">Not promoted</span>}
+          <div className="row gap">
+            <input type="number" min={1} max={365} value={promoDays} onChange={(e) => setPromoDays(Number(e.target.value))} style={{ width: 90 }} />
+            <span>days</span>
+            <ActionButton kind="secondary" disabled={promoDays < 1} onClick={async () => { await api.grantPromotion(studio.id, promoDays, "Granted by admin"); await onChanged(); }}>Give free promotion</ActionButton>
+          </div>
+        </Detail>
+      </div>
+
       <label className="form">
         Note to studio (required to reject or request changes)
         <textarea rows={3} value={note} onChange={(e) => setNote(e.target.value)} placeholder="e.g. Please add photos of the vocal booth and list your microphones." />
       </label>
 
-      <h3>History</h3>
+      <ModerationPanel userId={studio.owner_id} studioId={studio.id} studioSuspended={studio.status === "suspended"} onChanged={onChanged} />
+
+      <h3>Status changes</h3>
       <ul className="timeline">
         {(events ?? []).map((e) => (
           <li key={e.id}>

@@ -1,7 +1,7 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { AdminApi, StudioDecision } from "./api";
 import type {
-  FeeBalance, FeeInvoice, MfaState,
+  FeeBalance, FeeInvoice, MfaState, ChangelogEntry, ModerationEvent, Promotion, RatingDispute, TermsStatus,
   AccountStatus, AdminUser, Booking, BookingStatus, DashboardStats, Dispute, Payout, Report, ReportStatus,
   ReportTargetDetails, Review, Studio, StudioEvent, SupportMessage, SupportStatus, SupportTicket, Transaction,
 } from "./types";
@@ -83,6 +83,88 @@ export class SupabaseAdminApi implements AdminApi {
       throw new Error(detail?.error ?? error.message);
     }
     return data as { email: string; password?: string };
+  }
+
+  async setAdminBadge(userId: string, on: boolean) {
+    unwrap(await this.client.rpc("admin_set_admin_badge", { p_user_id: userId, p_on: on }));
+  }
+
+  async warnUser(userId: string, reason: string, studioId?: string) {
+    unwrap(await this.client.rpc("admin_warn", { p_user_id: userId, p_reason: reason, p_studio_id: studioId ?? null }));
+  }
+
+  async moderateUser(userId: string, action: "suspend" | "ban" | "lift", days: number | null, reason: string) {
+    unwrap(await this.client.rpc("admin_moderate_user", { p_user_id: userId, p_action: action, p_days: days, p_reason: reason || null }));
+  }
+
+  async moderateStudio(studioId: string, action: "suspend" | "lift", days: number | null, reason: string) {
+    unwrap(await this.client.rpc("admin_moderate_studio", { p_studio_id: studioId, p_action: action, p_days: days, p_reason: reason || null }));
+  }
+
+  async moderationHistory(filter: { userId?: string; studioId?: string }): Promise<ModerationEvent[]> {
+    let query = this.client.from("admin_moderation_history").select("*");
+    if (filter.userId && filter.studioId) query = query.or(`user_id.eq.${filter.userId},studio_id.eq.${filter.studioId}`);
+    else if (filter.userId) query = query.eq("user_id", filter.userId);
+    else if (filter.studioId) query = query.eq("studio_id", filter.studioId);
+    return unwrap(await query.order("created_at", { ascending: false }).limit(200));
+  }
+
+  async setStudioTags(studioId: string, tags: string[]) {
+    unwrap(await this.client.rpc("admin_set_studio_tags", { p_studio_id: studioId, p_tags: tags }));
+  }
+
+  async setPlatformFee(studioId: string, percent: number | null) {
+    unwrap(await this.client.rpc("admin_set_platform_fee", { p_studio_id: studioId, p_percent: percent }));
+  }
+
+  async reinstateStudio(studioId: string) {
+    unwrap(await this.client.rpc("admin_reinstate_studio", { p_studio_id: studioId }));
+  }
+
+  async promotions(): Promise<Promotion[]> {
+    return unwrap(await this.client.from("admin_promotions").select("*").order("created_at", { ascending: false }).limit(500));
+  }
+
+  async activatePromotion(promotionId: string) {
+    unwrap(await this.client.rpc("admin_activate_promotion", { p_promotion_id: promotionId }));
+  }
+
+  async cancelPromotion(promotionId: string) {
+    unwrap(await this.client.rpc("admin_cancel_promotion", { p_promotion_id: promotionId }));
+  }
+
+  async grantPromotion(studioId: string, days: number, note?: string) {
+    unwrap(await this.client.rpc("admin_grant_promotion", { p_studio_id: studioId, p_days: days, p_note: note ?? null }));
+  }
+
+  async endPromotion(studioId: string) {
+    unwrap(await this.client.rpc("admin_end_promotion", { p_studio_id: studioId }));
+  }
+
+  async ratingDisputes(): Promise<RatingDispute[]> {
+    return unwrap(await this.client.from("admin_rating_disputes").select("*").order("created_at", { ascending: false }).limit(500));
+  }
+
+  async resolveRatingDispute(disputeId: string, remove: boolean, note?: string) {
+    unwrap(await this.client.rpc("admin_resolve_rating_dispute", { p_dispute_id: disputeId, p_remove: remove, p_note: note ?? null }));
+  }
+
+  async changelog(): Promise<ChangelogEntry[]> {
+    return unwrap(await this.client.from("app_changelog").select("*").order("published_at", { ascending: false }).limit(200));
+  }
+
+  async publishChangelog(entry: { version: string; title: string; body: string; audience: ChangelogEntry["audience"]; legalUpdate: boolean }) {
+    unwrap(await this.client.rpc("admin_publish_changelog", {
+      p_version: entry.version, p_title: entry.title, p_body: entry.body, p_audience: entry.audience, p_legal_update: entry.legalUpdate,
+    }));
+  }
+
+  async deleteChangelog(id: string) {
+    unwrap(await this.client.rpc("admin_delete_changelog", { p_id: id }));
+  }
+
+  async termsStatus(): Promise<TermsStatus> {
+    return unwrap(await this.client.from("admin_terms_status").select("*").single());
   }
 
   async studios(): Promise<Studio[]> {

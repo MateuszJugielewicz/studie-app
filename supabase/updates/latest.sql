@@ -1968,6 +1968,18 @@ from public.profiles p
 left join public.artist_profiles a on a.id = p.id
 left join public.studios s on s.owner_id = p.id;
 
+-- Admin: cancel a studio's pending promotion order (e.g. never paid).
+create or replace function public.admin_cancel_promotion(p_promotion_id uuid)
+returns void
+language plpgsql security definer set search_path = public
+as $$
+begin
+  perform public.require_admin();
+  update public.studio_promotions set status = 'cancelled' where id = p_promotion_id and status = 'pending';
+  if not found then raise exception 'This order is not pending.'; end if;
+end;
+$$;
+
 -- Grants ---------------------------------------------------------------
 grant select, insert, update, delete on all tables in schema public to authenticated, service_role;
 grant execute on all functions in schema public to authenticated, service_role;

@@ -10,6 +10,8 @@ import BookingsPage from "./pages/BookingsPage";
 import PaymentsPage from "./pages/PaymentsPage";
 import ModerationPage from "./pages/ModerationPage";
 import SupportPage from "./pages/SupportPage";
+import PromotionsPage from "./pages/PromotionsPage";
+import ChangelogPage from "./pages/ChangelogPage";
 
 // Simple 24px stroke icons (Lucide-style paths).
 const icons: Record<string, string> = {
@@ -19,6 +21,8 @@ const icons: Record<string, string> = {
   bookings: "M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z",
   payments: "M2 7h20v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2zM2 11h20M6 16h4",
   moderation: "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z",
+  promotions: "M3 11l18-5v12L3 14v-3zM11.6 16.8a3 3 0 1 1-5.8-1.6",
+  changelog: "M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z",
   support: "M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2zM8 9h8M8 13h5",
 };
 
@@ -45,8 +49,10 @@ const nav = [
   { to: "/users", title: "Users", icon: "users" },
   { to: "/bookings", title: "Bookings", icon: "bookings" },
   { to: "/payments", title: "Payments", icon: "payments" },
+  { to: "/promotions", title: "Promotions", icon: "promotions" },
   { to: "/moderation", title: "Moderation", icon: "moderation" },
   { to: "/support", title: "Support", icon: "support" },
+  { to: "/changelog", title: "Changelog", icon: "changelog" },
 ];
 
 export default function App() {
@@ -129,6 +135,8 @@ function Dashboard({ api }: { api: AdminApi }) {
             <Route path="/payments" element={<PaymentsPage />} />
             <Route path="/moderation" element={<ModerationPage />} />
             <Route path="/support" element={<SupportPage />} />
+            <Route path="/promotions" element={<PromotionsPage />} />
+            <Route path="/changelog" element={<ChangelogPage />} />
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </main>

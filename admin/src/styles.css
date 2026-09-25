@@ -189,3 +189,14 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid 
 .stat-link.attention .card { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
 .stars { color: var(--accent); letter-spacing: 2px; }
 .rating-box { display: flex; align-items: center; gap: 10px; margin-top: 10px; padding: 8px 12px; border-radius: 10px; background: var(--accent-soft); }
+
+/* Duration picker and moderation */
+.duration { display: flex; flex-direction: column; gap: 8px; margin: 8px 0 12px; }
+.segmented { display: inline-flex; flex-wrap: wrap; gap: 4px; padding: 4px; border-radius: 999px; background: var(--card, rgba(127,127,127,.08)); border: 1px solid rgba(127,127,127,.2); width: fit-content; }
+.seg { border: 0; background: transparent; padding: 6px 12px; border-radius: 999px; cursor: pointer; color: inherit; font-weight: 600; }
+.seg.active { background: var(--accent); color: white; }
+.moderation { display: flex; flex-direction: column; gap: 6px; }
+.moderation .card.notice { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: var(--accent-soft); font-weight: 600; font-size: 13px; }
+.chip button { border: 0; background: transparent; cursor: pointer; padding: 0; color: inherit; }
