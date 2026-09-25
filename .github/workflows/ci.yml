@@ -1,9 +1,7 @@
 name: CI
 
+# Runs only when started by hand (Actions → CI → Run workflow).
 on:
-  push:
-    branches: [main, "claude/**"]
-  pull_request:
   workflow_dispatch:
 
 concurrency:
@@ -35,15 +33,15 @@ jobs:
       - name: Generate project
         run: xcodegen generate
       - name: Resolve packages
-        run: xcodebuild -resolvePackageDependencies -project Sonora.xcodeproj -scheme Sonora
+        run: xcodebuild -resolvePackageDependencies -project EasySesh.xcodeproj -scheme EasySesh
       - name: Build and test
         run: |
           DEVICE=$(xcrun simctl list devices available | grep -Eo 'iPhone 1[0-9]( Pro)? \(' | head -1 | sed 's/ ($//')
           echo "Using simulator: $DEVICE"
           set -o pipefail
           xcodebuild test \
-            -project Sonora.xcodeproj \
-            -scheme Sonora \
+            -project EasySesh.xcodeproj \
+            -scheme EasySesh \
             -destination "platform=iOS Simulator,name=$DEVICE" \
             -skipMacroValidation \
             CODE_SIGNING_ALLOWED=NO \

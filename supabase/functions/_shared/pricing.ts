@@ -1,4 +1,4 @@
-// Mirrors ios/Sonora/Core/PricingEngine.swift. The server is the source of truth for what is charged.
+// Mirrors ios/EasySesh/Core/PricingEngine.swift. The server is the source of truth for what is charged.
 import type { BookedAddOn, CancellationPolicy, PriceBreakdown, ServiceAddOn, SessionType, Studio, UserRole } from "./types.ts";
 
 /** EasySesh takes 10% of every sale; artists pay the studio's price with no extra fee. */

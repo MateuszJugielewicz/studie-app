@@ -12,7 +12,7 @@ Studie ansøger → Admin godkender → Synligt på platformen → Artister find
 | Backend | `supabase/` | Postgres + Row Level Security, Auth (e-mail/Apple/Google), Storage, Realtime, Edge Functions, pg_cron |
 | Admin-dashboard (web) | `admin/` | React + TypeScript + Vite |
 
-Appen og admin-dashboardet er forbundet til Sonoras Supabase-projekt. Der er ingen testdata: studier, bookinger og konti kommer fra rigtige brugere.
+Appen og admin-dashboardet er forbundet til EasySeshs Supabase-projekt. Der er ingen testdata: studier, bookinger og konti kommer fra rigtige brugere.
 
 ## Kom i gang
 
@@ -21,7 +21,7 @@ Appen og admin-dashboardet er forbundet til Sonoras Supabase-projekt. Der er ing
 Kræver Xcode 16 eller nyere. Projektfilen ligger i repoet:
 
 ```bash
-open ios/Sonora.xcodeproj
+open ios/EasySesh.xcodeproj
 ```
 
 Vælg dit Apple ID under *Signing & Capabilities → Team*, vælg en iPhone-simulator og tryk ▶. Opret en konto i appen. Studier bliver synlige, når en admin har godkendt dem.
@@ -109,7 +109,7 @@ Gør en konto til admin i Supabase → SQL Editor: `update profiles set role = '
 | Konto-sletning | Indstillinger → Slet konto (`delete-account`): aflyser med refundering, anonymiserer ved bogføringspligt |
 | Dataeksport (GDPR art. 15/20) | Indstillinger → Download my data (`export-data`) → JSON-fil |
 | Rapportering | Rapportér studie, anmeldelse, besked, artist/studie fra booking → admin-moderation |
-| Payment provider | Stripe (PCI-DSS); kortdata rører aldrig Sonoras servere |
+| Payment provider | Stripe (PCI-DSS); kortdata rører aldrig EasySeshs servere |
 | Sikker login | Adgangskode ≥ 10 tegn med store/små bogstaver og tal, e-mailbekræftelse, rate limits, token-rotation, Keychain på iOS. **Admins skal bruge 2-faktor (TOTP)** – håndhæves i databasen (`is_admin()` kræver `aal2`), i edge functions og i admin-dashboardet |
 
 Dokumenterne vises i appen (Indstillinger → Legal) og er **udkast med pladsholdere** (`[COMPANY NAME]` osv.). De skal gennemgås af en advokat før lancering.
@@ -157,13 +157,13 @@ select vault.create_secret('<service-role-key>', 'service_role_key');
 ```
 Opret den første admin: opret en konto og kør `update profiles set role = 'admin' where email = 'dig@firma.dk';`. Ved første login i admin-dashboardet sætter du 2-faktor op med en authenticator-app.
 
-Slå **Apple** og **Google** til under Auth → Providers, og tilføj `sonora://auth-callback` som redirect URL.
+Slå **Apple** og **Google** til under Auth → Providers, og tilføj `easysesh://auth-callback` som redirect URL.
 
 ### 2. Stripe
 - Slå **Connect** (Express) til, så studier kan få udbetalinger
 - Opret en webhook til `https://<ref>.supabase.co/functions/v1/stripe-webhook` med events:
   `payment_intent.succeeded`, `payment_intent.amount_capturable_updated`, `payment_intent.payment_failed`, `charge.refunded`, `account.updated`, `invoice.paid`
-- Apple Pay: opret merchant ID `merchant.com.sonora.app` og upload Stripes certifikat
+- Apple Pay: opret merchant ID `merchant.com.easysesh.app` og upload Stripes certifikat
 
 ### 3. iOS
 Kopiér `ios/Config/Secrets.example.xcconfig` til `ios/Config/Secrets.xcconfig` og udfyld Supabase-URL, anon key og Stripe publishable key. Så bruger appen den rigtige backend. Push kræver en APNs-nøgle (`APNS_*` secrets).
@@ -186,7 +186,7 @@ Appen findes på engelsk, dansk, tysk, polsk, græsk, fransk, spansk, italiensk,
 
 ## Navn
 
-Appen hedder **EasySesh** for brugerne. Xcode-projektet, mapper og kode hedder stadig `Sonora` internt – det ser brugerne aldrig.
+Appen hedder **EasySesh** – også Xcode-projektet (`ios/EasySesh.xcodeproj`), mapper, kode, bundle id (`com.easysesh.app`) og URL-skemaet (`easysesh://`).
 
 ## Tests
 
@@ -204,11 +204,11 @@ Alle fire kører automatisk i GitHub Actions (`.github/workflows/ci.yml`).
 ```
 ios/
   project.yml                XcodeGen-projekt
-  Sonora/App                 app-entry, global state, konfiguration
-  Sonora/Models              datamodeller (matcher databasen)
-  Sonora/Core                pris, tilgængelighed, søgning, indtjening (ren logik, testet)
-  Sonora/Services            Backend-protokol, SupabaseBackend, Stripe, lokation, push
-  Sonora/Features            Auth, Artist, Discover, StudioDetail, Booking, Chat, Reviews, StudioOwner
+  EasySesh/App                 app-entry, global state, konfiguration
+  EasySesh/Models              datamodeller (matcher databasen)
+  EasySesh/Core                pris, tilgængelighed, søgning, indtjening (ren logik, testet)
+  EasySesh/Services            Backend-protokol, SupabaseBackend, Stripe, lokation, push
+  EasySesh/Features            Auth, Artist, Discover, StudioDetail, Booking, Chat, Reviews, StudioOwner
 supabase/
   migrations/                skema, sikkerhed, app-logik, admin, cron
   functions/                 create-booking, create-payment-intent, confirm-payment, stripe-webhook,

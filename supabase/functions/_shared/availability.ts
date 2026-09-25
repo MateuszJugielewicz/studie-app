@@ -1,4 +1,4 @@
-// Server-side validation of a requested slot (mirrors ios/Sonora/Core/AvailabilityEngine.swift).
+// Server-side validation of a requested slot (mirrors ios/EasySesh/Core/AvailabilityEngine.swift).
 // Opening hours are wall-clock times in the studio's time zone.
 import type { Studio } from "./types.ts";
 

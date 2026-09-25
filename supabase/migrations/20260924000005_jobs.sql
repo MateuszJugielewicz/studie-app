@@ -90,6 +90,6 @@ begin
 end;
 $$;
 
-select cron.schedule('sonora-booking-housekeeping', '*/10 * * * *', $$select public.run_booking_housekeeping()$$);
-select cron.schedule('sonora-session-reminders', '*/15 * * * *', $$select public.queue_session_reminders()$$);
-select cron.schedule('sonora-process-payouts', '7 * * * *', $$select public.call_edge_function('process-payouts')$$);
+select cron.schedule('easysesh-booking-housekeeping', '*/10 * * * *', $$select public.run_booking_housekeeping()$$);
+select cron.schedule('easysesh-session-reminders', '*/15 * * * *', $$select public.queue_session_reminders()$$);
+select cron.schedule('easysesh-process-payouts', '7 * * * *', $$select public.call_edge_function('process-payouts')$$);

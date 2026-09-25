@@ -21,6 +21,5 @@ supabase/.branches/
 
 .DS_Store
 *.tsbuildinfo
-sonora.zip
 easysesh.zip
 easysesh-database-update.sql

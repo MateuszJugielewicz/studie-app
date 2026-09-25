@@ -1,0 +1,114 @@
+import SwiftUI
+
+@main
+struct EasySeshApp: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
+    @State private var appState = AppState.makeDefault()
+    @State private var preferences = AppPreferences()
+
+    init() {
+        NavigationAppearance.apply()
+    }
+
+    var body: some Scene {
+        WindowGroup {
+            Group {
+                if preferences.hasSeenIntro {
+                    RootView()
+                } else {
+                    IntroView()
+                }
+            }
+            .animation(.smooth(duration: 0.5), value: preferences.hasSeenIntro)
+            .environment(appState)
+            .environment(preferences)
+            .environment(\.locale, preferences.language.locale)
+            .environment(\.reduceEffects, preferences.reduceEffects)
+            .environment(\.hapticsEnabled, preferences.hapticsEnabled)
+            .preferredColorScheme(preferences.appearance.colorScheme)
+            .tint(Theme.accent)
+            .task {
+                AppDelegate.push = appState.push
+                await appState.bootstrap()
+            }
+            .onOpenURL { url in
+                Task { await appState.openAuthLink(url) }
+            }
+            .sheet(isPresented: $appState.needsNewPassword) {
+                NavigationStack { ChangePasswordView(isRecovery: true) }
+                    .interactiveDismissDisabled()
+            }
+        }
+    }
+}
+
+struct RootView: View {
+    @Environment(AppState.self) private var app
+    @Environment(\.scenePhase) private var scenePhase
+
+    var body: some View {
+        Group {
+            if app.isBootstrapping {
+                SplashView()
+            } else if app.needsTermsAcceptance {
+                TermsAcceptanceView()
+            } else if let account = app.account {
+                switch account.role {
+                case .artist:
+                    if app.artistProfile?.isComplete == true {
+                        ArtistTabView()
+                    } else {
+                        ArtistOnboardingView()
+                    }
+                case .studioOwner:
+                    StudioOwnerRootView()
+                case .admin:
+                    AdminInfoView()
+                }
+            } else {
+                WelcomeView()
+            }
+        }
+        .animation(.smooth(duration: 0.45), value: app.account?.id)
+        .sheet(item: Binding(
+            get: { app.isBootstrapping || app.needsTermsAcceptance ? nil : app.warnings.first },
+            set: { _ in }
+        )) { warning in
+            NavigationStack { WarningSheet(warning: warning) }
+        }
+        .sheet(isPresented: Binding(
+            get: { !app.isBootstrapping && !app.needsTermsAcceptance && app.warnings.isEmpty && app.account?.role != .admin && !app.unseenChangelog.isEmpty },
+            set: { if !$0 { app.markChangelogSeen() } }
+        )) {
+            WhatsNewSheet(entries: app.unseenChangelog)
+        }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active { Task { await app.refreshUpdates() } }
+        }
+    }
+}
+
+struct SplashView: View {
+    var body: some View {
+        ZStack {
+            Theme.background.ignoresSafeArea()
+            EasySeshLogo(size: 44)
+        }
+    }
+}
+
+/// Admins use the web dashboard (admin/). The app only points them there.
+struct AdminInfoView: View {
+    @Environment(AppState.self) private var app
+
+    var body: some View {
+        ContentUnavailableView {
+            Label("Admin account", systemImage: "shield.lefthalf.filled")
+        } description: {
+            Text("Studio approvals, users, bookings, payments and moderation are managed in the EasySesh admin dashboard on the web.")
+        } actions: {
+            Button("Sign out") { Task { await app.signOut() } }
+                .buttonStyle(.borderedProminent)
+        }
+    }
+}

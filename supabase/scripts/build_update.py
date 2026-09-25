@@ -12,7 +12,7 @@ mig = lambda name: open(os.path.join(ROOT, "migrations", name), encoding="utf-8"
 
 def idempotent(sql: str) -> str:
     sql = sql.replace("create table public.", "create table if not exists public.")
-    sql = sql.replace("create index ", "create index if not exists ")
+    sql = re.sub(r"create (unique )?index (?!if not exists)", lambda m: f"create {m.group(1) or ''}index if not exists ", sql)
     sql = re.sub(r'create policy "([^"]+)" on (public\.\w+)',
                  lambda m: f'drop policy if exists "{m.group(1)}" on {m.group(2)};\ncreate policy "{m.group(1)}" on {m.group(2)}', sql)
     sql = sql.replace("drop policy if exists \"messages: participants send\" on public.messages;\ndrop policy if exists",
@@ -45,7 +45,9 @@ parts = [
 """,
     "-- Studio save fix ------------------------------------------------------\n" + guard + "\n",
     "-- Support --------------------------------------------------------------\n" + idempotent(mig("20260926000001_support.sql")),
-    "-- Message requests -----------------------------------------------------\n" + idempotent(mig("20260927000001_message_requests.sql")),
+    "-- Message requests -----------------------------------------------------\n"
+    # search_artists gets a new return type further down; drop it so running the update again works.
+    + "drop function if exists public.search_artists(text);\n" + idempotent(mig("20260927000001_message_requests.sql")),
     "-- Support ratings ------------------------------------------------------\n" + idempotent(mig("20260928000001_support_ratings.sql")),
     "-- Admin badge, admin tags, promotions ----------------------------------\n" + idempotent(mig("20260929000001_badges_tags_promotions.sql")),
     "-- Bookings without edge functions --------------------------------------\n" + idempotent(mig("20260930000001_bookings_in_db.sql")),
@@ -57,6 +59,7 @@ parts = [
     "-- Check-in on arrival ---------------------------------------------------\n" + idempotent(mig("20261006000001_check_in.sql")),
     "-- Changelog and terms updates ------------------------------------------\n" + idempotent(mig("20261007000001_changelog_terms_updates.sql")),
     "-- Moderation: warnings, timed suspensions and bans, history ------------\n" + idempotent(mig("20261008000001_moderation.sql")),
+    "-- Old scheduled job names (sonora-*) removed ---------------------------\n" + idempotent(mig("20261009000001_rename_cron_jobs.sql")),
     """-- Grants ---------------------------------------------------------------
 grant select, insert, update, delete on all tables in schema public to authenticated, service_role;
 grant execute on all functions in schema public to authenticated, service_role;

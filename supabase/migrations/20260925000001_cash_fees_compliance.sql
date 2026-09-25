@@ -99,7 +99,7 @@ as $$
   where payment_method = 'cash' and payment_status = 'pay_at_studio'
     and status = 'completed' and ends_at < now() - interval '3 days';
 $$;
-select cron.schedule('sonora-cash-housekeeping', '17 * * * *', $$select public.run_cash_housekeeping()$$);
+select cron.schedule('easysesh-cash-housekeeping', '17 * * * *', $$select public.run_cash_housekeeping()$$);
 
 -- ---------------------------------------------------------------------------
 -- Terms acceptance (records version + time; required before using the app)

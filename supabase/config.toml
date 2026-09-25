@@ -1,9 +1,9 @@
-# Supabase CLI project config (only the settings Sonora relies on; everything else uses CLI defaults).
-project_id = "sonora"
+# Supabase CLI project config (only the settings EasySesh relies on; everything else uses CLI defaults).
+project_id = "easysesh"
 
 [auth]
-site_url = "sonora://auth-callback"
-additional_redirect_urls = ["sonora://auth-callback", "http://localhost:5173"]
+site_url = "easysesh://auth-callback"
+additional_redirect_urls = ["easysesh://auth-callback", "http://localhost:5173"]
 # Short-lived access tokens with refresh-token rotation.
 jwt_expiry = 3600
 enable_refresh_token_rotation = true

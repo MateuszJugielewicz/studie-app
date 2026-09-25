@@ -55,7 +55,7 @@ Deno.serve(handler(async (req, body) => {
       method: "POST",
       headers: {
         authorization: `bearer ${jwt}`,
-        "apns-topic": Deno.env.get("APNS_BUNDLE_ID") ?? "com.sonora.app",
+        "apns-topic": Deno.env.get("APNS_BUNDLE_ID") ?? "com.easysesh.app",
         "apns-push-type": "alert",
         "apns-priority": "10",
       },

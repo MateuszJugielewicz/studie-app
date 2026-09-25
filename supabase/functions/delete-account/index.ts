@@ -42,7 +42,7 @@ Deno.serve(handler(async (req) => {
   await admin.from("device_tokens").delete().eq("user_id", user.id);
   if ((history ?? 0) > 0 || user.role === "studio_owner") {
     await admin.from("artist_profiles").update({ artist_name: "Deleted user", bio: "", avatar_url: null, links: [], city: "" }).eq("id", user.id);
-    await admin.from("profiles").update({ email: `deleted-${user.id}@sonora.invalid`, status: "banned", status_reason: "Account deleted by user", settings: {} }).eq("id", user.id);
+    await admin.from("profiles").update({ email: `deleted-${user.id}@easysesh.invalid`, status: "banned", status_reason: "Account deleted by user", settings: {} }).eq("id", user.id);
     const { error } = await admin.auth.admin.deleteUser(user.id, true);
     if (error) throw new HttpError(500, error.message);
   } else {

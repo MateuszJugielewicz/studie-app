@@ -7,7 +7,7 @@ import { handler, HttpError, json, requireString } from "../_shared/http.ts";
 import { admin, requireAdmin } from "../_shared/supabase.ts";
 import { temporaryPassword } from "../_shared/passwords.ts";
 
-const APP_REDIRECT = "sonora://auth-callback";
+const APP_REDIRECT = "easysesh://auth-callback";
 
 Deno.serve(handler(async (req, body) => {
   const caller = await requireAdmin(req);

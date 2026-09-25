@@ -15,14 +15,18 @@ create extension if not exists btree_gist with schema extensions;
 
 -- Reset: removes EasySesh objects (and their data) so this file can be run again.
 drop trigger if exists on_auth_user_created on auth.users;
-select cron.unschedule('sonora-booking-housekeeping') where exists (select 1 from cron.job where jobname = 'sonora-booking-housekeeping');
-select cron.unschedule('sonora-session-reminders') where exists (select 1 from cron.job where jobname = 'sonora-session-reminders');
-select cron.unschedule('sonora-process-payouts') where exists (select 1 from cron.job where jobname = 'sonora-process-payouts');
-select cron.unschedule('sonora-cash-housekeeping') where exists (select 1 from cron.job where jobname = 'sonora-cash-housekeeping');
+select cron.unschedule('easysesh-booking-housekeeping') where exists (select 1 from cron.job where jobname = 'easysesh-booking-housekeeping');
+select cron.unschedule('easysesh-session-reminders') where exists (select 1 from cron.job where jobname = 'easysesh-session-reminders');
+select cron.unschedule('easysesh-process-payouts') where exists (select 1 from cron.job where jobname = 'easysesh-process-payouts');
+select cron.unschedule('easysesh-cash-housekeeping') where exists (select 1 from cron.job where jobname = 'easysesh-cash-housekeeping');
 select cron.unschedule('easysesh-expire-promotions') where exists (select 1 from cron.job where jobname = 'easysesh-expire-promotions');
 select cron.unschedule('easysesh-fee-invoices') where exists (select 1 from cron.job where jobname = 'easysesh-fee-invoices');
 select cron.unschedule('easysesh-fee-enforcement') where exists (select 1 from cron.job where jobname = 'easysesh-fee-enforcement');
 select cron.unschedule('easysesh-lift-moderation') where exists (select 1 from cron.job where jobname = 'easysesh-lift-moderation');
+select cron.unschedule('easysesh-booking-housekeeping') where exists (select 1 from cron.job where jobname = 'easysesh-booking-housekeeping');
+select cron.unschedule('easysesh-session-reminders') where exists (select 1 from cron.job where jobname = 'easysesh-session-reminders');
+select cron.unschedule('easysesh-process-payouts') where exists (select 1 from cron.job where jobname = 'easysesh-process-payouts');
+select cron.unschedule('easysesh-cash-housekeeping') where exists (select 1 from cron.job where jobname = 'easysesh-cash-housekeeping');
 drop view if exists public.admin_users cascade;
 drop view if exists public.studio_fee_balances cascade;
 drop view if exists public.admin_support_tickets cascade;
@@ -1653,9 +1657,9 @@ begin
 end;
 $$;
 
-select cron.schedule('sonora-booking-housekeeping', '*/10 * * * *', $$select public.run_booking_housekeeping()$$);
-select cron.schedule('sonora-session-reminders', '*/15 * * * *', $$select public.queue_session_reminders()$$);
-select cron.schedule('sonora-process-payouts', '7 * * * *', $$select public.call_edge_function('process-payouts')$$);
+select cron.schedule('easysesh-booking-housekeeping', '*/10 * * * *', $$select public.run_booking_housekeeping()$$);
+select cron.schedule('easysesh-session-reminders', '*/15 * * * *', $$select public.queue_session_reminders()$$);
+select cron.schedule('easysesh-process-payouts', '7 * * * *', $$select public.call_edge_function('process-payouts')$$);
 
 -- ---------------------------------------------------------------------
 -- 20260925000001_cash_fees_compliance.sql
@@ -1761,7 +1765,7 @@ as $$
   where payment_method = 'cash' and payment_status = 'pay_at_studio'
     and status = 'completed' and ends_at < now() - interval '3 days';
 $$;
-select cron.schedule('sonora-cash-housekeeping', '17 * * * *', $$select public.run_cash_housekeeping()$$);
+select cron.schedule('easysesh-cash-housekeeping', '17 * * * *', $$select public.run_cash_housekeeping()$$);
 
 -- ---------------------------------------------------------------------------
 -- Terms acceptance (records version + time; required before using the app)
@@ -3735,6 +3739,28 @@ begin
   if not found then raise exception 'This order is not pending.'; end if;
 end;
 $$;
+
+-- ---------------------------------------------------------------------
+-- 20261009000001_rename_cron_jobs.sql
+-- ---------------------------------------------------------------------
+-- EasySesh: scheduled jobs were renamed from "sonora-*" to "easysesh-*". Schedule every job
+-- under its new name (same schedule as before; scheduling a name again just updates it), then
+-- remove the old names so nothing runs twice.
+select cron.schedule('easysesh-booking-housekeeping', '*/10 * * * *', $$select public.run_booking_housekeeping()$$);
+select cron.schedule('easysesh-session-reminders', '*/15 * * * *', $$select public.queue_session_reminders()$$);
+select cron.schedule('easysesh-process-payouts', '7 * * * *', $$select public.call_edge_function('process-payouts')$$);
+select cron.schedule('easysesh-cash-housekeeping', '17 * * * *', $$select public.run_cash_housekeeping()$$);
+
+do $$
+declare
+  v_job text;
+begin
+  for v_job in select jobname from cron.job where jobname like 'sonora-%' loop
+    perform cron.unschedule(v_job);
+  end loop;
+exception when others then
+  raise notice 'Old scheduled jobs not removed: %', sqlerrm;
+end $$;
 
 -- ---------------------------------------------------------------------
 -- Accounts that already exist in auth (e.g. when re-running this file)

@@ -257,6 +257,7 @@ do $$ begin
 end $$;
 
 -- Message requests -----------------------------------------------------
+drop function if exists public.search_artists(text);
 -- EasySesh: studios can start conversations with artists. A conversation a studio starts with an
 -- artist it has no history with lands in the artist's "Requests" until the artist accepts it
 -- (or replies). A declined request stays closed: the studio can't keep writing.
@@ -462,7 +463,7 @@ alter table public.studios
   add column if not exists admin_tags text[] not null default '{}',
   add column if not exists promoted_until timestamptz;
 
-create index if not exists if not exists studios_promoted_idx on public.studios (promoted_until) where promoted_until is not null;
+create index if not exists studios_promoted_idx on public.studios (promoted_until) where promoted_until is not null;
 
 -- ---------------------------------------------------------------------------
 -- Guards: owners/artists can't give themselves a badge, tags or a promotion.
@@ -524,7 +525,7 @@ create table if not exists public.studio_promotions (
   created_by uuid references public.profiles (id),
   created_at timestamptz not null default now()
 );
-create index if not exists if not exists studio_promotions_studio_idx on public.studio_promotions (studio_id, created_at desc);
+create index if not exists studio_promotions_studio_idx on public.studio_promotions (studio_id, created_at desc);
 
 alter table public.studio_promotions enable row level security;
 drop policy if exists "studio_promotions: owner or admin read" on public.studio_promotions;
@@ -1081,7 +1082,7 @@ create table if not exists public.artist_reviews (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
-create index if not exists if not exists artist_reviews_artist_idx on public.artist_reviews (artist_id, created_at desc);
+create index if not exists artist_reviews_artist_idx on public.artist_reviews (artist_id, created_at desc);
 
 alter table public.artist_reviews enable row level security;
 drop policy if exists "artist_reviews: read" on public.artist_reviews;
@@ -1455,7 +1456,7 @@ create table if not exists public.studio_artist_links (
   status text not null default 'pending' check (status in ('pending', 'accepted')),
   created_at timestamptz not null default now()
 );
-create index if not exists if not exists studio_artist_links_artist_idx on public.studio_artist_links (artist_id);
+create index if not exists studio_artist_links_artist_idx on public.studio_artist_links (artist_id);
 
 alter table public.studio_artist_links enable row level security;
 drop policy if exists "studio_artist_links: read" on public.studio_artist_links;
@@ -1633,7 +1634,7 @@ create table if not exists public.app_changelog (
   published_at timestamptz not null default now(),
   created_by uuid references public.profiles(id) on delete set null
 );
-create index if not exists if not exists app_changelog_published_idx on public.app_changelog (published_at desc);
+create index if not exists app_changelog_published_idx on public.app_changelog (published_at desc);
 
 alter table public.app_changelog enable row level security;
 drop policy if exists "changelog: everyone reads" on public.app_changelog;
@@ -1775,8 +1776,8 @@ create table if not exists public.moderation_actions (
   actor_id uuid references public.profiles (id) on delete set null,
   created_at timestamptz not null default now()
 );
-create index if not exists if not exists moderation_actions_user_idx on public.moderation_actions (user_id, created_at desc);
-create index if not exists if not exists moderation_actions_studio_idx on public.moderation_actions (studio_id, created_at desc);
+create index if not exists moderation_actions_user_idx on public.moderation_actions (user_id, created_at desc);
+create index if not exists moderation_actions_studio_idx on public.moderation_actions (studio_id, created_at desc);
 
 alter table public.moderation_actions enable row level security;
 drop policy if exists "moderation: own or admin" on public.moderation_actions;
@@ -1979,6 +1980,26 @@ begin
   if not found then raise exception 'This order is not pending.'; end if;
 end;
 $$;
+
+-- Old scheduled job names (sonora-*) removed ---------------------------
+-- EasySesh: scheduled jobs were renamed from "sonora-*" to "easysesh-*". Schedule every job
+-- under its new name (same schedule as before; scheduling a name again just updates it), then
+-- remove the old names so nothing runs twice.
+select cron.schedule('easysesh-booking-housekeeping', '*/10 * * * *', $$select public.run_booking_housekeeping()$$);
+select cron.schedule('easysesh-session-reminders', '*/15 * * * *', $$select public.queue_session_reminders()$$);
+select cron.schedule('easysesh-process-payouts', '7 * * * *', $$select public.call_edge_function('process-payouts')$$);
+select cron.schedule('easysesh-cash-housekeeping', '17 * * * *', $$select public.run_cash_housekeeping()$$);
+
+do $$
+declare
+  v_job text;
+begin
+  for v_job in select jobname from cron.job where jobname like 'sonora-%' loop
+    perform cron.unschedule(v_job);
+  end loop;
+exception when others then
+  raise notice 'Old scheduled jobs not removed: %', sqlerrm;
+end $$;
 
 -- Grants ---------------------------------------------------------------
 grant select, insert, update, delete on all tables in schema public to authenticated, service_role;

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Builds Sonora/Localizable.xcstrings from scripts/translations/*.txt.
+"""Builds EasySesh/Localizable.xcstrings from scripts/translations/*.txt.
 
 Each line: English | da | de | pl | el | fr | es | it | sv | nl  (" | " separated, "\\n" = line break).
 Strings without a translation fall back to English at runtime.
@@ -30,7 +30,7 @@ for key in sorted(rows):
             lang: {"stringUnit": {"state": "translated", "value": value}} for lang, value in rows[key].items()
         },
     }
-out = os.path.join(here, "..", "Sonora", "Localizable.xcstrings")
+out = os.path.join(here, "..", "EasySesh", "Localizable.xcstrings")
 with open(out, "w", encoding="utf-8") as f:
     json.dump(catalog, f, ensure_ascii=False, indent=2, sort_keys=True)
     f.write("\n")

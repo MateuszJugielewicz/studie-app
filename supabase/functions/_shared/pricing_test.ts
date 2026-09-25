@@ -3,7 +3,7 @@ import { acceptsCash, quote, refundAmount, refundPercent } from "./pricing.ts";
 import { fitsOpeningHours, zonedParts } from "./availability.ts";
 import type { Studio } from "./types.ts";
 
-// Same fixtures as ios/SonoraTests — keeps client and server prices identical.
+// Same fixtures as ios/EasySeshTests — keeps client and server prices identical.
 const studio: Studio = {
   id: "s1",
   owner_id: "o1",

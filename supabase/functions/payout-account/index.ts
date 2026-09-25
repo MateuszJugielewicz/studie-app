@@ -33,8 +33,8 @@ Deno.serve(handler(async (req, body) => {
     const link = await stripe.accountLinks.create({
       account: account.stripe_account_id!,
       type: "account_onboarding",
-      refresh_url: `${Deno.env.get("PUBLIC_SITE_URL") ?? "https://sonora.app"}/payouts/refresh`,
-      return_url: `${Deno.env.get("PUBLIC_SITE_URL") ?? "https://sonora.app"}/payouts/done`,
+      refresh_url: `${Deno.env.get("PUBLIC_SITE_URL") ?? "https://easysesh.app"}/payouts/refresh`,
+      return_url: `${Deno.env.get("PUBLIC_SITE_URL") ?? "https://easysesh.app"}/payouts/done`,
     });
     onboardingUrl = link.url;
   }
