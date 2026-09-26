@@ -8,12 +8,20 @@ import { applyPaymentIntent, cryptoProvider, stripe } from "../_shared/stripe.ts
 Deno.serve(async (req) => {
   const signature = req.headers.get("Stripe-Signature");
   const payload = await req.text();
-  let event: Stripe.Event;
-  try {
-    event = await stripe.webhooks.constructEventAsync(payload, signature!, Deno.env.get("STRIPE_WEBHOOK_SECRET")!, undefined, cryptoProvider);
-  } catch (error) {
-    return new Response(`Invalid signature: ${(error as Error).message}`, { status: 400 });
+  // Two endpoints can point here: "Your account" events and "Connected accounts" events
+  // (studio payout onboarding). Each has its own signing secret.
+  const secrets = [Deno.env.get("STRIPE_WEBHOOK_SECRET"), Deno.env.get("STRIPE_CONNECT_WEBHOOK_SECRET")].filter((s): s is string => !!s);
+  let event: Stripe.Event | undefined;
+  let lastError = "no webhook secret configured";
+  for (const secret of secrets) {
+    try {
+      event = await stripe.webhooks.constructEventAsync(payload, signature!, secret, undefined, cryptoProvider);
+      break;
+    } catch (error) {
+      lastError = (error as Error).message;
+    }
   }
+  if (!event) return new Response(`Invalid signature: ${lastError}`, { status: 400 });
 
   try {
     switch (event.type) {
