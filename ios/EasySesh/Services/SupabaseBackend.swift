@@ -299,6 +299,16 @@ final class SupabaseBackend: Backend {
         return response.onboardingUrl.flatMap(URL.init(string:))
     }
 
+    func savePayoutBank(studioId: UUID, holder: String, bankToken: String) async throws -> PayoutAccount {
+        let response: PayoutAccountResponse = try await invoke("payout-account", [
+            "studio_id": .string(studioId.uuidString),
+            "account_holder": .string(holder),
+            "bank_token": .string(bankToken),
+            "action": .string("bank"),
+        ])
+        return response.account
+    }
+
     func syncPayoutAccount(studioId: UUID) async throws -> PayoutAccount {
         let response: PayoutAccountResponse = try await invoke("payout-account", [
             "studio_id": .string(studioId.uuidString),

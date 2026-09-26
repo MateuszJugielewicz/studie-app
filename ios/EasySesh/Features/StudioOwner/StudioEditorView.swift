@@ -538,9 +538,14 @@ struct PayoutAccountEditor: View {
     var prepare: (() async throws -> Void)? = nil
     @State private var account: PayoutAccount?
     @State private var holder = ""
-    @State private var saved = false
+    @State private var iban = ""
+    @State private var editingBank = false
+    @State private var isSavingBank = false
     @State private var isOpeningStripe = false
     @State private var error: String?
+
+    private var hasBank: Bool { !(account?.ibanLast4.isEmpty ?? true) }
+    private var ibanIsValid: Bool { StripeBankTokenizer.isValidIBAN(iban) }
 
     var body: some View {
         Form {
@@ -548,26 +553,68 @@ struct PayoutAccountEditor: View {
                 if let account, account.payoutsEnabled {
                     Label(account.ibanLast4.isEmpty ? L10n.tr("Payouts enabled") : L10n.format("Payouts enabled to •••• %@", account.ibanLast4), systemImage: "checkmark.seal.fill")
                         .foregroundStyle(Theme.positive)
+                } else if hasBank {
+                    Label("Bank added – confirm your identity to receive payouts", systemImage: "person.badge.shield.checkmark")
+                        .foregroundStyle(Theme.warning)
                 } else {
                     Label("Payouts not set up yet", systemImage: "exclamationmark.triangle").foregroundStyle(Theme.warning)
                 }
-                TextField("Account holder / company name", text: $holder)
             } footer: {
                 Text(L10n.format("You're paid only after a session is completed: payouts are sent %lld days after each completed session, minus EasySesh's %lld%% platform fee. Platform fees for cash bookings are deducted from the same payouts.", PlatformConfig.payoutDelayDays, app.ownedStudio?.feePercent ?? PlatformConfig.platformFeePercent))
             }
+
             Section {
-                Button(LocalizedStringKey(saved ? "Saved" : "Save")) { save() }
-                    .disabled(holder.isEmpty)
-            }
-            Section {
-                Button {
-                    openStripe()
-                } label: {
-                    Label(isOpeningStripe ? "Opening…" : (account?.payoutsEnabled == true ? "Update bank details" : "Connect bank account"), systemImage: "building.columns")
+                if hasBank && !editingBank, let account {
+                    HStack {
+                        Label { Text(L10n.format("Bank account •••• %@", account.ibanLast4)) } icon: { Image(systemName: "building.columns.fill") }
+                        Spacer()
+                        Button("Change") { editingBank = true }
+                    }
+                    if !account.accountHolder.isEmpty {
+                        Text(account.accountHolder).font(.footnote).foregroundStyle(.secondary)
+                    }
+                } else {
+                    TextField("Account holder / company name", text: $holder)
+                        .textContentType(.name)
+                    TextField("IBAN, e.g. DK50 0040 0440 1162 43", text: $iban)
+                        .textInputAutocapitalization(.characters)
+                        .autocorrectionDisabled()
+                        .keyboardType(.asciiCapable)
+                        .font(.body.monospaced())
+                    if !iban.isEmpty && !ibanIsValid {
+                        Text("Check the IBAN – it doesn't look right yet.").font(.footnote).foregroundStyle(Theme.warning)
+                    }
+                    Button {
+                        saveBank()
+                    } label: {
+                        Label(isSavingBank ? "Saving…" : "Save bank account", systemImage: "lock.fill")
+                    }
+                    .disabled(isSavingBank || holder.trimmingCharacters(in: .whitespaces).isEmpty || !ibanIsValid)
+                    if hasBank {
+                        Button("Cancel", role: .cancel) { editingBank = false; iban = "" }
+                    }
                 }
-                .disabled(isOpeningStripe)
+            } header: {
+                Text("Bank account")
             } footer: {
-                Text("Bank details and identity checks are handled securely by Stripe, our payment provider.")
+                Text("Your bank details go straight to Stripe, our payment provider. EasySesh only keeps the last 4 digits.")
+            }
+
+            Section {
+                if account?.payoutsEnabled == true {
+                    Label("Identity confirmed", systemImage: "checkmark.shield.fill").foregroundStyle(Theme.positive)
+                } else {
+                    Button {
+                        openStripe()
+                    } label: {
+                        Label(isOpeningStripe ? "Opening…" : "Confirm identity", systemImage: "person.text.rectangle")
+                    }
+                    .disabled(isOpeningStripe || !hasBank)
+                }
+            } header: {
+                Text("Identity check")
+            } footer: {
+                Text("Required by law once: Stripe confirms who you are (name, date of birth, address and sometimes a photo ID). It opens right here in the app.")
             }
         }
         .easyseshGrouped()
@@ -580,16 +627,22 @@ struct PayoutAccountEditor: View {
     private func load() async {
         account = try? await app.backend.payoutAccount(studioId: studioId)
         if holder.isEmpty { holder = account?.accountHolder ?? "" }
+        if account?.stripeAccountId != nil, let synced = try? await app.backend.syncPayoutAccount(studioId: studioId) {
+            account = synced
+        }
     }
 
-    private func save() {
+    private func saveBank() {
+        isSavingBank = true
         Task {
+            defer { isSavingBank = false }
             do {
                 try await prepare?()
-                var updated = account ?? PayoutAccount(studioId: studioId, accountHolder: holder, ibanLast4: "", stripeAccountId: nil, payoutsEnabled: false)
-                updated.accountHolder = holder
-                account = try await app.backend.savePayoutAccount(updated, iban: nil)
-                saved = true
+                let name = holder.trimmingCharacters(in: .whitespaces)
+                let token = try await StripeBankTokenizer.token(iban: iban, holder: name)
+                account = try await app.backend.savePayoutBank(studioId: studioId, holder: name, bankToken: token)
+                iban = ""
+                editingBank = false
             } catch { self.error = error.userMessage }
         }
     }

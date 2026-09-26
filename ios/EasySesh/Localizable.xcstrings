@@ -7199,6 +7199,183 @@
         }
       }
     },
+    "Bank account": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bankkonto"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bankkonto"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Τραπεζικός λογαριασμός"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cuenta bancaria"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compte bancaire"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conto bancario"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bankrekening"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Konto bankowe"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bankkonto"
+          }
+        }
+      }
+    },
+    "Bank account •••• %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bankkonto •••• %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bankkonto •••• %@"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Τραπεζικός λογαριασμός •••• %@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cuenta bancaria •••• %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compte bancaire •••• %@"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conto bancario •••• %@"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bankrekening •••• %@"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Konto bankowe •••• %@"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bankkonto •••• %@"
+          }
+        }
+      }
+    },
+    "Bank added – confirm your identity to receive payouts": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bank tilføjet – bekræft din identitet for at modtage udbetalinger"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bank hinzugefügt – bestätige deine Identität, um Auszahlungen zu erhalten"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Η τράπεζα προστέθηκε – επιβεβαίωσε την ταυτότητά σου για να λαμβάνεις πληρωμές"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Banco añadido – confirma tu identidad para recibir pagos"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Banque ajoutée – confirme ton identité pour recevoir les virements"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Banca aggiunta – conferma la tua identità per ricevere i pagamenti"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bank toegevoegd – bevestig je identiteit om uitbetalingen te ontvangen"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bank dodany – potwierdź tożsamość, aby otrzymywać wypłaty"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bank tillagd – bekräfta din identitet för att få utbetalningar"
+          }
+        }
+      }
+    },
     "Bank details": {
       "extractionState": "manual",
       "localizations": {
@@ -10149,6 +10326,65 @@
         }
       }
     },
+    "Change": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skift"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ändern"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Αλλαγή"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cambiar"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modifier"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cambia"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wijzigen"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zmień"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ändra"
+          }
+        }
+      }
+    },
     "Change booking": {
       "extractionState": "manual",
       "localizations": {
@@ -10853,6 +11089,65 @@
           "stringUnit": {
             "state": "translated",
             "value": "Checka in i appen när du kommer. EasySesh rekommenderar det: det skyddar dig mot bedrägeri och hjälper oss att lösa eventuella problem."
+          }
+        }
+      }
+    },
+    "Check the IBAN – it doesn't look right yet.": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tjek IBAN – det ser ikke rigtigt ud endnu."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prüfe die IBAN – sie sieht noch nicht richtig aus."
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Έλεγξε το IBAN – δεν φαίνεται σωστό ακόμα."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Revisa el IBAN – aún no parece correcto."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vérifie l'IBAN – il ne semble pas encore correct."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Controlla l'IBAN – non sembra ancora corretto."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Controleer de IBAN – die klopt nog niet."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sprawdź IBAN – jeszcze nie wygląda poprawnie."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kontrollera IBAN – det ser inte rätt ut än."
           }
         }
       }
@@ -12328,6 +12623,65 @@
           "stringUnit": {
             "state": "translated",
             "value": "Genomförd"
+          }
+        }
+      }
+    },
+    "Confirm identity": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bekræft identitet"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Identität bestätigen"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Επιβεβαίωση ταυτότητας"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirmar identidad"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirmer l'identité"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conferma identità"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Identiteit bevestigen"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Potwierdź tożsamość"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bekräfta identitet"
           }
         }
       }
@@ -22122,6 +22476,183 @@
           "stringUnit": {
             "state": "translated",
             "value": "Jag jobbade med en tekniker/producent"
+          }
+        }
+      }
+    },
+    "IBAN, e.g. DK50 0040 0440 1162 43": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "IBAN, fx DK50 0040 0440 1162 43"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "IBAN, z. B. DK50 0040 0440 1162 43"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "IBAN, π.χ. DK50 0040 0440 1162 43"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "IBAN, p. ej. DK50 0040 0440 1162 43"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "IBAN, ex. DK50 0040 0440 1162 43"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "IBAN, es. DK50 0040 0440 1162 43"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "IBAN, bijv. DK50 0040 0440 1162 43"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "IBAN, np. DK50 0040 0440 1162 43"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "IBAN, t.ex. DK50 0040 0440 1162 43"
+          }
+        }
+      }
+    },
+    "Identity check": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Identitetstjek"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Identitätsprüfung"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Έλεγχος ταυτότητας"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verificación de identidad"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vérification d'identité"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verifica dell'identità"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Identiteitscontrole"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weryfikacja tożsamości"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Identitetskontroll"
+          }
+        }
+      }
+    },
+    "Identity confirmed": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Identitet bekræftet"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Identität bestätigt"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Η ταυτότητα επιβεβαιώθηκε"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Identidad confirmada"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Identité confirmée"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Identità confermata"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Identiteit bevestigd"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tożsamość potwierdzona"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Identitet bekräftad"
           }
         }
       }
@@ -38764,6 +39295,65 @@
         }
       }
     },
+    "Required by law once: Stripe confirms who you are (name, date of birth, address and sometimes a photo ID). It opens right here in the app.": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kræves ved lov én gang: Stripe bekræfter, hvem du er (navn, fødselsdato, adresse og nogle gange billed-ID). Det åbner her i appen."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Einmal gesetzlich vorgeschrieben: Stripe bestätigt, wer du bist (Name, Geburtsdatum, Adresse und manchmal ein Lichtbildausweis). Es öffnet sich direkt hier in der App."
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Απαιτείται μία φορά από τον νόμο: η Stripe επιβεβαιώνει ποιος είσαι (όνομα, ημερομηνία γέννησης, διεύθυνση και μερικές φορές ταυτότητα με φωτογραφία). Ανοίγει εδώ μέσα στην εφαρμογή."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Obligatorio una vez por ley: Stripe confirma quién eres (nombre, fecha de nacimiento, dirección y a veces un documento con foto). Se abre aquí en la app."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Obligatoire une fois : Stripe confirme ton identité (nom, date de naissance, adresse et parfois une pièce d'identité). Ça s'ouvre ici dans l'app."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Richiesto una volta per legge: Stripe conferma chi sei (nome, data di nascita, indirizzo e a volte un documento con foto). Si apre qui nell'app."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eenmalig wettelijk verplicht: Stripe bevestigt wie je bent (naam, geboortedatum, adres en soms een identiteitsbewijs). Het opent hier in de app."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wymagane prawem jednorazowo: Stripe potwierdza, kim jesteś (imię, data urodzenia, adres, czasem dokument ze zdjęciem). Otwiera się tutaj w aplikacji."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Krävs enligt lag en gång: Stripe bekräftar vem du är (namn, födelsedatum, adress och ibland fotolegitimation). Det öppnas här i appen."
+          }
+        }
+      }
+    },
     "Reset": {
       "extractionState": "manual",
       "localizations": {
@@ -39704,6 +40294,65 @@
           "stringUnit": {
             "state": "translated",
             "value": "Spara"
+          }
+        }
+      }
+    },
+    "Save bank account": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gem bankkonto"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bankkonto speichern"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Αποθήκευση λογαριασμού"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guardar cuenta bancaria"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enregistrer le compte"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salva conto bancario"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bankrekening opslaan"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zapisz konto bankowe"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spara bankkonto"
           }
         }
       }
@@ -54454,6 +55103,65 @@
           "stringUnit": {
             "state": "translated",
             "value": "Dina artister"
+          }
+        }
+      }
+    },
+    "Your bank details go straight to Stripe, our payment provider. EasySesh only keeps the last 4 digits.": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dine bankoplysninger går direkte til Stripe, vores betalingsudbyder. EasySesh gemmer kun de sidste 4 cifre."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deine Bankdaten gehen direkt an Stripe, unseren Zahlungsanbieter. EasySesh speichert nur die letzten 4 Ziffern."
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Τα τραπεζικά σου στοιχεία πηγαίνουν απευθείας στη Stripe, τον πάροχο πληρωμών μας. Το EasySesh κρατά μόνο τα 4 τελευταία ψηφία."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tus datos bancarios van directamente a Stripe, nuestro proveedor de pagos. EasySesh solo guarda los 4 últimos dígitos."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tes coordonnées bancaires vont directement à Stripe, notre prestataire de paiement. EasySesh ne garde que les 4 derniers chiffres."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I tuoi dati bancari vanno direttamente a Stripe, il nostro fornitore di pagamenti. EasySesh conserva solo le ultime 4 cifre."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Je bankgegevens gaan rechtstreeks naar Stripe, onze betaalprovider. EasySesh bewaart alleen de laatste 4 cijfers."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Twoje dane bankowe trafiają bezpośrednio do Stripe, naszego operatora płatności. EasySesh zapisuje tylko 4 ostatnie cyfry."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dina bankuppgifter går direkt till Stripe, vår betalleverantör. EasySesh sparar bara de sista 4 siffrorna."
           }
         }
       }

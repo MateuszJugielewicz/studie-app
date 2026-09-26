@@ -466,6 +466,9 @@ final class MockBackend: Backend {
     }
 
     func payoutOnboardingURL(studioId: UUID) async throws -> URL? { nil }
+    func savePayoutBank(studioId: UUID, holder: String, bankToken: String) async throws -> PayoutAccount {
+        try await savePayoutAccount(PayoutAccount(studioId: studioId, accountHolder: holder, ibanLast4: "0000", stripeAccountId: nil, payoutsEnabled: false), iban: nil)
+    }
     func syncPayoutAccount(studioId: UUID) async throws -> PayoutAccount {
         try await payoutAccount(studioId: studioId) ?? PayoutAccount(studioId: studioId, accountHolder: "", ibanLast4: "", stripeAccountId: nil, payoutsEnabled: false)
     }

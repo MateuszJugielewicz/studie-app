@@ -44,7 +44,8 @@ Deno.serve(handler(async (req, body) => {
 
   // The connected account, if it still exists in this Stripe mode (test and live keys see different accounts).
   let connected: Stripe.Account | null = null;
-  if (account.stripe_account_id && (body.action === "onboarding_link" || body.action === "sync")) {
+  const needsStripe = body.action === "onboarding_link" || body.action === "sync" || body.action === "bank";
+  if (account.stripe_account_id && needsStripe) {
     try {
       connected = await stripe.accounts.retrieve(account.stripe_account_id);
       if ((connected as { deleted?: boolean }).deleted) connected = null;
@@ -52,37 +53,46 @@ Deno.serve(handler(async (req, body) => {
       connected = null;
     }
     if (connected) Object.assign(account, payoutState(connected));
-    else if (body.action === "onboarding_link") Object.assign(account, { stripe_account_id: null, payouts_enabled: false, iban_last4: "" });
+    else if (body.action !== "sync") Object.assign(account, { stripe_account_id: null, payouts_enabled: false, iban_last4: "" });
   }
 
   let onboardingUrl: string | null = null;
+  if ((body.action === "onboarding_link" || body.action === "bank") && !connected) {
+    const { data: full } = await admin.from("studios").select("address, contact").eq("id", studio.id).single();
+    connected = await stripeCall(() => stripe.accounts.create({
+      type: "express",
+      country: countryCode(full?.address?.country),
+      email: full?.contact?.email || user.email,
+      business_profile: { name: studio.name || undefined, mcc: "7929", product_description: "Recording studio sessions booked via EasySesh" },
+      capabilities: { transfers: { requested: true } },
+      metadata: { studio_id: studio.id },
+    }));
+    account.stripe_account_id = connected.id;
+  }
+
+  if (body.action === "bank") {
+    // Bank details typed in the app. The app turns them into a Stripe token first, so the
+    // number itself never reaches our servers.
+    const token = requireString(body, "bank_token");
+    const bank = await stripeCall(() => stripe.accounts.createExternalAccount(connected!.id, {
+      external_account: token,
+      default_for_currency: true,
+    })) as Stripe.BankAccount;
+    connected = await stripeCall(() => stripe.accounts.retrieve(connected!.id));
+    Object.assign(account, payoutState(connected), { iban_last4: bank.last4 ?? account.iban_last4 });
+  }
+
   if (body.action === "onboarding_link") {
-    if (!connected) {
-      const { data: full } = await admin.from("studios").select("address, contact").eq("id", studio.id).single();
-      connected = await stripeCall(() => stripe.accounts.create({
-        type: "express",
-        country: countryCode(full?.address?.country),
-        email: full?.contact?.email || user.email,
-        business_profile: { name: studio.name || undefined, mcc: "7929", product_description: "Recording studio sessions booked via EasySesh" },
-        capabilities: { transfers: { requested: true } },
-        metadata: { studio_id: studio.id },
-      }));
-      account.stripe_account_id = connected.id;
-    }
-    if (connected.details_submitted) {
-      // Already onboarded: Stripe's Express dashboard is where bank details are changed.
-      const login = await stripeCall(() => stripe.accounts.createLoginLink(connected!.id));
-      onboardingUrl = login.url;
-    } else {
-      const back = `${Deno.env.get("SUPABASE_URL")}/functions/v1/payout-return`;
-      const link = await stripeCall(() => stripe.accountLinks.create({
-        account: connected!.id,
-        type: "account_onboarding",
-        refresh_url: `${back}?to=refresh`,
-        return_url: `${back}?to=done`,
-      }));
-      onboardingUrl = link.url;
-    }
+    // Stripe's identity check (name, birth date, address, ID). The bank is added in the app, so
+    // Stripe skips that step once a bank account is on file.
+    const back = `${Deno.env.get("SUPABASE_URL")}/functions/v1/payout-return`;
+    const link = await stripeCall(() => stripe.accountLinks.create({
+      account: connected!.id,
+      type: "account_onboarding",
+      refresh_url: `${back}?to=refresh`,
+      return_url: `${back}?to=done`,
+    }));
+    onboardingUrl = link.url;
   }
 
   const { data: saved, error } = await admin.from("studio_payout_accounts")
