@@ -3845,7 +3845,7 @@ grant execute on all functions in schema public to authenticated, service_role;
 revoke execute on function public.notify, public.booking_system_message, public.call_edge_function,
   public.notify_payment_problem, public.add_support_message, public.activate_promotion,
   public.expire_promotions, public.create_fee_invoices, public.run_fee_enforcement,
-  public.refresh_artist_rating from anon, authenticated;
+  public.refresh_artist_rating, public.lift_expired_moderation from anon, authenticated;
 
 -- =====================================================================
 -- LAST STEP (run separately, with your own values):
