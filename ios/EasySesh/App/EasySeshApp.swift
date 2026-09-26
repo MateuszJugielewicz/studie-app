@@ -8,6 +8,9 @@ struct EasySeshApp: App {
     /// The animated "easysesh" splash stays up until the app has loaded (and at least long
     /// enough for its animation to play), then fades out while the app fades in.
     @State private var showSplash = true
+    /// Drives the cross-fade: the app underneath is already rendered (and loading its data) while
+    /// the splash is on top, then the splash fades out as the app settles into place.
+    @State private var revealed = false
 
     init() {
         NavigationAppearance.apply()
@@ -24,12 +27,14 @@ struct EasySeshApp: App {
                     }
                 }
                 .animation(.smooth(duration: 0.5), value: preferences.hasSeenIntro)
-                .opacity(showSplash ? 0 : 1)
-                .scaleEffect(showSplash ? 0.97 : 1)
+                .scaleEffect(revealed ? 1 : 1.04)
+                .allowsHitTesting(revealed)
 
                 if showSplash {
                     AnimatedSplashView()
-                        .transition(.opacity.combined(with: .scale(scale: 1.06)))
+                        .opacity(revealed ? 0 : 1)
+                        .scaleEffect(revealed ? 1.08 : 1)
+                        .allowsHitTesting(!revealed)
                         .zIndex(1)
                 }
             }
@@ -45,9 +50,14 @@ struct EasySeshApp: App {
                 let started = Date.now
                 await appState.bootstrap()
                 // Let the splash animation finish even when loading is instant.
-                let remaining = 1.4 - Date.now.timeIntervalSince(started)
-                if remaining > 0 { try? await Task.sleep(for: .seconds(remaining)) }
-                withAnimation(.easeInOut(duration: 0.65)) { showSplash = false }
+                // The first screen is now built underneath and fetching its data; give it a moment
+                // so it's filled in before it's revealed.
+                let remaining = max(1.4 - Date.now.timeIntervalSince(started), 0.5)
+                try? await Task.sleep(for: .seconds(remaining))
+                withAnimation(.easeInOut(duration: 0.8)) { revealed = true }
+                try? await Task.sleep(for: .seconds(0.85))
+                showSplash = false
+                appState.launchFinished = true
             }
             .onOpenURL { url in
                 Task { await appState.openAuthLink(url) }
@@ -89,13 +99,13 @@ struct RootView: View {
         }
         .animation(.smooth(duration: 0.45), value: app.account?.id)
         .sheet(item: Binding(
-            get: { app.isBootstrapping || app.needsTermsAcceptance ? nil : app.warnings.first },
+            get: { !app.launchFinished || app.needsTermsAcceptance ? nil : app.warnings.first },
             set: { _ in }
         )) { warning in
             NavigationStack { WarningSheet(warning: warning) }
         }
         .sheet(isPresented: Binding(
-            get: { !app.isBootstrapping && !app.needsTermsAcceptance && app.warnings.isEmpty && app.account?.role != .admin && !app.unseenChangelog.isEmpty },
+            get: { app.launchFinished && !app.needsTermsAcceptance && app.warnings.isEmpty && app.account?.role != .admin && !app.unseenChangelog.isEmpty },
             set: { if !$0 { app.markChangelogSeen() } }
         )) {
             WhatsNewSheet(entries: app.unseenChangelog)

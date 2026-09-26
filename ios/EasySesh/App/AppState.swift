@@ -28,6 +28,8 @@ final class AppState {
     var artistProfile: ArtistProfile?
     var ownedStudio: Studio?
     private(set) var isBootstrapping = true
+    /// True once the launch splash has faded out; pop-ups wait for it.
+    var launchFinished = false
 
     var selectedTab: AppTab = .discover
     /// Set after opening a password-reset link: the user must choose a new password.
