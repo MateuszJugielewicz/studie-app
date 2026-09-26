@@ -1,4 +1,4 @@
-import Stripe from "stripe";
+import Stripe from "npm:stripe@17.7.0";
 import { admin, loadBooking, loadStudio, updateBooking } from "./supabase.ts";
 import type { Booking, Profile } from "./types.ts";
 

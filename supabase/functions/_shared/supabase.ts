@@ -1,4 +1,4 @@
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2.49.4";
 import { HttpError } from "./http.ts";
 import type { Booking, Profile, Studio } from "./types.ts";
 

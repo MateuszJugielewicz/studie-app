@@ -1,7 +1,7 @@
 // Stripe → EasySesh. Configure the endpoint in Stripe with these events:
 // payment_intent.succeeded, payment_intent.amount_capturable_updated, payment_intent.payment_failed,
 // charge.refunded, account.updated, invoice.paid
-import Stripe from "stripe";
+import Stripe from "npm:stripe@17.7.0";
 import { admin } from "../_shared/supabase.ts";
 import { applyPaymentIntent, cryptoProvider, stripe } from "../_shared/stripe.ts";
 
