@@ -1,6 +1,7 @@
 import SwiftUI
 import PhotosUI
 import MapKit
+import AuthenticationServices
 
 /// Create or edit a studio listing. Used for the application and for later edits.
 struct StudioEditorView: View {
@@ -42,11 +43,12 @@ struct StudioEditorView: View {
                 editorLink("Facilities, gear & genres", "slider.vertical.3", done: !studio.genres.isEmpty && !studio.facilities.isEmpty) {
                     StudioFeaturesEditor(studio: $studio)
                 }
-                editorLink("Rules & booking terms", "list.bullet.clipboard", done: true) {
+                editorLink("Booking settings & rules", "bolt.fill", done: true) {
                     StudioPolicyEditor(studio: $studio)
                 }
                 editorLink("Payout details", "building.columns", done: true) {
-                    PayoutAccountEditor(studioId: studio.id)
+                    // A new application isn't stored yet; save the draft before talking to Stripe.
+                    PayoutAccountEditor(studioId: studio.id, prepare: isApplication ? saveDraft : nil)
                 }
             }
 
@@ -77,6 +79,11 @@ struct StudioEditorView: View {
                 Image(systemName: done ? "checkmark.circle.fill" : "circle").foregroundStyle(done ? Theme.positive : Color.secondary)
             }
         }
+    }
+
+    /// Stores the application as a draft (not submitted) so its payout account can be linked to it.
+    private func saveDraft() async throws {
+        studio = try await app.backend.saveStudio(studio)
     }
 
     private func save() {
@@ -447,20 +454,6 @@ struct StudioPolicyEditor: View {
     var body: some View {
         Form {
             Section {
-                ForEach(studio.rules, id: \.self) { Text($0) }
-                    .onDelete { studio.rules.remove(atOffsets: $0) }
-                HStack {
-                    TextField("Add a rule", text: $newRule)
-                    Button("Add") {
-                        studio.rules.append(newRule.trimmingCharacters(in: .whitespaces))
-                        newRule = ""
-                    }
-                    .disabled(newRule.trimmingCharacters(in: .whitespaces).isEmpty)
-                }
-            } header: {
-                Text("House rules")
-            }
-            Section {
                 Picker("How artists book", selection: $studio.bookingPolicy.instantBook) {
                     Label("Instant booking", systemImage: "bolt.fill").tag(true)
                     Label("Request – I approve within 24 hours", systemImage: "hourglass").tag(false)
@@ -473,6 +466,20 @@ struct StudioPolicyEditor: View {
                 Text(studio.bookingPolicy.instantBook
                      ? LocalizedStringKey("Artists are confirmed immediately when they book.")
                      : LocalizedStringKey("You accept or decline each request within 24 hours; unanswered requests expire. Card payments are only charged when you accept."))
+            }
+            Section {
+                ForEach(studio.rules, id: \.self) { Text($0) }
+                    .onDelete { studio.rules.remove(atOffsets: $0) }
+                HStack {
+                    TextField("Add a rule", text: $newRule)
+                    Button("Add") {
+                        studio.rules.append(newRule.trimmingCharacters(in: .whitespaces))
+                        newRule = ""
+                    }
+                    .disabled(newRule.trimmingCharacters(in: .whitespaces).isEmpty)
+                }
+            } header: {
+                Text("House rules")
             }
             Section {
                 Picker("Cancellation policy", selection: $studio.bookingPolicy.cancellationPolicy) {
@@ -520,14 +527,15 @@ struct StudioPolicyEditor: View {
             }
         }
         .easyseshGrouped()
-        .navigationTitle("Rules & terms")
+        .navigationTitle("Booking settings")
     }
 }
 
 struct PayoutAccountEditor: View {
     @Environment(AppState.self) private var app
-    @Environment(\.openURL) private var openURL
+    @Environment(\.webAuthenticationSession) private var webAuthenticationSession
     let studioId: UUID
+    var prepare: (() async throws -> Void)? = nil
     @State private var account: PayoutAccount?
     @State private var holder = ""
     @State private var saved = false
@@ -577,6 +585,7 @@ struct PayoutAccountEditor: View {
     private func save() {
         Task {
             do {
+                try await prepare?()
                 var updated = account ?? PayoutAccount(studioId: studioId, accountHolder: holder, ibanLast4: "", stripeAccountId: nil, payoutsEnabled: false)
                 updated.accountHolder = holder
                 account = try await app.backend.savePayoutAccount(updated, iban: nil)
@@ -590,7 +599,15 @@ struct PayoutAccountEditor: View {
         Task {
             defer { isOpeningStripe = false }
             do {
-                if let url = try await app.backend.payoutOnboardingURL(studioId: studioId) { openURL(url) }
+                try await prepare?()
+                guard let url = try await app.backend.payoutOnboardingURL(studioId: studioId) else { return }
+                // Stripe's pages open inside the app; finishing sends easysesh://payouts/done, which closes them.
+                do {
+                    _ = try await webAuthenticationSession.authenticate(using: url, callbackURLScheme: "easysesh", preferredBrowserSession: .ephemeral)
+                } catch let error as ASWebAuthenticationSessionError where error.code == .canceledLogin {
+                    // Closed by the studio – still pick up whatever they finished.
+                }
+                account = try await app.backend.syncPayoutAccount(studioId: studioId)
             } catch { self.error = error.userMessage }
         }
     }

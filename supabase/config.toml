@@ -44,3 +44,7 @@ secret = "env(SUPABASE_AUTH_GOOGLE_SECRET)"
 # Stripe calls this without a Supabase JWT; the function verifies Stripe's signature instead.
 [functions.stripe-webhook]
 verify_jwt = false
+
+# Stripe redirects studios here after payout onboarding; it only bounces them back into the app.
+[functions.payout-return]
+verify_jwt = false

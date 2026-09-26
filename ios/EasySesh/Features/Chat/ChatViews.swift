@@ -609,6 +609,11 @@ struct MessageBubble: View {
 struct NotificationsView: View {
     @Environment(AppState.self) private var app
     @State private var confirmClear = false
+    /// Studios waiting for this artist to confirm a profile connection.
+    @State private var pendingLinks: Set<UUID> = []
+    @State private var linkRequest: AppNotification?
+    @State private var respondingTo: UUID?
+    @State private var error: String?
 
     var body: some View {
         let fresh = app.notifications.filter { !$0.isRead }
@@ -644,7 +649,21 @@ struct NotificationsView: View {
                 }
             }
             .animation(.spring(response: 0.4, dampingFraction: 0.85), value: app.notifications)
-            .task { await app.refreshBadges() }
+            .task {
+                await app.refreshBadges()
+                await loadPendingLinks()
+            }
+            .confirmationDialog(Text(localized: linkRequest.map { $0.title } ?? ""), isPresented: Binding(get: { linkRequest != nil }, set: { if !$0 { linkRequest = nil } }), titleVisibility: .visible, presenting: linkRequest) { note in
+                Button("Connect") { respond(note, accept: true) }
+                Button("Decline", role: .destructive) { respond(note, accept: false) }
+                if let studioId = note.studioId {
+                    Button("View studio") { app.open(.studio(studioId)) }
+                }
+                Button("Cancel", role: .cancel) {}
+            } message: { note in
+                Text(note.body)
+            }
+            .errorAlert($error)
             .confirmationDialog("Delete all notifications?", isPresented: $confirmClear, titleVisibility: .visible) {
                 Button("Delete all", role: .destructive) { Task { await app.deleteAllNotifications() } }
             }
@@ -654,7 +673,8 @@ struct NotificationsView: View {
     private func row(_ note: AppNotification) -> some View {
         Button {
             Task { await app.markNotificationRead(note) }
-            if let link = link(for: note) { app.open(link) }
+            if isLinkRequest(note) { linkRequest = note }
+            else if let link = link(for: note) { app.open(link) }
         } label: {
             HStack(alignment: .top, spacing: 12) {
                 IconTile(symbol: note.kind.symbol, size: 40, colors: note.isRead ? TilePalette.muted : palette(for: note.kind))
@@ -665,6 +685,11 @@ struct NotificationsView: View {
                         Text(note.createdAt.formatted(.relative(presentation: .named))).font(.caption2).foregroundStyle(.tertiary)
                     }
                     Text(note.body).font(.subheadline).foregroundStyle(.secondary).lineLimit(3)
+                    if isLinkRequest(note) {
+                        Label(respondingTo == note.studioId ? "Saving…" : "Tap to connect or decline", systemImage: "hand.tap.fill")
+                            .font(.caption.weight(.semibold)).foregroundStyle(Theme.accent)
+                            .padding(.top, 4)
+                    }
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -688,6 +713,30 @@ struct NotificationsView: View {
         case .newMessage: TilePalette.ocean
         case .newReview, .reviewReminder: [Theme.warning, Theme.accent]
         default: TilePalette.signal
+        }
+    }
+
+    private func isLinkRequest(_ note: AppNotification) -> Bool {
+        guard let studioId = note.studioId, note.bookingId == nil, note.conversationId == nil else { return false }
+        return pendingLinks.contains(studioId)
+    }
+
+    private func loadPendingLinks() async {
+        guard let account = app.account, account.role == .artist,
+              let links = try? await app.backend.artistStudioLinks(artistId: account.id) else { return }
+        pendingLinks = Set(links.filter { !$0.isAccepted }.map(\.studioId))
+    }
+
+    private func respond(_ note: AppNotification, accept: Bool) {
+        guard let studioId = note.studioId else { return }
+        respondingTo = studioId
+        Task {
+            defer { respondingTo = nil }
+            do {
+                try await app.backend.respondStudioArtistLink(studioId: studioId, accept: accept)
+                pendingLinks.remove(studioId)
+                await app.markNotificationRead(note)
+            } catch { self.error = error.userMessage }
         }
     }
 

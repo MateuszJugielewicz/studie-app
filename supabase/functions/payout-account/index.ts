@@ -1,9 +1,36 @@
 // Studio payout setup with Stripe Connect Express. Bank details are entered on Stripe's hosted pages.
+import type Stripe from "npm:stripe@17.7.0";
 import { handler, HttpError, json, requireString } from "../_shared/http.ts";
 import { admin, loadStudio, requireUser } from "../_shared/supabase.ts";
 import { stripe } from "../_shared/stripe.ts";
 
-const COUNTRY_CODES: Record<string, string> = { greece: "GR", denmark: "DK", sweden: "SE", norway: "NO", germany: "DE", "united kingdom": "GB" };
+const COUNTRY_CODES: Record<string, string> = {
+  greece: "GR", denmark: "DK", danmark: "DK", sweden: "SE", sverige: "SE", norway: "NO", norge: "NO",
+  germany: "DE", deutschland: "DE", "united kingdom": "GB", france: "FR", spain: "ES", italy: "IT",
+  netherlands: "NL", poland: "PL", polska: "PL",
+};
+
+function countryCode(value: unknown): string {
+  const raw = String(value ?? "").trim();
+  if (/^[A-Za-z]{2}$/.test(raw)) return raw.toUpperCase();
+  return COUNTRY_CODES[raw.toLowerCase()] ?? "GR";
+}
+
+/** Stripe errors carry a readable message; show it instead of a generic failure. */
+async function stripeCall<T>(work: () => Promise<T>): Promise<T> {
+  try {
+    return await work();
+  } catch (error) {
+    if (error instanceof HttpError) throw error;
+    const message = (error as { message?: string })?.message ?? "Stripe request failed.";
+    throw new HttpError(400, `Stripe: ${message}`);
+  }
+}
+
+function payoutState(account: Stripe.Account) {
+  const bank = account.external_accounts?.data.find((a) => a.object === "bank_account") as Stripe.BankAccount | undefined;
+  return { payouts_enabled: account.payouts_enabled ?? false, iban_last4: bank?.last4 ?? "" };
+}
 
 Deno.serve(handler(async (req, body) => {
   const user = await requireUser(req);
@@ -11,32 +38,51 @@ Deno.serve(handler(async (req, body) => {
   if (studio.owner_id !== user.id) throw new HttpError(403, "forbidden");
 
   const { data: existing } = await admin.from("studio_payout_accounts").select("*").eq("studio_id", studio.id).maybeSingle();
-  let account = existing ?? { studio_id: studio.id, account_holder: "", iban_last4: "", stripe_account_id: null, payouts_enabled: false };
+  const account = existing ?? { studio_id: studio.id, account_holder: "", iban_last4: "", stripe_account_id: null, payouts_enabled: false };
 
   if (typeof body.account_holder === "string") account.account_holder = body.account_holder.slice(0, 200);
 
+  // The connected account, if it still exists in this Stripe mode (test and live keys see different accounts).
+  let connected: Stripe.Account | null = null;
+  if (account.stripe_account_id && (body.action === "onboarding_link" || body.action === "sync")) {
+    try {
+      connected = await stripe.accounts.retrieve(account.stripe_account_id);
+      if ((connected as { deleted?: boolean }).deleted) connected = null;
+    } catch {
+      connected = null;
+    }
+    if (connected) Object.assign(account, payoutState(connected));
+    else if (body.action === "onboarding_link") Object.assign(account, { stripe_account_id: null, payouts_enabled: false, iban_last4: "" });
+  }
+
   let onboardingUrl: string | null = null;
   if (body.action === "onboarding_link") {
-    if (!account.stripe_account_id) {
+    if (!connected) {
       const { data: full } = await admin.from("studios").select("address, contact").eq("id", studio.id).single();
-      const country = COUNTRY_CODES[String(full?.address?.country ?? "").toLowerCase()] ?? "GR";
-      const connected = await stripe.accounts.create({
+      connected = await stripeCall(() => stripe.accounts.create({
         type: "express",
-        country,
+        country: countryCode(full?.address?.country),
         email: full?.contact?.email || user.email,
-        business_profile: { name: studio.name, mcc: "7929", product_description: "Recording studio sessions booked via EasySesh" },
+        business_profile: { name: studio.name || undefined, mcc: "7929", product_description: "Recording studio sessions booked via EasySesh" },
         capabilities: { transfers: { requested: true } },
         metadata: { studio_id: studio.id },
-      });
+      }));
       account.stripe_account_id = connected.id;
     }
-    const link = await stripe.accountLinks.create({
-      account: account.stripe_account_id!,
-      type: "account_onboarding",
-      refresh_url: `${Deno.env.get("PUBLIC_SITE_URL") ?? "https://easysesh.app"}/payouts/refresh`,
-      return_url: `${Deno.env.get("PUBLIC_SITE_URL") ?? "https://easysesh.app"}/payouts/done`,
-    });
-    onboardingUrl = link.url;
+    if (connected.details_submitted) {
+      // Already onboarded: Stripe's Express dashboard is where bank details are changed.
+      const login = await stripeCall(() => stripe.accounts.createLoginLink(connected!.id));
+      onboardingUrl = login.url;
+    } else {
+      const back = `${Deno.env.get("SUPABASE_URL")}/functions/v1/payout-return`;
+      const link = await stripeCall(() => stripe.accountLinks.create({
+        account: connected!.id,
+        type: "account_onboarding",
+        refresh_url: `${back}?to=refresh`,
+        return_url: `${back}?to=done`,
+      }));
+      onboardingUrl = link.url;
+    }
   }
 
   const { data: saved, error } = await admin.from("studio_payout_accounts")

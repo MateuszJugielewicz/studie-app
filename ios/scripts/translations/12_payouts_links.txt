@@ -1,0 +1,6 @@
+# en | da | de | pl | el | fr | es | it | sv | nl
+# Booking settings tile, connection requests in the inbox
+Booking settings | Booking-indstillinger | Buchungseinstellungen | Ustawienia rezerwacji | Ρυθμίσεις κρατήσεων | Paramètres de réservation | Ajustes de reserva | Impostazioni prenotazione | Bokningsinställningar | Boekingsinstellingen
+Booking settings & rules | Booking-indstillinger og regler | Buchungseinstellungen & Regeln | Ustawienia rezerwacji i zasady | Ρυθμίσεις κρατήσεων & κανόνες | Réservation & règles | Ajustes de reserva y normas | Prenotazione e regole | Bokningsinställningar & regler | Boekingsinstellingen & regels
+You approve (24h) | Du godkender (24 t) | Du bestätigst (24 Std.) | Ty zatwierdzasz (24 h) | Εγκρίνεις εσύ (24ω) | Tu valides (24 h) | Tú apruebas (24 h) | Approvi tu (24 h) | Du godkänner (24 h) | Jij keurt goed (24 u)
+Tap to connect or decline | Tryk for at forbinde eller afvise | Tippen zum Verbinden oder Ablehnen | Stuknij, aby połączyć lub odrzucić | Πάτησε για σύνδεση ή απόρριψη | Touche pour accepter ou refuser | Toca para conectar o rechazar | Tocca per collegare o rifiutare | Tryck för att koppla eller avböja | Tik om te koppelen of te weigeren

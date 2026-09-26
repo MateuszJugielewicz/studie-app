@@ -834,6 +834,9 @@ struct StudioSettingsView: View {
                         tile("Opening hours", "When you're bookable", "clock.fill", TilePalette.ocean) {
                             StudioSectionEditor(title: "Opening hours") { OpeningHoursEditor(hours: $0.openingHours) }
                         }
+                        tile("Booking settings", studio.bookingPolicy.instantBook ? "Instant booking" : "You approve (24h)", "bolt.fill", [Theme.warning, Theme.accent]) {
+                            StudioSectionEditor(title: "Booking settings") { StudioPolicyEditor(studio: $0) }
+                        }
                         tile("Promote", studio.isPromoted ? "Promoted now" : "Top of search", "megaphone.fill", TilePalette.signal) { PromotionView(studio: studio) }
                         tile("Artist profile", "Connect yours", "link", TilePalette.violet) { StudioArtistLinkView(studio: studio) }
                         tile("Payouts", "Bank details", "building.columns.fill", TilePalette.mint) { PayoutAccountEditor(studioId: studio.id) }

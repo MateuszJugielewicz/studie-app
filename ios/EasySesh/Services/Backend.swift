@@ -93,6 +93,8 @@ protocol Backend: AnyObject {
     func savePayoutAccount(_ account: PayoutAccount, iban: String?) async throws -> PayoutAccount
     /// Hosted onboarding link where the studio adds bank details (Stripe Connect).
     func payoutOnboardingURL(studioId: UUID) async throws -> URL?
+    /// Re-reads the payout status from Stripe (after the studio returns from Stripe's pages).
+    func syncPayoutAccount(studioId: UUID) async throws -> PayoutAccount
     /// Occupied periods (bookings + blocks) used to compute availability.
     func busyIntervals(studioIds: [UUID], from: Date, to: Date) async throws -> [UUID: [DateInterval]]
     func blockedSlots(studioId: UUID) async throws -> [BlockedSlot]

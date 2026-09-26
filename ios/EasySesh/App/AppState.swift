@@ -110,6 +110,8 @@ final class AppState {
 
     /// Opens a link from an auth email (confirmation or password reset).
     func openAuthLink(_ url: URL) async {
+        // easysesh://payouts/… is Stripe onboarding returning; the payout screen handles it.
+        if url.host == "payouts" { return }
         guard let supabase = backend as? SupabaseBackend else { return }
         do {
             let isRecovery = try await supabase.completeAuthLink(url)

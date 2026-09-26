@@ -466,6 +466,9 @@ final class MockBackend: Backend {
     }
 
     func payoutOnboardingURL(studioId: UUID) async throws -> URL? { nil }
+    func syncPayoutAccount(studioId: UUID) async throws -> PayoutAccount {
+        try await payoutAccount(studioId: studioId) ?? PayoutAccount(studioId: studioId, accountHolder: "", ibanLast4: "", stripeAccountId: nil, payoutsEnabled: false)
+    }
 
     func busyIntervals(studioIds: [UUID], from: Date, to: Date) async throws -> [UUID: [DateInterval]] {
         let range = DateInterval(start: from, end: max(from, to))

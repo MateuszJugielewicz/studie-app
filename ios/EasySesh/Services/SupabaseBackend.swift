@@ -299,6 +299,14 @@ final class SupabaseBackend: Backend {
         return response.onboardingUrl.flatMap(URL.init(string:))
     }
 
+    func syncPayoutAccount(studioId: UUID) async throws -> PayoutAccount {
+        let response: PayoutAccountResponse = try await invoke("payout-account", [
+            "studio_id": .string(studioId.uuidString),
+            "action": .string("sync"),
+        ])
+        return response.account
+    }
+
     func busyIntervals(studioIds: [UUID], from: Date, to: Date) async throws -> [UUID: [DateInterval]] {
         struct Row: Decodable { let studioId: UUID; let startsAt: Date; let endsAt: Date }
         let rows: [Row] = try await rpc("studio_busy_intervals", [
