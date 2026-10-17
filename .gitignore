@@ -23,3 +23,10 @@ supabase/.branches/
 *.tsbuildinfo
 easysesh.zip
 easysesh-database-update.sql
+
+# Local build outputs and machine-specific files
+/easysesh.zip
+android/local.properties
+android/.gradle/
+android/build/
+android/app/build/
