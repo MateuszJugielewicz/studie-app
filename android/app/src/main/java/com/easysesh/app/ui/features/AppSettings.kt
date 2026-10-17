@@ -62,7 +62,7 @@ fun AppSettingsView() {
         }
 
         FormSection("Look & feel", footer = "Reduce visual effects turns off moving backgrounds and pulsing animations. It can also save battery.") {
-            FormPicker("Appearance", preferences.appearance, AppAppearance.entries, { it.title }, symbol = "circle.lefthalf.filled") { preferences.updateAppearance(it) }
+            FormPicker("Appearance", preferences.appearance, AppAppearance.entries, { it.title }, symbol = "circle.lefthalf.filled", iconColors = TilePalette.violet) { preferences.updateAppearance(it) }
             FormToggle("Reduce visual effects", preferences.reduceEffects, "sparkles", iconColors = TilePalette.signal) { preferences.updateReduceEffects(it) }
             FormToggle("Haptics", preferences.hapticsEnabled, "iphone.radiowaves.left.and.right", iconColors = TilePalette.mint) { preferences.updateHaptics(it) }
         }

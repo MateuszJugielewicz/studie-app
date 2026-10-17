@@ -32,11 +32,13 @@ Things only the owner can do. Details and steps are in `docs/APP_STORE_RELEASE.m
 ## Google (Android)
 - [ ] Google Play Console account (25 USD once).
 - [ ] Firebase project for push notifications → values in `android/local.properties` and the
-      Supabase secrets `FCM_PROJECT_ID`, `FCM_CLIENT_EMAIL`, `FCM_PRIVATE_KEY`.
+      Supabase secrets `FCM_PROJECT_ID`, `FCM_CLIENT_EMAIL`, `FCM_PRIVATE_KEY`, then redeploy `send-push`.
 - [ ] Google sign-in: OAuth client IDs (Web + Android with the app's SHA-1) in Google Cloud, and the
       Web client ID in Supabase → Authentication → Providers → Google.
 - [ ] Release signing key (keystore) – keep it safe, Play needs the same key for every update.
 - [ ] Play Console: privacy policy URL, Data safety form, content rating, screenshots, test account.
+- [ ] Test the Android app on a real phone (sign-in, booking + Google Pay, chat, push, payouts) –
+      it was only built and checked with on-computer screenshots so far.
 
 ## Review accounts (both stores)
 - [ ] Artist demo account and studio-owner demo account with an approved studio.

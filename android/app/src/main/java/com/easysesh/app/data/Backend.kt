@@ -8,7 +8,11 @@ import com.easysesh.app.core.PostgresDate
 import com.easysesh.app.core.PostgresJson
 import com.easysesh.app.model.*
 import io.github.jan.supabase.SupabaseClient
+import android.content.Context
+import com.russhwolf.settings.SharedPreferencesSettings
 import io.github.jan.supabase.auth.Auth
+import io.github.jan.supabase.auth.SettingsCodeVerifierCache
+import io.github.jan.supabase.auth.SettingsSessionManager
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.handleDeeplinks
 import io.github.jan.supabase.auth.providers.Apple
@@ -80,7 +84,7 @@ data class PaymentIntentInfo(
  * Everything the app needs from the server: Supabase Auth, Postgres (with row-level security),
  * Storage, Realtime and Edge Functions. A 1:1 port of the iOS app's SupabaseBackend.
  */
-class Backend {
+class Backend(context: Context) {
     val isConfigured = BuildConfig.SUPABASE_URL.isNotEmpty() && BuildConfig.SUPABASE_ANON_KEY.isNotEmpty()
 
     val client: SupabaseClient = createSupabaseClient(
@@ -91,6 +95,10 @@ class Backend {
         install(Auth) {
             scheme = REDIRECT_SCHEME
             host = REDIRECT_HOST
+            // Keeps the signed-in session in the app's own preferences.
+            val settings = SharedPreferencesSettings(context.getSharedPreferences("easysesh.auth", Context.MODE_PRIVATE))
+            sessionManager = SettingsSessionManager(settings)
+            codeVerifierCache = SettingsCodeVerifierCache(settings)
         }
         install(Postgrest)
         install(Realtime)

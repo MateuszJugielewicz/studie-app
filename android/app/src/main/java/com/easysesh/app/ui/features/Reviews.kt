@@ -225,7 +225,7 @@ fun ReportSheet(target: ReportTarget, targetId: String) {
         if (sent) {
             Column(Modifier.fillMaxWidth().padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 Box(Modifier.padding(top = 40.dp), contentAlignment = Alignment.Center) {
-                    Box(Modifier.size(110.dp).blur(20.dp).background(Theme.neon, CircleShape))
+                    Box(Modifier.size(110.dp).blur(20.dp, androidx.compose.ui.draw.BlurredEdgeTreatment.Unbounded).background(Theme.neon, CircleShape))
                     IconTile("checkmark.shield.fill", 84.dp, TilePalette.mint)
                 }
                 T("Thanks for letting us know", style = Type.title2.heavy, align = TextAlign.Center)

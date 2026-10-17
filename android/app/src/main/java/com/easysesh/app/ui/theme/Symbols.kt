@@ -17,6 +17,7 @@ object Symbols {
         "arrow.down.circle.fill" to Icons.Rounded.ArrowCircleDown,
         "arrow.down.doc.fill" to Icons.Rounded.Download,
         "arrow.right" to Icons.AutoMirrored.Rounded.ArrowForward,
+        "arrow.up" to Icons.Rounded.ArrowUpward,
         "arrow.triangle.turn.up.right.diamond" to Icons.Rounded.Directions,
         "arrow.triangle.turn.up.right.diamond.fill" to Icons.Rounded.Directions,
         "arrow.up.arrow.down" to Icons.Rounded.SwapVert,

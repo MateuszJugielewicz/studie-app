@@ -337,4 +337,4 @@ fun DataExportButton() {
 
 /** Small gradient icon used in settings rows. */
 @Composable
-fun SettingsIcon(symbol: String, colors: List<Color>) = IconTile(symbol, 28.dp, colors, Modifier.padding(end = 4.dp))
+fun SettingsIcon(symbol: String, colors: List<Color>) = IconTile(symbol, 30.dp, colors)

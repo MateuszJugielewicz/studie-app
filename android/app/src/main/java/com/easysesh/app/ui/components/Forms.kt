@@ -190,10 +190,10 @@ fun PlainTextField(
 
 /** A picker row: shows the selected value and opens a menu (iOS Picker in a Form). */
 @Composable
-fun <T> FormPicker(title: String, selection: T, options: List<T>, label: (T) -> String, translateOptions: Boolean = true, symbol: String? = null, onSelect: (T) -> Unit) {
+fun <T> FormPicker(title: String, selection: T, options: List<T>, label: (T) -> String, translateOptions: Boolean = true, symbol: String? = null, iconColors: List<Color>? = null, onSelect: (T) -> Unit) {
     var open by remember { mutableStateOf(false) }
     FormRow(onClick = { open = true }) {
-        RowLabel(title, symbol)
+        RowLabel(title, symbol, iconColors = iconColors)
         Box {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Txt(if (translateOptions) tr(label(selection)) else label(selection), style = Type.body, color = Theme.secondary, maxLines = 1)

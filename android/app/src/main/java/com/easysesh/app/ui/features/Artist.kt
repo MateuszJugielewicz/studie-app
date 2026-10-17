@@ -275,7 +275,7 @@ fun StatCard(title: String, value: String, symbol: String, colors: List<Color> =
 @Composable
 fun GlowingAvatar(url: String?, name: String, size: Dp, uploading: Boolean = false) {
     Box(contentAlignment = Alignment.Center) {
-        Box(Modifier.size(size + 20.dp).blur(18.dp).alpha(0.55f).background(Theme.neon, CircleShape))
+        Box(Modifier.size(size + 20.dp).blur(18.dp, androidx.compose.ui.draw.BlurredEdgeTreatment.Unbounded).alpha(0.55f).background(Theme.neon, CircleShape))
         Box(Modifier.shadow(10.dp, CircleShape).border(3.dp, Theme.neon, CircleShape).padding(4.dp), contentAlignment = Alignment.Center) {
             Avatar(url, name, size)
             if (uploading) {

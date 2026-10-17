@@ -126,7 +126,7 @@ fun ArtistPublicProfileView(artistId: String, initial: ArtistProfile?) {
             GlassCard(padding = 20.dp, cornerRadius = 26.dp) {
                 Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Box(contentAlignment = Alignment.Center) {
-                        Box(Modifier.size(124.dp).blur(18.dp).graphicsLayer { alpha = 0.5f }.background(Theme.neon, CircleShape))
+                        Box(Modifier.size(124.dp).blur(18.dp, androidx.compose.ui.draw.BlurredEdgeTreatment.Unbounded).graphicsLayer { alpha = 0.5f }.background(Theme.neon, CircleShape))
                         Avatar(p.avatarUrl, p.artistName, 104.dp, Modifier.padding(4.dp))
                         Box(Modifier.size(112.dp).border(3.dp, Theme.neon, CircleShape))
                     }

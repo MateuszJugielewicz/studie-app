@@ -30,3 +30,7 @@ android/local.properties
 android/.gradle/
 android/build/
 android/app/build/
+
+# Built Android apps
+*.apk
+*.aab

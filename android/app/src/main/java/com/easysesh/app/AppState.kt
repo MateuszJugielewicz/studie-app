@@ -42,7 +42,7 @@ data class AuthRoute(val mode: Mode, val role: UserRole) {
 
 /** App-wide state, the same as the iOS app's AppState. */
 class AppState(private val context: Context) {
-    val backend = Backend()
+    val backend = Backend(context)
     val preferences = AppPreferences(context)
     val location = LocationService(context)
     val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)

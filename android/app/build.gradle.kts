@@ -7,12 +7,20 @@ plugins {
     id("org.jetbrains.kotlin.plugin.serialization")
 }
 
-// Keys and IDs live in android/local.properties (not committed). See android/README.md.
+// Private keys and IDs live in android/local.properties (not committed). See android/README.md.
 val local = Properties().apply {
     val file = rootProject.file("local.properties")
     if (file.exists()) file.inputStream().use { load(it) }
 }
 fun config(name: String, default: String = ""): String = local.getProperty(name, default)
+
+// The public keys the iOS app ships with (ios/Config/App.xcconfig) are the defaults, so both apps
+// talk to the same backend without copying keys around.
+val iosConfig: Map<String, String> = rootProject.file("../ios/Config/App.xcconfig").takeIf { it.exists() }?.readLines()
+    ?.map { it.trim() }?.filter { !it.startsWith("//") && it.contains("=") }
+    ?.associate { line -> line.substringBefore("=").trim() to line.substringAfter("=").trim().replace("$()", "") }
+    ?: emptyMap()
+fun shared(name: String, iosKey: String): String = config(name, iosConfig[iosKey] ?: "")
 
 android {
     namespace = "com.easysesh.app"
@@ -25,11 +33,11 @@ android {
         versionCode = 1
         versionName = "1.0.0"
 
-        buildConfigField("String", "SUPABASE_URL", "\"${config("supabaseUrl", "https://gdebbieifsvspszmevwa.supabase.co")}\"")
-        buildConfigField("String", "SUPABASE_ANON_KEY", "\"${config("supabaseAnonKey")}\"")
-        buildConfigField("String", "STRIPE_PUBLISHABLE_KEY", "\"${config("stripePublishableKey")}\"")
+        buildConfigField("String", "SUPABASE_URL", "\"${shared("supabaseUrl", "EASYSESH_SUPABASE_URL").ifEmpty { "https://gdebbieifsvspszmevwa.supabase.co" }}\"")
+        buildConfigField("String", "SUPABASE_ANON_KEY", "\"${shared("supabaseAnonKey", "EASYSESH_SUPABASE_ANON_KEY")}\"")
+        buildConfigField("String", "STRIPE_PUBLISHABLE_KEY", "\"${shared("stripePublishableKey", "EASYSESH_STRIPE_PUBLISHABLE_KEY")}\"")
         buildConfigField("String", "GOOGLE_WEB_CLIENT_ID", "\"${config("googleWebClientId")}\"")
-        buildConfigField("String", "SUPPORT_EMAIL", "\"${config("supportEmail")}\"")
+        buildConfigField("String", "SUPPORT_EMAIL", "\"${shared("supportEmail", "EASYSESH_SUPPORT_EMAIL")}\"")
         buildConfigField("String", "FIREBASE_PROJECT_ID", "\"${config("firebaseProjectId")}\"")
         buildConfigField("String", "FIREBASE_APP_ID", "\"${config("firebaseAppId")}\"")
         buildConfigField("String", "FIREBASE_API_KEY", "\"${config("firebaseApiKey")}\"")
@@ -71,6 +79,8 @@ android {
     // ios/scripts/build_strings.py into the iOS string catalog, copied by the task below).
     sourceSets["main"].assets.srcDirs("src/main/assets", layout.buildDirectory.dir("generated/sharedAssets"))
     packaging { resources.excludes += "/META-INF/{AL2.0,LGPL2.1}" }
+    // Screenshot tests render screens on the JVM (Robolectric), no device needed.
+    testOptions.unitTests.isIncludeAndroidResources = true
 }
 
 val copySharedAssets by tasks.registering(Copy::class) {
@@ -118,4 +128,17 @@ dependencies {
     implementation("io.coil-kt.coil3:coil-compose:3.3.0")
     implementation("io.coil-kt.coil3:coil-network-okhttp:3.3.0")
     implementation("androidx.work:work-runtime-ktx:2.10.5")
+
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("org.robolectric:robolectric:4.16")
+    testImplementation("io.github.takahirom.roborazzi:roborazzi:1.50.0")
+    testImplementation("io.github.takahirom.roborazzi:roborazzi-compose:1.50.0")
+    testImplementation("androidx.compose.ui:ui-test-junit4")
+    debugImplementation("androidx.compose.ui:ui-test-manifest")
+}
+
+// `-Proborazzi.test.record=true` writes the screenshot PNGs (see ScreenshotTest).
+tasks.withType<Test>().configureEach {
+    if (project.hasProperty("roborazzi.test.record")) systemProperty("roborazzi.test.record", "true")
+    maxHeapSize = "3g"
 }

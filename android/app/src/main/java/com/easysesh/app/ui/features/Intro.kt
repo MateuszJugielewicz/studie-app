@@ -137,7 +137,7 @@ private fun IntroFeaturePage(feature: IntroFeature, isCurrent: Boolean) {
     val a = appear.value
     Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(28.dp, Alignment.CenterVertically)) {
         Box(Modifier.height(260.dp), contentAlignment = Alignment.Center) {
-            Box(Modifier.size(230.dp).graphicsLayer { scaleX = 0.6f + 0.4f * a; scaleY = 0.6f + 0.4f * a }.blur(40.dp)
+            Box(Modifier.size(230.dp).graphicsLayer { scaleX = 0.6f + 0.4f * a; scaleY = 0.6f + 0.4f * a }.blur(40.dp, androidx.compose.ui.draw.BlurredEdgeTreatment.Unbounded)
                 .background(Brush.linearGradient(feature.colors.map { it.copy(alpha = 0.35f) }), CircleShape))
             Box(Modifier.size(210.dp).graphicsLayer { rotationZ = if (reduce) 0f else rotation }
                 .border(1.5.dp, Brush.verticalGradient(feature.colors + Color.Transparent), CircleShape))

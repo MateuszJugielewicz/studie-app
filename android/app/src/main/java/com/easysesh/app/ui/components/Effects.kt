@@ -17,6 +17,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.graphics.asAndroidPath
+import androidx.compose.ui.graphics.addOutline
+import androidx.compose.ui.graphics.drawscope.clipPath
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
@@ -74,14 +80,27 @@ fun DrawScope.drawAurora(colors: EasyColors, height: Float, drift: Float, intens
     blob(colors.cyan, w * 0.8f, lerp(-w * 0.42f, -w * 0.26f, drift), lerp(h * 0.24f, h * 0.34f, drift), 0.6f)
     // Blend into the page background below the band.
     drawRect(
-        Brush.verticalGradient(listOf(Color.Transparent, colors.background), startY = h * 0.35f, endY = h * 1.05f),
-        topLeft = Offset(0f, 0f), size = androidx.compose.ui.geometry.Size(w, h * 1.05f),
+        Brush.verticalGradient(listOf(Color.Transparent, colors.background), startY = h * 0.35f, endY = h),
+        topLeft = Offset(0f, 0f), size = androidx.compose.ui.geometry.Size(w, h),
     )
+    // The blobs reach further down than the band; cover them so there is no visible edge.
+    if (size.height > h) drawRect(colors.background, topLeft = Offset(0f, h), size = androidx.compose.ui.geometry.Size(w, size.height - h))
 }
 
 /** Soft coloured glow behind a view (iOS `neonGlow`). */
 fun Modifier.neonGlow(color: Color, radius: Dp = 14.dp, shape: Shape = RectangleShape, active: Boolean = true): Modifier =
-    if (!active) this else shadow(radius * 0.8f, shape, clip = false, ambientColor = color.copy(alpha = 0.6f), spotColor = color.copy(alpha = 0.9f))
+    if (!active) this else drawBehind {
+        // A blurred copy of the shape, drawn only outside it so it never shows through translucent cards.
+        val path = androidx.compose.ui.graphics.Path().apply { addOutline(shape.createOutline(size, layoutDirection, this@drawBehind)) }
+        val blur = radius.toPx().coerceAtLeast(1f)
+        val paint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+            this.color = color.copy(alpha = color.alpha * 0.6f).toArgb()
+            maskFilter = android.graphics.BlurMaskFilter(blur, android.graphics.BlurMaskFilter.Blur.NORMAL)
+        }
+        clipPath(path, androidx.compose.ui.graphics.ClipOp.Difference) {
+            drawIntoCanvas { it.nativeCanvas.drawPath(path.asAndroidPath(), paint) }
+        }
+    }
 
 /** Tappable card that sinks slightly under the finger (iOS PressableCardStyle). */
 fun Modifier.pressable(enabled: Boolean = true, haptic: Boolean = false, onClick: () -> Unit): Modifier = composed {
