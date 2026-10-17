@@ -47,6 +47,8 @@ Je mag de wet niet overtreden, anderen niet lastigvallen, geen valse informatie 
 ## 10. Meldingen en handhaving
 Je kunt gebruikers, studio's, reviews en berichten melden in de app. We beoordelen meldingen en kunnen gebruikers waarschuwen, accounts of studio's tijdelijk of permanent schorsen of verbannen, inhoud verbergen of uitbetalingen inhouden tijdens een fraudeonderzoek.
 
+EasySesh hanteert **nultolerantie voor aanstootgevende inhoud en misbruik door gebruikers**. Inhoud die de communityrichtlijnen schendt wordt verwijderd en het verantwoordelijke account kan worden geschorst of verbannen. Je kunt ook elke gebruiker of studio **blokkeren**: jullie kunnen elkaar dan geen berichten meer sturen. Geblokkeerde accounts staan in Instellingen, waar je de blokkering kunt opheffen.
+
 ## 11. Aansprakelijkheid
 - De Studio is verantwoordelijk voor de sessie, haar ruimtes en apparatuur. De Artiest is aansprakelijk voor schade die hij in de Studio veroorzaakt.
 - EasySesh is niet aansprakelijk voor indirecte schade of gederfde winst, of voor handelingen van Artiesten of Studio's. Onze totale aansprakelijkheid is beperkt tot de kosten die EasySesh voor de betreffende boeking heeft ontvangen. Niets in deze voorwaarden beperkt aansprakelijkheid die wettelijk niet beperkt kan worden, waaronder je wettelijke rechten als consument.

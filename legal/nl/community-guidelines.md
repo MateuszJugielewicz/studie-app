@@ -23,6 +23,8 @@ Tik op **Melden** bij een studio, review, bericht of boeking. Ons moderatieteam 
 
 EasySesh tolereert geen vergelding tegen mensen die te goeder trouw melden.
 
+Je kunt een gebruiker of studio ook **blokkeren** via het ⋯-menu in de chat of op hun profiel. Jullie kunnen elkaar dan geen berichten meer sturen. Hef de blokkering op wanneer je wilt via Instellingen → Geblokkeerde accounts. EasySesh hanteert nultolerantie voor aanstootgevende inhoud en misbruik.
+
 ## Wat er gebeurt als de regels worden overtreden
 Afhankelijk van de ernst kan ons team:
 - je een **waarschuwing** sturen, die je in de app ziet;

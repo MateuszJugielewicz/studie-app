@@ -23,6 +23,8 @@ Stuknij **Zgłoś** przy studiu, opinii, wiadomości lub rezerwacji. Nasz zespó
 
 EasySesh nie toleruje odwetu wobec osób zgłaszających w dobrej wierze.
 
+Możesz też **zablokować** użytkownika lub studio z menu ⋯ w czacie lub na jego profilu. Nie będziecie wtedy mogli do siebie pisać. Odblokujesz je w każdej chwili w Ustawienia → Zablokowane konta. EasySesh stosuje zerową tolerancję dla niedozwolonych treści i nadużyć.
+
 ## Co się dzieje po złamaniu zasad
 W zależności od wagi naruszenia nasz zespół może:
 - wysłać Ci **ostrzeżenie**, które zobaczysz w aplikacji;

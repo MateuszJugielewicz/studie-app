@@ -324,3 +324,21 @@ struct FeeInvoice: Codable, Identifiable, Hashable {
         }
     }
 }
+
+// MARK: - Blocking
+
+/// Whether either side of a conversation blocked the other.
+enum BlockState: String, Codable, Hashable {
+    case none
+    case byMe = "by_me"
+    case byThem = "by_them"
+}
+
+struct BlockedUser: Codable, Hashable, Identifiable {
+    var userId: UUID
+    var displayName: String
+    var avatarUrl: String?
+    var blockedAt: Date
+
+    var id: UUID { userId }
+}

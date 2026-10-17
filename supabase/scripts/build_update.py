@@ -61,13 +61,16 @@ parts = [
     "-- Moderation: warnings, timed suspensions and bans, history ------------\n" + idempotent(mig("20261008000001_moderation.sql")),
     "-- Old scheduled job names (sonora-*) removed ---------------------------\n" + idempotent(mig("20261009000001_rename_cron_jobs.sql")),
     "-- Download my data without edge functions ------------------------------\n" + idempotent(mig("20261010000001_export_my_data.sql")),
+    "-- Blocking users (App Store guideline 1.2) ------------------------------\n" + idempotent(mig("20261017000001_user_blocks.sql")),
+    "-- Browsing studios without an account ---------------------------------\n" + idempotent(mig("20261017000002_guest_browsing.sql")),
     """-- Grants ---------------------------------------------------------------
 grant select, insert, update, delete on all tables in schema public to authenticated, service_role;
 grant execute on all functions in schema public to authenticated, service_role;
 revoke execute on function public.notify, public.booking_system_message, public.call_edge_function,
   public.notify_payment_problem, public.add_support_message, public.activate_promotion,
   public.expire_promotions, public.create_fee_invoices, public.run_fee_enforcement,
-  public.refresh_artist_rating, public.lift_expired_moderation from anon, authenticated;
+  public.refresh_artist_rating, public.lift_expired_moderation, public.is_blocked_between,
+  public.messages_block_guard from anon, authenticated;
 """,
 ]
 out = "\n".join(parts)

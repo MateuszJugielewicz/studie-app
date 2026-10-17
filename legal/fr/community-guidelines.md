@@ -23,6 +23,8 @@ Touche **Signaler** sur un studio, un avis, un message ou une réservation. Notr
 
 EasySesh ne tolère aucune représaille contre les personnes qui signalent de bonne foi.
 
+Tu peux aussi **bloquer** un utilisateur ou un studio depuis le menu ⋯ dans la conversation ou sur son profil. Vous ne pourrez alors plus vous écrire. Débloque-le à tout moment dans Réglages → Comptes bloqués. EasySesh applique une tolérance zéro envers les contenus répréhensibles et les utilisateurs abusifs.
+
 ## En cas de non-respect des règles
 Selon la gravité, notre équipe peut :
 - t'envoyer un **avertissement**, visible dans l'app ;

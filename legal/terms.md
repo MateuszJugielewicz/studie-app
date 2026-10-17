@@ -48,6 +48,8 @@ You must not break the law, harass others, post false information or fake review
 ## 10. Reporting and enforcement
 You can report users, studios, reviews and messages in the app. We review reports and may warn users, suspend or ban accounts or studios for a period or permanently, hide content, or withhold payouts during an investigation of fraud.
 
+EasySesh has **zero tolerance for objectionable content and abusive users**. Content that breaks the Community Guidelines is removed, and the account responsible can be suspended or banned. You can also **block** any user or studio: neither of you can then message the other. Blocked accounts are listed in Settings, where you can unblock them.
+
 ## 11. Liability
 - The Studio is responsible for the session, its premises and its equipment. The Artist is responsible for any damage they cause at the Studio.
 - EasySesh is not liable for indirect losses or lost profits, or for the acts of Artists or Studios. Our total liability to you is limited to the fees EasySesh received in connection with the booking in question. Nothing in these terms limits liability that cannot be limited by law, including your statutory rights as a consumer.

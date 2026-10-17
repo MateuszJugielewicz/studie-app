@@ -41,7 +41,7 @@ expect("review", (r) => r.studio_reply === null);
 expect("rating", (r) => r.rating_average === 4 && r.review_count === 1);
 expect("has_review", (r) => r.has_review === true);
 expect("stats", (r) => Number(r.rate) === 100 && r.live === 1);
-for (const label of ["unapproved block denied", "artist self review denied", "db clash blocked", "db closed hours blocked", "owner grant denied", "rating others denied", "declined request blocks studio", "declined direct insert blocked", "artist cannot search artists", "support forge denied", "support other denied", "second studio denied", "artist studio denied", "admin without mfa denied"]) {
+for (const label of ["unapproved block denied", "artist self review denied", "db clash blocked", "db closed hours blocked", "owner grant denied", "rating others denied", "declined request blocks studio", "declined direct insert blocked", "artist cannot search artists", "support forge denied", "support other denied", "second studio denied", "artist studio denied", "admin without mfa denied", "blocked user cannot message", "guest cannot read bookings"]) {
   if (!rows.some((r) => r.r === label)) {
     console.error("FAILED:", label);
     process.exitCode = 1;
@@ -69,6 +69,12 @@ expect("self badge", (r) => r.has_admin_badge === false);
 expect("self promo", (r) => r.admin_tags.length === 0 && r.promoted_until === null && r.has_admin_badge === false);
 expect("admin tags", (r) => r.n === 2);
 expect("granted", (r) => r.status === "active");
+expect("block state", (r) => r.state === "by_me");
+expect("blocked list", (r) => Number(r.n) === 1);
+expect("blocked by them", (r) => r.state === "by_them");
+expect("unblocked", (r) => r.state === "none");
+expect("guest studios", (r) => Number(r.n) >= 1);
+expect("guest reviews", (r) => r.ok === true);
 expect("promoted", (r) => r.ok === true);
 expect("badge set", (r) => r.has_admin_badge === true);
 expect("db booking", (r) => r.status === "awaiting_payment" && r.subtotal === 5000 && r.ref_ok === true);

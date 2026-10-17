@@ -38,6 +38,9 @@ struct WelcomeView: View {
                         .buttonStyle(.primary)
                     Button("List your studio") { route = AuthRoute(mode: .signUp, role: .studioOwner) }
                         .buttonStyle(.secondary)
+                    Button("Look around first") { app.isGuest = true }
+                        .font(.subheadline.weight(.semibold))
+                        .frame(maxWidth: .infinity, minHeight: 44)
                     Button {
                         route = AuthRoute(mode: .signIn, role: .artist)
                     } label: {
@@ -55,6 +58,39 @@ struct WelcomeView: View {
                 AuthView(mode: route.mode, role: route.role)
             }
         }
+    }
+}
+
+/// Discover without an account. Booking, messaging and the rest ask the guest to sign up.
+struct GuestBrowseView: View {
+    @Environment(AppState.self) private var app
+
+    var body: some View {
+        @Bindable var app = app
+        DiscoverView()
+            .safeAreaInset(edge: .bottom) {
+                HStack(spacing: 10) {
+                    Button {
+                        app.isGuest = false
+                    } label: {
+                        Image(systemName: "xmark").font(.subheadline.weight(.bold)).frame(width: 36, height: 36)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(Text("Back to start"))
+                    Text("Create a free account to book and message studios.")
+                        .font(.footnote.weight(.semibold))
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    Button("Sign up") { app.guestAuthRequest = AuthRoute(mode: .signUp, role: .artist) }
+                        .buttonStyle(.primary)
+                        .frame(width: 110)
+                }
+                .padding(.horizontal)
+                .padding(.vertical, 10)
+                .background(.ultraThinMaterial)
+            }
+            .sheet(item: $app.guestAuthRequest) { route in
+                NavigationStack { AuthView(mode: route.mode, role: route.role) }
+            }
     }
 }
 

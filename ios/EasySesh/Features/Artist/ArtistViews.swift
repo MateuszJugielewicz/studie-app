@@ -571,6 +571,7 @@ struct SettingsView: View {
 
             Section {
                 NavigationLink { LegalListView() } label: { row("Terms, privacy & policies", "doc.text.fill", TilePalette.muted) }
+                NavigationLink { BlockedAccountsView() } label: { row("Blocked accounts", "hand.raised.fill", [Color.red, Theme.magenta]) }
                 if let accepted = app.account?.acceptedTermsAt {
                     HStack {
                         row("Terms accepted", "checkmark.seal.fill", TilePalette.mint)
@@ -647,6 +648,53 @@ extension SocialPlatform {
         case .youtube: [Color(red: 1.0, green: 0.2, blue: 0.2), Color(red: 0.75, green: 0.05, blue: 0.05)]
         case .soundcloud: [Color(red: 1.0, green: 0.6, blue: 0.1), Color(red: 1.0, green: 0.33, blue: 0.0)]
         case .website: [Color(red: 0.45, green: 0.4, blue: 1.0), Color(red: 0.25, green: 0.8, blue: 1.0)]
+        }
+    }
+}
+
+/// People and studios you've blocked; unblocking lets you message each other again.
+struct BlockedAccountsView: View {
+    @Environment(AppState.self) private var app
+    @State private var blocked: [BlockedUser] = []
+    @State private var isLoading = true
+    @State private var error: String?
+
+    var body: some View {
+        List {
+            if !isLoading && blocked.isEmpty {
+                Text("You haven't blocked anyone.").foregroundStyle(.secondary)
+            }
+            ForEach(blocked) { user in
+                HStack(spacing: 12) {
+                    Avatar(url: user.avatarUrl, name: user.displayName, size: 36)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(user.displayName).font(.subheadline.weight(.semibold))
+                        Text(L10n.format("Blocked %@", user.blockedAt.formatted(date: .abbreviated, time: .omitted)))
+                            .font(.caption).foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                    Button("Unblock") { unblock(user) }.buttonStyle(.borderless).font(.subheadline.weight(.bold))
+                }
+            }
+        }
+        .easyseshGrouped()
+        .navigationTitle("Blocked accounts")
+        .task { await load() }
+        .refreshable { await Task { await load() }.value }
+        .errorAlert($error)
+    }
+
+    private func load() async {
+        defer { isLoading = false }
+        do { blocked = try await app.backend.blockedUsers() } catch { self.error = error.userMessage }
+    }
+
+    private func unblock(_ user: BlockedUser) {
+        Task {
+            do {
+                try await app.backend.unblockUser(id: user.userId)
+                withAnimation { blocked.removeAll { $0.userId == user.userId } }
+            } catch { self.error = error.userMessage }
         }
     }
 }

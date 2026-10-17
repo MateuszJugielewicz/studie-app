@@ -436,3 +436,35 @@ set request.jwt.claims = '{}';
 select 'data export' as label, (export_my_data() -> 'account' ->> 'email') is not null as has_account,
   jsonb_array_length(export_my_data() -> 'bookings_as_artist') > 0 as has_bookings;
 reset role;
+
+-- blocking: the artist blocks the studio; nobody can write in their chat until it's lifted
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
+set request.jwt.claims = '{}';
+select 'block state' as label, set_conversation_block((select id from conversations where artist_id = auth.uid() limit 1), true) as state;
+select 'blocked list' as label, count(*) as n from my_blocked_users();
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000b';
+select 'blocked by them' as label, conversation_block_state((select id from conversations where artist_id = '00000000-0000-0000-0000-00000000000a' limit 1)) as state;
+do $$ begin
+  insert into messages (conversation_id, sender_id, kind, body)
+  select id, auth.uid(), 'text', 'still here?' from conversations where artist_id = '00000000-0000-0000-0000-00000000000a' limit 1;
+  create temp table block_insert as select 'NOT BLOCKED' r;
+exception when others then create temp table block_insert as select 'blocked user cannot message' r;
+end $$;
+select * from block_insert;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
+select 'unblocked' as label, set_conversation_block((select id from conversations where artist_id = auth.uid() limit 1), false) as state;
+reset role;
+
+-- guests can browse approved studios and reviews, nothing else
+set role anon;
+set request.jwt.claim.sub = '';
+select 'guest studios' as label, count(*) as n from studios;
+select 'guest reviews' as label, count(*) >= 0 as ok from reviews;
+do $$ begin
+  perform count(*) from bookings;
+  create temp table guest_bookings as select 'NOT BLOCKED' r;
+exception when others then create temp table guest_bookings as select 'guest cannot read bookings' r;
+end $$;
+select * from guest_bookings;
+reset role;

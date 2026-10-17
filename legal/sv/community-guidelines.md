@@ -23,6 +23,8 @@ Tryck på **Anmäl** på en studio, recension, ett meddelande eller en bokning. 
 
 EasySesh tolererar inga repressalier mot personer som anmäler i god tro.
 
+Du kan också **blockera** en användare eller en studio från ⋯-menyn i chatten eller på deras profil. Ni kan då inte skriva till varandra. Häv blockeringen när du vill under Inställningar → Blockerade konton. EasySesh har nolltolerans mot stötande innehåll och kränkande användare.
+
 ## Vad som händer om reglerna bryts
 Beroende på hur allvarligt det är kan vårt team:
 - ge dig en **varning** som du ser i appen;

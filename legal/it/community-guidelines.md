@@ -23,6 +23,8 @@ Tocca **Segnala** su uno studio, una recensione, un messaggio o una prenotazione
 
 EasySesh non tollera ritorsioni contro chi segnala in buona fede.
 
+Puoi anche **bloccare** un utente o uno studio dal menu ⋯ nella chat o sul suo profilo. Nessuno dei due potrà più scrivere all'altro. Sbloccalo quando vuoi in Impostazioni → Account bloccati. EasySesh ha tolleranza zero verso contenuti inappropriati e utenti molesti.
+
 ## Cosa succede se le regole vengono violate
 A seconda della gravità, il nostro team può:
 - inviarti un **avviso**, che vedrai nell'app;

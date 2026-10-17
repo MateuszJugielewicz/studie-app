@@ -47,6 +47,8 @@ Du må ikke bryde loven, chikanere andre, lægge falske oplysninger eller falske
 ## 10. Anmeldelse og håndhævelse
 Du kan anmelde brugere, studier, anmeldelser og beskeder i appen. Vi gennemgår anmeldelser og kan advare brugere, suspendere eller udelukke konti eller studier i en periode eller permanent, skjule indhold eller tilbageholde udbetalinger under en undersøgelse af svindel.
 
+EasySesh har **nultolerance over for stødende indhold og krænkende brugere**. Indhold, der bryder fællesskabsreglerne, fjernes, og den ansvarlige konto kan blive suspenderet eller udelukket. Du kan også **blokere** enhver bruger eller ethvert studie: I kan derefter ikke skrive til hinanden. Blokerede konti står under Indstillinger, hvor du kan fjerne blokeringen.
+
 ## 11. Ansvar
 - Studiet er ansvarligt for sessionen, sine lokaler og sit udstyr. Kunstneren er ansvarlig for skader, som Kunstneren forvolder i Studiet.
 - EasySesh er ikke ansvarlig for indirekte tab eller tabt fortjeneste eller for Kunstneres eller Studiers handlinger. Vores samlede ansvar over for dig er begrænset til de gebyrer, EasySesh har modtaget i forbindelse med den pågældende booking. Intet i disse vilkår begrænser ansvar, som ikke kan begrænses efter loven, herunder dine lovbestemte rettigheder som forbruger.

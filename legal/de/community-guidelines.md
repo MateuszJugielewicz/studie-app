@@ -23,6 +23,8 @@ Tippe bei einem Studio, einer Bewertung, einer Nachricht oder einer Buchung auf 
 
 EasySesh duldet keine Vergeltung gegen Personen, die in gutem Glauben melden.
 
+Du kannst einen Nutzer oder ein Studio auch über das ⋯-Menü im Chat oder auf dem Profil **blockieren**. Ihr könnt euch dann keine Nachrichten mehr schreiben. Heb die Blockierung jederzeit unter Einstellungen → Blockierte Konten auf. EasySesh hat null Toleranz gegenüber anstößigen Inhalten und missbräuchlichen Nutzern.
+
 ## Was passiert, wenn Regeln gebrochen werden
 Je nach Schwere kann unser Team:
 - dir eine **Verwarnung** schicken, die du in der App siehst;

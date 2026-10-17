@@ -1,4 +1,6 @@
 import Foundation
+import AuthenticationServices
+import UIKit
 import Supabase
 
 /// Production backend: Supabase Auth, Postgres (with row-level security), Storage, Realtime and
@@ -179,7 +181,15 @@ final class SupabaseBackend: Backend {
     }
 
     func deleteAccount() async throws {
-        let _: [String: Bool] = try await invoke("delete-account", [:])
+        var body: [String: AnyJSON] = [:]
+        // Sign in with Apple accounts: a fresh authorization code lets the server revoke the
+        // Apple token (App Store requirement). Cancelling the prompt doesn't stop the deletion.
+        if let user = try? await client.auth.session.user,
+           user.identities?.contains(where: { $0.provider == "apple" }) == true,
+           let code = await AppleReauthorization.authorizationCode() {
+            body["apple_authorization_code"] = .string(code)
+        }
+        let _: [String: Bool] = try await invoke("delete-account", body)
         try? await client.auth.signOut()
     }
 
@@ -599,6 +609,34 @@ final class SupabaseBackend: Backend {
         try await rpcVoid("remove_studio_artist_link", ["p_studio_id": .string(studioId.uuidString)])
     }
 
+    // MARK: Blocking
+
+    func conversationBlockState(conversationId: UUID) async throws -> BlockState {
+        let raw: String = try await rpc("conversation_block_state", ["p_conversation_id": .string(conversationId.uuidString)])
+        return BlockState(rawValue: raw) ?? .none
+    }
+
+    func setConversationBlock(conversationId: UUID, blocked: Bool) async throws -> BlockState {
+        let raw: String = try await rpc("set_conversation_block", ["p_conversation_id": .string(conversationId.uuidString), "p_blocked": .bool(blocked)])
+        return BlockState(rawValue: raw) ?? .none
+    }
+
+    func blockUser(id: UUID) async throws {
+        try await rpcVoid("block_user", ["p_user_id": .string(id.uuidString)])
+    }
+
+    func blockStudio(id: UUID) async throws {
+        try await rpcVoid("block_studio", ["p_studio_id": .string(id.uuidString)])
+    }
+
+    func unblockUser(id: UUID) async throws {
+        try await rpcVoid("unblock_user", ["p_user_id": .string(id.uuidString)])
+    }
+
+    func blockedUsers() async throws -> [BlockedUser] {
+        try await rpc("my_blocked_users")
+    }
+
     // MARK: Rating disputes & fee invoices
 
     func disputeRating(kind: RatingKind, reviewId: UUID, reason: String) async throws {
@@ -777,5 +815,45 @@ final class SupabaseBackend: Backend {
         struct Token: Encodable { let token: String; let userId: UUID; let platform: String }
         let row = Token(token: token, userId: try userId(), platform: "ios")
         try await mapped { _ = try await client.from("device_tokens").upsert(row, onConflict: "token").execute() }
+    }
+}
+
+/// Asks Apple for a fresh authorization code (used when deleting a Sign in with Apple account).
+@MainActor
+final class AppleReauthorization: NSObject, ASAuthorizationControllerDelegate, ASAuthorizationControllerPresentationContextProviding {
+    private var continuation: CheckedContinuation<String?, Never>?
+    private static var current: AppleReauthorization?
+
+    static func authorizationCode() async -> String? {
+        let helper = AppleReauthorization()
+        current = helper
+        defer { current = nil }
+        return await withCheckedContinuation { continuation in
+            helper.continuation = continuation
+            let controller = ASAuthorizationController(authorizationRequests: [ASAuthorizationAppleIDProvider().createRequest()])
+            controller.delegate = helper
+            controller.presentationContextProvider = helper
+            controller.performRequests()
+        }
+    }
+
+    private func finish(_ code: String?) {
+        continuation?.resume(returning: code)
+        continuation = nil
+    }
+
+    nonisolated func authorizationController(controller: ASAuthorizationController, didCompleteWithAuthorization authorization: ASAuthorization) {
+        let code = (authorization.credential as? ASAuthorizationAppleIDCredential)?.authorizationCode.flatMap { String(data: $0, encoding: .utf8) }
+        Task { @MainActor in self.finish(code) }
+    }
+
+    nonisolated func authorizationController(controller: ASAuthorizationController, didCompleteWithError error: Error) {
+        Task { @MainActor in self.finish(nil) }
+    }
+
+    nonisolated func presentationAnchor(for controller: ASAuthorizationController) -> ASPresentationAnchor {
+        MainActor.assumeIsolated {
+            UIApplication.shared.connectedScenes.compactMap { ($0 as? UIWindowScene)?.keyWindow }.first ?? ASPresentationAnchor()
+        }
     }
 }

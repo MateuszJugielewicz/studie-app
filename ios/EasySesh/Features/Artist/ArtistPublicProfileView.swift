@@ -14,6 +14,9 @@ struct ArtistPublicProfileView: View {
     @State private var disputing: ArtistReview?
     @State private var disputed: Set<UUID> = []
     @State private var error: String?
+    @State private var showReport = false
+    @State private var confirmBlock = false
+    @State private var blocked = false
 
     private var isOwn: Bool { app.account?.id == artistId }
     private var shown: ArtistProfile? { profile ?? initial }
@@ -36,13 +39,44 @@ struct ArtistPublicProfileView: View {
         .navigationBarTitleDisplayMode(.inline)
         .refreshable { await Task { await load() }.value }
         .task { await load() }
+        .toolbar {
+            if !isOwn && app.account != nil {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Menu {
+                        Button("Report artist", systemImage: "flag") { showReport = true }
+                        if blocked {
+                            Button("Unblock", systemImage: "hand.raised.slash") { setBlocked(false) }
+                        } else {
+                            Button("Block artist", systemImage: "hand.raised.fill", role: .destructive) { confirmBlock = true }
+                        }
+                    } label: { Image(systemName: "ellipsis.circle") }
+                    .accessibilityLabel(Text("More"))
+                }
+            }
+        }
+        .confirmationDialog(Text(L10n.format("Block %@?", shown?.artistName ?? L10n.tr("Artist"))), isPresented: $confirmBlock, titleVisibility: .visible) {
+            Button("Block", role: .destructive) { setBlocked(true) }
+        } message: {
+            Text("Neither of you can send messages in this conversation. You can unblock them any time in Settings → Blocked accounts.")
+        }
+        .sheet(isPresented: $showReport) { ReportSheet(target: .user, targetId: artistId) }
         .sheet(item: $disputing) { review in
             DisputeRatingSheet(kind: .artistReview, reviewId: review.id) { disputed.insert(review.id) }
         }
         .errorAlert($error)
     }
 
+    private func setBlocked(_ block: Bool) {
+        Task {
+            do {
+                if block { try await app.backend.blockUser(id: artistId) } else { try await app.backend.unblockUser(id: artistId) }
+                blocked = block
+            } catch { self.error = error.userMessage }
+        }
+    }
+
     private func load() async {
+        if !isOwn, app.account != nil, let list = try? await app.backend.blockedUsers() { blocked = list.contains { $0.userId == artistId } }
         do {
             profile = try await app.backend.artistProfile(id: artistId) ?? profile
             reviews = try await app.backend.artistReviews(artistId: artistId)

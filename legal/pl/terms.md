@@ -47,6 +47,8 @@ Nie wolno łamać prawa, nękać innych, publikować fałszywych informacji ani 
 ## 10. Zgłoszenia i egzekwowanie zasad
 W aplikacji możesz zgłaszać użytkowników, studia, opinie i wiadomości. Sprawdzamy zgłoszenia i możemy udzielać ostrzeżeń, zawieszać lub blokować konta albo studia na określony czas lub na stałe, ukrywać treści lub wstrzymywać wypłaty na czas wyjaśniania oszustwa.
 
+EasySesh stosuje **zerową tolerancję dla niedozwolonych treści i nadużyć ze strony użytkowników**. Treści naruszające Zasady społeczności są usuwane, a odpowiedzialne konto może zostać zawieszone lub zablokowane. Możesz też **zablokować** dowolnego użytkownika lub studio: nie będziecie wtedy mogli do siebie pisać. Zablokowane konta znajdziesz w Ustawieniach, gdzie możesz je odblokować.
+
 ## 11. Odpowiedzialność
 - Studio odpowiada za sesję, swoje pomieszczenia i sprzęt. Artysta odpowiada za szkody, które wyrządzi w Studiu.
 - EasySesh nie odpowiada za szkody pośrednie ani utracone korzyści, ani za działania Artystów lub Studiów. Nasza łączna odpowiedzialność ogranicza się do opłat otrzymanych przez EasySesh w związku z daną rezerwacją. Nic w tym Regulaminie nie ogranicza odpowiedzialności, której nie można ograniczyć zgodnie z prawem, w tym Twoich ustawowych praw konsumenta.

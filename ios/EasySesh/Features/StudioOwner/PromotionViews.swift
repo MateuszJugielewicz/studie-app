@@ -1,8 +1,7 @@
 import SwiftUI
 
-/// Studios buy a promotion: a "Promoted" tag and a place at the top of search for a period.
-/// With Stripe set up it's paid in the app; until then the order is a request that EasySesh
-/// activates after payment by invoice.
+/// A studio's promotion status: a "Promoted" tag and a place at the top of search for a period.
+/// Promotions are granted by the EasySesh team (admin panel); the app doesn't sell them.
 struct PromotionView: View {
     @Environment(AppState.self) private var app
     let studio: Studio
@@ -22,12 +21,16 @@ struct PromotionView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
                 hero
-                if let active { activeCard(active) }
-                if let pending {
-                    pendingCard(pending)
+                if let active {
+                    activeCard(active)
                 } else {
-                    packages
-                    orderButton
+                    // App Store guideline 3.1.3(g): promotions shown in this app can't be sold here
+                    // outside in-app purchase, so the app only shows status. EasySesh grants them.
+                    Label("Your studio isn't promoted right now.", systemImage: "info.circle")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .glassCard(padding: 16)
                 }
                 if !history.isEmpty {
                     GlowSectionHeader(title: "History", count: history.count)

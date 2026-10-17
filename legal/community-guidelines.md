@@ -23,6 +23,8 @@ Tap **Report** on a studio, review, message or booking. Our moderation team revi
 
 EasySesh doesn't tolerate retaliation against people who report in good faith.
 
+You can also **block** a user or studio from the ⋯ menu in the chat or on their profile. Neither of you can then message the other. Unblock them any time in Settings → Blocked accounts. EasySesh has zero tolerance for objectionable content and abusive users.
+
 ## What happens if the rules are broken
 Depending on how serious it is, our team can:
 - send you a **warning**, which you see in the app;

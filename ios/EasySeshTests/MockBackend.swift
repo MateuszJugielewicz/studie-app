@@ -1009,6 +1009,54 @@ final class MockBackend: Backend {
 
     func removeStudioArtistLink(studioId: UUID) async throws { studioLinks[studioId] = nil }
 
+    // MARK: Blocking
+
+    private var blocks: [UUID: Set<UUID>] = [:]
+
+    private func partner(in conversationId: UUID) throws -> UUID {
+        let user = try requireUser()
+        guard let conversation = conversationsById[conversationId] else { throw BackendError.notFound }
+        let owner = studios[conversation.studioId]?.ownerId
+        return conversation.artistId == user.id ? (owner ?? UUID()) : conversation.artistId
+    }
+
+    func conversationBlockState(conversationId: UUID) async throws -> BlockState {
+        let me = try requireUser().id
+        let other = try partner(in: conversationId)
+        if blocks[me, default: []].contains(other) { return .byMe }
+        if blocks[other, default: []].contains(me) { return .byThem }
+        return .none
+    }
+
+    func setConversationBlock(conversationId: UUID, blocked: Bool) async throws -> BlockState {
+        let other = try partner(in: conversationId)
+        if blocked { try await blockUser(id: other) } else { try await unblockUser(id: other) }
+        return try await conversationBlockState(conversationId: conversationId)
+    }
+
+    func blockUser(id: UUID) async throws {
+        let me = try requireUser().id
+        guard id != me else { throw BackendError.validation("You can't block yourself.") }
+        blocks[me, default: []].insert(id)
+    }
+
+    func blockStudio(id: UUID) async throws {
+        guard let owner = studios[id]?.ownerId else { throw BackendError.notFound }
+        try await blockUser(id: owner)
+    }
+
+    func unblockUser(id: UUID) async throws {
+        let me = try requireUser().id
+        blocks[me]?.remove(id)
+    }
+
+    func blockedUsers() async throws -> [BlockedUser] {
+        let me = try requireUser().id
+        return blocks[me, default: []].map { id in
+            BlockedUser(userId: id, displayName: artistProfiles[id]?.artistName ?? studios.values.first { $0.ownerId == id }?.name ?? "EasySesh user", avatarUrl: nil, blockedAt: .now)
+        }
+    }
+
     // MARK: Rating disputes & fee invoices
 
     func disputeRating(kind: RatingKind, reviewId: UUID, reason: String) async throws {

@@ -47,6 +47,8 @@ Non devi violare la legge, molestare altri, pubblicare informazioni o recensioni
 ## 10. Segnalazioni e provvedimenti
 Puoi segnalare utenti, studi, recensioni e messaggi nell'app. Esaminiamo le segnalazioni e possiamo inviare avvisi, sospendere o bannare account o studi per un periodo o in modo permanente, nascondere contenuti o trattenere pagamenti durante un'indagine per frode.
 
+EasySesh ha **tolleranza zero verso contenuti inappropriati e utenti molesti**. I contenuti che violano le Linee guida della community vengono rimossi e l'account responsabile può essere sospeso o bannato. Puoi anche **bloccare** qualsiasi utente o studio: nessuno dei due potrà più scrivere all'altro. Gli account bloccati sono elencati nelle Impostazioni, dove puoi sbloccarli.
+
 ## 11. Responsabilità
 - Lo Studio è responsabile della sessione, dei propri locali e dell'attrezzatura. L'Artista è responsabile dei danni che causa in Studio.
 - EasySesh non risponde di perdite indirette o mancati guadagni, né delle azioni di Artisti o Studi. La nostra responsabilità complessiva è limitata alle commissioni ricevute da EasySesh per la prenotazione interessata. Nulla in questi termini limita una responsabilità che non può essere limitata per legge, inclusi i tuoi diritti di consumatore.

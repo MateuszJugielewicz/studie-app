@@ -53,9 +53,9 @@ targets:
         NSLocationWhenInUseUsageDescription: EasySesh uses your location to show recording studios near you and the distance to them.
         NSPhotoLibraryUsageDescription: Choose photos for your artist or studio profile.
         NSCalendarsWriteOnlyAccessUsageDescription: Add your booked sessions to your calendar.
-        NSCameraUsageDescription: Take photos for your artist or studio profile.
-        UIBackgroundModes: [remote-notification]
         LSApplicationQueriesSchemes: [comgooglemaps]
+        # Only standard HTTPS/TLS from the OS is used (export compliance).
+        ITSAppUsesNonExemptEncryption: false
         CFBundleURLTypes:
           - CFBundleURLName: com.easysesh.app
             CFBundleURLSchemes: [easysesh]
@@ -63,6 +63,7 @@ targets:
         EasySeshSupabaseAnonKey: $(EASYSESH_SUPABASE_ANON_KEY)
         EasySeshStripePublishableKey: $(EASYSESH_STRIPE_PUBLISHABLE_KEY)
         EasySeshApplePayMerchantId: $(EASYSESH_APPLE_PAY_MERCHANT_ID)
+        EasySeshSupportEmail: $(EASYSESH_SUPPORT_EMAIL)
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.easysesh.app

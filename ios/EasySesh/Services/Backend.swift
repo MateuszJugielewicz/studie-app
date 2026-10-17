@@ -183,6 +183,14 @@ protocol Backend: AnyObject {
     func respondStudioArtistLink(studioId: UUID, accept: Bool) async throws
     func removeStudioArtistLink(studioId: UUID) async throws
 
+    // MARK: Blocking
+    func conversationBlockState(conversationId: UUID) async throws -> BlockState
+    func setConversationBlock(conversationId: UUID, blocked: Bool) async throws -> BlockState
+    func blockUser(id: UUID) async throws
+    func blockStudio(id: UUID) async throws
+    func unblockUser(id: UUID) async throws
+    func blockedUsers() async throws -> [BlockedUser]
+
     // MARK: Rating disputes & fee invoices
     func disputeRating(kind: RatingKind, reviewId: UUID, reason: String) async throws
 

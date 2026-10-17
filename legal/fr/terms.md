@@ -47,6 +47,8 @@ Il est interdit d'enfreindre la loi, de harceler autrui, de publier de fausses i
 ## 10. Signalements et sanctions
 Tu peux signaler des utilisateurs, studios, avis et messages dans l'app. Nous examinons les signalements et pouvons avertir des utilisateurs, suspendre ou bannir des comptes ou studios pour une durée déterminée ou définitivement, masquer des contenus ou retenir des versements pendant une enquête pour fraude.
 
+EasySesh applique une **tolérance zéro envers les contenus répréhensibles et les utilisateurs abusifs**. Les contenus qui enfreignent les Règles de la communauté sont supprimés et le compte responsable peut être suspendu ou banni. Tu peux aussi **bloquer** n'importe quel utilisateur ou studio : vous ne pourrez alors plus vous écrire. Les comptes bloqués sont listés dans les Réglages, où tu peux les débloquer.
+
 ## 11. Responsabilité
 - Le Studio est responsable de la session, de ses locaux et de son matériel. L'Artiste est responsable des dommages qu'il cause au Studio.
 - EasySesh n'est pas responsable des pertes indirectes ou du manque à gagner, ni des actes des Artistes ou des Studios. Notre responsabilité totale est limitée aux frais perçus par EasySesh pour la réservation concernée. Rien dans ces conditions ne limite une responsabilité qui ne peut l'être en vertu de la loi, y compris tes droits légaux de consommateur.

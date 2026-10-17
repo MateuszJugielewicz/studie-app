@@ -48,7 +48,7 @@ enum LegalDocument: String, CaseIterable, Identifiable {
         guard let url = Bundle.main.url(forResource: rawValue, withExtension: "md", subdirectory: "legal")
             ?? Bundle.main.url(forResource: rawValue, withExtension: "md"),
               let text = try? String(contentsOf: url, encoding: .utf8) else {
-            return "# \(title)\n\nThis document could not be loaded. Read it at https://easysesh.app/legal/\(rawValue)"
+            return "# \(title)\n\nThis document could not be loaded. Find it in Settings → Support."
         }
         return text
     }

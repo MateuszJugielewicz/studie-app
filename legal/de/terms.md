@@ -47,6 +47,8 @@ Du darfst nicht gegen Gesetze verstoßen, andere belästigen, falsche Angaben od
 ## 10. Meldungen und Durchsetzung
 Du kannst Nutzer, Studios, Bewertungen und Nachrichten in der App melden. Wir prüfen Meldungen und können Nutzer verwarnen, Konten oder Studios vorübergehend oder dauerhaft sperren, Inhalte ausblenden oder Auszahlungen während einer Betrugsprüfung zurückhalten.
 
+EasySesh hat **null Toleranz gegenüber anstößigen Inhalten und missbräuchlichen Nutzern**. Inhalte, die gegen die Community-Richtlinien verstoßen, werden entfernt, und das verantwortliche Konto kann gesperrt oder ausgeschlossen werden. Du kannst außerdem jeden Nutzer und jedes Studio **blockieren**: Ihr könnt euch dann keine Nachrichten mehr schreiben. Blockierte Konten findest du in den Einstellungen, wo du die Blockierung aufheben kannst.
+
 ## 11. Haftung
 - Das Studio ist für die Session, seine Räume und sein Equipment verantwortlich. Der Artist haftet für Schäden, die er im Studio verursacht.
 - EasySesh haftet nicht für mittelbare Schäden oder entgangenen Gewinn und nicht für Handlungen von Artists oder Studios. Unsere Gesamthaftung ist auf die Gebühren begrenzt, die EasySesh im Zusammenhang mit der betreffenden Buchung erhalten hat. Nichts in diesen Bedingungen beschränkt eine Haftung, die gesetzlich nicht beschränkt werden kann, einschließlich deiner gesetzlichen Rechte als Verbraucher.

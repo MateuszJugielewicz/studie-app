@@ -11,6 +11,8 @@ struct StudioDetailView: View {
     @State private var nextSlots: [TimeSlot] = []
     @State private var showBooking = false
     @State private var showReport = false
+    @State private var confirmBlock = false
+    @State private var blocked = false
     @State private var conversation: Conversation?
     @State private var linkedArtist: ArtistProfile?
     @State private var error: String?
@@ -58,11 +60,25 @@ struct StudioDetailView: View {
                     locationSection(studio)
                     reviewsSection(studio)
 
-                    Button { showReport = true } label: {
-                        Label("Report this studio", systemImage: "flag")
+                    if let me = app.account?.id, studio.ownerId != me {
+                        HStack(spacing: 18) {
+                            Button { showReport = true } label: {
+                                Label("Report this studio", systemImage: "flag")
+                            }
+                            Button {
+                                if blocked { setBlocked(false, studio: studio) } else { confirmBlock = true }
+                            } label: {
+                                Label(LocalizedStringKey(blocked ? "Unblock" : "Block studio"), systemImage: blocked ? "hand.raised.slash" : "hand.raised.fill")
+                            }
+                        }
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                        .confirmationDialog(Text(L10n.format("Block %@?", studio.name)), isPresented: $confirmBlock, titleVisibility: .visible) {
+                            Button("Block", role: .destructive) { setBlocked(true, studio: studio) }
+                        } message: {
+                            Text("Neither of you can send messages in this conversation. You can unblock them any time in Settings → Blocked accounts.")
+                        }
                     }
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
                 }
                 .padding(.horizontal)
             }
@@ -78,6 +94,19 @@ struct StudioDetailView: View {
         }
         .navigationDestination(item: $conversation) { conversation in
             ChatView(conversation: conversation)
+        }
+    }
+
+    private func startBooking() {
+        if app.account == nil { app.guestAuthRequest = AuthRoute(mode: .signUp, role: .artist) } else { showBooking = true }
+    }
+
+    private func setBlocked(_ block: Bool, studio: Studio) {
+        Task {
+            do {
+                if block { try await app.backend.blockStudio(id: studio.id) } else { try await app.backend.unblockUser(id: studio.ownerId) }
+                blocked = block
+            } catch { self.error = error.userMessage }
         }
     }
 
@@ -138,7 +167,7 @@ struct StudioDetailView: View {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack {
                     ForEach(Array(nextSlots.prefix(8).enumerated()), id: \.element.id) { index, slot in
-                        Button { showBooking = true } label: {
+                        Button { startBooking() } label: {
                             VStack(spacing: 2) {
                                 Text(slot.start.formatted(.dateTime.weekday(.abbreviated).day())).font(.caption.weight(.semibold))
                                     .opacity(0.8)
@@ -341,7 +370,11 @@ struct StudioDetailView: View {
                 Text(LocalizedStringKey(studio.bookingPolicy.instantBook ? "Instant confirmation" : "Studio confirms within 24h")).font(.caption).foregroundStyle(.secondary)
             }
             Spacer()
-            if app.role == .artist {
+            if app.account == nil {
+                Button("Sign up to book") { app.guestAuthRequest = AuthRoute(mode: .signUp, role: .artist) }
+                    .buttonStyle(.primary)
+                    .frame(width: 160)
+            } else if app.role == .artist {
                 Button {
                     Task {
                         do { conversation = try await app.backend.conversation(studioId: studio.id, bookingId: nil) }
@@ -364,6 +397,9 @@ struct StudioDetailView: View {
         do {
             let loaded = try await app.backend.studio(id: studioId)
             studio = loaded
+            if let me = app.account?.id, loaded.ownerId != me, let list = try? await app.backend.blockedUsers() {
+                blocked = list.contains { $0.userId == loaded.ownerId }
+            }
             if let link = try? await app.backend.studioArtistLink(studioId: studioId), link.isAccepted {
                 linkedArtist = try? await app.backend.artistProfile(id: link.artistId)
             }

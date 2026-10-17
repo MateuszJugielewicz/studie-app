@@ -67,7 +67,9 @@ struct ReviewRow: View {
                     if canReply && !disputed {
                         Button("Dispute rating", systemImage: "scale.3d") { showDispute = true }
                     }
-                    Button("Report review", systemImage: "flag") { showReport = true }
+                    Button("Report review", systemImage: "flag") {
+                        if app.account == nil { app.guestAuthRequest = AuthRoute(mode: .signIn, role: .artist) } else { showReport = true }
+                    }
                 } label: {
                     Image(systemName: "ellipsis").padding(6)
                 }

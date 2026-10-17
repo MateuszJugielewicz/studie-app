@@ -52,22 +52,20 @@
 	<string>$(EASYSESH_SUPABASE_ANON_KEY)</string>
 	<key>EasySeshSupabaseURL</key>
 	<string>$(EASYSESH_SUPABASE_URL)</string>
+	<key>EasySeshSupportEmail</key>
+	<string>$(EASYSESH_SUPPORT_EMAIL)</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
 		<string>comgooglemaps</string>
 	</array>
 	<key>NSCalendarsWriteOnlyAccessUsageDescription</key>
 	<string>Add your booked sessions to your calendar.</string>
-	<key>NSCameraUsageDescription</key>
-	<string>Take photos for your artist or studio profile.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>EasySesh uses your location to show recording studios near you and the distance to them.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Choose photos for your artist or studio profile.</string>
-	<key>UIBackgroundModes</key>
-	<array>
-		<string>remote-notification</string>
-	</array>
 	<key>UILaunchScreen</key>
 	<dict>
 		<key>UIColorName</key>

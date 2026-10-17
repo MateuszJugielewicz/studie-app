@@ -370,6 +370,9 @@ struct ChatView: View {
     /// The other side's photo and rating, loaded fresh from their profile.
     @State private var partnerAvatar: String?
     @State private var partnerRating: (average: Double, count: Int)?
+    @State private var blockState: BlockState = .none
+    @State private var confirmBlock = false
+    @State private var reportingPartner = false
 
     private var isStudio: Bool { app.role == .studioOwner }
     private var partnerName: String { conversation.title(for: app.role) }
@@ -459,6 +462,29 @@ struct ChatView: View {
                 .accessibilityLabel(Text(LocalizedStringKey(app.role == .studioOwner ? "View artist profile" : "View studio")))
             }
         }
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Menu {
+                    Button(LocalizedStringKey(isStudio ? "Report artist" : "Report studio"), systemImage: "flag") { reportingPartner = true }
+                    if blockState == .byMe {
+                        Button("Unblock", systemImage: "hand.raised.slash") { setBlocked(false) }
+                    } else {
+                        Button(LocalizedStringKey(isStudio ? "Block artist" : "Block studio"), systemImage: "hand.raised.fill", role: .destructive) { confirmBlock = true }
+                    }
+                } label: {
+                    Image(systemName: "ellipsis.circle")
+                }
+                .accessibilityLabel(Text("More"))
+            }
+        }
+        .confirmationDialog(Text(L10n.format("Block %@?", partnerName)), isPresented: $confirmBlock, titleVisibility: .visible) {
+            Button("Block", role: .destructive) { setBlocked(true) }
+        } message: {
+            Text("Neither of you can send messages in this conversation. You can unblock them any time in Settings → Blocked accounts.")
+        }
+        .sheet(isPresented: $reportingPartner) {
+            ReportSheet(target: isStudio ? .user : .studio, targetId: isStudio ? conversation.artistId : conversation.studioId)
+        }
         .sheet(item: $reporting) { ReportSheet(target: .message, targetId: $0.id) }
         .task { await load() }
         .task { await listen() }
@@ -466,7 +492,19 @@ struct ChatView: View {
     }
 
     @ViewBuilder private var bottomBar: some View {
-        if app.role == .artist && conversation.isPendingRequest {
+        if blockState != .none {
+            VStack(spacing: 8) {
+                Label(LocalizedStringKey(blockState == .byMe ? "You blocked this account." : "You can't reply to this conversation."), systemImage: "hand.raised.fill")
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(.secondary)
+                if blockState == .byMe {
+                    Button("Unblock") { setBlocked(false) }.font(.footnote.weight(.bold))
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .padding()
+            .background(.bar)
+        } else if app.role == .artist && conversation.isPendingRequest {
             requestBar
         } else if app.role == .studioOwner && conversation.isDeclined {
             Label("This artist isn't accepting messages from your studio.", systemImage: "hand.raised.fill")
@@ -531,7 +569,17 @@ struct ChatView: View {
             try await app.backend.markConversationRead(id: conversation.id)
             if let bookingId = conversation.bookingId { booking = try? await app.backend.booking(id: bookingId) }
         } catch { self.error = error.userMessage }
+        blockState = (try? await app.backend.conversationBlockState(conversationId: conversation.id)) ?? .none
         await loadPartner()
+    }
+
+    private func setBlocked(_ blocked: Bool) {
+        Task {
+            do {
+                let state = try await app.backend.setConversationBlock(conversationId: conversation.id, blocked: blocked)
+                withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) { blockState = state }
+            } catch { self.error = error.userMessage }
+        }
     }
 
     private func loadPartner() async {

@@ -48,3 +48,7 @@ verify_jwt = false
 # Stripe redirects studios here after payout onboarding; it only bounces them back into the app.
 [functions.payout-return]
 verify_jwt = false
+
+# Public privacy policy, terms and support pages (App Store listing links).
+[functions.legal]
+verify_jwt = false

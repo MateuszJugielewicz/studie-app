@@ -30,6 +30,11 @@ final class AppState {
     private(set) var isBootstrapping = true
     /// True once the launch splash has faded out; pop-ups wait for it.
     var launchFinished = false
+    /// Browsing studios without an account (App Store guideline 5.1.1(v)). Booking and messaging ask
+    /// the guest to sign up first.
+    var isGuest = false
+    /// Set from anywhere in guest mode to open sign-up.
+    var guestAuthRequest: AuthRoute?
 
     var selectedTab: AppTab = .discover
     /// Set after opening a password-reset link: the user must choose a new password.
@@ -131,6 +136,8 @@ final class AppState {
 
     func didAuthenticate(_ account: UserAccount) async {
         self.account = account
+        isGuest = false
+        guestAuthRequest = nil
         selectedTab = account.role == .studioOwner ? .dashboard : .discover
         switch account.role {
         case .artist:

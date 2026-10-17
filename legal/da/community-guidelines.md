@@ -23,6 +23,8 @@ Tryk på **Anmeld** på et studie, en anmeldelse, en besked eller en booking. Vo
 
 EasySesh tolererer ikke gengældelse mod personer, der anmelder i god tro.
 
+Du kan også **blokere** en bruger eller et studie fra ⋯-menuen i chatten eller på deres profil. I kan derefter ikke skrive til hinanden. Fjern blokeringen når som helst under Indstillinger → Blokerede konti. EasySesh har nultolerance over for stødende indhold og krænkende brugere.
+
 ## Hvad der sker, hvis reglerne brydes
 Afhængigt af hvor alvorligt det er, kan vores team:
 - give dig en **advarsel**, som du ser i appen;

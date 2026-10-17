@@ -93,11 +93,14 @@ struct RootView: View {
                 case .admin:
                     AdminInfoView()
                 }
+            } else if app.isGuest {
+                GuestBrowseView()
             } else {
                 WelcomeView()
             }
         }
         .animation(.smooth(duration: 0.45), value: app.account?.id)
+        .animation(.smooth(duration: 0.45), value: app.isGuest)
         .sheet(item: Binding(
             get: { !app.launchFinished || app.needsTermsAcceptance ? nil : app.warnings.first },
             set: { _ in }

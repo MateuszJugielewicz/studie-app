@@ -23,6 +23,8 @@ Toca **Denunciar** en un estudio, una reseña, un mensaje o una reserva. Nuestro
 
 EasySesh no tolera represalias contra quienes denuncian de buena fe.
 
+También puedes **bloquear** a un usuario o estudio desde el menú ⋯ del chat o de su perfil. Ninguno de los dos podrá escribir al otro. Desbloquéalo cuando quieras en Ajustes → Cuentas bloqueadas. EasySesh tiene tolerancia cero con el contenido inapropiado y los usuarios abusivos.
+
 ## Qué pasa si se incumplen las normas
 Según la gravedad, nuestro equipo puede:
 - enviarte un **aviso**, que verás en la app;

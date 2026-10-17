@@ -5,8 +5,9 @@ import { admin, amountPaid, requireUser, updateBooking } from "../_shared/supaba
 import { refundAmount } from "../_shared/pricing.ts";
 import { refundBooking, releaseAuthorization } from "../_shared/refunds.ts";
 import type { Booking } from "../_shared/types.ts";
+import { revokeAppleSignIn } from "../_shared/apple.ts";
 
-Deno.serve(handler(async (req) => {
+Deno.serve(handler(async (req, body) => {
   const user = await requireUser(req);
   if (user.role === "admin") throw new HttpError(400, "Admin accounts are removed by another admin.");
 
@@ -40,8 +41,14 @@ Deno.serve(handler(async (req) => {
 
   const { count: history } = await admin.from("bookings").select("id", { count: "exact", head: true }).or(`artist_id.eq.${user.id}`);
   await admin.from("device_tokens").delete().eq("user_id", user.id);
+  if (typeof body.apple_authorization_code === "string") await revokeAppleSignIn(body.apple_authorization_code);
   if ((history ?? 0) > 0 || user.role === "studio_owner") {
     await admin.from("artist_profiles").update({ artist_name: "Deleted user", bio: "", avatar_url: null, links: [], city: "" }).eq("id", user.id);
+    // What they posted goes too: review texts, messages, and the ratings studios gave them.
+    // Star ratings stay (anonymous) so studios' averages remain correct.
+    await admin.from("reviews").update({ text: "", artist_name: "Deleted user" }).eq("artist_id", user.id);
+    await admin.from("messages").update({ body: "Message deleted" }).eq("sender_id", user.id);
+    await admin.from("artist_reviews").delete().eq("artist_id", user.id);
     await admin.from("profiles").update({ email: `deleted-${user.id}@easysesh.invalid`, status: "banned", status_reason: "Account deleted by user", settings: {} }).eq("id", user.id);
     const { error } = await admin.auth.admin.deleteUser(user.id, true);
     if (error) throw new HttpError(500, error.message);

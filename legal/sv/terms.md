@@ -47,6 +47,8 @@ Du får inte bryta mot lagen, trakassera andra, publicera falsk information elle
 ## 10. Anmälningar och åtgärder
 Du kan anmäla användare, studior, recensioner och meddelanden i appen. Vi granskar anmälningar och kan varna användare, stänga av eller porta konton eller studior tillfälligt eller permanent, dölja innehåll eller hålla inne utbetalningar under en bedrägeriutredning.
 
+EasySesh har **nolltolerans mot stötande innehåll och kränkande användare**. Innehåll som bryter mot gemenskapsreglerna tas bort, och det ansvariga kontot kan stängas av eller bannas. Du kan också **blockera** vilken användare eller vilken studio som helst: ni kan då inte skriva till varandra. Blockerade konton finns under Inställningar, där du kan häva blockeringen.
+
 ## 11. Ansvar
 - Studion ansvarar för sessionen, sina lokaler och sin utrustning. Artisten ansvarar för skador som Artisten orsakar i Studion.
 - EasySesh ansvarar inte för indirekta förluster eller utebliven vinst, eller för Artisters eller Studiors handlingar. Vårt sammanlagda ansvar är begränsat till de avgifter EasySesh fått i samband med den aktuella bokningen. Inget i dessa villkor begränsar ansvar som enligt lag inte kan begränsas, inklusive dina rättigheter som konsument.

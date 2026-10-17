@@ -83,7 +83,8 @@ struct LegalListView: View {
                     }
                 }
             } footer: {
-                Text("Version \(app.requiredTermsVersion). Questions? \(AppConfig.supportEmail)")
+                Text(AppConfig.supportEmail.map { L10n.format("Version %@. Questions? %@", app.requiredTermsVersion, $0) }
+                     ?? L10n.format("Version %@. Questions? Write to us in Settings → Support.", app.requiredTermsVersion))
             }
         }
         .easyseshGrouped()
