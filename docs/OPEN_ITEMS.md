@@ -56,4 +56,6 @@ Things only the owner can do. Details and steps are in `docs/APP_STORE_RELEASE.m
 - [ ] A few approved studios, and a city to search for in the review notes.
 
 ## Supabase
+- [ ] Security fixes (see `docs/SECURITY_REVIEW.md`): run `supabase/updates/latest.sql`, then redeploy
+      `create-payment-intent confirm-payment stripe-webhook respond-booking process-payouts`.
 - [ ] Run `supabase/updates/latest.sql` after each update and redeploy the functions.

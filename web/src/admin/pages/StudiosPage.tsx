@@ -2,7 +2,7 @@ import { useState, type ReactNode } from "react";
 import { ActionButton, Badge, Modal, PageState, Search, Tabs } from "../components";
 import { useApi, useLoad } from "../lib/apiContext";
 import { ModerationPanel } from "../moderation";
-import { date, label, money } from "../lib/format";
+import { date, label, money, safeUrl } from "../lib/format";
 import type { Studio } from "../lib/types";
 
 type Tab = "applications" | "approved" | "changes" | "rejected" | "suspended" | "all";
@@ -146,8 +146,8 @@ function StudioModal({ studio, onClose, onChanged }: { studio: Studio; onClose: 
       </div>
 
       <div className="photos">
-        {studio.photo_urls.map((url) => <a key={url} href={url} target="_blank" rel="noreferrer"><img src={url} alt="" /></a>)}
-        {studio.video_url && <a className="video-link" href={studio.video_url} target="_blank" rel="noreferrer">▶ Video</a>}
+        {studio.photo_urls.map((url) => <a key={url} href={safeUrl(url)} target="_blank" rel="noreferrer"><img src={safeUrl(url)} alt="" /></a>)}
+        {safeUrl(studio.video_url) && <a className="video-link" href={safeUrl(studio.video_url)} target="_blank" rel="noreferrer">▶ Video</a>}
       </div>
 
       {editing ? (

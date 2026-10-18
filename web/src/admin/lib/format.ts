@@ -25,3 +25,9 @@ export function moneyTotals(totals: Record<string, number>): string {
   const entries = Object.entries(totals);
   return entries.length ? entries.map(([c, v]) => money(v, c)).join("\n") : "–";
 }
+
+/** Links typed by users (studio photos, video) open only as http(s), never javascript: or data:. */
+export function safeUrl(value: string | null | undefined): string | undefined {
+  const text = (value ?? "").trim();
+  return /^https?:\/\//i.test(text) ? text : undefined;
+}

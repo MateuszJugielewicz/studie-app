@@ -122,3 +122,25 @@ expect("moderation lifted", (r) => r.user_status === "active" && r.studio_status
 expect("moderation history", (r) => Number(r.warnings) === 1 && Number(r.suspensions) === 1 && Number(r.lifted) === 1);
 expect("own warnings", (r) => Number(r.n) === 1);
 expect("data export", (r) => r.has_account === true && r.has_bookings === true);
+
+// Abuse tests on a fresh database with Supabase's default privileges: anon and authenticated get
+// every table and function unless a migration revokes it, exactly like production.
+const attackDb = new PGlite({ extensions: { btree_gist } });
+await attackDb.exec(fs.readFileSync(path.join(here, "supabase_stubs.sql"), "utf8"));
+await attackDb.exec(`
+  grant usage on schema public, auth, storage to anon, authenticated;
+  alter default privileges in schema public grant all on tables to anon, authenticated;
+  alter default privileges in schema public grant all on sequences to anon, authenticated;
+  alter default privileges in schema public grant execute on functions to anon, authenticated;
+  grant execute on all functions in schema auth to anon, authenticated;
+  grant all on storage.objects to anon, authenticated;
+`);
+for (const file of fs.readdirSync(migrations).sort()) {
+  await attackDb.exec(fs.readFileSync(path.join(migrations, file), "utf8").replace(/create extension if not exists (pg_cron|pg_net)[^;]*;/g, ""));
+}
+const attackRows = (await attackDb.exec(fs.readFileSync(path.join(here, "attacks.sql"), "utf8"))).flatMap((r) => r.rows).filter((r) => r.outcome);
+for (const row of attackRows) {
+  if (row.outcome !== "PASS") process.exitCode = 1;
+  console.log(row.outcome === "PASS" ? "ok:" : "VULNERABLE:", row.name);
+}
+if (!attackRows.length) { console.error("FAILED: attack tests produced no results"); process.exitCode = 1; }

@@ -10,11 +10,14 @@ import com.easysesh.app.model.*
 import io.github.jan.supabase.SupabaseClient
 import android.content.Context
 import com.russhwolf.settings.SharedPreferencesSettings
+import io.github.jan.supabase.annotations.SupabaseInternal
 import io.github.jan.supabase.auth.Auth
+import io.github.jan.supabase.auth.FlowType
 import io.github.jan.supabase.auth.SettingsCodeVerifierCache
 import io.github.jan.supabase.auth.SettingsSessionManager
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.handleDeeplinks
+import io.github.jan.supabase.auth.parseFragmentAndImportSession
 import io.github.jan.supabase.auth.providers.Apple
 import io.github.jan.supabase.auth.providers.Google
 import io.github.jan.supabase.auth.providers.builtin.Email
@@ -85,6 +88,8 @@ data class PaymentIntentInfo(
  * Storage, Realtime and Edge Functions. A 1:1 port of the iOS app's SupabaseBackend.
  */
 class Backend(context: Context) {
+    private val authPrefs = context.getSharedPreferences("easysesh.auth", Context.MODE_PRIVATE)
+
     val isConfigured = BuildConfig.SUPABASE_URL.isNotEmpty() && BuildConfig.SUPABASE_ANON_KEY.isNotEmpty()
 
     val client: SupabaseClient = createSupabaseClient(
@@ -96,9 +101,12 @@ class Backend(context: Context) {
             scheme = REDIRECT_SCHEME
             host = REDIRECT_HOST
             // Keeps the signed-in session in the app's own preferences.
-            val settings = SharedPreferencesSettings(context.getSharedPreferences("easysesh.auth", Context.MODE_PRIVATE))
+            val settings = SharedPreferencesSettings(authPrefs)
             sessionManager = SettingsSessionManager(settings)
             codeVerifierCache = SettingsCodeVerifierCache(settings)
+            // PKCE: email and browser sign-in links carry a one-time code that only this install can
+            // redeem, so another app that also opens easysesh:// links can't steal the session.
+            flowType = FlowType.PKCE
         }
         install(Postgrest)
         install(Realtime)
@@ -200,8 +208,23 @@ class Backend(context: Context) {
     }
 
     /** Handles easysesh://auth-callback links (email confirmation, password reset, OAuth). */
+    @OptIn(SupabaseInternal::class) // the same import the library's own handleDeeplinks uses for implicit links
     fun handleDeeplink(intent: Intent, onSession: () -> Unit) {
-        client.handleDeeplinks(intent) { onSession() }
+        // Password-reset emails sent by an admin come from the server, not this install, so they carry
+        // the session in the fragment (#access_token=…) instead of a PKCE code. Import those directly.
+        val fragment = intent.data?.fragment
+        if (fragment != null && "access_token=" in fragment) {
+            client.auth.parseFragmentAndImportSession(fragment) { onSession() }
+        } else {
+            client.handleDeeplinks(intent) { onSession() }
+        }
+    }
+
+    /** True once after the user asked for a reset email here, so the next sign-in link asks for a new password. */
+    fun consumeRecoveryRequest(): Boolean {
+        val requestedAt = authPrefs.getLong(RECOVERY_REQUESTED_AT, 0L)
+        authPrefs.edit().remove(RECOVERY_REQUESTED_AT).apply()
+        return requestedAt > 0 && System.currentTimeMillis() - requestedAt < 24 * 3_600_000L
     }
 
     suspend fun signUp(email: String, password: String, role: UserRole): UserAccount {
@@ -261,6 +284,8 @@ class Backend(context: Context) {
 
     suspend fun sendPasswordReset(email: String) {
         mapped { client.auth.resetPasswordForEmail(email, redirectUrl = REDIRECT_URL) }
+        // PKCE links have no "type=recovery" marker, so remember that a reset was requested.
+        authPrefs.edit().putLong(RECOVERY_REQUESTED_AT, System.currentTimeMillis()).apply()
     }
 
     suspend fun signOut() {
@@ -768,6 +793,7 @@ class Backend(context: Context) {
 
     companion object {
         const val REDIRECT_SCHEME = "easysesh"
+        private const val RECOVERY_REQUESTED_AT = "recovery_requested_at"
         const val REDIRECT_HOST = "auth-callback"
         const val REDIRECT_URL = "easysesh://auth-callback"
     }

@@ -31,8 +31,17 @@ final class SupabaseBackend: Backend {
     /// Returns true when the link was a password reset, so the app can ask for a new password.
     func completeAuthLink(_ url: URL) async throws -> Bool {
         _ = try await mapped { try await client.auth.session(from: url) }
-        let text = url.absoluteString
-        return text.contains("type=recovery")
+        // PKCE links (?code=…) have no "type=recovery" marker, so also check whether a reset was requested here.
+        return url.absoluteString.contains("type=recovery") || consumeRecoveryRequest()
+    }
+
+    private static let recoveryRequestedKey = "easysesh.recoveryRequestedAt"
+
+    /// True once after the user asked for a reset email on this device (within a day).
+    private func consumeRecoveryRequest() -> Bool {
+        let requestedAt = UserDefaults.standard.double(forKey: Self.recoveryRequestedKey)
+        UserDefaults.standard.removeObject(forKey: Self.recoveryRequestedKey)
+        return requestedAt > 0 && Date().timeIntervalSince1970 - requestedAt < 24 * 3600
     }
 
     // MARK: - Helpers
@@ -169,6 +178,7 @@ final class SupabaseBackend: Backend {
 
     func sendPasswordReset(email: String) async throws {
         try await mapped { try await client.auth.resetPasswordForEmail(email, redirectTo: AppConfig.redirectURL) }
+        UserDefaults.standard.set(Date().timeIntervalSince1970, forKey: Self.recoveryRequestedKey)
     }
 
     func signOut() async {

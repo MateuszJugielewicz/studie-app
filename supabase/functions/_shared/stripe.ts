@@ -63,6 +63,11 @@ export async function applyPaymentIntent(pi: Stripe.PaymentIntent): Promise<Book
     await record("succeeded");
     if (isBalance) return updateBooking(booking.id, { payment_status: "paid" });
     if (booking.status === "awaiting_payment" || booking.status === "pending_approval" || booking.status === "expired") {
+      // Only the payment this server started for the booking, for the full upfront amount, confirms it.
+      if (pi.id !== booking.payment_intent_id || (pi.amount_received || pi.amount) < booking.price.due_now) {
+        console.error("Payment does not match booking", booking.id, pi.id);
+        return booking;
+      }
       if (booking.status === "expired") {
         // Paid after the hold expired and the slot may be gone: refund automatically.
         await stripe.refunds.create({ payment_intent: pi.id });

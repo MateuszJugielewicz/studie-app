@@ -2,7 +2,7 @@ import { useState } from "react";
 import { ActionButton, Badge, PageState, Stat, Tabs } from "../components";
 import type { FeeBalance } from "../lib/types";
 import { useApi, useLoad } from "../lib/apiContext";
-import { date, label, money, moneyTotals, sumByCurrency } from "../lib/format";
+import { date, label, money, moneyTotals, safeUrl, sumByCurrency } from "../lib/format";
 
 type Tab = "transactions" | "fees" | "payouts" | "cash" | "invoices" | "refunds" | "failures";
 
@@ -83,7 +83,7 @@ export default function PaymentsPage() {
                       <td>{date(i.due_at)}</td>
                       <td>{date(i.paid_at)}</td>
                       <td className="actions">
-                        {i.hosted_invoice_url && <a href={i.hosted_invoice_url} target="_blank" rel="noreferrer">Invoice</a>}
+                        {safeUrl(i.hosted_invoice_url) && <a href={safeUrl(i.hosted_invoice_url)} target="_blank" rel="noreferrer">Invoice</a>}
                         {(i.status === "open" || i.status === "collections") && (
                           <ActionButton kind="secondary" confirm="Record that this invoice was paid (bank transfer etc.)?" onClick={async () => { await api.recordFeeSettlement(i.studio_id, i.amount, i.currency, "manual_payment", `Invoice ${i.id.slice(0, 8)} paid`); await invoices.reload(); await balances.reload(); }}>
                             Record payment

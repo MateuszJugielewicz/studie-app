@@ -68,7 +68,9 @@ function AuthForm({ initial }: { initial: "signin" | "signup" }) {
   const [accepted, setAccepted] = useState(false);
   const [working, setWorking] = useState(false);
   const [legal, setLegal] = useState<LegalDocument | null>(null);
-  const next = params.get("next") || "/";
+  // Only paths on this site, never "//other.site" or "https://…" (no open redirect after sign-in).
+  const requested = params.get("next") ?? "";
+  const next = /^\/(?![/\\])/.test(requested) ? requested : "/";
   const canSubmit = !working && email.includes("@") && password.length > 0 && (!signUp || (accepted && !passwordProblem(password)));
 
   useEffect(() => { setSignUp(initial === "signup"); }, [initial]);

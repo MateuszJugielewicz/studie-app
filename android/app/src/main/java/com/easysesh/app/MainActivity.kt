@@ -61,7 +61,8 @@ class MainActivity : ComponentActivity() {
         if (data.scheme != "easysesh") return
         // easysesh://payouts/… is Stripe onboarding returning; the payout screen handles it.
         if (data.host == "payouts") return
-        val isRecovery = (data.fragment ?: "").contains("type=recovery") || data.getQueryParameter("type") == "recovery"
+        val isRecovery = (data.fragment ?: "").contains("type=recovery") || data.getQueryParameter("type") == "recovery" ||
+            app.backend.consumeRecoveryRequest()
         app.backend.handleDeeplink(intent) {
             app.scope.launch { app.completeAuthLink(isRecovery) }
         }
