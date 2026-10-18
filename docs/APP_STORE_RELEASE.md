@@ -23,8 +23,8 @@ the privacy-manifest rules and the screenshot specifications.
 1. **Company details in the legal texts.** `legal/*.md` (all languages) still contain `[COMPANY NAME]`,
    `[ADDRESS]`, `[CVR/VAT NO.]`, `[COUNTRY]`, `[CITY]`,
    `[REGION]`, `[PROVIDER]`. A reviewer seeing placeholders can reject the app (2.1, 5.1.1). Send these
-   details to Claude and it fills them in everywhere, or replace them yourself and run
-   `python3 supabase/scripts/build_legal_function.py`.
+   details to Claude and it fills them in everywhere, or replace them yourself in `legal/` (the
+   website and the apps read it directly).
 2. **Support email.** Set `EASYSESH_SUPPORT_EMAIL` in `ios/Config/App.xcconfig` and the Supabase secret
    `SUPPORT_EMAIL` (shown on the public support page). Must be an address you actually read.
 3. **Live Stripe keys.** In `ios/Config/App.xcconfig` replace the `pk_test_…` key with your `pk_live_…`
@@ -50,7 +50,7 @@ the privacy-manifest rules and the screenshot specifications.
 
 ## App Store Connect
 
-- **Privacy Policy URL:** `https://gdebbieifsvspszmevwa.supabase.co/functions/v1/legal/privacy`
+- **Privacy Policy URL:** `https://easysesh.live/legal/privacy`
 - **Support URL:** `https://gdebbieifsvspszmevwa.supabase.co/functions/v1/legal/support`
 - **Terms (EULA)**: add `…/functions/v1/legal/terms` to the description, or under App Information → License Agreement.
 - **Category:** Music (secondary: Business).

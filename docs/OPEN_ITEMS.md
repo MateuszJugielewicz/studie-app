@@ -6,7 +6,7 @@ Things only the owner can do. Details and steps are in `docs/APP_STORE_RELEASE.m
 ## Legal / company
 - [ ] Company name, address, CVR/VAT number, governing-law country
       and city. They replace the `[PLACEHOLDER]`s in `legal/*.md` (all 10 languages). Send them to
-      Claude to fill in everywhere, then run `python3 supabase/scripts/build_legal_function.py`.
+      Claude to fill in everywhere.
 - [ ] Email provider and Supabase region for the privacy policy (`[PROVIDER]`, `[REGION]`).
 - [ ] Have a lawyer review the terms and privacy policy (they are marked as drafts).
 - [ ] A support email you actually read: `EASYSESH_SUPPORT_EMAIL` (iOS `ios/Config/App.xcconfig`),

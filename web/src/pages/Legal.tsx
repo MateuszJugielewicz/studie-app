@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import { marked } from "marked";
 import { ArrowDownToLine, BookOpen, Building2, FileText, Hand, HardDrive, Share, Undo2, Users, type LucideIcon } from "lucide-react";
 import { config } from "../lib/config";
-import { format, language, t } from "../lib/i18n";
+import { format, language, LANGUAGES, t } from "../lib/i18n";
 import { useApp } from "../lib/state";
 import { api, userMessage } from "../lib/api";
 import { Item, ItemLabel, Loading, NavItem, PageHead, Section, Spinner, Tiles, useToast } from "../components/ui";
@@ -26,19 +26,19 @@ export const requiredDocuments = (role: UserRole) => (role === "studio_owner" ? 
 // The documents live in /legal (shared with the apps); each language is its own folder.
 const files = import.meta.glob<string>("../../../legal/**/*.md", { query: "?raw", import: "default" });
 
-async function loadMarkdown(doc: LegalDocument): Promise<string> {
-  const localized = files[`../../../legal/${language()}/${doc.raw}.md`];
+async function loadMarkdown(doc: LegalDocument, lang = language()): Promise<string> {
+  const localized = files[`../../../legal/${lang}/${doc.raw}.md`];
   const english = files[`../../../legal/${doc.raw}.md`];
-  const loader = (language() !== "en" && localized) || english;
+  const loader = (lang !== "en" && localized) || english;
   return loader ? loader() : `# ${t(doc.title)}`;
 }
 
 /** A legal document, rendered from its Markdown file. */
-export function LegalDocumentBody({ doc }: { doc: LegalDocument }) {
+export function LegalDocumentBody({ doc, lang }: { doc: LegalDocument; lang?: string }) {
   const [html, setHtml] = useState<string | null>(null);
   useEffect(() => {
-    loadMarkdown(doc).then((md) => setHtml(marked.parse(md, { async: false }) as string));
-  }, [doc]);
+    loadMarkdown(doc, lang).then((md) => setHtml(marked.parse(md, { async: false }) as string));
+  }, [doc, lang]);
   if (html == null) return <Loading />;
   return <article className="markdown card" style={{ padding: "8px 22px 22px" }} dangerouslySetInnerHTML={{ __html: html }} />;
 }
@@ -57,11 +57,14 @@ export function LegalList({ base = "/legal" }: { base?: string }) {
 
 export default function Legal() {
   const { doc } = useParams();
-  const document = doc ? LEGAL[doc] : null;
+  // Links from the App Store listing / the old legal pages can ask for a language: ?lang=da
+  const requested = useSearchParams()[0].get("lang");
+  const lang = LANGUAGES.some((l) => l.code === requested) ? requested! : undefined;
+  const document = doc ? LEGAL[doc] ?? Object.values(LEGAL).find((d) => d.raw === doc) ?? null : null;
   return (
     <main className="page narrow">
       <PageHead title={document ? document.title : "Legal"} />
-      {document ? <LegalDocumentBody doc={document} /> : <LegalList />}
+      {document ? <LegalDocumentBody doc={document} lang={lang} /> : <LegalList />}
     </main>
   );
 }
