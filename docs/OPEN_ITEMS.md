@@ -41,14 +41,16 @@ Things only the owner can do. Details and steps are in `docs/APP_STORE_RELEASE.m
       it was only built and checked with on-computer screenshots so far.
 
 ## Email
-- [ ] Booking emails from noreply@easysesh.live: Resend account + `RESEND_API_KEY` secret, redeploy
-      `send-push legal` (steps in `docs/EMAIL_SETUP.md`). Optional: Supabase auth emails via Resend SMTP.
+- [x] Resend set up for easysesh.live (verified) and `send-push` deployed with booking emails.
+- [ ] Add the Resend key as a Supabase secret: Supabase → Edge Functions → Secrets → `RESEND_API_KEY`
+      (use a new key, not the one pasted in chat). Emails start as soon as it's saved.
+- [ ] Optional: Supabase auth emails via Resend SMTP (see `docs/EMAIL_SETUP.md`).
 
 ## Website
 - [x] Site online on Cloudflare Pages at https://easysesh.live (project `easysesh`).
 - [ ] Roll the Cloudflare API token that was pasted in chat (My Profile → API Tokens).
 - [ ] Supabase → Authentication → URL Configuration → add `https://easysesh.live/auth/callback`.
-- [ ] Supabase secret `SITE_URL=https://easysesh.live`, then redeploy `payout-account` and `payout-return`.
+- [x] Payout onboarding returns to easysesh.live (deployed; no SITE_URL secret needed).
 - [ ] Add the site to the Google OAuth web client (JavaScript origins) and the Apple Services ID domains.
 - [ ] Stripe → Settings → Payment method domains → add the site (for Apple Pay / Google Pay).
 - [ ] Sign in at `https://admin.easysesh.live` with the admin account and set up two-factor authentication.
@@ -60,6 +62,6 @@ Things only the owner can do. Details and steps are in `docs/APP_STORE_RELEASE.m
 - [ ] A few approved studios, and a city to search for in the review notes.
 
 ## Supabase
-- [ ] Security fixes (see `docs/SECURITY_REVIEW.md`): run `supabase/updates/latest.sql`, then redeploy
-      `create-payment-intent confirm-payment stripe-webhook respond-booking process-payouts`.
+- [x] Security fixes applied to the live database and functions redeployed (18 Oct 2026).
+- [ ] Supabase → Authentication → Providers/Policies: turn on leaked-password protection (security advisor).
 - [ ] Run `supabase/updates/latest.sql` after each update and redeploy the functions.

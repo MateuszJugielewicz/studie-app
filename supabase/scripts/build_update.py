@@ -64,6 +64,7 @@ parts = [
     "-- Blocking users (App Store guideline 1.2) ------------------------------\n" + idempotent(mig("20261017000001_user_blocks.sql")),
     "-- Browsing studios without an account ---------------------------------\n" + idempotent(mig("20261017000002_guest_browsing.sql")),
     "-- Security hardening: price checks, internal jobs locked -----------\n" + idempotent(mig("20261018000001_security_hardening.sql")),
+    "-- Pinned search_path on helper functions (security advisor) ------\n" + mig("20261018000002_pin_search_paths.sql"),
     """-- Grants ---------------------------------------------------------------
 grant select, insert, update, delete on all tables in schema public to authenticated, service_role;
 grant execute on all functions in schema public to authenticated, service_role;
