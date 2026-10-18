@@ -1,7 +1,7 @@
 # EasySesh – open items before launch
 
 Things only the owner can do. Details and steps are in `docs/APP_STORE_RELEASE.md`
-(iOS) and `android/README.md` (Android).
+(iOS), `android/README.md` (Android) and `web/README.md` (website).
 
 ## Legal / company
 - [ ] Company name, address, CVR/VAT number, support email, privacy email, governing-law country
@@ -39,6 +39,15 @@ Things only the owner can do. Details and steps are in `docs/APP_STORE_RELEASE.m
 - [ ] Play Console: privacy policy URL, Data safety form, content rating, screenshots, test account.
 - [ ] Test the Android app on a real phone (sign-in, booking + Google Pay, chat, push, payouts) –
       it was only built and checked with on-computer screenshots so far.
+
+## Website
+- [ ] Put the site online (`npm run build`, drag `web/dist` to Netlify Drop) and connect the domain.
+- [ ] Supabase → Authentication → URL Configuration → add `https://<site>/auth/callback`.
+- [ ] Supabase secret `SITE_URL=https://<site>`, then redeploy `payout-account` and `payout-return`.
+- [ ] Add the site to the Google OAuth web client (JavaScript origins) and the Apple Services ID domains.
+- [ ] Stripe → Settings → Payment method domains → add the site (for Apple Pay / Google Pay).
+- [ ] Test the site against the real backend (sign-in, booking + card payment, chat, payouts) –
+      it was only checked with a simulated backend so far.
 
 ## Review accounts (both stores)
 - [ ] Artist demo account and studio-owner demo account with an approved studio.

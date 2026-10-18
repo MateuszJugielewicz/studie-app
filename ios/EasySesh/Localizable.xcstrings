@@ -5252,6 +5252,65 @@
         }
       }
     },
+    "Also on your phone": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Også på din telefon"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auch auf deinem Handy"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Και στο κινητό σου"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "También en tu móvil"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aussi sur ton téléphone"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anche sul tuo telefono"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ook op je telefoon"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Również na telefonie"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Även i din mobil"
+          }
+        }
+      }
+    },
     "An account with this email already exists.": {
       "extractionState": "manual",
       "localizations": {
@@ -8320,6 +8379,65 @@
         }
       }
     },
+    "Book a time": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Book en tid"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zeit buchen"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Κλείσε ώρα"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reserva una hora"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Réserve un créneau"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prenota un orario"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Boek een tijd"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zarezerwuj termin"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Boka en tid"
+          }
+        }
+      }
+    },
     "Book in seconds": {
       "extractionState": "manual",
       "localizations": {
@@ -8375,6 +8493,65 @@
           "stringUnit": {
             "state": "translated",
             "value": "Boka på några sekunder"
+          }
+        }
+      }
+    },
+    "Book recording studios near you.": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Book lydstudier i nærheden."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buche Tonstudios in deiner Nähe."
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Κλείσε στούντιο ηχογράφησης κοντά σου."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reserva estudios de grabación cerca de ti."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Réserve des studios d'enregistrement près de chez toi."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prenota studi di registrazione vicino a te."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Boek opnamestudio's bij jou in de buurt."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rezerwuj studia nagraniowe w pobliżu."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Boka inspelningsstudior nära dig."
           }
         }
       }
@@ -10503,6 +10680,65 @@
         }
       }
     },
+    "Card, Apple Pay or Google Pay – securely processed by Stripe.": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kort, Apple Pay eller Google Pay – behandles sikkert af Stripe."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Karte, Apple Pay oder Google Pay – sicher über Stripe."
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Κάρτα, Apple Pay ή Google Pay – με ασφάλεια μέσω Stripe."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tarjeta, Apple Pay o Google Pay – procesado de forma segura por Stripe."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Carte, Apple Pay ou Google Pay – traité en toute sécurité par Stripe."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Carta, Apple Pay o Google Pay – elaborato in sicurezza da Stripe."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kaart, Apple Pay of Google Pay – veilig verwerkt door Stripe."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Karta, Apple Pay lub Google Pay – bezpiecznie przez Stripe."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kort, Apple Pay eller Google Pay – hanteras säkert av Stripe."
+          }
+        }
+      }
+    },
     "Cash at the studio": {
       "extractionState": "manual",
       "localizations": {
@@ -11384,6 +11620,65 @@
           "stringUnit": {
             "state": "translated",
             "value": "Chatta med artister om bokningar, eller skriv först med ✎-knappen."
+          }
+        }
+      }
+    },
+    "Chat with the studio": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chat med studiet"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chatte mit dem Studio"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Συνομίλησε με το στούντιο"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chatea con el estudio"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Discute avec le studio"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chatta con lo studio"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chat met de studio"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rozmawiaj ze studiem"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chatta med studion"
           }
         }
       }
@@ -12391,6 +12686,65 @@
         }
       }
     },
+    "Clear": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ryd"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Löschen"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Καθαρισμός"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Borrar"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Effacer"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancella"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wissen"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wyczyść"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rensa"
+          }
+        }
+      }
+    },
     "Clear all": {
       "extractionState": "manual",
       "localizations": {
@@ -12977,6 +13331,65 @@
           "stringUnit": {
             "state": "translated",
             "value": "Stängningstider efter midnatt (t.ex. 02:00) är tillåtna för sena sessioner."
+          }
+        }
+      }
+    },
+    "Coming soon": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kommer snart"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bald verfügbar"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Έρχεται σύντομα"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Próximamente"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bientôt disponible"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prossimamente"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Binnenkort"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wkrótce"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kommer snart"
           }
         }
       }
@@ -15042,6 +15455,65 @@
           "stringUnit": {
             "state": "translated",
             "value": "Översikt"
+          }
+        }
+      }
+    },
+    "Dashboard with requests, calendar, earnings and reviews.": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dashboard med forespørgsler, kalender, indtjening og anmeldelser."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dashboard mit Anfragen, Kalender, Einnahmen und Bewertungen."
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Πίνακας με αιτήματα, ημερολόγιο, κέρδη και κριτικές."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Panel con solicitudes, calendario, ingresos y reseñas."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tableau de bord avec demandes, calendrier, revenus et avis."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dashboard con richieste, calendario, guadagni e recensioni."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dashboard met aanvragen, agenda, inkomsten en reviews."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Panel z prośbami, kalendarzem, zarobkami i opiniami."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Översikt med förfrågningar, kalender, intäkter och recensioner."
           }
         }
       }
@@ -19058,6 +19530,65 @@
         }
       }
     },
+    "Every booking has its own chat, so details never get lost.": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hver booking har sin egen chat, så intet går tabt."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jede Buchung hat ihren eigenen Chat, damit nichts verloren geht."
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Κάθε κράτηση έχει τη δική της συνομιλία, έτσι τίποτα δεν χάνεται."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cada reserva tiene su propio chat, así no se pierde nada."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chaque réservation a sa propre discussion, rien ne se perd."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ogni prenotazione ha la sua chat, così non si perde nulla."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elke boeking heeft een eigen chat, zodat er niets verloren gaat."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Każda rezerwacja ma własny czat, więc nic nie ginie."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Varje bokning har sin egen chatt, så inget försvinner."
+          }
+        }
+      }
+    },
     "Every session by day. Block time when the studio is busy so nobody can book it.": {
       "extractionState": "manual",
       "localizations": {
@@ -19113,6 +19644,65 @@
           "stringUnit": {
             "state": "translated",
             "value": "Alla sessioner dag för dag. Blockera tid när studion är upptagen."
+          }
+        }
+      }
+    },
+    "Every studio is reviewed by our team before it goes live.": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hvert studie gennemgås af vores team, før det bliver synligt."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jedes Studio wird von unserem Team geprüft, bevor es online geht."
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Κάθε στούντιο ελέγχεται από την ομάδα μας πριν δημοσιευτεί."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nuestro equipo revisa cada estudio antes de publicarlo."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chaque studio est vérifié par notre équipe avant d'être en ligne."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ogni studio viene verificato dal nostro team prima di andare online."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elke studio wordt door ons team gecontroleerd voordat hij live gaat."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Każde studio jest sprawdzane przez nasz zespół przed publikacją."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Varje studio granskas av vårt team innan det publiceras."
           }
         }
       }
@@ -19762,6 +20352,65 @@
           "stringUnit": {
             "state": "translated",
             "value": "Fyll i varje avsnitt. När du är klar skickar du in studion för granskning – vi svarar oftast inom 1–2 arbetsdagar."
+          }
+        }
+      }
+    },
+    "Fill your empty hours.": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fyld dine tomme timer."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fülle deine leeren Stunden."
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Γέμισε τις κενές σου ώρες."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Llena tus horas vacías."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remplis tes heures creuses."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Riempi le tue ore vuote."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vul je lege uren."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wypełnij wolne godziny."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fyll dina tomma timmar."
           }
         }
       }
@@ -20706,6 +21355,65 @@
           "stringUnit": {
             "state": "translated",
             "value": "Vid kontantbokningar tar du betalt hela priset; EasySesh avgift på %lld %% dras från din nästa utbetalning. Resten faktureras månadsvis och ska betalas inom 14 dagar. Obetalda fakturor leder till avstängning från EasySesh och inkasso."
+          }
+        }
+      }
+    },
+    "For studios": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "For studier"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Für Studios"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Για στούντιο"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Para estudios"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pour les studios"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Per gli studi"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voor studio's"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dla studiów"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "För studior"
           }
         }
       }
@@ -22598,6 +23306,65 @@
         }
       }
     },
+    "How it works": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sådan virker det"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "So funktioniert's"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Πώς λειτουργεί"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cómo funciona"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comment ça marche"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Come funziona"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zo werkt het"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jak to działa"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Så funkar det"
+          }
+        }
+      }
+    },
     "How was the session? Punctual, respectful, prepared?": {
       "extractionState": "manual",
       "localizations": {
@@ -23365,6 +24132,65 @@
         }
       }
     },
+    "Image could not be read.": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Billedet kunne ikke læses."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Bild konnte nicht gelesen werden."
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Δεν ήταν δυνατή η ανάγνωση της εικόνας."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudo leer la imagen."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L'image n'a pas pu être lue."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impossibile leggere l'immagine."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De afbeelding kon niet worden gelezen."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie udało się odczytać obrazu."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bilden kunde inte läsas."
+          }
+        }
+      }
+    },
     "In dispute": {
       "extractionState": "manual",
       "localizations": {
@@ -23892,6 +24718,65 @@
           "stringUnit": {
             "state": "translated",
             "value": "Direktbokning"
+          }
+        }
+      }
+    },
+    "Instant booking or approve each request yourself.": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Øjeblikkelig booking, eller godkend hver forespørgsel selv."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sofortbuchung oder jede Anfrage selbst bestätigen."
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Άμεση κράτηση ή έγκριση κάθε αιτήματος από εσένα."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reserva instantánea o aprueba tú cada solicitud."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Réservation instantanée ou validation de chaque demande."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prenotazione immediata o approva tu ogni richiesta."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Direct boeken of keur elke aanvraag zelf goed."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Natychmiastowa rezerwacja lub samodzielne zatwierdzanie próśb."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Direktbokning eller godkänn varje förfrågan själv."
           }
         }
       }
@@ -25308,6 +26193,65 @@
           "stringUnit": {
             "state": "translated",
             "value": "Lägg upp dina rum, fyll kalendern och få betalt. Varje studio granskas innan den publiceras."
+          }
+        }
+      }
+    },
+    "List your rooms, prices and opening hours. Artists book and pay online, and you're paid out automatically after each session.": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vis dine rum, priser og åbningstider. Artister booker og betaler online, og du får automatisk udbetalt efter hver session."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zeig deine Räume, Preise und Öffnungszeiten. Künstler:innen buchen und zahlen online, und du wirst nach jeder Session automatisch ausgezahlt."
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Δείξε τους χώρους, τις τιμές και το ωράριό σου. Οι καλλιτέχνες κλείνουν και πληρώνουν online και πληρώνεσαι αυτόματα μετά από κάθε συνεδρία."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Muestra tus salas, precios y horarios. Los artistas reservan y pagan online, y cobras automáticamente después de cada sesión."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Présente tes salles, tes prix et tes horaires. Les artistes réservent et paient en ligne, et tu es payé automatiquement après chaque session."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostra le tue sale, i prezzi e gli orari. Gli artisti prenotano e pagano online e ricevi il pagamento automaticamente dopo ogni sessione."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toon je ruimtes, prijzen en openingstijden. Artiesten boeken en betalen online, en je wordt na elke sessie automatisch uitbetaald."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pokaż swoje pomieszczenia, ceny i godziny otwarcia. Artyści rezerwują i płacą online, a wypłaty dostajesz automatycznie po każdej sesji."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Visa dina rum, priser och öppettider. Artister bokar och betalar online, och du får betalt automatiskt efter varje session."
           }
         }
       }
@@ -32923,6 +33867,65 @@
         }
       }
     },
+    "Pay by card, Apple Pay or Google Pay, or in cash at the studio when the studio allows it.": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Betal med kort, Apple Pay eller Google Pay – eller kontant i studiet, hvis studiet tillader det."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zahle per Karte, Apple Pay oder Google Pay – oder bar im Studio, wenn das Studio es erlaubt."
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Πλήρωσε με κάρτα, Apple Pay ή Google Pay ή με μετρητά στο στούντιο, αν το επιτρέπει."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paga con tarjeta, Apple Pay o Google Pay, o en efectivo en el estudio si lo permite."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paie par carte, Apple Pay ou Google Pay, ou en espèces au studio s'il l'accepte."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paga con carta, Apple Pay o Google Pay, oppure in contanti allo studio se lo consente."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Betaal met kaart, Apple Pay of Google Pay, of contant in de studio als de studio dat toestaat."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Płać kartą, Apple Pay lub Google Pay albo gotówką w studiu, jeśli studio na to pozwala."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Betala med kort, Apple Pay eller Google Pay, eller kontant i studion om studion tillåter det."
+          }
+        }
+      }
+    },
     "Pay cash at studio": {
       "extractionState": "manual",
       "localizations": {
@@ -33214,6 +34217,65 @@
           "stringUnit": {
             "state": "translated",
             "value": "Betala nu för att starta direkt."
+          }
+        }
+      }
+    },
+    "Pay your way": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Betal som du vil"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bezahle, wie du willst"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Πλήρωσε όπως θέλεις"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paga como quieras"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paie comme tu veux"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paga come vuoi"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Betaal zoals jij wilt"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Płać, jak chcesz"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Betala som du vill"
           }
         }
       }
@@ -33867,6 +34929,65 @@
         }
       }
     },
+    "Payouts 2 days after each completed session, minus a 10% platform fee.": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Udbetaling 2 dage efter hver gennemført session, minus 10 % platformgebyr."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auszahlung 2 Tage nach jeder abgeschlossenen Session, abzüglich 10 % Plattformgebühr."
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Πληρωμές 2 ημέρες μετά από κάθε ολοκληρωμένη συνεδρία, μείον 10% χρέωση πλατφόρμας."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pagos 2 días después de cada sesión completada, menos una comisión del 10 %."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Versements 2 jours après chaque session terminée, moins 10 % de frais de plateforme."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pagamenti 2 giorni dopo ogni sessione completata, meno il 10% di commissione."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uitbetaling 2 dagen na elke voltooide sessie, min 10% platformkosten."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wypłaty 2 dni po każdej zakończonej sesji, minus 10% opłaty platformy."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Utbetalning 2 dagar efter varje genomförd session, minus 10 % plattformsavgift."
+          }
+        }
+      }
+    },
     "Payouts appear here after your first completed session.": {
       "extractionState": "manual",
       "localizations": {
@@ -34512,6 +35633,65 @@
           "stringUnit": {
             "state": "translated",
             "value": "Välj 1 till 5 stjärnor."
+          }
+        }
+      }
+    },
+    "Pick a session, hours and extras like mixing or an engineer. You see the full price before you pay.": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vælg session, timer og ekstra som mix eller tekniker. Du ser den fulde pris, før du betaler."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wähle Session, Stunden und Extras wie Mixing oder Engineer. Du siehst den vollen Preis vor dem Bezahlen."
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Διάλεξε συνεδρία, ώρες και έξτρα όπως μίξη ή ηχολήπτη. Βλέπεις την πλήρη τιμή πριν πληρώσεις."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elige sesión, horas y extras como mezcla o técnico. Ves el precio total antes de pagar."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choisis une session, les heures et des options comme le mixage ou un ingé son. Tu vois le prix total avant de payer."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scegli sessione, ore ed extra come mix o fonico. Vedi il prezzo completo prima di pagare."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kies een sessie, uren en extra's zoals mixen of een technicus. Je ziet de volledige prijs voordat je betaalt."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wybierz sesję, godziny i dodatki, np. miks lub realizatora. Pełną cenę widzisz przed zapłatą."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Välj session, timmar och tillval som mix eller tekniker. Du ser hela priset innan du betalar."
           }
         }
       }
@@ -35987,6 +37167,65 @@
           "stringUnit": {
             "state": "translated",
             "value": "Förhandsvisa offentlig profil"
+          }
+        }
+      }
+    },
+    "Previous": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Forrige"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zurück"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Προηγούμενο"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anterior"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Précédent"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Precedente"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vorige"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Poprzednie"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Föregående"
           }
         }
       }
@@ -41891,6 +43130,124 @@
         }
       }
     },
+    "Search by city, price, gear, genre and free times, on a list or a map.": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Søg efter by, pris, udstyr, genre og ledige tider – på liste eller kort."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suche nach Stadt, Preis, Equipment, Genre und freien Zeiten – als Liste oder auf der Karte."
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Αναζήτησε ανά πόλη, τιμή, εξοπλισμό, είδος και ελεύθερες ώρες, σε λίστα ή χάρτη."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Busca por ciudad, precio, equipo, género y horas libres, en lista o mapa."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cherche par ville, prix, matériel, genre et créneaux libres, en liste ou sur la carte."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cerca per città, prezzo, attrezzatura, genere e orari liberi, in elenco o sulla mappa."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zoek op stad, prijs, apparatuur, genre en vrije tijden, in een lijst of op de kaart."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Szukaj według miasta, ceny, sprzętu, gatunku i wolnych terminów – na liście lub mapie."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sök på stad, pris, utrustning, genre och lediga tider, i lista eller på karta."
+          }
+        }
+      }
+    },
+    "Search city, studio, gear…": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Søg by, studie, udstyr…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stadt, Studio, Equipment suchen…"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Αναζήτηση πόλης, στούντιο, εξοπλισμού…"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Busca ciudad, estudio, equipo…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ville, studio, matériel…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cerca città, studio, attrezzatura…"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zoek stad, studio, apparatuur…"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Szukaj miasta, studia, sprzętu…"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sök stad, studio, utrustning…"
+          }
+        }
+      }
+    },
     "Search your artist name": {
       "extractionState": "manual",
       "localizations": {
@@ -45486,6 +46843,65 @@
           "stringUnit": {
             "state": "translated",
             "value": "Stripe är inte konfigurerat."
+          }
+        }
+      }
+    },
+    "Stripe request failed.": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stripe-anmodningen mislykkedes."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Stripe-Anfrage ist fehlgeschlagen."
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Το αίτημα στο Stripe απέτυχε."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La solicitud a Stripe falló."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La requête Stripe a échoué."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La richiesta a Stripe non è riuscita."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Het Stripe-verzoek is mislukt."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Żądanie do Stripe nie powiodło się."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stripe-förfrågan misslyckades."
           }
         }
       }
@@ -49734,6 +51150,65 @@
           "stringUnit": {
             "state": "translated",
             "value": "Filen innehåller de personuppgifter EasySesh har om dig. Kortnummer lagras av vår betalleverantör (Stripe) och sparas aldrig av EasySesh."
+          }
+        }
+      }
+    },
+    "This link has expired or was already used. Please try again.": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Linket er udløbet eller allerede brugt. Prøv igen."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieser Link ist abgelaufen oder wurde schon benutzt. Bitte versuche es erneut."
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ο σύνδεσμος έληξε ή έχει ήδη χρησιμοποιηθεί. Δοκίμασε ξανά."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este enlace ha caducado o ya se usó. Inténtalo de nuevo."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ce lien a expiré ou a déjà été utilisé. Réessaie."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il link è scaduto o è già stato usato. Riprova."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deze link is verlopen of al gebruikt. Probeer het opnieuw."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ten link wygasł lub został już użyty. Spróbuj ponownie."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Länken har gått ut eller redan använts. Försök igen."
           }
         }
       }
@@ -56755,6 +58230,65 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ditt konto är aktivt igen"
+          }
+        }
+      }
+    },
+    "Your account works everywhere: on this website and in the EasySesh app for iPhone and Android.": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Din konto virker overalt: på denne hjemmeside og i EasySesh-appen til iPhone og Android."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dein Konto funktioniert überall: auf dieser Website und in der EasySesh-App für iPhone und Android."
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ο λογαριασμός σου λειτουργεί παντού: σε αυτόν τον ιστότοπο και στην εφαρμογή EasySesh για iPhone και Android."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu cuenta funciona en todas partes: en esta web y en la app EasySesh para iPhone y Android."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ton compte fonctionne partout : sur ce site et dans l'app EasySesh pour iPhone et Android."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il tuo account funziona ovunque: su questo sito e nell'app EasySesh per iPhone e Android."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Je account werkt overal: op deze website en in de EasySesh-app voor iPhone en Android."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Twoje konto działa wszędzie: na tej stronie i w aplikacji EasySesh na iPhone'a i Androida."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ditt konto fungerar överallt: på den här webbplatsen och i EasySesh-appen för iPhone och Android."
           }
         }
       }

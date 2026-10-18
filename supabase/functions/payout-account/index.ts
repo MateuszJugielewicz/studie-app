@@ -85,12 +85,14 @@ Deno.serve(handler(async (req, body) => {
   if (body.action === "onboarding_link") {
     // Stripe's identity check (name, birth date, address, ID). The bank is added in the app, so
     // Stripe skips that step once a bank account is on file.
+    // Started on the website: come back to the website's payout page instead of the app.
+    const client = body.client === "web" ? "&client=web" : "";
     const back = `${Deno.env.get("SUPABASE_URL")}/functions/v1/payout-return`;
     const link = await stripeCall(() => stripe.accountLinks.create({
       account: connected!.id,
       type: "account_onboarding",
-      refresh_url: `${back}?to=refresh`,
-      return_url: `${back}?to=done`,
+      refresh_url: `${back}?to=refresh${client}`,
+      return_url: `${back}?to=done${client}`,
     }));
     onboardingUrl = link.url;
   }
