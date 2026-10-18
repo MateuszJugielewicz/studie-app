@@ -11,8 +11,8 @@ Studie ansøger → Admin godkender → Synligt på platformen → Artister find
 | iOS-app (artister + studier) | `ios/` | SwiftUI, iOS 17+, MapKit, Stripe PaymentSheet, Supabase |
 | Backend | `supabase/` | Postgres + Row Level Security, Auth (e-mail/Apple/Google), Storage, Realtime, Edge Functions, pg_cron |
 | Android-app (artister + studier) | `android/` | Kotlin, Jetpack Compose, Stripe, Supabase |
-| Hjemmeside (artister + studier) | `web/` | React + TypeScript + Vite, Stripe, Supabase |
-| Admin-dashboard (web) | `admin/` | React + TypeScript + Vite |
+| Hjemmeside (artister + studier + admin-dashboard på `/admin`) | `web/` | React + TypeScript + Vite, Stripe, Supabase |
+| Admin-dashboard (selvstændig, gammel version) | `admin/` | React + TypeScript + Vite |
 
 Appen og admin-dashboardet er forbundet til EasySeshs Supabase-projekt. Der er ingen testdata: studier, bookinger og konti kommer fra rigtige brugere.
 
@@ -33,8 +33,10 @@ Vælg dit Apple ID under *Signing & Capabilities → Team*, vælg en iPhone-simu
 ```bash
 cd web
 npm install
-npm run dev            # http://localhost:5173
+npm run dev            # http://localhost:5173 – admin-dashboardet ligger på /admin
 ```
+
+Admin-dashboardet er nu en del af hjemmesiden (`web/src/admin`). Mappen `admin/` virker stadig, men opdateres ikke længere.
 
 Se `web/README.md` for, hvordan siden lægges online.
 

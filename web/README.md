@@ -6,6 +6,12 @@ editor, payouts, promotion) – all from a browser. It uses the same Supabase pr
 translations (`ios/EasySesh/Localizable.xcstrings`) and the same legal texts (`legal/`) as the
 iOS and Android apps, so an account works everywhere.
 
+It also includes the **admin dashboard** at `/admin` (studio approvals, users, bookings, payments,
+promotions, moderation, support and the changelog/"What's new"). Admins sign in on the website as
+usual and are taken there; two-factor authentication (an authenticator app) is required. Everything
+done there applies to the iOS app, the Android app and the website alike, because they all use the
+same backend.
+
 The public keys (Supabase URL + anon key, Stripe **publishable** key, support email) are read from
 `ios/Config/App.xcconfig` when building, so nothing needs to be filled in. To override one, copy
 `.env.example` to `.env.local`.
@@ -20,7 +26,7 @@ npm install
 npm run dev
 ```
 
-Open <http://localhost:5173>.
+Open <http://localhost:5173> (the admin dashboard is <http://localhost:5173/admin>).
 
 ## Put it online
 
@@ -60,7 +66,6 @@ Replace `https://YOUR-SITE` with the real address.
 - No push notifications (the Inbox and unread badges still update live while the site is open).
 - No intro carousel or studio tour, no haptics.
 - Location comes from the browser (it asks for permission); maps use OpenStreetMap.
-- Admins see a short note pointing to the admin dashboard (`admin/`).
 
 ## Commands
 

@@ -157,7 +157,7 @@ export default function App() {
             <Route path="/support/*" element={<RequireAuth><Support /></RequireAuth>} />
             <Route path="/studio/edit/*" element={<RequireAuth role="studio_owner"><StudioEditor /></RequireAuth>} />
             <Route path="/studio/*" element={<RequireAuth role="studio_owner"><StudioOwner /></RequireAuth>} />
-            <Route path="/admin" element={<RequireAuth><AdminInfo /></RequireAuth>} />
+            <Route path="/admin/*" element={<AdminRedirect />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Onboarding>
@@ -177,17 +177,10 @@ function Splash() {
   );
 }
 
-function AdminInfo() {
-  const app = useApp();
-  return (
-    <main className="page narrow">
-      <div className="card empty" style={{ marginTop: 40 }}>
-        <div className="title-m">{t("Admin account")}</div>
-        <div className="secondary">{t("Studio approvals, users, bookings, payments and moderation are managed in the EasySesh admin dashboard on the web.")}</div>
-        <button className="btn primary" style={{ marginTop: 12 }} onClick={() => app.signOut()}>{t("Sign out")}</button>
-      </div>
-    </main>
-  );
+/** The admin dashboard is a separate page (admin.html), so leave the app with a full page load. */
+function AdminRedirect() {
+  useEffect(() => { window.location.replace("/admin/"); }, []);
+  return <Loading />;
 }
 
 function NotFound() {
