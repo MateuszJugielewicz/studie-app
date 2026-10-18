@@ -71,11 +71,36 @@ export default function App() {
   return <Dashboard api={configuredApi} />;
 }
 
+/**
+ * On phones, tables become stacked cards (styles.css). Each cell needs its column name for that, so
+ * copy the header text onto the cells as data-label; React leaves unknown attributes alone, and the
+ * observer labels rows that appear later (filters, reloads).
+ */
+function useMobileTableLabels() {
+  useEffect(() => {
+    const label = () => {
+      for (const table of Array.from(document.querySelectorAll<HTMLTableElement>(".content table"))) {
+        const headers = Array.from(table.querySelectorAll("thead th")).map((th) => th.textContent?.trim() ?? "");
+        for (const row of Array.from(table.querySelectorAll("tbody tr"))) {
+          Array.from(row.children).forEach((cell, i) => {
+            if (headers[i] && cell.getAttribute("data-label") !== headers[i]) cell.setAttribute("data-label", headers[i]);
+          });
+        }
+      }
+    };
+    label();
+    const observer = new MutationObserver(label);
+    observer.observe(document.body, { childList: true, subtree: true });
+    return () => observer.disconnect();
+  }, []);
+}
+
 function Dashboard({ api }: { api: AdminApi }) {
   const [email, setEmail] = useState<string | null | undefined>(undefined);
   const [mfa, setMfa] = useState<MfaState | null>(null);
   const [openSupport, setOpenSupport] = useState(0);
   const location = useLocation();
+  useMobileTableLabels();
 
   // Support requests waiting for a reply, refreshed every 30 seconds and on navigation.
   useEffect(() => {
@@ -123,7 +148,7 @@ function Dashboard({ api }: { api: AdminApi }) {
             ))}
           </nav>
           <div className="sidebar-footer">
-            <div className="muted small">{email}</div>
+            <div className="muted small account-email">{email}</div>
             <a href={websiteUrl} className="muted small">Open the website</a>
             <button className="ghost" onClick={async () => { await api.signOut(); setEmail(null); }}>Sign out</button>
           </div>

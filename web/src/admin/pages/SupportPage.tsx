@@ -27,6 +27,14 @@ export default function SupportPage() {
     (!q || [t.subject, t.user_name, t.user_email, t.last_message_preview, t.booking_reference ?? ""].some((v) => v.toLowerCase().includes(q))),
   );
   const selected = all.find((t) => t.id === selectedId) ?? null;
+  const threadRef = useRef<HTMLDivElement>(null);
+
+  // On phones the conversation sits below the list, so bring it into view when a request is picked.
+  useEffect(() => {
+    if (selectedId && window.matchMedia("(max-width: 900px)").matches) {
+      threadRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [selectedId]);
 
   return (
     <>
@@ -64,11 +72,13 @@ export default function SupportPage() {
               </button>
             ))}
           </div>
+          <div ref={threadRef} style={{ scrollMarginTop: 120 }}>
           {selected ? (
             <TicketThread key={selected.id} ticket={selected} onChanged={tickets.reload} />
           ) : (
             <div className="card muted">Select a request to read and reply.</div>
           )}
+          </div>
         </div>
       </PageState>
     </>
