@@ -36,4 +36,4 @@ Fand die Session nicht wie gebucht statt (z. B. war das Studio geschlossen oder 
 ## Buchung ändern
 Du kannst eine bestätigte Buchung kostenlos auf einen anderen freien Termin gleicher Länge verschieben, solange die Session noch nicht begonnen hat.
 
-Fragen: [SUPPORT EMAIL]
+Fragen: support@easysesh.live

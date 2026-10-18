@@ -54,7 +54,7 @@ EasySesh stosuje **zerową tolerancję dla niedozwolonych treści i nadużyć ze
 - EasySesh nie odpowiada za szkody pośrednie ani utracone korzyści, ani za działania Artystów lub Studiów. Nasza łączna odpowiedzialność ogranicza się do opłat otrzymanych przez EasySesh w związku z daną rezerwacją. Nic w tym Regulaminie nie ogranicza odpowiedzialności, której nie można ograniczyć zgodnie z prawem, w tym Twoich ustawowych praw konsumenta.
 
 ## 12. Spory
-Najpierw skontaktuj się z nami pod adresem [SUPPORT EMAIL] lub zgłoś problem przy rezerwacji w aplikacji. Staramy się rozwiązywać spory między Artystami a Studiami w ciągu 14 dni. Konsumenci z UE mogą też korzystać z unijnej platformy skarg: https://ec.europa.eu/consumers/odr.
+Najpierw skontaktuj się z nami pod adresem support@easysesh.live lub zgłoś problem przy rezerwacji w aplikacji. Staramy się rozwiązywać spory między Artystami a Studiami w ciągu 14 dni. Konsumenci z UE mogą też korzystać z unijnej platformy skarg: https://ec.europa.eu/consumers/odr.
 
 ## 13. Zamknięcie konta
 Możesz w każdej chwili usunąć konto w Ustawieniach. Możemy zamykać konta naruszające ten Regulamin. Nadchodzące rezerwacje są obsługiwane zgodnie z polityką anulowania.
@@ -66,4 +66,4 @@ Możemy aktualizować ten Regulamin. Przy istotnych zmianach poinformujemy Cię 
 Regulamin podlega prawu [COUNTRY]. Sądem właściwym jest sąd w [CITY], bez ograniczenia prawa konsumenta do wniesienia sprawy w swoim kraju.
 
 ## Kontakt
-[COMPANY NAME] · [ADDRESS] · [SUPPORT EMAIL]
+[COMPANY NAME] · [ADDRESS] · support@easysesh.live

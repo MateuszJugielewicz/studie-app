@@ -17,4 +17,4 @@ Jeśli easysesh.app będzie używać analitycznych lub marketingowych plików co
 ## Płatności
 Stripe może podczas płatności ustawiać niezbędne pliki cookie, aby zapobiegać oszustwom. Zob. https://stripe.com/cookie-settings.
 
-Pytania: [PRIVACY EMAIL]
+Pytania: easysesh@easysesh.live

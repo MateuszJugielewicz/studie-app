@@ -54,7 +54,7 @@ EasySesh hanteert **nultolerantie voor aanstootgevende inhoud en misbruik door g
 - EasySesh is niet aansprakelijk voor indirecte schade of gederfde winst, of voor handelingen van Artiesten of Studio's. Onze totale aansprakelijkheid is beperkt tot de kosten die EasySesh voor de betreffende boeking heeft ontvangen. Niets in deze voorwaarden beperkt aansprakelijkheid die wettelijk niet beperkt kan worden, waaronder je wettelijke rechten als consument.
 
 ## 12. Geschillen
-Neem eerst contact met ons op via [SUPPORT EMAIL] of meld een probleem bij de boeking in de app. We proberen geschillen tussen Artiesten en Studio's binnen 14 dagen op te lossen. Consumenten in de EU kunnen ook het Europese klachtenplatform gebruiken: https://ec.europa.eu/consumers/odr.
+Neem eerst contact met ons op via support@easysesh.live of meld een probleem bij de boeking in de app. We proberen geschillen tussen Artiesten en Studio's binnen 14 dagen op te lossen. Consumenten in de EU kunnen ook het Europese klachtenplatform gebruiken: https://ec.europa.eu/consumers/odr.
 
 ## 13. Je account beëindigen
 Je kunt je account op elk moment verwijderen in Instellingen. We kunnen accounts sluiten die deze voorwaarden overtreden. Komende boekingen worden afgehandeld volgens het annuleringsbeleid.
@@ -66,4 +66,4 @@ We kunnen deze voorwaarden bijwerken. Bij een belangrijke wijziging laten we het
 Op deze voorwaarden is het recht van [COUNTRY] van toepassing. De rechter in [CITY] is bevoegd, zonder het recht van een consument te beperken om in zijn eigen land te procederen.
 
 ## Contact
-[COMPANY NAME] · [ADDRESS] · [SUPPORT EMAIL]
+[COMPANY NAME] · [ADDRESS] · support@easysesh.live

@@ -40,6 +40,10 @@ Things only the owner can do. Details and steps are in `docs/APP_STORE_RELEASE.m
 - [ ] Test the Android app on a real phone (sign-in, booking + Google Pay, chat, push, payouts) –
       it was only built and checked with on-computer screenshots so far.
 
+## Email
+- [ ] Booking emails from noreply@easysesh.live: Resend account + `RESEND_API_KEY` secret, redeploy
+      `send-push legal` (steps in `docs/EMAIL_SETUP.md`). Optional: Supabase auth emails via Resend SMTP.
+
 ## Website
 - [x] Site online on Cloudflare Pages at https://easysesh.live (project `easysesh`).
 - [ ] Roll the Cloudflare API token that was pasted in chat (My Profile → API Tokens).

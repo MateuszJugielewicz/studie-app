@@ -54,7 +54,7 @@ EasySesh tiene **tolerancia cero con el contenido inapropiado y los usuarios abu
 - EasySesh no responde de pérdidas indirectas o lucro cesante, ni de los actos de Artistas o Estudios. Nuestra responsabilidad total se limita a las tarifas recibidas por EasySesh por la reserva en cuestión. Nada en estos términos limita una responsabilidad que no pueda limitarse por ley, incluidos tus derechos legales como consumidor.
 
 ## 12. Disputas
-Contacta primero con nosotros en [SUPPORT EMAIL] o informa de un problema en la reserva desde la app. Intentamos resolver las disputas entre Artistas y Estudios en 14 días. Los consumidores de la UE también pueden usar la plataforma europea de resolución de litigios: https://ec.europa.eu/consumers/odr.
+Contacta primero con nosotros en support@easysesh.live o informa de un problema en la reserva desde la app. Intentamos resolver las disputas entre Artistas y Estudios en 14 días. Los consumidores de la UE también pueden usar la plataforma europea de resolución de litigios: https://ec.europa.eu/consumers/odr.
 
 ## 13. Cierre de tu cuenta
 Puedes eliminar tu cuenta en cualquier momento en Ajustes. Podemos cerrar cuentas que incumplan estos términos. Las reservas futuras se gestionan según la política de cancelación.
@@ -66,4 +66,4 @@ Podemos actualizar estos términos. Si un cambio es importante, te lo comunicare
 Estos términos se rigen por la ley de [COUNTRY]. Son competentes los tribunales de [CITY], sin limitar el derecho del consumidor a demandar en su país.
 
 ## Contacto
-[COMPANY NAME] · [ADDRESS] · [SUPPORT EMAIL]
+[COMPANY NAME] · [ADDRESS] · support@easysesh.live

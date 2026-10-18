@@ -54,7 +54,7 @@ EasySesh hat **null Toleranz gegenüber anstößigen Inhalten und missbräuchlic
 - EasySesh haftet nicht für mittelbare Schäden oder entgangenen Gewinn und nicht für Handlungen von Artists oder Studios. Unsere Gesamthaftung ist auf die Gebühren begrenzt, die EasySesh im Zusammenhang mit der betreffenden Buchung erhalten hat. Nichts in diesen Bedingungen beschränkt eine Haftung, die gesetzlich nicht beschränkt werden kann, einschließlich deiner gesetzlichen Rechte als Verbraucher.
 
 ## 12. Streitigkeiten
-Wende dich zuerst an [SUPPORT EMAIL] oder melde in der App ein Problem mit der Buchung. Wir versuchen, Streitigkeiten zwischen Artists und Studios innerhalb von 14 Tagen zu lösen. Verbraucher in der EU können auch die EU-Beschwerdeplattform nutzen: https://ec.europa.eu/consumers/odr.
+Wende dich zuerst an support@easysesh.live oder melde in der App ein Problem mit der Buchung. Wir versuchen, Streitigkeiten zwischen Artists und Studios innerhalb von 14 Tagen zu lösen. Verbraucher in der EU können auch die EU-Beschwerdeplattform nutzen: https://ec.europa.eu/consumers/odr.
 
 ## 13. Beendigung deines Kontos
 Du kannst dein Konto jederzeit in den Einstellungen löschen. Wir können Konten schließen, die gegen diese Bedingungen verstoßen. Anstehende Buchungen werden nach der Stornierungsrichtlinie behandelt.
@@ -66,4 +66,4 @@ Wir können diese Bedingungen aktualisieren. Bei wesentlichen Änderungen inform
 Diese Bedingungen unterliegen dem Recht von [COUNTRY]. Gerichtsstand ist [CITY], unbeschadet des Rechts von Verbrauchern, in ihrem Heimatland zu klagen.
 
 ## Kontakt
-[COMPANY NAME] · [ADDRESS] · [SUPPORT EMAIL]
+[COMPANY NAME] · [ADDRESS] · support@easysesh.live

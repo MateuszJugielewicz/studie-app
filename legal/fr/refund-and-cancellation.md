@@ -36,4 +36,4 @@ Si la session ne s'est pas déroulée comme prévu (par ex. studio fermé ou ré
 ## Modifier une réservation
 Tu peux déplacer gratuitement une réservation confirmée vers un autre créneau libre de même durée, tant que la session n'a pas commencé.
 
-Questions : [SUPPORT EMAIL]
+Questions : support@easysesh.live

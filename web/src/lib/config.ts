@@ -6,6 +6,12 @@ export const config = {
   supportEmail: import.meta.env.VITE_SUPPORT_EMAIL || __SHARED_CONFIG__.supportEmail,
 };
 
+/** Public contact addresses (support also comes from the shared app config). */
+export const CONTACT = {
+  support: config.supportEmail || "support@easysesh.live",
+  general: "easysesh@easysesh.live",
+};
+
 /** Platform-wide commercial settings, the same as the apps and supabase/functions/_shared/pricing.ts. */
 export const PlatformConfig = {
   ARTIST_SERVICE_FEE_PERCENT: 0,

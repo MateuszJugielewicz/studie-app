@@ -2,7 +2,7 @@
 
 Wersja 2026-09-26
 
-[COMPANY NAME], [ADDRESS], nr rejestrowy [CVR/VAT NO.], jest **administratorem** danych osobowych przetwarzanych w EasySesh. Kontakt: [PRIVACY EMAIL].
+[COMPANY NAME], [ADDRESS], nr rejestrowy [CVR/VAT NO.], jest **administratorem** danych osobowych przetwarzanych w EasySesh. Kontakt: easysesh@easysesh.live.
 
 ## Jakie dane zbieramy
 - **Dane konta:** e-mail, hasło (przechowywane w postaci zaszyfrowanej przez dostawcę uwierzytelniania), rola (artysta/studio), metoda logowania (e-mail, Apple, Google).
@@ -41,7 +41,7 @@ Nie sprzedajemy danych osobowych. Przy przekazywaniu danych poza UE/EOG opieramy
 Masz prawo dostępu do danych, ich sprostowania, usunięcia, ograniczenia przetwarzania, sprzeciwu wobec przetwarzania oraz przenoszenia danych. Możesz:
 - **Pobrać swoje dane:** Ustawienia → Twoje dane → Pobierz moje dane.
 - **Usunąć konto:** Ustawienia → Usuń konto.
-- W innych sprawach napisz na [PRIVACY EMAIL]. Odpowiadamy w ciągu miesiąca.
+- W innych sprawach napisz na easysesh@easysesh.live. Odpowiadamy w ciągu miesiąca.
 
 Możesz złożyć skargę do organu ochrony danych, np. Datatilsynet (Dania, www.datatilsynet.dk), greckiego urzędu ochrony danych (www.dpa.gr) lub Prezesa UODO (www.uodo.gov.pl).
 

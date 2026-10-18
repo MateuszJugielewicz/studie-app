@@ -36,4 +36,4 @@ Si la sesión no se realizó como se reservó (p. ej., el estudio estaba cerrado
 ## Cambiar una reserva
 Puedes mover gratis una reserva confirmada a otro hueco libre de la misma duración, siempre que la sesión no haya empezado.
 
-Preguntas: [SUPPORT EMAIL]
+Preguntas: support@easysesh.live

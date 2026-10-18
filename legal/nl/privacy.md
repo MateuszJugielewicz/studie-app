@@ -2,7 +2,7 @@
 
 Versie 2026-09-26
 
-[COMPANY NAME], [ADDRESS], KvK-/btw-nr. [CVR/VAT NO.], is **verwerkingsverantwoordelijke** voor de persoonsgegevens die in EasySesh worden verwerkt. Contact: [PRIVACY EMAIL].
+[COMPANY NAME], [ADDRESS], KvK-/btw-nr. [CVR/VAT NO.], is **verwerkingsverantwoordelijke** voor de persoonsgegevens die in EasySesh worden verwerkt. Contact: easysesh@easysesh.live.
 
 ## Wat we verzamelen
 - **Accountgegevens:** e-mail, wachtwoord (versleuteld opgeslagen bij onze authenticatieprovider), rol (artiest/studio), inlogmethode (e-mail, Apple, Google).
@@ -41,7 +41,7 @@ We verkopen geen persoonsgegevens. Bij doorgifte buiten de EU/EER baseren we ons
 Je hebt recht op inzage, correctie, verwijdering, beperking van de verwerking, bezwaar en overdraagbaarheid van je gegevens. Je kunt:
 - **Je gegevens downloaden:** Instellingen → Jouw gegevens → Mijn gegevens downloaden.
 - **Je account verwijderen:** Instellingen → Account verwijderen.
-- Voor al het andere mail je naar [PRIVACY EMAIL]. We antwoorden binnen een maand.
+- Voor al het andere mail je naar easysesh@easysesh.live. We antwoorden binnen een maand.
 
 Je kunt een klacht indienen bij je toezichthouder, bijv. de Autoriteit Persoonsgegevens (www.autoriteitpersoonsgegevens.nl), Datatilsynet (Denemarken, www.datatilsynet.dk) of de Griekse toezichthouder (www.dpa.gr).
 

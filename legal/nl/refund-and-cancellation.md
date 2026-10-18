@@ -36,4 +36,4 @@ Als de sessie niet doorging zoals geboekt (bijvoorbeeld omdat de studio dicht wa
 ## Een boeking wijzigen
 Je kunt een bevestigde boeking gratis verplaatsen naar een ander vrij tijdslot van dezelfde lengte, zolang de sessie nog niet is begonnen.
 
-Vragen: [SUPPORT EMAIL]
+Vragen: support@easysesh.live

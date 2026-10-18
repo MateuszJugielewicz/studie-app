@@ -1,9 +1,11 @@
 // Delivers a notification row as a push to the user's devices, honouring their settings: APNs for iOS,
-// Firebase Cloud Messaging for Android. Invoked by the `on_notification_insert` trigger.
+// Firebase Cloud Messaging for Android. Booking notifications also go out by email (_shared/email.ts).
+// Invoked by the `on_notification_insert` trigger.
 // iOS env: APNS_KEY_ID, APNS_TEAM_ID, APNS_PRIVATE_KEY (p8), APNS_BUNDLE_ID, APNS_PRODUCTION ("true" for App Store builds).
 // Android env (Firebase service account): FCM_PROJECT_ID, FCM_CLIENT_EMAIL, FCM_PRIVATE_KEY.
 import { handler, json, requireString } from "../_shared/http.ts";
 import { admin, requireServiceRole } from "../_shared/supabase.ts";
+import { sendNotificationEmail } from "../_shared/email.ts";
 
 const CATEGORY: Record<string, string | null> = {
   booking_confirmed: "booking_updates", booking_changed: "booking_updates", booking_cancelled: "booking_updates",
@@ -103,8 +105,10 @@ Deno.serve(handler(async (req, body) => {
   const { data: note } = await admin.from("notifications").select("*").eq("id", requireString(body, "notification_id")).single();
   if (!note) return json({ sent: 0 });
 
-  const { data: profile } = await admin.from("profiles").select("status, settings").eq("id", note.user_id).single();
+  const { data: profile } = await admin.from("profiles").select("status, settings, email").eq("id", note.user_id).single();
   const settings = (profile?.settings ?? {}) as Record<string, boolean>;
+  // Booking emails are part of the booking itself, so they don't follow the push switches.
+  if (profile?.status === "active") await sendNotificationEmail(note, profile.email).catch((error) => console.error(error));
   const category = CATEGORY[note.kind];
   if (profile?.status !== "active" || settings.push_enabled === false || (category && settings[category] === false)) {
     return json({ sent: 0, skipped: true });

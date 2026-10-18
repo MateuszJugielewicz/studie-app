@@ -54,7 +54,7 @@ EasySesh applique une **tolérance zéro envers les contenus répréhensibles et
 - EasySesh n'est pas responsable des pertes indirectes ou du manque à gagner, ni des actes des Artistes ou des Studios. Notre responsabilité totale est limitée aux frais perçus par EasySesh pour la réservation concernée. Rien dans ces conditions ne limite une responsabilité qui ne peut l'être en vertu de la loi, y compris tes droits légaux de consommateur.
 
 ## 12. Litiges
-Contacte-nous d'abord à [SUPPORT EMAIL] ou signale un problème sur la réservation dans l'app. Nous essayons de résoudre les litiges entre Artistes et Studios sous 14 jours. Les consommateurs de l'UE peuvent aussi utiliser la plateforme européenne de règlement des litiges : https://ec.europa.eu/consumers/odr.
+Contacte-nous d'abord à support@easysesh.live ou signale un problème sur la réservation dans l'app. Nous essayons de résoudre les litiges entre Artistes et Studios sous 14 jours. Les consommateurs de l'UE peuvent aussi utiliser la plateforme européenne de règlement des litiges : https://ec.europa.eu/consumers/odr.
 
 ## 13. Fermeture de ton compte
 Tu peux supprimer ton compte à tout moment dans Réglages. Nous pouvons fermer les comptes qui enfreignent ces conditions. Les réservations à venir sont traitées selon la politique d'annulation.
@@ -66,4 +66,4 @@ Nous pouvons mettre à jour ces conditions. En cas de modification importante, n
 Ces conditions sont régies par le droit de [COUNTRY]. Les tribunaux de [CITY] sont compétents, sans limiter le droit d'un consommateur d'agir dans son pays.
 
 ## Contact
-[COMPANY NAME] · [ADDRESS] · [SUPPORT EMAIL]
+[COMPANY NAME] · [ADDRESS] · support@easysesh.live

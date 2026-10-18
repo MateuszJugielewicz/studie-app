@@ -2,7 +2,7 @@
 
 Version 2026-09-26
 
-[COMPANY NAME], [ADDRESS], Handelsregister-/USt-Nr. [CVR/VAT NO.], ist **Verantwortlicher** für die in EasySesh verarbeiteten personenbezogenen Daten. Kontakt: [PRIVACY EMAIL].
+[COMPANY NAME], [ADDRESS], Handelsregister-/USt-Nr. [CVR/VAT NO.], ist **Verantwortlicher** für die in EasySesh verarbeiteten personenbezogenen Daten. Kontakt: easysesh@easysesh.live.
 
 ## Welche Daten wir erheben
 - **Kontodaten:** E-Mail, Passwort (verschlüsselt bei unserem Authentifizierungsanbieter gespeichert), Rolle (Artist/Studio), Anmeldemethode (E-Mail, Apple, Google).
@@ -41,7 +41,7 @@ Wir verkaufen keine personenbezogenen Daten. Bei Übermittlungen außerhalb der 
 Du hast das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung der Verarbeitung, Widerspruch und Datenübertragbarkeit. Du kannst:
 - **Deine Daten herunterladen:** Einstellungen → Deine Daten → Meine Daten herunterladen.
 - **Dein Konto löschen:** Einstellungen → Konto löschen.
-- Für alles andere schreibe an [PRIVACY EMAIL]. Wir antworten innerhalb eines Monats.
+- Für alles andere schreibe an easysesh@easysesh.live. Wir antworten innerhalb eines Monats.
 
 Du kannst dich bei deiner Datenschutzbehörde beschweren, z. B. Datatilsynet (Dänemark, www.datatilsynet.dk) oder der griechischen Datenschutzbehörde (www.dpa.gr).
 

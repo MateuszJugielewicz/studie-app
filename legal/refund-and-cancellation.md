@@ -37,4 +37,4 @@ If the session didn't happen as booked (for example, the studio was closed or do
 ## Changing a booking
 You can move a confirmed booking to another free slot with the same length for free, as long as the session hasn't started.
 
-Questions: [SUPPORT EMAIL]
+Questions: support@easysesh.live

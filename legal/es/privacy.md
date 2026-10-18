@@ -2,7 +2,7 @@
 
 Versión 2026-09-26
 
-[COMPANY NAME], [ADDRESS], n.º de empresa [CVR/VAT NO.], es el **responsable del tratamiento** de los datos personales tratados en EasySesh. Contacto: [PRIVACY EMAIL].
+[COMPANY NAME], [ADDRESS], n.º de empresa [CVR/VAT NO.], es el **responsable del tratamiento** de los datos personales tratados en EasySesh. Contacto: easysesh@easysesh.live.
 
 ## Qué recopilamos
 - **Datos de la cuenta:** correo, contraseña (guardada cifrada por nuestro proveedor de autenticación), rol (artista/estudio), método de acceso (correo, Apple, Google).
@@ -41,7 +41,7 @@ No vendemos datos personales. Cuando los datos se transfieren fuera de la UE/EEE
 Tienes derecho a acceder a tus datos, rectificarlos, suprimirlos, limitar su tratamiento, oponerte a él y recibirlos en un formato portable. Puedes:
 - **Descargar tus datos:** Ajustes → Tus datos → Descargar mis datos.
 - **Eliminar tu cuenta:** Ajustes → Eliminar cuenta.
-- Para cualquier otra cosa, escribe a [PRIVACY EMAIL]. Respondemos en un mes.
+- Para cualquier otra cosa, escribe a easysesh@easysesh.live. Respondemos en un mes.
 
 Puedes reclamar ante tu autoridad de protección de datos, p. ej. la AEPD (www.aepd.es), el Datatilsynet (Dinamarca, www.datatilsynet.dk) o la autoridad griega (www.dpa.gr).
 

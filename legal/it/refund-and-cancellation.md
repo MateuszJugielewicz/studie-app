@@ -36,4 +36,4 @@ Se la sessione non si è svolta come prenotato (ad es. studio chiuso o prenotato
 ## Modificare una prenotazione
 Puoi spostare gratis una prenotazione confermata su un altro slot libero della stessa durata, finché la sessione non è iniziata.
 
-Domande: [SUPPORT EMAIL]
+Domande: support@easysesh.live

@@ -36,4 +36,4 @@ Om sessionen inte blev som bokat (t.ex. studion var stängd eller dubbelbokad, e
 ## Ändra en bokning
 Du kan kostnadsfritt flytta en bekräftad bokning till en annan ledig tid med samma längd, så länge sessionen inte har börjat.
 
-Frågor: [SUPPORT EMAIL]
+Frågor: support@easysesh.live

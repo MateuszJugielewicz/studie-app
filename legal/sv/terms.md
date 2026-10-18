@@ -54,7 +54,7 @@ EasySesh har **nolltolerans mot stötande innehåll och kränkande användare**.
 - EasySesh ansvarar inte för indirekta förluster eller utebliven vinst, eller för Artisters eller Studiors handlingar. Vårt sammanlagda ansvar är begränsat till de avgifter EasySesh fått i samband med den aktuella bokningen. Inget i dessa villkor begränsar ansvar som enligt lag inte kan begränsas, inklusive dina rättigheter som konsument.
 
 ## 12. Tvister
-Kontakta oss först på [SUPPORT EMAIL] eller rapportera ett problem på bokningen i appen. Vi försöker lösa tvister mellan Artister och Studior inom 14 dagar. Konsumenter i EU kan också använda EU:s klagoportal: https://ec.europa.eu/consumers/odr.
+Kontakta oss först på support@easysesh.live eller rapportera ett problem på bokningen i appen. Vi försöker lösa tvister mellan Artister och Studior inom 14 dagar. Konsumenter i EU kan också använda EU:s klagoportal: https://ec.europa.eu/consumers/odr.
 
 ## 13. Avsluta ditt konto
 Du kan när som helst radera ditt konto i Inställningar. Vi kan stänga konton som bryter mot dessa villkor. Kommande bokningar hanteras enligt avbokningspolicyn.
@@ -66,4 +66,4 @@ Vi kan uppdatera dessa villkor. Vid väsentliga ändringar meddelar vi dig i app
 Dessa villkor regleras av lagen i [COUNTRY]. Domstolen i [CITY] är behörig, utan att det begränsar en konsuments rätt att väcka talan i sitt hemland.
 
 ## Kontakt
-[COMPANY NAME] · [ADDRESS] · [SUPPORT EMAIL]
+[COMPANY NAME] · [ADDRESS] · support@easysesh.live

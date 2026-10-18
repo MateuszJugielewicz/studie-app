@@ -17,4 +17,4 @@ Falls easysesh.app Analyse- oder Marketing-Cookies verwendet, fragen wir zuerst 
 ## Zahlungen
 Stripe kann bei der Zahlung unbedingt erforderliche Cookies setzen, um Betrug zu verhindern. Siehe https://stripe.com/cookie-settings.
 
-Fragen: [PRIVACY EMAIL]
+Fragen: easysesh@easysesh.live

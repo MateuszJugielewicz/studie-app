@@ -4,6 +4,7 @@ import { LANGUAGES, t } from "../lib/i18n";
 import { useApp } from "../lib/state";
 import { Logo } from "../components/ui";
 import { LEGAL } from "./Legal";
+import { CONTACT } from "../lib/config";
 
 export function Footer() {
   const app = useApp();
@@ -25,6 +26,11 @@ export function Footer() {
           <Link to="/studios">{t("Find a studio")}</Link>
           <Link to="/signup?role=studio">{t("List your studio")}</Link>
           <Link to="/signin">{t("Sign in")}</Link>
+        </div>
+        <div className="stack" style={{ gap: 6 }}>
+          <span className="semibold" style={{ color: "var(--text)" }}>{t("Contact")}</span>
+          <a href={`mailto:${CONTACT.support}`}>{CONTACT.support}</a>
+          <a href={`mailto:${CONTACT.general}`}>{CONTACT.general}</a>
         </div>
         <div className="stack" style={{ gap: 6 }}>
           <span className="semibold" style={{ color: "var(--text)" }}>{t("Legal")}</span>

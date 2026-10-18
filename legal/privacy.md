@@ -3,7 +3,7 @@
 
 Version 2026-09-26
 
-[COMPANY NAME], [ADDRESS], company no. [CVR/VAT NO.], is the **data controller** for personal data processed in EasySesh. Contact: [PRIVACY EMAIL].
+[COMPANY NAME], [ADDRESS], company no. [CVR/VAT NO.], is the **data controller** for personal data processed in EasySesh. Contact: easysesh@easysesh.live.
 
 ## What we collect
 - **Account data:** email, password (stored hashed by our authentication provider), role (artist/studio), sign-in method (email, Apple, Google).
@@ -42,7 +42,7 @@ We do not sell personal data. Where data is transferred outside the EU/EEA, we r
 You have the right to access your data, correct it, have it erased, restrict its processing, object to processing, and receive your data in a portable format. You can:
 - **Download your data:** Settings → Your data → Download my data.
 - **Delete your account:** Settings → Delete account.
-- For anything else, email [PRIVACY EMAIL]. We reply within one month.
+- For anything else, email easysesh@easysesh.live. We reply within one month.
 
 You can complain to your data protection authority, e.g. Datatilsynet (Denmark, www.datatilsynet.dk) or the Hellenic Data Protection Authority (www.dpa.gr).
 

@@ -36,4 +36,4 @@ Hvis sessionen ikke blev gennemført som booket (fx var studiet lukket eller dob
 ## Ændring af en booking
 Du kan gratis flytte en bekræftet booking til en anden ledig tid af samme længde, så længe sessionen ikke er startet.
 
-Spørgsmål: [SUPPORT EMAIL]
+Spørgsmål: support@easysesh.live

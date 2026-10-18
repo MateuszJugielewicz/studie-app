@@ -17,4 +17,4 @@ Hvis easysesh.app bruger analyse- eller marketingcookies, beder vi først om dit
 ## Betalinger
 Stripe kan sætte strengt nødvendige cookies under betaling for at forhindre svindel. Se https://stripe.com/cookie-settings.
 
-Spørgsmål: [PRIVACY EMAIL]
+Spørgsmål: easysesh@easysesh.live

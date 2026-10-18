@@ -17,4 +17,4 @@
 ## Πληρωμές
 Το Stripe μπορεί να ορίσει απολύτως απαραίτητα cookies κατά την πληρωμή για την πρόληψη απάτης. Δες https://stripe.com/cookie-settings.
 
-Ερωτήσεις: [PRIVACY EMAIL]
+Ερωτήσεις: easysesh@easysesh.live

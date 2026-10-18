@@ -2,7 +2,7 @@
 
 Version 2026-09-26
 
-[COMPANY NAME], [ADDRESS], org.nr [CVR/VAT NO.], är **personuppgiftsansvarig** för de personuppgifter som behandlas i EasySesh. Kontakt: [PRIVACY EMAIL].
+[COMPANY NAME], [ADDRESS], org.nr [CVR/VAT NO.], är **personuppgiftsansvarig** för de personuppgifter som behandlas i EasySesh. Kontakt: easysesh@easysesh.live.
 
 ## Vad vi samlar in
 - **Kontouppgifter:** e-post, lösenord (lagras krypterat hos vår inloggningsleverantör), roll (artist/studio), inloggningsmetod (e-post, Apple, Google).
@@ -41,7 +41,7 @@ Vi säljer inte personuppgifter. När uppgifter överförs utanför EU/EES förl
 Du har rätt till tillgång, rättelse, radering, begränsning av behandling, invändning och dataportabilitet. Du kan:
 - **Ladda ner dina uppgifter:** Inställningar → Dina uppgifter → Ladda ner mina uppgifter.
 - **Radera ditt konto:** Inställningar → Radera konto.
-- För allt annat, mejla [PRIVACY EMAIL]. Vi svarar inom en månad.
+- För allt annat, mejla easysesh@easysesh.live. Vi svarar inom en månad.
 
 Du kan klaga hos din dataskyddsmyndighet, t.ex. IMY (www.imy.se), Datatilsynet (Danmark, www.datatilsynet.dk) eller den grekiska myndigheten (www.dpa.gr).
 

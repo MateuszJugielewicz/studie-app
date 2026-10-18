@@ -2,7 +2,7 @@
 
 Version 2026-09-26
 
-[COMPANY NAME], [ADDRESS], CVR-nr. [CVR/VAT NO.], er **dataansvarlig** for de personoplysninger, der behandles i EasySesh. Kontakt: [PRIVACY EMAIL].
+[COMPANY NAME], [ADDRESS], CVR-nr. [CVR/VAT NO.], er **dataansvarlig** for de personoplysninger, der behandles i EasySesh. Kontakt: easysesh@easysesh.live.
 
 ## Hvad vi indsamler
 - **Kontooplysninger:** e-mail, adgangskode (gemt krypteret hos vores godkendelsesudbyder), rolle (kunstner/studie), loginmetode (e-mail, Apple, Google).
@@ -41,7 +41,7 @@ Vi sælger ikke personoplysninger. Hvor data overføres uden for EU/EØS, bruger
 Du har ret til indsigt i dine data, berigtigelse, sletning, begrænsning af behandlingen, indsigelse mod behandlingen og til at modtage dine data i et overførbart format. Du kan:
 - **Downloade dine data:** Indstillinger → Dine data → Download mine data.
 - **Slette din konto:** Indstillinger → Slet konto.
-- For alt andet: skriv til [PRIVACY EMAIL]. Vi svarer inden for en måned.
+- For alt andet: skriv til easysesh@easysesh.live. Vi svarer inden for en måned.
 
 Du kan klage til din databeskyttelsesmyndighed, fx Datatilsynet (Danmark, www.datatilsynet.dk) eller den græske databeskyttelsesmyndighed (www.dpa.gr).
 

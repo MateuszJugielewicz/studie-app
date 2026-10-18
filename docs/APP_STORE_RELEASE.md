@@ -21,7 +21,7 @@ the privacy-manifest rules and the screenshot specifications.
 ## You must do these before submitting
 
 1. **Company details in the legal texts.** `legal/*.md` (all languages) still contain `[COMPANY NAME]`,
-   `[ADDRESS]`, `[CVR/VAT NO.]`, `[PRIVACY EMAIL]`, `[SUPPORT EMAIL]`, `[COUNTRY]`, `[CITY]`,
+   `[ADDRESS]`, `[CVR/VAT NO.]`, `[COUNTRY]`, `[CITY]`,
    `[REGION]`, `[PROVIDER]`. A reviewer seeing placeholders can reject the app (2.1, 5.1.1). Send these
    details to Claude and it fills them in everywhere, or replace them yourself and run
    `python3 supabase/scripts/build_legal_function.py`.

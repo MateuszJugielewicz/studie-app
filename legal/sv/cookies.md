@@ -17,4 +17,4 @@ Om easysesh.app använder analys- eller marknadsföringscookies ber vi först om
 ## Betalningar
 Stripe kan sätta strikt nödvändiga cookies vid betalning för att förhindra bedrägerier. Se https://stripe.com/cookie-settings.
 
-Frågor: [PRIVACY EMAIL]
+Frågor: easysesh@easysesh.live

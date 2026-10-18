@@ -54,7 +54,7 @@ EasySesh har **nultolerance over for stødende indhold og krænkende brugere**. 
 - EasySesh er ikke ansvarlig for indirekte tab eller tabt fortjeneste eller for Kunstneres eller Studiers handlinger. Vores samlede ansvar over for dig er begrænset til de gebyrer, EasySesh har modtaget i forbindelse med den pågældende booking. Intet i disse vilkår begrænser ansvar, som ikke kan begrænses efter loven, herunder dine lovbestemte rettigheder som forbruger.
 
 ## 12. Tvister
-Kontakt os først på [SUPPORT EMAIL], eller anmeld et problem på bookingen i appen. Vi forsøger at løse tvister mellem Kunstnere og Studier inden for 14 dage. Forbrugere i EU kan også bruge EU's klageportal: https://ec.europa.eu/consumers/odr.
+Kontakt os først på support@easysesh.live, eller anmeld et problem på bookingen i appen. Vi forsøger at løse tvister mellem Kunstnere og Studier inden for 14 dage. Forbrugere i EU kan også bruge EU's klageportal: https://ec.europa.eu/consumers/odr.
 
 ## 13. Lukning af din konto
 Du kan til enhver tid slette din konto under Indstillinger. Vi kan lukke konti, der bryder disse vilkår. Kommende bookinger håndteres efter afbestillingspolitikken.
@@ -66,4 +66,4 @@ Vi kan opdatere disse vilkår. Hvis en ændring er væsentlig, fortæller vi det
 Disse vilkår er underlagt lovgivningen i [COUNTRY]. Retten i [CITY] er værneting, uden at det begrænser en forbrugers ret til at anlægge sag i sit hjemland.
 
 ## Kontakt
-[COMPANY NAME] · [ADDRESS] · [SUPPORT EMAIL]
+[COMPANY NAME] · [ADDRESS] · support@easysesh.live

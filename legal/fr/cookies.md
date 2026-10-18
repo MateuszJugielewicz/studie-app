@@ -17,4 +17,4 @@ Si easysesh.app utilise des cookies d'analyse ou marketing, nous te demanderons 
 ## Paiements
 Stripe peut déposer des cookies strictement nécessaires pendant le paiement pour prévenir la fraude. Voir https://stripe.com/cookie-settings.
 
-Questions : [PRIVACY EMAIL]
+Questions : easysesh@easysesh.live

@@ -17,4 +17,4 @@ Als easysesh.app analytische of marketingcookies gaat gebruiken, vragen we eerst
 ## Betalingen
 Stripe kan tijdens het betalen strikt noodzakelijke cookies plaatsen om fraude te voorkomen. Zie https://stripe.com/cookie-settings.
 
-Vragen: [PRIVACY EMAIL]
+Vragen: easysesh@easysesh.live

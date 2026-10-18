@@ -10,6 +10,6 @@ EASYSESH_SUPABASE_ANON_KEY = sb_publishable_uUYI3cg-BQ-vN9K0LA9OFw_7n5oactH
 EASYSESH_STRIPE_PUBLISHABLE_KEY = pk_test_51SeYdbHY5Oj5gZnXDZo8pWnWIv0tqzrHIeK98JH0XelNK7LNXdgmVcggoi7TGTbeJJ2QZvnFx2Lm8rPzsyx23phu00zv13wxqD
 EASYSESH_APPLE_PAY_MERCHANT_ID = merchant.com.easysesh.app
 // Public support email shown in the app (leave empty to point people to in-app support).
-EASYSESH_SUPPORT_EMAIL =
+EASYSESH_SUPPORT_EMAIL = support@easysesh.live
 
 #include? "Secrets.xcconfig"

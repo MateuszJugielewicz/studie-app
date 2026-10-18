@@ -55,7 +55,7 @@ EasySesh has **zero tolerance for objectionable content and abusive users**. Con
 - EasySesh is not liable for indirect losses or lost profits, or for the acts of Artists or Studios. Our total liability to you is limited to the fees EasySesh received in connection with the booking in question. Nothing in these terms limits liability that cannot be limited by law, including your statutory rights as a consumer.
 
 ## 12. Disputes
-Contact us first at [SUPPORT EMAIL], or report a problem on the booking in the app. We try to resolve disputes between Artists and Studios within 14 days. EU consumers can also use the EU complaints portal: https://ec.europa.eu/consumers/odr.
+Contact us first at support@easysesh.live, or report a problem on the booking in the app. We try to resolve disputes between Artists and Studios within 14 days. EU consumers can also use the EU complaints portal: https://ec.europa.eu/consumers/odr.
 
 ## 13. Ending your account
 You can delete your account at any time in Settings. We may close accounts that break these terms. Upcoming bookings are handled under the cancellation policy.
@@ -67,4 +67,4 @@ We may update these terms. If a change is material, we tell you in the app and a
 These terms are governed by the laws of [COUNTRY]. The courts of [CITY] have jurisdiction, without limiting a consumer's right to sue in their home country.
 
 ## Contact
-[COMPANY NAME] · [ADDRESS] · [SUPPORT EMAIL]
+[COMPANY NAME] · [ADDRESS] · support@easysesh.live

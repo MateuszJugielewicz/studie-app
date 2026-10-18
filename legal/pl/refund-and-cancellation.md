@@ -36,4 +36,4 @@ Jeśli sesja nie odbyła się zgodnie z rezerwacją (np. studio było zamknięte
 ## Zmiana rezerwacji
 Możesz bezpłatnie przenieść potwierdzoną rezerwację na inny wolny termin o tej samej długości, dopóki sesja się nie rozpoczęła.
 
-Pytania: [SUPPORT EMAIL]
+Pytania: support@easysesh.live
