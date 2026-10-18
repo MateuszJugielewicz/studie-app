@@ -178,13 +178,12 @@ function Splash() {
   );
 }
 
-/** The admin dashboard is a separate page (admin.easysesh.live, or admin/index.html elsewhere). */
+/** The admin dashboard is a separate app (admin.easysesh.live, or /admin elsewhere): leave with a full page load. */
 function AdminRedirect() {
   const { pathname, search } = useLocation();
   useEffect(() => {
     const rest = pathname.replace(/^\/admin\/?/, "") + search;
-    if (hasAdminSubdomain) window.location.replace(adminUrl(rest));
-    else window.location.replace(rest ? `/admin/?to=${encodeURIComponent(rest)}` : "/admin/");
+    window.location.replace(hasAdminSubdomain ? adminUrl(rest) : `/admin/${rest}`);
   }, []);
   return <Loading />;
 }

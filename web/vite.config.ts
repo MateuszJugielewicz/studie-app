@@ -1,4 +1,4 @@
-import { defineConfig, type Plugin } from "vite";
+import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { existsSync, readFileSync } from "node:fs";
 
@@ -18,23 +18,8 @@ function sharedConfig(): Record<string, string> {
 
 const shared = sharedConfig();
 
-// The admin dashboard is its own page (admin/index.html) with its own styles; /admin/* opens it.
-// Netlify and Vercel do the same with public/_redirects and vercel.json; elsewhere the website
-// forwards /admin/* deep links to it.
-function adminPage(): Plugin {
-  const rewrite = (req: { url?: string }, _res: unknown, next: () => void) => {
-    if (req.url && /^\/admin(\/|\?|$)/.test(req.url) && !/^\/admin\/(index\.html|\?|$)/.test(req.url)) req.url = "/admin/index.html";
-    next();
-  };
-  return {
-    name: "admin-page",
-    configureServer(server) { server.middlewares.use(rewrite); },
-    configurePreviewServer(server) { server.middlewares.use(rewrite); },
-  };
-}
-
 export default defineConfig({
-  plugins: [adminPage(), react()],
+  plugins: [react()],
   define: {
     __SHARED_CONFIG__: JSON.stringify({
       supabaseUrl: shared.EASYSESH_SUPABASE_URL ?? "",
@@ -47,7 +32,6 @@ export default defineConfig({
   server: { fs: { allow: [".."] } },
   build: {
     rollupOptions: {
-      input: { main: "index.html", admin: "admin/index.html" },
       output: {
         manualChunks: {
           react: ["react", "react-dom", "react-router-dom"],
