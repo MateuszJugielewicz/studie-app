@@ -41,12 +41,12 @@ Things only the owner can do. Details and steps are in `docs/APP_STORE_RELEASE.m
       it was only built and checked with on-computer screenshots so far.
 
 ## Website
-- [ ] Put the site online (`npm run build`, drag `web/dist` to Netlify Drop) and connect the domain.
-- [ ] Supabase → Authentication → URL Configuration → add `https://<site>/auth/callback`.
-- [ ] Supabase secret `SITE_URL=https://<site>`, then redeploy `payout-account` and `payout-return`.
+- [ ] Put the site online on Cloudflare Pages and connect `easysesh.live` (steps in `web/README.md`).
+- [ ] Supabase → Authentication → URL Configuration → add `https://easysesh.live/auth/callback`.
+- [ ] Supabase secret `SITE_URL=https://easysesh.live`, then redeploy `payout-account` and `payout-return`.
 - [ ] Add the site to the Google OAuth web client (JavaScript origins) and the Apple Services ID domains.
 - [ ] Stripe → Settings → Payment method domains → add the site (for Apple Pay / Google Pay).
-- [ ] Sign in at `https://<site>/admin` with the admin account and set up two-factor authentication.
+- [ ] Sign in at `https://easysesh.live/admin` with the admin account and set up two-factor authentication.
 - [ ] Test the site against the real backend (sign-in, booking + card payment, chat, payouts, admin) –
       it was only checked with a simulated backend so far.
 

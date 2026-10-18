@@ -18,11 +18,12 @@ function sharedConfig(): Record<string, string> {
 
 const shared = sharedConfig();
 
-// The admin dashboard is its own page (admin.html) with its own styles; /admin/* opens it.
-// Hosts do the same with public/_redirects and vercel.json.
+// The admin dashboard is its own page (admin/index.html) with its own styles; /admin/* opens it.
+// Netlify and Vercel do the same with public/_redirects and vercel.json; elsewhere the website
+// forwards /admin/* deep links to it.
 function adminPage(): Plugin {
   const rewrite = (req: { url?: string }, _res: unknown, next: () => void) => {
-    if (req.url && /^\/admin(\/|\?|$)/.test(req.url) && !req.url.startsWith("/admin.html")) req.url = "/admin.html";
+    if (req.url && /^\/admin(\/|\?|$)/.test(req.url) && !/^\/admin\/(index\.html|\?|$)/.test(req.url)) req.url = "/admin/index.html";
     next();
   };
   return {
@@ -46,7 +47,7 @@ export default defineConfig({
   server: { fs: { allow: [".."] } },
   build: {
     rollupOptions: {
-      input: { main: "index.html", admin: "admin.html" },
+      input: { main: "index.html", admin: "admin/index.html" },
       output: {
         manualChunks: {
           react: ["react", "react-dom", "react-router-dom"],

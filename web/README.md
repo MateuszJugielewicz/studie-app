@@ -36,14 +36,20 @@ Open <http://localhost:5173> (the admin dashboard is <http://localhost:5173/admi
    npm run build
    ```
    The finished website is the `web\dist` folder.
-2. Easiest host: <https://app.netlify.com/drop> – drag the `dist` folder onto the page. You get a
-   link like `https://easysesh-123.netlify.app` (you can connect your own domain later under
-   *Domain management*). Cloudflare Pages and Vercel work too; the files `public/_redirects` and
-   `vercel.json` make page links like `/studios/…` work on those hosts.
+2. **Cloudflare Pages** (the live site, https://easysesh.live):
+   - <https://dash.cloudflare.com> → **Workers & Pages** → **Create** → **Pages** tab →
+     **Upload assets** → project name `easysesh` → **Create project** → drag the `dist` folder in →
+     **Deploy site**.
+   - In the project → **Custom domains** → **Set up a custom domain** → `easysesh.live` →
+     **Activate domain**. Repeat for `www.easysesh.live` if you want it.
+   - To update the site later: project → **Create deployment** → drag the new `dist` folder.
+
+   Netlify Drop (<https://app.netlify.com/drop>) and Vercel work too; `public/_redirects` and
+   `vercel.json` make page links like `/studios/…` work there.
 
 ## After the site has an address (do once)
 
-Replace `https://YOUR-SITE` with the real address.
+Replace `https://YOUR-SITE` with the real address (`https://easysesh.live`).
 
 1. **Supabase → Authentication → URL Configuration**
    - *Redirect URLs* → **Add URL**: `https://YOUR-SITE/auth/callback`

@@ -177,9 +177,13 @@ function Splash() {
   );
 }
 
-/** The admin dashboard is a separate page (admin.html), so leave the app with a full page load. */
+/** The admin dashboard is a separate page (admin/index.html), so leave the app with a full page load. */
 function AdminRedirect() {
-  useEffect(() => { window.location.replace("/admin/"); }, []);
+  const { pathname, search } = useLocation();
+  useEffect(() => {
+    const rest = pathname.replace(/^\/admin\/?/, "") + search;
+    window.location.replace(rest ? `/admin/?to=${encodeURIComponent(rest)}` : "/admin/");
+  }, []);
   return <Loading />;
 }
 
