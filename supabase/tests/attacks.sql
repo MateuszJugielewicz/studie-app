@@ -265,7 +265,7 @@ end $$;
 do $$ declare f text; ok boolean := true; begin
   foreach f in array array['run_booking_housekeeping()', 'run_cash_housekeeping()', 'queue_session_reminders()', 'refresh_studio_rating(uuid)',
                            'refresh_artist_rating(uuid)', 'notify(uuid,notification_kind,text,text,uuid,uuid,uuid)', 'run_fee_enforcement()', 'create_fee_invoices()',
-                           'lift_expired_moderation()', 'expire_promotions()', 'is_blocked_between(uuid,uuid)', 'activate_promotion(uuid)']
+                           'lift_expired_moderation()', 'expire_promotions()', 'is_blocked_between(uuid,uuid)', 'activate_promotion(uuid)', 'resend_api_key()']
   loop
     begin
       if has_function_privilege('authenticated', f::regprocedure, 'execute') or has_function_privilege('anon', f::regprocedure, 'execute') then

@@ -42,8 +42,10 @@ Things only the owner can do. Details and steps are in `docs/APP_STORE_RELEASE.m
 
 ## Email
 - [x] Resend set up for easysesh.live (verified) and `send-push` deployed with booking emails.
-- [ ] Add the Resend key as a Supabase secret: Supabase → Edge Functions → Secrets → `RESEND_API_KEY`
-      (use a new key, not the one pasted in chat). Emails start as soon as it's saved.
+- [x] Booking emails are live: the Resend key is stored in Supabase Vault (`resend_api_key`).
+- [ ] Replace that key (it was pasted in chat): create a new key in Resend, then in Supabase → SQL Editor
+      run `select vault.update_secret((select id from vault.secrets where name = 'resend_api_key'), 're_NEW');`
+      and delete the old key in Resend.
 - [ ] Optional: Supabase auth emails via Resend SMTP (see `docs/EMAIL_SETUP.md`).
 
 ## Website

@@ -19,6 +19,7 @@ The abuse tests live in `supabase/tests/attacks.sql` and run with `cd supabase/t
 | 6 | Low | A paid PaymentIntent was applied to its booking without checking it was the booking's own intent for the full amount. (Only the server can create intents, so not exploitable today.) | `applyPaymentIntent` checks intent id and amount. |
 | 7 | Low | Sign-in `?next=` accepted any value (the browser blocked cross-site targets, but it relied on that). | Only same-site paths are followed. |
 | 8 | Low | Website had no security headers. | `public/_headers`: no framing (clickjacking), nosniff, referrer policy, permissions policy, HSTS. |
+| 10 | High (found live) | Database → function calls (push/email on every notification, the hourly payout and balance job) were all rejected with 401: the service key in Vault and the one the functions get differ in format, and the check compared them as text. | `requireServiceRole` also accepts a key that Supabase's admin API accepts as this project's service key. |
 | 9 | Bug | iOS password-reset links (PKCE) never asked for a new password. | Both apps remember that a reset was requested and ask on the next sign-in link. |
 
 ## Checked and fine

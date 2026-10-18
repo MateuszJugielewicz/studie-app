@@ -129,7 +129,7 @@ async function sendDuePayouts(): Promise<number> {
 }
 
 Deno.serve(handler(async (req) => {
-  requireServiceRole(req);
+  await requireServiceRole(req);
   const released = await releaseExpiredHolds();
   const balances = await chargeBalances();
   const scheduled = await schedulePayouts();

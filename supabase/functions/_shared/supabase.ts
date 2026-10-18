@@ -47,10 +47,23 @@ export function requireApprovedStudio(user: Profile, studio: Studio) {
   }
 }
 
-/** Only the service role (cron / database triggers) may call internal functions. */
-export function requireServiceRole(req: Request) {
+const verifiedServiceKeys = new Set<string>();
+
+/**
+ * Only the service role (cron / database triggers) may call internal functions. The key the database
+ * sends (vault) and the one functions get (env) can differ in format (legacy JWT vs sb_secret_), so a
+ * key that isn't the env one is accepted if Supabase's admin API accepts it as this project's key.
+ */
+export async function requireServiceRole(req: Request) {
   const token = req.headers.get("Authorization")?.replace(/^Bearer\s+/i, "");
-  if (token !== Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")) throw new HttpError(401, "forbidden");
+  if (!token) throw new HttpError(401, "forbidden");
+  if (token === Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || verifiedServiceKeys.has(token)) return;
+  const response = await fetch(`${Deno.env.get("SUPABASE_URL")}/auth/v1/admin/users?per_page=1`, {
+    headers: { apikey: token, Authorization: `Bearer ${token}` },
+  });
+  await response.body?.cancel();
+  if (!response.ok) throw new HttpError(401, "forbidden");
+  verifiedServiceKeys.add(token);
 }
 
 export async function loadBooking(id: string): Promise<Booking> {

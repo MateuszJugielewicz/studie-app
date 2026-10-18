@@ -65,6 +65,7 @@ parts = [
     "-- Browsing studios without an account ---------------------------------\n" + idempotent(mig("20261017000002_guest_browsing.sql")),
     "-- Security hardening: price checks, internal jobs locked -----------\n" + idempotent(mig("20261018000001_security_hardening.sql")),
     "-- Pinned search_path on helper functions (security advisor) ------\n" + mig("20261018000002_pin_search_paths.sql"),
+    "-- Resend key from Vault (booking emails) -----------------------------\n" + mig("20261018000003_resend_key_from_vault.sql"),
     """-- Grants ---------------------------------------------------------------
 grant select, insert, update, delete on all tables in schema public to authenticated, service_role;
 grant execute on all functions in schema public to authenticated, service_role;

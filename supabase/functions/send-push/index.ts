@@ -101,20 +101,20 @@ async function sendAndroid(note: any): Promise<number> {
 }
 
 Deno.serve(handler(async (req, body) => {
-  requireServiceRole(req);
+  await requireServiceRole(req);
   const { data: note } = await admin.from("notifications").select("*").eq("id", requireString(body, "notification_id")).single();
   if (!note) return json({ sent: 0 });
 
   const { data: profile } = await admin.from("profiles").select("status, settings, email").eq("id", note.user_id).single();
   const settings = (profile?.settings ?? {}) as Record<string, boolean>;
   // Booking emails are part of the booking itself, so they don't follow the push switches.
-  if (profile?.status === "active") await sendNotificationEmail(note, profile.email).catch((error) => console.error(error));
+  const emailed = profile?.status === "active" ? await sendNotificationEmail(note, profile.email).catch((error) => { console.error(error); return false; }) : false;
   const category = CATEGORY[note.kind];
   if (profile?.status !== "active" || settings.push_enabled === false || (category && settings[category] === false)) {
-    return json({ sent: 0, skipped: true });
+    return json({ sent: 0, emailed, skipped: true });
   }
   const android = await sendAndroid(note).catch((error) => { console.error(error); return 0; });
-  if (!Deno.env.get("APNS_PRIVATE_KEY")) return json({ sent: android, skipped: "apns_not_configured" });
+  if (!Deno.env.get("APNS_PRIVATE_KEY")) return json({ sent: android, emailed, skipped: "apns_not_configured" });
 
   const { data: tokens } = await admin.from("device_tokens").select("token").eq("user_id", note.user_id).eq("platform", "ios");
   const { count: unread } = await admin.from("notifications").select("id", { count: "exact", head: true }).eq("user_id", note.user_id).eq("is_read", false);
@@ -145,5 +145,5 @@ Deno.serve(handler(async (req, body) => {
       await admin.from("device_tokens").delete().eq("token", token);
     }
   }
-  return json({ sent });
+  return json({ sent, emailed });
 }));

@@ -167,6 +167,7 @@ drop function if exists public.request_promotion cascade;
 drop function if exists public.request_studio_artist_link cascade;
 drop function if exists public.require_admin cascade;
 drop function if exists public.reschedule_booking cascade;
+drop function if exists public.resend_api_key cascade;
 drop function if exists public.respond_booking cascade;
 drop function if exists public.respond_message_request cascade;
 drop function if exists public.respond_studio_artist_link cascade;
@@ -4071,6 +4072,19 @@ alter function public.promotion_days(text) set search_path = public, extensions;
 alter function public.promotion_price(text, text) set search_path = public, extensions;
 alter function public.studio_validation_problems(public.studios) set search_path = public, extensions;
 alter function public.touch_updated_at() set search_path = public, extensions;
+
+-- ---------------------------------------------------------------------
+-- 20261018000003_resend_key_from_vault.sql
+-- ---------------------------------------------------------------------
+-- The Resend API key can live in Supabase Vault (name 'resend_api_key') instead of an Edge Function
+-- secret. Only the server (service role) can read it. Store it with:
+--   select vault.create_secret('re_…', 'resend_api_key');
+create or replace function public.resend_api_key()
+returns text language sql stable security definer set search_path = public, vault as $$
+  select decrypted_secret from vault.decrypted_secrets where name = 'resend_api_key' limit 1;
+$$;
+revoke execute on function public.resend_api_key() from public, anon, authenticated;
+grant execute on function public.resend_api_key() to service_role;
 
 -- ---------------------------------------------------------------------
 -- Accounts that already exist in auth (e.g. when re-running this file)

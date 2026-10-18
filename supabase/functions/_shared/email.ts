@@ -1,6 +1,7 @@
 // Transactional emails (booking confirmations etc.) from noreply@easysesh.live via Resend
-// (https://resend.com). Needs the RESEND_API_KEY secret and the domain verified in Resend;
-// without the key nothing is sent. Replies go to support.
+// (https://resend.com). The API key comes from the RESEND_API_KEY secret or, failing that, from
+// Supabase Vault ('resend_api_key', via the service-role-only resend_api_key() function); without
+// a key nothing is sent. Replies go to support.
 import { admin } from "./supabase.ts";
 
 const FROM = Deno.env.get("EMAIL_FROM") ?? "EasySesh <noreply@easysesh.live>";
@@ -25,8 +26,20 @@ function when(startsAt: string, endsAt: string, timeZone: string) {
   return `${day.format(new Date(startsAt))}, ${time.format(new Date(startsAt))}–${time.format(new Date(endsAt))}`;
 }
 
+let cachedKey: string | null = null;
+
+async function resendKey(): Promise<string | null> {
+  if (cachedKey) return cachedKey;
+  const fromEnv = Deno.env.get("RESEND_API_KEY");
+  if (fromEnv) return (cachedKey = fromEnv);
+  const { data, error } = await admin.rpc("resend_api_key");
+  if (error) console.error("Resend key lookup failed", error.message);
+  cachedKey = (data as string | null) || null;
+  return cachedKey;
+}
+
 async function send(to: string, subject: string, html: string, text: string): Promise<boolean> {
-  const key = Deno.env.get("RESEND_API_KEY");
+  const key = await resendKey();
   if (!key) return false;
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
@@ -39,7 +52,7 @@ async function send(to: string, subject: string, html: string, text: string): Pr
 
 // deno-lint-ignore no-explicit-any
 export async function sendNotificationEmail(note: any, email: string | null | undefined): Promise<boolean> {
-  if (!EMAIL_KINDS.has(note.kind) || !email || email.endsWith(".invalid") || !Deno.env.get("RESEND_API_KEY")) return false;
+  if (!EMAIL_KINDS.has(note.kind) || !email || email.endsWith(".invalid") || !(await resendKey())) return false;
 
   const rows: [string, string][] = [];
   let link = `${SITE}/sessions`;

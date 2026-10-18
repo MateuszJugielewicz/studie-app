@@ -24,11 +24,15 @@ works side by side with iCloud (iCloud keeps receiving everything).
    lists in Cloudflare → DNS by hand. Wait until the domain shows **Verified**.
 3. **API Keys → Create API key** → name `EasySesh`, permission **Sending access**, domain
    `easysesh.live` → copy the key (starts with `re_`).
-4. PowerShell, in the `studie-app` folder:
-   ```powershell
-   .\supabase.exe secrets set --project-ref gdebbieifsvspszmevwa RESEND_API_KEY=re_xxxxxxxx
-   .\supabase.exe functions deploy send-push legal --project-ref gdebbieifsvspszmevwa
+4. Store the key, either as the Edge Function secret `RESEND_API_KEY`, or in Supabase Vault
+   (what's set up now) – Supabase → SQL Editor:
+   ```sql
+   select vault.create_secret('re_xxxxxxxx', 'resend_api_key');
+   -- to change it later:
+   select vault.update_secret((select id from vault.secrets where name = 'resend_api_key'), 're_new');
    ```
+   The functions read the secret first and fall back to Vault (`public.resend_api_key()`, which only
+   the server can call).
 
 From then on, these notifications are also emailed (from `supabase/functions/_shared/email.ts`):
 booking confirmed, new booking / request (to the studio), request declined or expired, booking
