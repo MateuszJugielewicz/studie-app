@@ -5,6 +5,7 @@ import { useApp } from "./lib/state";
 import { t } from "./lib/i18n";
 import { Avatar, Loading, Logo } from "./components/ui";
 import { GlobalSheets } from "./pages/Gates";
+import { adminUrl, hasAdminSubdomain } from "./lib/hosts";
 
 const Landing = lazy(() => import("./pages/Landing"));
 const Auth = lazy(() => import("./pages/Auth"));
@@ -177,12 +178,13 @@ function Splash() {
   );
 }
 
-/** The admin dashboard is a separate page (admin/index.html), so leave the app with a full page load. */
+/** The admin dashboard is a separate page (admin.easysesh.live, or admin/index.html elsewhere). */
 function AdminRedirect() {
   const { pathname, search } = useLocation();
   useEffect(() => {
     const rest = pathname.replace(/^\/admin\/?/, "") + search;
-    window.location.replace(rest ? `/admin/?to=${encodeURIComponent(rest)}` : "/admin/");
+    if (hasAdminSubdomain) window.location.replace(adminUrl(rest));
+    else window.location.replace(rest ? `/admin/?to=${encodeURIComponent(rest)}` : "/admin/");
   }, []);
   return <Loading />;
 }

@@ -3,7 +3,7 @@
 import { createClient, type RealtimeChannel, type SupabaseClient } from "@supabase/supabase-js";
 import { config, TERMS_VERSION } from "./config";
 import { format, t } from "./i18n";
-import { passwordProblem, Studios } from "./core";
+import { passwordProblem, Studios, uuid } from "./core";
 import type {
   AppNotification, ArtistProfile, ArtistReview, ArtistSearchResult, BlockState, BlockedSlot, BlockedUser, Booking, ChangelogEntry,
   ChatMessage, Conversation, FeeInvoice, FeeLedgerEntry, Interval, ModerationWarning, PaymentIntentInfo, PaymentTransaction, Payout,
@@ -193,7 +193,7 @@ export class Api {
   /** Uploads a JPEG (already resized) under the caller's own folder, as the storage policies require. */
   async uploadImage(blob: Blob, folder: string): Promise<string> {
     const id = await this.userId();
-    const path = `${id.toLowerCase()}/${folder}/${crypto.randomUUID().toLowerCase()}.jpg`;
+    const path = `${id.toLowerCase()}/${folder}/${uuid().toLowerCase()}.jpg`;
     const bucket = this.client.storage.from("media");
     const { error } = await bucket.upload(path, blob, { upsert: false, contentType: "image/jpeg" });
     if (error) throw mapMessage(error.message);
@@ -350,7 +350,7 @@ export class Api {
   /** Live new messages in a conversation. Returns a function that stops listening. */
   subscribeMessages(conversationId: string, onMessage: (m: ChatMessage) => void): () => void {
     const id = conversationId.toLowerCase();
-    const channel: RealtimeChannel = this.client.channel(`messages-${id}-${crypto.randomUUID().slice(0, 8)}`)
+    const channel: RealtimeChannel = this.client.channel(`messages-${id}-${uuid().slice(0, 8)}`)
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: `conversation_id=eq.${id}` },
         (payload) => onMessage(payload.new as ChatMessage))
       .subscribe();
@@ -359,7 +359,7 @@ export class Api {
 
   /** Live inbox: any change to the user's notifications. */
   subscribeNotifications(userId: string, onChange: () => void): () => void {
-    const channel = this.client.channel(`notifications-${userId}-${crypto.randomUUID().slice(0, 8)}`)
+    const channel = this.client.channel(`notifications-${userId}-${uuid().slice(0, 8)}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "notifications", filter: `user_id=eq.${userId}` }, () => onChange())
       .subscribe();
     return () => { this.client.removeChannel(channel); };

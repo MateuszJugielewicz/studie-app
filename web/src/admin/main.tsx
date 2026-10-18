@@ -2,17 +2,24 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import App from "./App";
+import { adminBase, adminUrl, hasAdminSubdomain, isAdminHost } from "../lib/hosts";
 import "./styles.css";
 
-// Hosts that only fall back to the website's index.html (e.g. Cloudflare Pages) land deep links like
-// /admin/users on the website, which sends them here as /admin/?to=users. Restore the path.
+// Deep links like /admin/users can reach the website's index.html first (hosts such as Cloudflare
+// Pages only fall back to it); the website then forwards them as /admin/?to=users.
 const to = new URLSearchParams(window.location.search).get("to");
-if (to) window.history.replaceState(null, "", `/admin/${to.replace(/^\/+/, "")}`);
+const path = (to ?? window.location.pathname.replace(/^\/admin\/?/, "")).replace(/^\/+/, "");
 
-ReactDOM.createRoot(document.getElementById("root")!).render(
-  <React.StrictMode>
-    <BrowserRouter basename="/admin">
-      <App />
-    </BrowserRouter>
-  </React.StrictMode>,
-);
+if (hasAdminSubdomain && !isAdminHost) {
+  // easysesh.live/admin/... moved to admin.easysesh.live/...
+  window.location.replace(adminUrl(path));
+} else {
+  if (to) window.history.replaceState(null, "", `${adminBase.replace(/\/$/, "")}/${path}`);
+  ReactDOM.createRoot(document.getElementById("root")!).render(
+    <React.StrictMode>
+      <BrowserRouter basename={adminBase}>
+        <App />
+      </BrowserRouter>
+    </React.StrictMode>,
+  );
+}

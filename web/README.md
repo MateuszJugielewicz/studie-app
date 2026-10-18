@@ -6,7 +6,8 @@ editor, payouts, promotion) – all from a browser. It uses the same Supabase pr
 translations (`ios/EasySesh/Localizable.xcstrings`) and the same legal texts (`legal/`) as the
 iOS and Android apps, so an account works everywhere.
 
-It also includes the **admin dashboard** at `/admin` (studio approvals, users, bookings, payments,
+It also includes the **admin dashboard**: https://admin.easysesh.live on the live site, `/admin`
+locally and on `*.pages.dev` previews (studio approvals, users, bookings, payments,
 promotions, moderation, support and the changelog/"What's new"). Admins sign in on the website as
 usual and are taken there; two-factor authentication (an authenticator app) is required. Everything
 done there applies to the iOS app, the Android app and the website alike, because they all use the
@@ -48,8 +49,10 @@ Open <http://localhost:5173> (the admin dashboard is <http://localhost:5173/admi
      $env:CLOUDFLARE_API_TOKEN="<token>"; npx wrangler pages deploy dist --project-name easysesh --branch main
      ```
 
-   **Live now:** the Pages project `easysesh` serves https://easysesh.live and
-   https://www.easysesh.live (proxied CNAME records to `easysesh.pages.dev`).
+   **Live now:** the Pages project `easysesh` serves https://easysesh.live,
+   https://www.easysesh.live and https://admin.easysesh.live (proxied CNAME records to
+   `easysesh.pages.dev`). The same files serve all three: `src/boot.ts` opens the admin dashboard
+   on `admin.` and the website everywhere else (`src/lib/hosts.ts`).
 
    Netlify Drop (<https://app.netlify.com/drop>) and Vercel work too; `public/_redirects` and
    `vercel.json` make page links like `/studios/…` work there.

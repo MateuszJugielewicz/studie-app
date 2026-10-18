@@ -5,7 +5,7 @@ import {
   SlidersVertical, Trash2, UserPlus, X, ImageIcon,
 } from "lucide-react";
 import { api, userMessage } from "../lib/api";
-import { formatMinutes, Money, OPENING_DISPLAY_ORDER, studioProblems, Studios, weekdayName } from "../lib/core";
+import { formatMinutes, Money, OPENING_DISPLAY_ORDER, studioProblems, Studios, uuid, weekdayName } from "../lib/core";
 import { compressImage } from "../lib/image";
 import { format, t } from "../lib/i18n";
 import { geocode } from "../lib/location";
@@ -25,7 +25,7 @@ const store = {
   set(next: Studio) { draft = next; listeners.forEach((l) => l()); },
   subscribe(l: () => void) { listeners.add(l); return () => { listeners.delete(l); }; },
 };
-const newId = () => crypto.randomUUID().toLowerCase();
+const newId = () => uuid().toLowerCase();
 
 function useDraft(): [Studio, (s: Studio) => void] {
   const app = useApp();

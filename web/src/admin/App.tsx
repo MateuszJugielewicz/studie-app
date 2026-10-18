@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import type { MfaState } from "./lib/types";
 import { NavLink, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { api as configuredApi, ApiContext } from "./lib/apiContext";
+import { websiteUrl } from "../lib/hosts";
 import type { AdminApi } from "./lib/api";
 import OverviewPage from "./pages/OverviewPage";
 import StudiosPage from "./pages/StudiosPage";
@@ -123,7 +124,7 @@ function Dashboard({ api }: { api: AdminApi }) {
           </nav>
           <div className="sidebar-footer">
             <div className="muted small">{email}</div>
-            <a href="/" className="muted small">Open the website</a>
+            <a href={websiteUrl} className="muted small">Open the website</a>
             <button className="ghost" onClick={async () => { await api.signOut(); setEmail(null); }}>Sign out</button>
           </div>
         </aside>
@@ -175,7 +176,7 @@ function Login({ api, onSignedIn }: { api: AdminApi; onSignedIn: (email: string)
         <label>Password<input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required /></label>
         {error && <p className="error-text">{error}</p>}
         <button className="primary" disabled={busy}>{busy ? "Signing in…" : "Sign in"}</button>
-        <a href="/" className="muted small" style={{ alignSelf: "center" }}>Back to the website</a>
+        <a href={websiteUrl} className="muted small" style={{ alignSelf: "center" }}>Back to the website</a>
       </form>
     </div>
   );

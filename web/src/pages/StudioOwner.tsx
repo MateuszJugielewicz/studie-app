@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 import { api, userMessage } from "../lib/api";
 import {
-  Dates, earningsSummary, greeting, Money, openingWindow, sameDay, startOfDay, Studios, studioZone, isActiveStatus, addDays,
+  Dates, earningsSummary, greeting, Money, openingWindow, sameDay, startOfDay, Studios, studioZone, isActiveStatus, addDays, uuid,
 } from "../lib/core";
 import { format, t } from "../lib/i18n";
 import { useApp } from "../lib/state";
@@ -306,7 +306,7 @@ function BlockTimeSheet({ open, onClose, studioId, day, onAdded }: { open: boole
     const from = allDay ? new Date(`${startDate}T00:00`) : new Date(`${startDate}T${startTime}`);
     const to = allDay ? addDays(new Date(`${startDate}T00:00`), 1) : new Date(`${endDate}T${endTime}`);
     try {
-      onAdded(await api.addBlockedSlot({ id: crypto.randomUUID(), studio_id: studioId, starts_at: from.toISOString(), ends_at: (to > from ? to : from).toISOString(), reason }));
+      onAdded(await api.addBlockedSlot({ id: uuid(), studio_id: studioId, starts_at: from.toISOString(), ends_at: (to > from ? to : from).toISOString(), reason }));
       onClose();
     } catch (e) { toast(userMessage(e)); }
   }
