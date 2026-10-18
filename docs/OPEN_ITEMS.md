@@ -4,7 +4,7 @@ Things only the owner can do. Details and steps are in `docs/APP_STORE_RELEASE.m
 (iOS), `android/README.md` (Android) and `web/README.md` (website).
 
 ## Legal / company
-- [ ] Company name, address, CVR/VAT number, support email, privacy email, governing-law country
+- [ ] Company name, address, CVR/VAT number, governing-law country
       and city. They replace the `[PLACEHOLDER]`s in `legal/*.md` (all 10 languages). Send them to
       Claude to fill in everywhere, then run `python3 supabase/scripts/build_legal_function.py`.
 - [ ] Email provider and Supabase region for the privacy policy (`[PROVIDER]`, `[REGION]`).
