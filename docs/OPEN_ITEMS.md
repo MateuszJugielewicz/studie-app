@@ -41,7 +41,8 @@ Things only the owner can do. Details and steps are in `docs/APP_STORE_RELEASE.m
       it was only built and checked with on-computer screenshots so far.
 
 ## Website
-- [ ] Put the site online on Cloudflare Pages and connect `easysesh.live` (steps in `web/README.md`).
+- [x] Site online on Cloudflare Pages at https://easysesh.live (project `easysesh`).
+- [ ] Roll the Cloudflare API token that was pasted in chat (My Profile → API Tokens).
 - [ ] Supabase → Authentication → URL Configuration → add `https://easysesh.live/auth/callback`.
 - [ ] Supabase secret `SITE_URL=https://easysesh.live`, then redeploy `payout-account` and `payout-return`.
 - [ ] Add the site to the Google OAuth web client (JavaScript origins) and the Apple Services ID domains.

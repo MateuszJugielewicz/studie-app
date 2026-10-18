@@ -42,7 +42,14 @@ Open <http://localhost:5173> (the admin dashboard is <http://localhost:5173/admi
      **Deploy site**.
    - In the project → **Custom domains** → **Set up a custom domain** → `easysesh.live` →
      **Activate domain**. Repeat for `www.easysesh.live` if you want it.
-   - To update the site later: project → **Create deployment** → drag the new `dist` folder.
+   - To update the site later: project → **Create deployment** → drag the new `dist` folder, or
+     from PowerShell with a Cloudflare API token (Pages: Edit):
+     ```powershell
+     $env:CLOUDFLARE_API_TOKEN="<token>"; npx wrangler pages deploy dist --project-name easysesh --branch main
+     ```
+
+   **Live now:** the Pages project `easysesh` serves https://easysesh.live and
+   https://www.easysesh.live (proxied CNAME records to `easysesh.pages.dev`).
 
    Netlify Drop (<https://app.netlify.com/drop>) and Vercel work too; `public/_redirects` and
    `vercel.json` make page links like `/studios/…` work there.
