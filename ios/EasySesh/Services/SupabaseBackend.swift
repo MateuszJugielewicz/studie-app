@@ -372,14 +372,75 @@ final class SupabaseBackend: Backend {
     // Booking actions run as database functions (no edge functions needed). Only steps that move
     // card money (charging, capturing, refunding) go through the Stripe edge functions.
     func createBooking(_ request: BookingRequest) async throws -> Booking {
-        try await rpc("create_booking", [
+        try await rpc("book_session", [
             "p_studio_id": .string(request.studio.id.uuidString),
             "p_session_type_id": .string(request.sessionType.id),
             "p_starts_at": .string(PostgresDate.format(request.startsAt)),
             "p_hours": .integer(request.hours),
-            "p_add_ons": .array(request.addOns.filter { $0.value > 0 }.map { AnyJSON.object(["id": .string($0.key), "quantity": .integer($0.value)]) }),
+            "p_add_ons": Self.addOnList(request.addOns),
             "p_notes": .string(request.notes),
+            "p_promo_code": request.promoCode.map { .string($0) } ?? .null,
         ])
+    }
+
+    private static func addOnList(_ addOns: [String: Int]) -> AnyJSON {
+        .array(addOns.filter { $0.value > 0 }.map { AnyJSON.object(["id": .string($0.key), "quantity": .integer($0.value)]) })
+    }
+
+    func quoteBooking(studio: Studio, sessionTypeId: String, hours: Int, addOns: [String: Int], promoCode: String?) async throws -> PriceBreakdown {
+        try await rpc("quote_booking", [
+            "p_studio_id": .string(studio.id.uuidString),
+            "p_session_type_id": .string(sessionTypeId),
+            "p_hours": .integer(hours),
+            "p_add_ons": Self.addOnList(addOns),
+            "p_promo_code": promoCode.map { .string($0) } ?? .null,
+        ])
+    }
+
+    func checkPromoCode(studioId: UUID, code: String) async throws -> PromoCheck {
+        try await rpc("check_promo_code", ["p_studio_id": .string(studioId.uuidString), "p_code": .string(code)])
+    }
+
+    func studioOffers(studioId: UUID) async throws -> [StudioOffer] {
+        try await mapped {
+            try await client.from("studio_offers").select().eq("studio_id", value: studioId.uuidString)
+                .order("percent_off", ascending: false).execute().value
+        }
+    }
+
+    func saveOffer(_ offer: StudioOffer) async throws {
+        try await mapped { _ = try await client.from("studio_offers").upsert(offer).execute() }
+    }
+
+    func removeOffer(id: UUID) async throws {
+        try await mapped { _ = try await client.from("studio_offers").delete().eq("id", value: id.uuidString).execute() }
+    }
+
+    private struct PromoUsage: Decodable { var promoCodeId: UUID; var uses: Int }
+
+    func promoCodes(studioId: UUID) async throws -> [PromoCode] {
+        let codes: [PromoCode] = try await mapped {
+            try await client.from("promo_codes").select().eq("studio_id", value: studioId.uuidString)
+                .order("created_at", ascending: false).execute().value
+        }
+        let usage: [PromoUsage] = (try? await mapped {
+            try await client.from("promo_code_usage").select().in("promo_code_id", values: codes.map(\.id.uuidString)).execute().value
+        }) ?? []
+        return codes.map { code in
+            var code = code
+            code.uses = usage.first { $0.promoCodeId == code.id }?.uses ?? 0
+            return code
+        }
+    }
+
+    func savePromoCode(_ code: PromoCode) async throws {
+        var code = code
+        code.uses = nil
+        try await mapped { _ = try await client.from("promo_codes").upsert(code).execute() }
+    }
+
+    func removePromoCode(id: UUID) async throws {
+        try await mapped { _ = try await client.from("promo_codes").delete().eq("id", value: id.uuidString).execute() }
     }
 
     /// Runs the database version first; card bookings that need a refund/capture use the edge function.

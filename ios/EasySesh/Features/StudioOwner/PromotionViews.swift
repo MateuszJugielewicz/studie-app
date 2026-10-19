@@ -393,3 +393,258 @@ struct StudioArtistLinkView: View {
         }
     }
 }
+
+// MARK: - Offers & promo codes
+
+/// Studio offers ("Mixing 50% off", applied automatically) and the studio's own promo codes. Both
+/// come off the studio's price; EasySesh's fee is calculated on the discounted price.
+struct StudioOffersView: View {
+    @Environment(AppState.self) private var app
+    let studio: Studio
+    @State private var offers: [StudioOffer] = []
+    @State private var codes: [PromoCode] = []
+    @State private var editingOffer: StudioOffer?
+    @State private var editingCode: PromoCode?
+    @State private var error: String?
+
+    var body: some View {
+        Form {
+            Section {
+                ForEach(offers) { offer in
+                    Button { editingOffer = offer } label: {
+                        HStack {
+                            OfferRow(offer: offer, studio: studio)
+                            Toggle("", isOn: Binding(get: { offer.isActive }, set: { on in save { var o = offer; o.isActive = on; try await app.backend.saveOffer(o) } }))
+                                .labelsHidden()
+                        }
+                    }
+                    .buttonStyle(.plain)
+                    .swipeActions { Button("Delete", role: .destructive) { save { try await app.backend.removeOffer(id: offer.id) } } }
+                }
+                Button {
+                    editingOffer = StudioOffer(id: UUID(), studioId: studio.id, title: "", percentOff: 20, appliesTo: "everything", targetId: nil, endsAt: nil, isActive: true)
+                } label: { Label("New offer", systemImage: "plus") }
+            } header: {
+                Text("Offers")
+            } footer: {
+                Text("Offers are applied automatically when artists book, and shown on your studio page. If several match, the biggest one is used.")
+            }
+
+            Section {
+                ForEach(codes) { code in
+                    Button { editingCode = code } label: {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("\(code.code) · −\(code.percentOff)%").font(.subheadline.weight(.semibold).monospaced())
+                                Text(code.maxUses.map { L10n.format("Used %lld of %lld", code.uses ?? 0, $0) } ?? L10n.format("Used %lld times", code.uses ?? 0))
+                                    .font(.caption).foregroundStyle(.secondary)
+                            }
+                            Spacer()
+                            Toggle("", isOn: Binding(get: { code.isActive }, set: { on in save { var c = code; c.isActive = on; try await app.backend.savePromoCode(c) } }))
+                                .labelsHidden()
+                        }
+                    }
+                    .buttonStyle(.plain)
+                    .swipeActions { Button("Delete", role: .destructive) { save { try await app.backend.removePromoCode(id: code.id) } } }
+                }
+                Button {
+                    editingCode = PromoCode(id: UUID(), studioId: studio.id, code: "", percentOff: 10)
+                } label: { Label("New promo code", systemImage: "plus") }
+            } header: {
+                Text("Promo codes")
+            } footer: {
+                Text("Give a code to artists (on social media, to regulars…). They type it in at checkout to get the discount.")
+            }
+
+            Section {
+                Text("Discounts come off your price. EasySesh's platform fee is calculated on the discounted price.")
+                    .font(.footnote).foregroundStyle(.secondary)
+            }
+        }
+        .easyseshGrouped()
+        .navigationTitle("Offers & promo codes")
+        .task { await reload() }
+        .sheet(item: $editingOffer) { offer in
+            NavigationStack { OfferEditor(studio: studio, offer: offer) { await reload() } }
+        }
+        .sheet(item: $editingCode) { code in
+            NavigationStack { PromoCodeEditor(code: code) { await reload() } }
+        }
+        .errorAlert($error)
+    }
+
+    private func reload() async {
+        do {
+            offers = try await app.backend.studioOffers(studioId: studio.id)
+            codes = try await app.backend.promoCodes(studioId: studio.id)
+        } catch { self.error = error.userMessage }
+    }
+
+    private func save(_ action: @escaping () async throws -> Void) {
+        Task {
+            do { try await action() } catch { self.error = error.userMessage }
+            await reload()
+        }
+    }
+}
+
+private struct OfferEditor: View {
+    @Environment(AppState.self) private var app
+    @Environment(\.dismiss) private var dismiss
+    let studio: Studio
+    @State var offer: StudioOffer
+    let onSaved: () async -> Void
+    @State private var hasEnd = false
+    @State private var isSaving = false
+    @State private var error: String?
+    private let isNew: Bool
+
+    init(studio: Studio, offer: StudioOffer, onSaved: @escaping () async -> Void) {
+        self.studio = studio
+        isNew = offer.title.isEmpty
+        _offer = State(initialValue: offer)
+        _hasEnd = State(initialValue: offer.endsAt != nil)
+        self.onSaved = onSaved
+    }
+
+    private var needsTarget: Bool { offer.appliesTo == "session_type" || offer.appliesTo == "add_on" }
+    private var valid: Bool { offer.title.trimmingCharacters(in: .whitespaces).count >= 2 && (!needsTarget || offer.targetId != nil) }
+
+    var body: some View {
+        Form {
+            Section {
+                TextField("Title", text: $offer.title)
+                Stepper(value: $offer.percentOff, in: 5...90, step: 5) {
+                    Label("\(offer.percentOff)%", systemImage: "tag")
+                }
+            } header: {
+                Text("Offer")
+            } footer: {
+                Text("Shown to artists, e.g. “Mixing half price” or “Weekday deal”.")
+            }
+            Section("Applies to") {
+                Picker("Discount on", selection: Binding(get: { offer.appliesTo }, set: { offer.appliesTo = $0; offer.targetId = nil })) {
+                    Text("Everything").tag("everything")
+                    Text("All sessions").tag("sessions")
+                    Text("All extras").tag("add_ons")
+                    Text("One session type").tag("session_type")
+                    Text("One extra").tag("add_on")
+                }
+                if offer.appliesTo == "session_type" {
+                    Picker("Session type", selection: $offer.targetId) {
+                        Text("Choose…").tag(String?.none)
+                        ForEach(studio.sessionTypes) { Text($0.name).tag(Optional($0.id)) }
+                    }
+                } else if offer.appliesTo == "add_on" {
+                    Picker("Extra", selection: $offer.targetId) {
+                        Text("Choose…").tag(String?.none)
+                        ForEach(studio.addOns) { Text($0.name).tag(Optional($0.id)) }
+                    }
+                }
+            }
+            Section {
+                Toggle("Last day", isOn: Binding(get: { hasEnd }, set: { hasEnd = $0; offer.endsAt = $0 ? (offer.endsAt ?? .now.adding(days: 30)) : nil }))
+                if hasEnd, let end = offer.endsAt {
+                    DatePicker("Last day", selection: Binding(get: { end }, set: { offer.endsAt = Calendar.current.date(bySettingHour: 23, minute: 59, second: 59, of: $0) }), in: Date.now..., displayedComponents: .date)
+                }
+            } header: {
+                Text("Ends")
+            } footer: {
+                Text("Leave empty to keep the offer until you turn it off.")
+            }
+        }
+        .easyseshGrouped()
+        .navigationTitle(LocalizedStringKey(isNew ? "New offer" : "Edit offer"))
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
+            ToolbarItem(placement: .confirmationAction) {
+                if isSaving { ProgressView() } else {
+                    Button("Save") {
+                        isSaving = true
+                        Task {
+                            defer { isSaving = false }
+                            do {
+                                offer.title = offer.title.trimmingCharacters(in: .whitespaces)
+                                try await app.backend.saveOffer(offer)
+                                await onSaved()
+                                dismiss()
+                            } catch { self.error = error.userMessage }
+                        }
+                    }
+                    .disabled(!valid)
+                }
+            }
+        }
+        .errorAlert($error)
+    }
+}
+
+private struct PromoCodeEditor: View {
+    @Environment(AppState.self) private var app
+    @Environment(\.dismiss) private var dismiss
+    @State var code: PromoCode
+    let onSaved: () async -> Void
+    @State private var isSaving = false
+    @State private var error: String?
+
+    init(code: PromoCode, onSaved: @escaping () async -> Void) {
+        _code = State(initialValue: code)
+        self.onSaved = onSaved
+    }
+
+    private var valid: Bool { code.code.range(of: "^[A-Z0-9]{3,20}$", options: .regularExpression) != nil }
+
+    var body: some View {
+        Form {
+            Section {
+                TextField("SUMMER20", text: Binding(get: { code.code }, set: { code.code = String($0.uppercased().filter { $0.isASCII && ($0.isLetter || $0.isNumber) }.prefix(20)) }))
+                    .font(.body.monospaced())
+                    .textInputAutocapitalization(.characters)
+                    .autocorrectionDisabled()
+                Stepper(value: $code.percentOff, in: 1...90) { Label("\(code.percentOff)%", systemImage: "tag") }
+                TextField("Note for artists (optional)", text: $code.description)
+            } header: {
+                Text("Code")
+            } footer: {
+                Text("3–20 letters or digits, e.g. SUMMER20.")
+            }
+            Section("Limits") {
+                Stepper(value: Binding(get: { code.maxUses ?? 0 }, set: { code.maxUses = $0 == 0 ? nil : $0 }), in: 0...1000) {
+                    LabeledContent("Uses in total", value: code.maxUses.map(String.init) ?? L10n.tr("No limit"))
+                }
+                Stepper(value: $code.maxUsesPerUser, in: 1...100) {
+                    LabeledContent("Uses per artist", value: "\(code.maxUsesPerUser)")
+                }
+                Toggle("Last day", isOn: Binding(get: { code.endsAt != nil }, set: { code.endsAt = $0 ? .now.adding(days: 30) : nil }))
+                if let end = code.endsAt {
+                    DatePicker("Last day", selection: Binding(get: { end }, set: { code.endsAt = Calendar.current.date(bySettingHour: 23, minute: 59, second: 59, of: $0) }), in: Date.now..., displayedComponents: .date)
+                }
+            }
+        }
+        .easyseshGrouped()
+        .navigationTitle(LocalizedStringKey(code.uses == nil ? "New promo code" : "Edit promo code"))
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
+            ToolbarItem(placement: .confirmationAction) {
+                if isSaving { ProgressView() } else {
+                    Button("Save") {
+                        isSaving = true
+                        Task {
+                            defer { isSaving = false }
+                            do {
+                                code.description = code.description.trimmingCharacters(in: .whitespaces)
+                                try await app.backend.savePromoCode(code)
+                                await onSaved()
+                                dismiss()
+                            } catch { self.error = error.userMessage }
+                        }
+                    }
+                    .disabled(!valid)
+                }
+            }
+        }
+        .errorAlert($error)
+    }
+}

@@ -510,6 +510,22 @@ final class MockBackend: Backend {
 
     // MARK: - Bookings
 
+    func quoteBooking(studio: Studio, sessionTypeId: String, hours: Int, addOns: [String: Int], promoCode: String?) async throws -> PriceBreakdown {
+        guard let type = studio.sessionType(id: sessionTypeId) else { throw BackendError.validation("Unknown session type.") }
+        return PricingEngine.quote(studio: studio, sessionType: type, hours: hours, addOns: addOns)
+    }
+
+    func checkPromoCode(studioId: UUID, code: String) async throws -> PromoCheck {
+        throw BackendError.validation("This promo code isn't valid for this studio.")
+    }
+
+    func studioOffers(studioId: UUID) async throws -> [StudioOffer] { [] }
+    func saveOffer(_ offer: StudioOffer) async throws {}
+    func removeOffer(id: UUID) async throws {}
+    func promoCodes(studioId: UUID) async throws -> [PromoCode] { [] }
+    func savePromoCode(_ code: PromoCode) async throws {}
+    func removePromoCode(id: UUID) async throws {}
+
     func createBooking(_ request: BookingRequest) async throws -> Booking {
         await pause()
         let user = try requireUser()

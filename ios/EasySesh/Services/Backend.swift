@@ -107,6 +107,15 @@ protocol Backend: AnyObject {
 
     // MARK: Bookings
     func createBooking(_ request: BookingRequest) async throws -> Booking
+    /// The exact price the booking will get (studio offers and promo code applied by the server).
+    func quoteBooking(studio: Studio, sessionTypeId: String, hours: Int, addOns: [String: Int], promoCode: String?) async throws -> PriceBreakdown
+    func checkPromoCode(studioId: UUID, code: String) async throws -> PromoCheck
+    func studioOffers(studioId: UUID) async throws -> [StudioOffer]
+    func saveOffer(_ offer: StudioOffer) async throws
+    func removeOffer(id: UUID) async throws
+    func promoCodes(studioId: UUID) async throws -> [PromoCode]
+    func savePromoCode(_ code: PromoCode) async throws
+    func removePromoCode(id: UUID) async throws
     func preparePayment(bookingId: UUID, method: PaymentMethod) async throws -> PaymentIntentInfo
     /// Called after the payment sheet reports success. Returns the updated booking.
     func confirmPayment(bookingId: UUID, method: PaymentMethod) async throws -> Booking

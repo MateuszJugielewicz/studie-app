@@ -154,6 +154,7 @@ object Symbols {
         "play.rectangle.fill" to Icons.Rounded.SmartDisplay,
         "play.rectangle.on.rectangle" to Icons.Rounded.VideoLibrary,
         "play.tv" to Icons.Rounded.LiveTv,
+        "percent" to Icons.Rounded.Percent,
         "plus" to Icons.Rounded.Add,
         "plus.circle" to Icons.Rounded.AddCircleOutline,
         "plus.circle.fill" to Icons.Rounded.AddCircle,

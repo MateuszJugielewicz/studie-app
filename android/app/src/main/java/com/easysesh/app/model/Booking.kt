@@ -72,9 +72,61 @@ data class PriceBreakdown(
     /** Commission the platform keeps from the studio. */
     val studioCommission: Int,
     val studioPayout: Int,
+    /** Discounts, computed by the server (studio offers and promo codes). An EasySesh promo code is
+     *  paid by EasySesh and stored as a negative [serviceFee]. */
+    val originalSubtotal: Int? = null,
+    val offerDiscount: Int? = null,
+    val promoDiscount: Int? = null,
+    val promoCode: String? = null,
+    val discounts: List<PriceDiscount> = emptyList(),
 ) {
     val platformRevenue get() = serviceFee + studioCommission
 }
+
+@Serializable
+data class PriceDiscount(
+    val label: String,
+    val percent: Int,
+    val amount: Int,
+    /** "offer", "studio_code" or "easysesh_code". */
+    val kind: String,
+)
+
+/** A studio's automatic deal, e.g. "Mixing 50% off". */
+@Serializable
+data class StudioOffer(
+    val id: String,
+    val studioId: String,
+    val title: String,
+    val percentOff: Int,
+    /** everything | sessions | add_ons | session_type | add_on */
+    val appliesTo: String = "everything",
+    val targetId: String? = null,
+    val endsAt: PgInstant? = null,
+    val isActive: Boolean = true,
+) {
+    val isLive get() = isActive && (endsAt?.isAfter(Instant.now()) ?: true)
+}
+
+/** A code artists type in at checkout. [studioId] null = an EasySesh code (made by an admin). */
+@Serializable
+data class PromoCode(
+    val id: String,
+    val studioId: String? = null,
+    val code: String,
+    val percentOff: Int,
+    val description: String = "",
+    val endsAt: PgInstant? = null,
+    val maxUses: Int? = null,
+    val maxUsesPerUser: Int = 1,
+    val isActive: Boolean = true,
+    /** Bookings that used it (from `promo_code_usage`; not a column). */
+    @kotlinx.serialization.Transient val uses: Int = 0,
+)
+
+/** Result of checking a promo code at checkout. */
+@Serializable
+data class PromoCheck(val code: String, val percentOff: Int, val description: String = "", val byEasysesh: Boolean = false)
 
 /** Input for creating a booking. */
 data class BookingRequest(
@@ -84,6 +136,7 @@ data class BookingRequest(
     val hours: Int,
     val addOns: Map<String, Int>,
     val notes: String,
+    val promoCode: String? = null,
 )
 
 /** A payment-side movement of money (`transactions` table). */

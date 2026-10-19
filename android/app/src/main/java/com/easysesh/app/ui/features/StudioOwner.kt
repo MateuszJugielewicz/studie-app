@@ -749,6 +749,7 @@ fun StudioSettingsView() {
                     ProfileTile("Booking settings", if (studio.bookingPolicy.instantBook) "Instant booking" else "You approve (24h)", "bolt.fill", listOf(Theme.warning, Theme.accent)) {
                         StudioSectionEditor("Booking settings") { s, set -> StudioPolicyEditor(s, set) }
                     },
+                    ProfileTile("Offers & codes", "Discounts for artists", "percent", listOf(Theme.warning, Theme.accent)) { StudioOffersView(studio) },
                     ProfileTile("Promotion", if (studio.isPromoted) "Promoted now" else "Not promoted", "megaphone.fill", TilePalette.signal) { PromotionView(studio) },
                     ProfileTile("Artist profile", "Connect yours", "link", TilePalette.violet) { StudioArtistLinkView(studio) },
                     ProfileTile("Payouts", "Bank details", "building.columns.fill", TilePalette.mint) { PayoutAccountEditor(studio.id) },

@@ -72,8 +72,102 @@ struct PriceBreakdown: Codable, Hashable {
     /// Commission the platform keeps from the studio.
     var studioCommission: Int
     var studioPayout: Int
+    /// Discounts, computed by the server (studio offers and promo codes). An EasySesh promo code is
+    /// paid by EasySesh and stored as a negative `serviceFee`.
+    var originalSubtotal: Int? = nil
+    var offerDiscount: Int? = nil
+    var promoDiscount: Int? = nil
+    var promoCode: String? = nil
+    var discounts: [PriceDiscount]? = nil
 
     var platformRevenue: Int { serviceFee + studioCommission }
+}
+
+struct PriceDiscount: Codable, Hashable {
+    var label: String
+    var percent: Int
+    var amount: Int
+    /// "offer", "studio_code" or "easysesh_code".
+    var kind: String
+}
+
+/// A studio's automatic deal, e.g. "Mixing 50% off".
+struct StudioOffer: Codable, Identifiable, Hashable {
+    let id: UUID
+    var studioId: UUID
+    var title: String
+    var percentOff: Int
+    /// everything | sessions | add_ons | session_type | add_on
+    var appliesTo: String
+    var targetId: String?
+    var endsAt: Date?
+    var isActive: Bool
+
+    var isLive: Bool { isActive && (endsAt.map { $0 > .now } ?? true) }
+
+    private enum CodingKeys: String, CodingKey { case id, studioId, title, percentOff, appliesTo, targetId, endsAt, isActive }
+
+    /// Saved with upsert, so empty values are sent as null (otherwise clearing them wouldn't save).
+    func encode(to encoder: Encoder) throws {
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        try c.encode(id, forKey: .id)
+        try c.encode(studioId, forKey: .studioId)
+        try c.encode(title, forKey: .title)
+        try c.encode(percentOff, forKey: .percentOff)
+        try c.encode(appliesTo, forKey: .appliesTo)
+        try c.encode(targetId, forKey: .targetId)
+        try c.encode(endsAt, forKey: .endsAt)
+        try c.encode(isActive, forKey: .isActive)
+    }
+
+    func targetName(in studio: Studio) -> String {
+        switch appliesTo {
+        case "sessions": return L10n.tr("All sessions")
+        case "add_ons": return L10n.tr("All extras")
+        case "session_type": return studio.sessionTypes.first { $0.id == targetId }?.name ?? L10n.tr("Session")
+        case "add_on": return studio.addOns.first { $0.id == targetId }?.name ?? L10n.tr("Extra")
+        default: return L10n.tr("Everything")
+        }
+    }
+}
+
+/// A code artists type in at checkout. `studioId` nil = an EasySesh code (made by an admin).
+struct PromoCode: Codable, Identifiable, Hashable {
+    let id: UUID
+    var studioId: UUID?
+    var code: String
+    var percentOff: Int
+    var description: String = ""
+    var endsAt: Date?
+    var maxUses: Int?
+    var maxUsesPerUser: Int = 1
+    var isActive: Bool = true
+    /// Bookings that used it (from `promo_code_usage`; not stored).
+    var uses: Int?
+
+    private enum CodingKeys: String, CodingKey { case id, studioId, code, percentOff, description, endsAt, maxUses, maxUsesPerUser, isActive, uses }
+
+    /// Saved with upsert, so empty values are sent as null; `uses` isn't a column.
+    func encode(to encoder: Encoder) throws {
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        try c.encode(id, forKey: .id)
+        try c.encode(studioId, forKey: .studioId)
+        try c.encode(code, forKey: .code)
+        try c.encode(percentOff, forKey: .percentOff)
+        try c.encode(description, forKey: .description)
+        try c.encode(endsAt, forKey: .endsAt)
+        try c.encode(maxUses, forKey: .maxUses)
+        try c.encode(maxUsesPerUser, forKey: .maxUsesPerUser)
+        try c.encode(isActive, forKey: .isActive)
+    }
+}
+
+/// Result of checking a promo code at checkout.
+struct PromoCheck: Codable, Hashable {
+    var code: String
+    var percentOff: Int
+    var description: String
+    var byEasysesh: Bool
 }
 
 /// Input for creating a booking.
@@ -84,6 +178,7 @@ struct BookingRequest: Hashable {
     var hours: Int
     var addOns: [String: Int]
     var notes: String
+    var promoCode: String? = nil
 }
 
 /// A payment-side movement of money (`transactions` table).

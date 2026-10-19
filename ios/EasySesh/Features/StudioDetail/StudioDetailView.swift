@@ -15,6 +15,7 @@ struct StudioDetailView: View {
     @State private var blocked = false
     @State private var conversation: Conversation?
     @State private var linkedArtist: ArtistProfile?
+    @State private var offers: [StudioOffer] = []
     @State private var error: String?
 
     var body: some View {
@@ -194,6 +195,11 @@ struct StudioDetailView: View {
 
     private func pricingSection(_ studio: Studio) -> some View {
         VStack(alignment: .leading, spacing: 10) {
+            let liveOffers = offers.filter(\.isLive)
+            if !liveOffers.isEmpty {
+                GlowSectionHeader(title: "Offers")
+                ForEach(liveOffers) { OfferRow(offer: $0, studio: studio).card() }
+            }
             GlowSectionHeader(title: "Prices")
             ForEach(studio.sessionTypes) { type in
                 HStack(alignment: .top) {
@@ -397,6 +403,7 @@ struct StudioDetailView: View {
         do {
             let loaded = try await app.backend.studio(id: studioId)
             studio = loaded
+            offers = (try? await app.backend.studioOffers(studioId: studioId)) ?? []
             if let me = app.account?.id, loaded.ownerId != me, let list = try? await app.backend.blockedUsers() {
                 blocked = list.contains { $0.userId == loaded.ownerId }
             }

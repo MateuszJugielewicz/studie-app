@@ -3,6 +3,8 @@ package com.easysesh.app.ui.features
 import android.content.Intent
 import android.provider.CalendarContract
 import androidx.compose.foundation.background
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -50,6 +52,8 @@ import com.easysesh.app.model.BookingStatus
 import com.easysesh.app.model.Interval
 import com.easysesh.app.model.PriceBreakdown
 import com.easysesh.app.model.PriceUnit
+import com.easysesh.app.model.PromoCheck
+import com.easysesh.app.model.StudioOffer
 import com.easysesh.app.model.ServiceAddOn
 import com.easysesh.app.model.Studio
 import com.easysesh.app.ui.components.*
@@ -68,12 +72,23 @@ class BookingDraft(val studio: Studio) {
     var notes by mutableStateOf("")
     var busy by mutableStateOf<List<Interval>>(emptyList())
     var isLoadingSlots by mutableStateOf(false)
+    var offers by mutableStateOf<List<StudioOffer>>(emptyList())
+    /** The server's price for [quoteKey] (offers applied); the local quote is shown until it arrives. */
+    private var serverQuote by mutableStateOf<Pair<String, PriceBreakdown>?>(null)
     private val engine = AvailabilityEngine()
 
     val dayInstant: Instant get() = day.atStartOfDay(studio.zoneId).toInstant()
     val sessionType get() = studio.sessionType(sessionTypeId)
     val slots: List<TimeSlot> get() = engine.availableSlots(studio, dayInstant, hours, busy)
-    val quote: PriceBreakdown? get() = sessionType?.let { PricingEngine.quote(studio, it, hours, addOns) }
+    val quoteKey: String get() = "$sessionTypeId|$hours|" + addOns.filter { it.value > 0 }.toSortedMap().entries.joinToString(",") { "${it.key}=${it.value}" }
+    val quote: PriceBreakdown?
+        get() = serverQuote?.takeIf { it.first == quoteKey }?.second ?: sessionType?.let { PricingEngine.quote(studio, it, hours, addOns) }
+
+    suspend fun refreshQuote(backend: com.easysesh.app.data.Backend) {
+        val key = quoteKey
+        kotlinx.coroutines.delay(200)
+        runCatching { backend.quoteBooking(studio, sessionTypeId, hours, addOns) }.getOrNull()?.let { serverQuote = key to it }
+    }
     val request: BookingRequest?
         get() {
             val type = sessionType ?: return null
@@ -101,6 +116,8 @@ fun BookingFlowView(studio: Studio) {
     val navigator = LocalNavigator.current
     val draft = remember { BookingDraft(studio) }
     LaunchedEffect(draft.day) { draft.loadBusy(app.backend) }
+    LaunchedEffect(draft.quoteKey) { draft.refreshQuote(app.backend) }
+    LaunchedEffect(Unit) { draft.offers = runCatching { app.backend.studioOffers(studio.id) }.getOrDefault(emptyList()) }
     LaunchedEffect(draft.sessionTypeId) {
         val minimum = draft.sessionType?.minimumHours
         if (minimum != null && draft.hours < minimum) draft.hours = minimum
@@ -121,6 +138,7 @@ fun BookingFlowView(studio: Studio) {
             }
         },
     ) {
+        StudioOffersSection(studio, draft.offers)
         FormSection("Session type") {
             FormInlinePicker(draft.sessionTypeId, studio.sessionTypes.map { it.id }, { id ->
                 val type = studio.sessionType(id)!!
@@ -218,11 +236,18 @@ fun PriceBreakdownView(price: PriceBreakdown) {
             Txt(Money.format(price.sessionAmount, price.currency), style = Type.body, color = Theme.secondary)
         }
         if (price.addOnsAmount > 0) PriceRow("Add-ons", price.addOnsAmount, price.currency)
+        price.discounts.forEach { discount ->
+            Row(Modifier.fillMaxWidth()) {
+                val title = if (discount.kind == "offer") discount.label else L10n.format("Code %@", discount.label)
+                Txt("$title (−${discount.percent}%)", Modifier.weight(1f), style = Type.body, color = Theme.positive)
+                Txt("−" + Money.format(discount.amount, price.currency), style = Type.body, color = Theme.positive)
+            }
+        }
         if (price.serviceFee > 0) PriceRow("Service fee", price.serviceFee, price.currency)
         Divider()
         PriceRow("Total", price.total, price.currency, emphasized = true)
         if (price.depositAmount > 0) {
-            PriceRow("Due now (deposit + fee)", price.dueNow, price.currency)
+            PriceRow(if (price.serviceFee > 0) "Due now (deposit + fee)" else "Due now (deposit)", price.dueNow, price.currency)
             PriceRow("Charged after the session", price.dueLater, price.currency)
         }
     }
@@ -242,7 +267,26 @@ fun CheckoutView(request: BookingRequest, onFinish: () -> Unit) {
     var agreed by remember { mutableStateOf(false) }
     var isPaying by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
-    val price = PricingEngine.quote(studio, request.sessionType, request.hours, request.addOns)
+    var codeInput by remember { mutableStateOf("") }
+    var promo by remember { mutableStateOf<PromoCheck?>(null) }
+    var checkingCode by remember { mutableStateOf(false) }
+    var serverPrice by remember { mutableStateOf<PriceBreakdown?>(null) }
+    LaunchedEffect(promo?.code) {
+        serverPrice = runCatching { app.backend.quoteBooking(studio, request.sessionType.id, request.hours, request.addOns, promo?.code) }.getOrNull()
+    }
+    val price = serverPrice ?: PricingEngine.quote(studio, request.sessionType, request.hours, request.addOns)
+
+    fun applyCode() {
+        val code = codeInput.trim().uppercase()
+        if (code.isEmpty()) return
+        checkingCode = true
+        app.scope.launch {
+            runCatching { app.backend.checkPromoCode(studio.id, code) }
+                .onSuccess { promo = it; codeInput = "" }
+                .onFailure { error = it.userMessage }
+            checkingCode = false
+        }
+    }
     val amount = Money.format(price.dueNow, price.currency)
     val payTitle = when {
         payWithCash && studio.bookingPolicy.instantBook -> tr("Book · pay cash at the studio")
@@ -256,7 +300,7 @@ fun CheckoutView(request: BookingRequest, onFinish: () -> Unit) {
         isPaying = true
         app.scope.launch {
             try {
-                val booking = app.backend.createBooking(request)
+                val booking = app.backend.createBooking(request.copy(promoCode = promo?.code))
                 val confirmed = if (payWithCash) app.backend.confirmCashBooking(booking.id) else {
                     val intent = app.backend.preparePayment(booking.id)
                     if (payments.pay(intent) == PaymentOutcome.Cancelled) null else app.backend.confirmPayment(booking.id)
@@ -287,6 +331,21 @@ fun CheckoutView(request: BookingRequest, onFinish: () -> Unit) {
             }
         }
         FormSection("Payment") { FormContent { PriceBreakdownView(price) } }
+        FormSection("Promo code", footer = promo?.description?.takeIf { it.isNotEmpty() }, translate = false) {
+            val applied = promo
+            if (applied != null) {
+                FormRow {
+                    Txt("${applied.code} · −${applied.percentOff}%", Modifier.weight(1f), style = Type.body.semibold, color = Theme.positive)
+                    androidx.compose.material3.TextButton(onClick = { promo = null }) { T("Remove", color = Theme.red) }
+                }
+            } else {
+                FormRow {
+                    PlainTextField(codeInput, { value -> codeInput = value.uppercase().filter { it in 'A'..'Z' || it in '0'..'9' }.take(20) }, "Enter a code", Modifier.weight(1f),
+                        capitalization = KeyboardCapitalization.Characters)
+                    androidx.compose.material3.TextButton(onClick = { applyCode() }, enabled = codeInput.isNotBlank() && !checkingCode) { T("Apply", color = Theme.accent) }
+                }
+            }
+        }
         if (cashAvailable && cardAvailable) {
             FormSection("How do you want to pay?", footer = if (payWithCash) L10n.format("Bring %@ in cash to your session. Paying in the app gives you automatic refunds under the cancellation policy.", Money.format(price.total, price.currency)) else null, translate = true) {
                 FormInlinePicker(payWithCash, listOf(false, true), { if (it) "Pay cash at the studio" else "Pay now in the app" }, { if (it) "banknote" else "creditcard" }) { payWithCash = it }
@@ -383,4 +442,34 @@ object CalendarExporter {
             .putExtra(CalendarContract.Events.DESCRIPTION, L10n.format("EasySesh booking %@", booking.reference))
         runCatching { context.startActivity(intent) }
     }
+}
+
+/** The studio's live offers ("Mixing 50% off"), on the booking screen and the studio page. */
+@Composable
+fun StudioOffersSection(studio: Studio, offers: List<StudioOffer>) {
+    val live = offers.filter { it.isLive }
+    if (live.isEmpty()) return
+    FormSection("Offers") {
+        live.forEach { offer -> FormRow { OfferRowContent(offer, studio) } }
+    }
+}
+
+@Composable
+fun androidx.compose.foundation.layout.RowScope.OfferRowContent(offer: StudioOffer, studio: Studio) {
+    Column(Modifier.weight(1f)) {
+        Txt(offer.title, style = Type.subheadline.semibold)
+        val until = offer.endsAt?.let { " · " + L10n.format("Until %@", Dates.abbreviated(it, studio.zoneId)) } ?: ""
+        Txt(L10n.format("%lld%% off · %@", offer.percentOff, offerTargetName(offer, studio)) + until, style = Type.caption, color = Theme.secondary)
+    }
+    Box(Modifier.clip(androidx.compose.foundation.shape.RoundedCornerShape(8.dp)).background(Theme.positive).padding(horizontal = 8.dp, vertical = 3.dp)) {
+        Txt("−${offer.percentOff}%", style = Type.caption.bold, color = Color.White)
+    }
+}
+
+fun offerTargetName(offer: StudioOffer, studio: Studio): String = when (offer.appliesTo) {
+    "sessions" -> tr("All sessions")
+    "add_ons" -> tr("All extras")
+    "session_type" -> studio.sessionTypes.firstOrNull { it.id == offer.targetId }?.name ?: tr("Session")
+    "add_on" -> studio.addOns.firstOrNull { it.id == offer.targetId }?.name ?: tr("Extra")
+    else -> tr("Everything")
 }

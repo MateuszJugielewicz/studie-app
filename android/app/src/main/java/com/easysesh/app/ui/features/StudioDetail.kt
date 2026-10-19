@@ -85,12 +85,14 @@ fun StudioDetailView(studioId: String, initial: Studio?) {
     var confirmBlock by remember { mutableStateOf(false) }
     var blocked by remember { mutableStateOf(false) }
     var linkedArtist by remember { mutableStateOf<ArtistProfile?>(null) }
+    var offers by remember { mutableStateOf<List<com.easysesh.app.model.StudioOffer>>(emptyList()) }
     var error by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(studioId) {
         try {
             val loaded = app.backend.studio(studioId)
             studio = loaded
+            offers = runCatching { app.backend.studioOffers(studioId) }.getOrDefault(emptyList())
             val me = app.account?.id
             if (me != null && loaded.ownerId != me) {
                 runCatching { app.backend.blockedUsers() }.getOrNull()?.let { list -> blocked = list.any { it.userId == loaded.ownerId } }
@@ -127,7 +129,7 @@ fun StudioDetailView(studioId: String, initial: Studio?) {
                     Column(Modifier.padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(24.dp)) {
                         Header(current, linkedArtist)
                         if (nextSlots.isNotEmpty()) AvailabilitySection(nextSlots, current) { startBooking() }
-                        PricingSection(current)
+                        PricingSection(current, offers)
                         TextSection("About", current.description)
                         val video = current.videoUrl?.let { SocialLink.resolve(it, SocialPlatform.Youtube) }
                         val website = SocialLink.resolve(current.contact.website, SocialPlatform.Website)
@@ -263,8 +265,13 @@ private fun AvailabilitySection(slots: List<TimeSlot>, studio: Studio, onBook: (
 }
 
 @Composable
-private fun PricingSection(studio: Studio) {
+private fun PricingSection(studio: Studio, offers: List<com.easysesh.app.model.StudioOffer>) {
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        val liveOffers = offers.filter { it.isLive }
+        if (liveOffers.isNotEmpty()) {
+            GlowSectionHeader("Offers")
+            liveOffers.forEach { offer -> GlassCard(cornerRadius = Theme.corner) { Row(verticalAlignment = Alignment.CenterVertically) { OfferRowContent(offer, studio) } } }
+        }
         GlowSectionHeader("Prices")
         studio.sessionTypes.forEach { type ->
             GlassCard(cornerRadius = Theme.corner) {

@@ -14,6 +14,9 @@ final class BookingDraft {
 
     var busy: [DateInterval] = []
     var isLoadingSlots = false
+    var offers: [StudioOffer] = []
+    /// The server's price for `quoteKey` (offers applied); the local quote is shown until it arrives.
+    private var serverQuote: (key: String, price: PriceBreakdown)?
 
     private let engine = AvailabilityEngine()
 
@@ -30,7 +33,19 @@ final class BookingDraft {
     var slots: [TimeSlot] { engine.availableSlots(for: studio, on: day, hours: hours, busy: busy) }
 
     var quote: PriceBreakdown? {
-        sessionType.map { PricingEngine.quote(studio: studio, sessionType: $0, hours: hours, addOns: addOns) }
+        if let serverQuote, serverQuote.key == quoteKey { return serverQuote.price }
+        return sessionType.map { PricingEngine.quote(studio: studio, sessionType: $0, hours: hours, addOns: addOns) }
+    }
+
+    var quoteKey: String {
+        "\(sessionTypeId)|\(hours)|" + addOns.filter { $0.value > 0 }.sorted { $0.key < $1.key }.map { "\($0.key)=\($0.value)" }.joined(separator: ",")
+    }
+
+    func refreshQuote(_ backend: Backend) async {
+        let key = quoteKey
+        try? await Task.sleep(for: .milliseconds(200))
+        guard !Task.isCancelled, let price = try? await backend.quoteBooking(studio: studio, sessionTypeId: sessionTypeId, hours: hours, addOns: addOns, promoCode: nil) else { return }
+        serverQuote = (key, price)
     }
 
     var request: BookingRequest? {
@@ -60,6 +75,8 @@ struct BookingFlowView: View {
     var body: some View {
         NavigationStack {
             Form {
+                StudioOffersSection(studio: draft.studio, offers: draft.offers)
+
                 Section("Session type") {
                     Picker("Session type", selection: $draft.sessionTypeId) {
                         ForEach(draft.studio.sessionTypes) { type in
@@ -136,6 +153,8 @@ struct BookingFlowView: View {
                 }
             }
             .easyseshGrouped()
+            .task(id: draft.quoteKey) { await draft.refreshQuote(app.backend) }
+            .task { draft.offers = (try? await app.backend.studioOffers(studioId: draft.studio.id)) ?? [] }
             .navigationTitle(draft.studio.name)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -207,13 +226,21 @@ struct PriceBreakdownView: View {
             if price.addOnsAmount > 0 {
                 PriceRow(title: "Add-ons", amount: price.addOnsAmount, currency: price.currency)
             }
+            ForEach(Array((price.discounts ?? []).enumerated()), id: \.offset) { _, discount in
+                HStack {
+                    Label(discount.kind == "offer" ? "\(discount.label) (−\(discount.percent)%)" : L10n.format("Code %@", discount.label) + " (−\(discount.percent)%)", systemImage: "tag")
+                    Spacer()
+                    Text("−" + Money.format(discount.amount, currency: price.currency))
+                }
+                .foregroundStyle(Theme.positive)
+            }
             if price.serviceFee > 0 {
                 PriceRow(title: "Service fee", amount: price.serviceFee, currency: price.currency)
             }
             Divider()
             PriceRow(title: "Total", amount: price.total, currency: price.currency, emphasized: true)
             if price.depositAmount > 0 {
-                PriceRow(title: "Due now (deposit + fee)", amount: price.dueNow, currency: price.currency)
+                PriceRow(title: price.serviceFee > 0 ? "Due now (deposit + fee)" : "Due now (deposit)", amount: price.dueNow, currency: price.currency)
                 PriceRow(title: "Charged after the session", amount: price.dueLater, currency: price.currency)
             }
         }
@@ -233,6 +260,10 @@ struct CheckoutView: View {
     @State private var isPaying = false
     @State private var confirmed: Booking?
     @State private var error: String?
+    @State private var codeInput = ""
+    @State private var promo: PromoCheck?
+    @State private var isCheckingCode = false
+    @State private var serverPrice: PriceBreakdown?
 
     /// Card/Apple Pay needs Stripe keys; cash needs a studio that accepts it.
     private var cardAvailable: Bool { AppConfig.stripePublishableKey != nil }
@@ -249,7 +280,22 @@ struct CheckoutView: View {
     }
 
     private var price: PriceBreakdown {
-        PricingEngine.quote(studio: request.studio, sessionType: request.sessionType, hours: request.hours, addOns: request.addOns)
+        serverPrice ?? PricingEngine.quote(studio: request.studio, sessionType: request.sessionType, hours: request.hours, addOns: request.addOns)
+    }
+
+    private func applyCode() {
+        let code = codeInput.trimmingCharacters(in: .whitespaces).uppercased()
+        guard !code.isEmpty else { return }
+        isCheckingCode = true
+        Task {
+            defer { isCheckingCode = false }
+            do {
+                promo = try await app.backend.checkPromoCode(studioId: request.studio.id, code: code)
+                codeInput = ""
+            } catch {
+                self.error = error.userMessage
+            }
+        }
     }
 
     var body: some View {
@@ -262,6 +308,33 @@ struct CheckoutView: View {
 
             Section("Payment") {
                 PriceBreakdownView(price: price)
+            }
+
+            if confirmed == nil {
+                Section {
+                    if let promo {
+                        HStack {
+                            Label("\(promo.code) · −\(promo.percentOff)%", systemImage: "tag.fill")
+                                .foregroundStyle(Theme.positive)
+                            Spacer()
+                            Button("Remove", role: .destructive) { self.promo = nil }
+                                .font(.subheadline)
+                        }
+                    } else {
+                        HStack {
+                            TextField("Enter a code", text: $codeInput)
+                                .textInputAutocapitalization(.characters)
+                                .autocorrectionDisabled()
+                                .onSubmit(applyCode)
+                            Button("Apply", action: applyCode)
+                                .disabled(codeInput.trimmingCharacters(in: .whitespaces).isEmpty || isCheckingCode)
+                        }
+                    }
+                } header: {
+                    Text("Promo code")
+                } footer: {
+                    if let promo, !promo.description.isEmpty { Text(promo.description) }
+                }
             }
 
             if cashAvailable && cardAvailable {
@@ -350,6 +423,9 @@ struct CheckoutView: View {
         .onAppear {
             if !cardAvailable && cashAvailable { payWithCash = true }
         }
+        .task(id: promo?.code) {
+            serverPrice = try? await app.backend.quoteBooking(studio: request.studio, sessionTypeId: request.sessionType.id, hours: request.hours, addOns: request.addOns, promoCode: promo?.code)
+        }
         .errorAlert($error)
     }
 
@@ -358,6 +434,8 @@ struct CheckoutView: View {
         Task {
             defer { isPaying = false }
             do {
+                var request = request
+                request.promoCode = promo?.code
                 let booking = try await app.backend.createBooking(request)
                 if payWithCash {
                     confirmed = try await app.backend.confirmCashBooking(bookingId: booking.id)
@@ -450,5 +528,47 @@ enum CalendarExporter {
         event.calendar = store.defaultCalendarForNewEvents
         event.addAlarm(EKAlarm(relativeOffset: -3600))
         try store.save(event, span: .thisEvent)
+    }
+}
+
+/// The studio's live offers ("Mixing 50% off") on the booking screen.
+struct StudioOffersSection: View {
+    let studio: Studio
+    let offers: [StudioOffer]
+
+    var body: some View {
+        let live = offers.filter(\.isLive)
+        if !live.isEmpty {
+            Section("Offers") {
+                ForEach(live) { OfferRow(offer: $0, studio: studio) }
+            }
+        }
+    }
+}
+
+struct OfferRow: View {
+    let offer: StudioOffer
+    let studio: Studio
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: "percent")
+                .font(.subheadline.weight(.bold))
+                .foregroundStyle(Theme.accent)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(offer.title).font(.subheadline.weight(.semibold))
+                Text(L10n.format("%lld%% off · %@", offer.percentOff, offer.targetName(in: studio))
+                     + (offer.endsAt.map { " · " + L10n.format("Until %@", $0.formatted(date: .abbreviated, time: .omitted)) } ?? ""))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            Spacer()
+            Text("−\(offer.percentOff)%")
+                .font(.caption.weight(.bold))
+                .foregroundStyle(.white)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 3)
+                .background(Theme.positive, in: RoundedRectangle(cornerRadius: 8))
+        }
     }
 }

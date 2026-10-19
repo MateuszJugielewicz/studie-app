@@ -440,17 +440,83 @@ class Backend(context: Context) {
     // Booking actions run as database functions. Only steps that move card money go through
     // the Stripe edge functions.
 
-    suspend fun createBooking(request: BookingRequest): Booking = rpc("create_booking") {
+    suspend fun createBooking(request: BookingRequest): Booking = rpc("book_session") {
         put("p_studio_id", request.studio.id)
         put("p_session_type_id", request.sessionType.id)
         put("p_starts_at", PostgresDate.format(request.startsAt))
         put("p_hours", request.hours)
+        putAddOns(request.addOns)
+        put("p_notes", request.notes)
+        put("p_promo_code", request.promoCode)
+    }
+
+    private fun JsonObjectBuilder.putAddOns(addOns: Map<String, Int>) {
         putJsonArray("p_add_ons") {
-            request.addOns.filter { it.value > 0 }.forEach { (id, quantity) ->
+            addOns.filter { it.value > 0 }.forEach { (id, quantity) ->
                 addJsonObject { put("id", id); put("quantity", quantity) }
             }
         }
-        put("p_notes", request.notes)
+    }
+
+    /** The exact price the booking will get (studio offers and promo code applied by the server). */
+    suspend fun quoteBooking(studio: Studio, sessionTypeId: String, hours: Int, addOns: Map<String, Int>, promoCode: String? = null): PriceBreakdown =
+        rpc("quote_booking") {
+            put("p_studio_id", studio.id)
+            put("p_session_type_id", sessionTypeId)
+            put("p_hours", hours)
+            putAddOns(addOns)
+            put("p_promo_code", promoCode)
+        }
+
+    suspend fun checkPromoCode(studioId: String, code: String): PromoCheck = rpc("check_promo_code") {
+        put("p_studio_id", studioId)
+        put("p_code", code)
+    }
+
+    // MARK: Offers and promo codes (studio side)
+
+    suspend fun studioOffers(studioId: String): List<StudioOffer> = mapped {
+        client.from("studio_offers").select { filter { eq("studio_id", studioId) }; order("percent_off", Order.DESCENDING) }.decodeList()
+    }
+
+    /** Written as plain JSON so cleared values are sent as null (the client's JSON leaves nulls out). */
+    suspend fun saveOffer(offer: StudioOffer) {
+        val row = buildJsonObject {
+            put("id", offer.id); put("studio_id", offer.studioId); put("title", offer.title.trim()); put("percent_off", offer.percentOff)
+            put("applies_to", offer.appliesTo); put("target_id", offer.targetId); put("is_active", offer.isActive)
+            put("ends_at", offer.endsAt?.let { PostgresDate.format(it) })
+        }
+        mapped { client.from("studio_offers").upsert(row) }
+    }
+
+    suspend fun removeOffer(id: String) {
+        mapped { client.from("studio_offers").delete { filter { eq("id", id) } } }
+    }
+
+    @kotlinx.serialization.Serializable
+    private data class PromoUsage(val promoCodeId: String, val uses: Int)
+
+    suspend fun promoCodes(studioId: String): List<PromoCode> {
+        val codes: List<PromoCode> = mapped {
+            client.from("promo_codes").select { filter { eq("studio_id", studioId) }; order("created_at", Order.DESCENDING) }.decodeList()
+        }
+        val usage = runCatching {
+            mapped { client.from("promo_code_usage").select { filter { isIn("promo_code_id", codes.map { it.id }) } }.decodeList<PromoUsage>() }
+        }.getOrDefault(emptyList())
+        return codes.map { code -> code.copy(uses = usage.firstOrNull { it.promoCodeId == code.id }?.uses ?: 0) }
+    }
+
+    suspend fun savePromoCode(code: PromoCode) {
+        val row = buildJsonObject {
+            put("id", code.id); put("studio_id", code.studioId); put("code", code.code); put("percent_off", code.percentOff)
+            put("description", code.description.trim()); put("max_uses", code.maxUses); put("max_uses_per_user", code.maxUsesPerUser)
+            put("is_active", code.isActive); put("ends_at", code.endsAt?.let { PostgresDate.format(it) })
+        }
+        mapped { client.from("promo_codes").upsert(row) }
+    }
+
+    suspend fun removePromoCode(id: String) {
+        mapped { client.from("promo_codes").delete { filter { eq("id", id) } } }
     }
 
     /** Runs the database version first; card bookings that need a refund/capture use the edge function. */
