@@ -126,3 +126,6 @@ begin
     create trigger zz_staff_write_audit after insert or update or delete on public.content_flag_rules for each row execute function public.staff_write_audit();
   end if;
 end $$;
+
+alter function public.humanize(text) set search_path = public;
+alter function public.audit_value(jsonb) set search_path = public;

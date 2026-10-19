@@ -5305,6 +5305,9 @@ begin
   end if;
 end $$;
 
+alter function public.humanize(text) set search_path = public;
+alter function public.audit_value(jsonb) set search_path = public;
+
 -- ---------------------------------------------------------------------
 -- Accounts that already exist in auth (e.g. when re-running this file)
 -- get their profile rows back.
