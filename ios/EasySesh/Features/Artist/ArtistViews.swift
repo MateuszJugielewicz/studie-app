@@ -572,6 +572,7 @@ struct SettingsView: View {
             Section {
                 NavigationLink { LegalListView() } label: { row("Terms, privacy & policies", "doc.text.fill", TilePalette.muted) }
                 NavigationLink { BlockedAccountsView() } label: { row("Blocked accounts", "hand.raised.fill", [Color.red, Theme.magenta]) }
+                NavigationLink { AccountHistoryView() } label: { row("Warnings & account history", "exclamationmark.shield.fill", [Theme.warning, Theme.accent]) }
                 if let accepted = app.account?.acceptedTermsAt {
                     HStack {
                         row("Terms accepted", "checkmark.seal.fill", TilePalette.mint)

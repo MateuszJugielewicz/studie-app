@@ -273,6 +273,34 @@ enum RatingKind: String, Codable, Hashable {
 // MARK: - Platform fee invoices
 
 /// A warning from the EasySesh team, shown until the user acknowledges it.
+/// A warning, suspension, ban or lifted restriction on the account (`moderation_actions`).
+struct ModerationRecord: Codable, Identifiable, Hashable {
+    let id: UUID
+    /// warning | suspension | ban | lifted
+    var action: String
+    var reason: String
+    var endsAt: Date?
+    var createdAt: Date
+    var studioId: UUID?
+
+    var title: String {
+        switch action {
+        case "warning": L10n.tr("Warning")
+        case "ban": L10n.tr("Account banned")
+        case "lifted": L10n.tr("Restriction lifted")
+        default: L10n.tr(studioId != nil ? "Studio suspended" : "Account suspended")
+        }
+    }
+}
+
+/// "Changes to your account" made by the EasySesh team (also emailed).
+struct AccountChangeNotice: Codable, Identifiable, Hashable {
+    let id: UUID
+    var changes: [String]
+    var reason: String?
+    var createdAt: Date
+}
+
 struct ModerationWarning: Codable, Identifiable, Hashable {
     let id: UUID
     var reason: String

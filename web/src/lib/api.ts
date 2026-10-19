@@ -9,7 +9,7 @@ import type {
   AppNotification, ArtistProfile, ArtistReview, ArtistSearchResult, BlockState, BlockedSlot, BlockedUser, Booking, ChangelogEntry,
   ChatMessage, Conversation, FeeInvoice, FeeLedgerEntry, Interval, ModerationWarning, PaymentIntentInfo, PaymentTransaction, Payout,
   PayoutAccount, ReportReason, ReportTarget, Review, Studio, StudioArtistLink, StudioPromotion, SupportCategory, SupportMessage,
-  SupportTicket, UserAccount, UserRole, UserSettings, PriceBreakdown, PromoCheck, PromoCode, SiteBanner, StudioOffer,
+  SupportTicket, UserAccount, UserRole, UserSettings, PriceBreakdown, PromoCheck, PromoCode, SiteBanner, StudioOffer, ModerationRecord, AccountChangeNotice,
 } from "./types";
 
 /** An error whose message is shown to the user (already translated). */
@@ -482,6 +482,16 @@ export class Api {
 
   disputeRating = (kind: "studio_review" | "artist_review", reviewId: string, reason: string) =>
     this.rpc<void>("dispute_rating", { p_review_type: kind, p_review_id: reviewId, p_reason: reason });
+
+  /** Warnings, suspensions and account changes by the team, newest first (kept even when notifications are deleted). */
+  async accountHistory(): Promise<{ moderation: ModerationRecord[]; changes: AccountChangeNotice[] }> {
+    const id = await this.userId();
+    const [moderation, changes] = await Promise.all([
+      this.client.from("moderation_actions").select("id, action, reason, ends_at, created_at, studio_id").eq("user_id", id).order("created_at", { ascending: false }).limit(200),
+      this.client.from("account_change_notices").select("id, changes, reason, created_at").eq("user_id", id).order("created_at", { ascending: false }).limit(200),
+    ]);
+    return { moderation: unwrap(moderation), changes: unwrap(changes) };
+  }
 
   async unacknowledgedWarnings(): Promise<ModerationWarning[]> {
     const rows: ModerationWarning[] = unwrap(await this.client.from("moderation_actions").select("id, reason, created_at, acknowledged_at")

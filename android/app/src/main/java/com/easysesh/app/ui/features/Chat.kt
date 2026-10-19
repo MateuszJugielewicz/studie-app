@@ -534,6 +534,7 @@ fun NotificationsView() {
     var linkRequest by remember { mutableStateOf<AppNotification?>(null) }
     var respondingTo by remember { mutableStateOf<String?>(null) }
     var error by remember { mutableStateOf<String?>(null) }
+    var reading by remember { mutableStateOf<AppNotification?>(null) }
     val fresh = app.notifications.filter { !it.isRead }
     val earlier = app.notifications.filter { it.isRead }
 
@@ -576,7 +577,8 @@ fun NotificationsView() {
                 GlassCard(padding = 14.dp, onClick = {
                     app.scope.launch { app.markNotificationRead(note) }
                     if (isLinkRequest(note)) linkRequest = note
-                    else DeepLink.from(note.conversationId, note.bookingId, note.studioId)?.let { app.open(it) }
+                    else if (note.kind == NotificationKind.NewMessage && note.conversationId != null) DeepLink.from(note.conversationId, null, null)?.let { app.open(it) }
+                    else reading = note
                 }) {
                     androidx.compose.foundation.layout.Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         IconTile(note.kind.symbol, 40.dp, if (note.isRead) TilePalette.muted else palette)
@@ -626,10 +628,96 @@ fun NotificationsView() {
     if (confirmClear) {
         ConfirmDialog("Delete all notifications?", actions = listOf(DialogAction("Delete all", destructive = true) { app.scope.launch { app.deleteAllNotifications() } }), onDismiss = { confirmClear = false })
     }
+    reading?.let { note -> Sheet({ reading = null }) { NotificationDetailView(note) } }
     linkRequest?.let { note ->
         val actions = mutableListOf(DialogAction("Connect") { respond(note, true) }, DialogAction("Decline", destructive = true) { respond(note, false) })
         note.studioId?.let { id -> actions += DialogAction("View studio") { app.open(DeepLink.StudioLink(id)) } }
         ConfirmDialog(note.title, note.body, actions, { linkRequest = null })
+    }
+    ErrorAlert(error) { error = null }
+}
+
+/** A notification opened in full: the whole text, when it came, and a button to what it's about. */
+@Composable
+fun NotificationDetailView(note: AppNotification) {
+    val app = LocalAppState.current
+    val dismiss = LocalDismiss.current
+    val link = DeepLink.from(note.conversationId, note.bookingId, note.studioId)
+    val linkTitle = when {
+        note.conversationId != null -> "Open chat"
+        note.bookingId != null -> "View booking"
+        note.studioId != null -> if (app.account?.role == UserRole.StudioOwner) "Open your studio" else "View studio"
+        else -> null
+    }
+    NavigationStack {
+        NavScreen("", leading = { ToolbarButton("Done") { dismiss() } }) {
+            GlassCard(padding = 16.dp) {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    androidx.compose.foundation.layout.Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                        IconTile(note.kind.symbol, 44.dp, TilePalette.signal)
+                        Txt(Dates.abbreviatedWithTime(note.createdAt), style = Type.caption, color = Theme.secondary)
+                    }
+                    T(note.title, style = Type.title3.bold)
+                    Txt(note.body, style = Type.body)
+                }
+            }
+            if (link != null && linkTitle != null) PrimaryButton(linkTitle) { dismiss(); app.open(link) }
+            if (note.kind == NotificationKind.System) FormSection { FormNavRow("Warnings & account history", "exclamationmark.shield.fill") { AccountHistoryView() } }
+            T("Questions? Reply to the email or contact support.", Modifier.padding(horizontal = 4.dp), style = Type.footnote, color = Theme.secondary)
+        }
+    }
+}
+
+/** Warnings, restrictions and changes the EasySesh team made to the account, with the reasons. Can't be deleted. */
+@Composable
+fun AccountHistoryView() {
+    val app = LocalAppState.current
+    var moderation by remember { mutableStateOf<List<com.easysesh.app.model.ModerationRecord>>(emptyList()) }
+    var changes by remember { mutableStateOf<List<com.easysesh.app.model.AccountChangeNotice>>(emptyList()) }
+    var loaded by remember { mutableStateOf(false) }
+    var error by remember { mutableStateOf<String?>(null) }
+    LaunchedEffect(Unit) {
+        try {
+            val history = app.backend.accountHistory()
+            moderation = history.first
+            changes = history.second
+        } catch (e: Exception) { error = e.userMessage }
+        loaded = true
+    }
+    NavScreen("Warnings & account history") {
+        T("Warnings, restrictions and changes the EasySesh team made to your account, with the reasons.", Modifier.padding(horizontal = 4.dp), style = Type.footnote, color = Theme.secondary)
+        if (loaded && moderation.isEmpty() && changes.isEmpty()) {
+            GlassEmptyState("Nothing here", "checkmark.shield.fill", "You have no warnings, and the EasySesh team hasn't changed your account.")
+        }
+        if (moderation.isNotEmpty()) {
+            FormSection("Warnings & restrictions") {
+                moderation.forEach { item ->
+                    FormContent {
+                        androidx.compose.foundation.layout.Row(verticalAlignment = Alignment.CenterVertically) {
+                            T(item.title, Modifier.weight(1f), style = Type.headline)
+                            Txt(Dates.abbreviated(item.createdAt), style = Type.caption, color = Theme.secondary)
+                        }
+                        if (item.reason.isNotEmpty()) Txt(item.reason, style = Type.subheadline)
+                        item.endsAt?.let { Txt(L10n.format("Until %@.", Dates.abbreviatedWithTime(it)), style = Type.caption, color = Theme.secondary) }
+                    }
+                }
+            }
+        }
+        if (changes.isNotEmpty()) {
+            FormSection("Account changes") {
+                changes.forEach { notice ->
+                    FormContent {
+                        androidx.compose.foundation.layout.Row(verticalAlignment = Alignment.CenterVertically) {
+                            T("Your account was updated", Modifier.weight(1f), style = Type.headline)
+                            Txt(Dates.abbreviated(notice.createdAt), style = Type.caption, color = Theme.secondary)
+                        }
+                        notice.changes.forEach { Txt("• $it", style = Type.subheadline) }
+                        notice.reason?.takeIf { it.isNotEmpty() }?.let { Txt(tr("Why:") + " " + it, style = Type.subheadline, color = Theme.secondary) }
+                    }
+                }
+            }
+        }
+        FormSection { FormNavRow("Disagree? Contact support", "lifepreserver") { SupportCenterView() } }
     }
     ErrorAlert(error) { error = null }
 }

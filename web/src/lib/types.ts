@@ -329,6 +329,10 @@ export interface StudioArtistLink { studio_id: string; artist_id: string; status
 export type BlockState = "none" | "by_me" | "by_them";
 export interface BlockedUser { user_id: string; display_name: string; avatar_url?: string | null; blocked_at: string }
 export interface ModerationWarning { id: string; reason: string; created_at: string; acknowledged_at?: string | null }
+/** A warning, suspension or ban on the account (moderation_actions). */
+export interface ModerationRecord { id: string; action: string; reason: string; ends_at: string | null; created_at: string; studio_id: string | null }
+/** "Changes to your account" made by the EasySesh team (also emailed). */
+export interface AccountChangeNotice { id: string; changes: string[]; reason: string | null; created_at: string }
 export interface ChangelogEntry { id: string; version: string; title: string; body: string; audience: string; is_legal_update: boolean; published_at: string }
 
 export interface PaymentIntentInfo { client_secret: string; amount: number; currency: string; capture_later: boolean }

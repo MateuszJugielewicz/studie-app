@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   BadgeCheck, Banknote, Bell, BellRing, CalendarClock, CalendarPlus, CheckCircle2, Hand, Info, MessageCircle, PencilLine, ShieldCheck, ShieldX, Star, Trash2, Undo2, XCircle, AlarmClock,
   type LucideIcon,
@@ -9,7 +9,7 @@ import { Dates } from "../lib/core";
 import { format, t } from "../lib/i18n";
 import { useApp } from "../lib/state";
 import type { AppNotification, NotificationKind } from "../lib/types";
-import { C, ConfirmDialog, Empty, GlowHead, IconTile, LargeHead, Tiles, useToast } from "../components/ui";
+import { C, ConfirmDialog, Empty, GlowHead, IconTile, LargeHead, Sheet, Tiles, useToast } from "../components/ui";
 
 const ICONS: Record<NotificationKind, LucideIcon> = {
   booking_confirmed: BadgeCheck, booking_changed: CalendarClock, booking_cancelled: XCircle, booking_declined: XCircle, session_reminder: AlarmClock,
@@ -32,6 +32,7 @@ export default function Inbox() {
   const [pendingLinks, setPendingLinks] = useState<string[]>([]);
   const [linkRequest, setLinkRequest] = useState<AppNotification | null>(null);
   const [confirmClear, setConfirmClear] = useState(false);
+  const [reading, setReading] = useState<AppNotification | null>(null);
   const notes = app.notifications;
   const fresh = notes.filter((n) => !n.is_read);
   const earlier = notes.filter((n) => n.is_read);
@@ -56,13 +57,19 @@ export default function Inbox() {
   async function respond(n: AppNotification, accept: boolean) {
     try { await api.respondStudioArtistLink(n.studio_id!, accept); setPendingLinks((l) => l.filter((x) => x !== n.studio_id)); markRead(n); } catch (e) { toast(userMessage(e)); }
   }
-  /** Same targets as a push notification tap in the apps. */
+  /** Where the notification's button goes (same targets as a push notification tap in the apps). */
+  function target(n: AppNotification): { to: string; title: string } | null {
+    if (n.conversation_id) return { to: `/messages/${n.conversation_id}`, title: "Open chat" };
+    if (n.booking_id) return { to: `/sessions/${n.booking_id}`, title: "View booking" };
+    if (n.studio_id) return role === "studio_owner" ? { to: "/studio", title: "Open your studio" } : { to: `/studios/${n.studio_id}`, title: "View studio" };
+    return null;
+  }
+  /** Messages open the chat; everything else opens so it can be read in full. */
   function open(n: AppNotification) {
     markRead(n);
     if (isLinkRequest(n)) { setLinkRequest(n); return; }
-    if (n.conversation_id) navigate(`/messages/${n.conversation_id}`);
-    else if (n.booking_id) navigate(`/sessions/${n.booking_id}`);
-    else if (n.studio_id) navigate(role === "studio_owner" ? "/studio" : `/studios/${n.studio_id}`);
+    if (n.kind === "new_message" && n.conversation_id) navigate(`/messages/${n.conversation_id}`);
+    else setReading(n);
   }
 
   const row = (n: AppNotification) => (
@@ -73,7 +80,7 @@ export default function Inbox() {
           <span className="grow subhead clamp-2" style={{ fontWeight: n.is_read ? 600 : 800 }}>{t(n.title)}</span>
           <span className="caption2 tertiary">{Dates.relative(n.created_at)}</span>
         </div>
-        <div className="subhead secondary clamp-2">{n.body}</div>
+        <div className="subhead secondary clamp-3">{n.body}</div>
         {isLinkRequest(n) && <div className="row caption semibold accent" style={{ gap: 4, marginTop: 4 }}><Hand size={13} />{t("Tap to connect or decline")}</div>}
       </div>
       <button className="msg-action" style={{ opacity: 0.7 }} onClick={(e) => { e.stopPropagation(); remove(n); }} aria-label={t("Delete")}><Trash2 size={16} /></button>
@@ -92,6 +99,22 @@ export default function Inbox() {
         {fresh.length > 0 && <><GlowHead title="New" count={fresh.length} />{fresh.map(row)}</>}
         {earlier.length > 0 && <><GlowHead title="Earlier" />{earlier.map(row)}</>}
       </div>
+      {reading && (
+        <Sheet open onClose={() => setReading(null)} title={t(reading.title)} translateTitle={false}>
+          <div className="stack">
+            <div className="card stack" style={{ gap: 10 }}>
+              <div className="row" style={{ gap: 10 }}>
+                <IconTile icon={ICONS[reading.kind] ?? Info} size={40} colors={palette(reading.kind)} />
+                <span className="caption secondary">{Dates.abbreviatedWithTime(reading.created_at)}</span>
+              </div>
+              <div className="body" style={{ whiteSpace: "pre-wrap", lineHeight: 1.5 }}>{reading.body}</div>
+            </div>
+            {target(reading) && <button className="btn primary block" onClick={() => { const to = target(reading)!.to; setReading(null); navigate(to); }}>{t(target(reading)!.title)}</button>}
+            {reading.kind === "system" && <Link to="/settings/history" className="btn secondary block" onClick={() => setReading(null)}>{t("Warnings & account history")}</Link>}
+            <p className="footnote secondary" style={{ margin: "0 4px" }}>{t("Questions? Reply to the email or contact support.")}</p>
+          </div>
+        </Sheet>
+      )}
       <ConfirmDialog open={confirmClear} onClose={() => setConfirmClear(false)} title="Delete all notifications?"
         actions={[{ title: "Delete all", destructive: true, action: async () => { app.setNotifications([]); await api.deleteAllNotifications().catch(() => undefined); } }]} />
       {linkRequest && (

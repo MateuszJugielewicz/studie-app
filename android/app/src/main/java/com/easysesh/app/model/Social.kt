@@ -236,6 +236,29 @@ enum class RatingKind(val raw: String) {
 @Serializable
 data class ModerationWarning(val id: String, val reason: String, val createdAt: PgInstant, val acknowledgedAt: PgInstant? = null)
 
+/** A warning, suspension, ban or lifted restriction on the account (`moderation_actions`). */
+@Serializable
+data class ModerationRecord(
+    val id: String,
+    /** warning | suspension | ban | lifted */
+    val action: String,
+    val reason: String = "",
+    val endsAt: PgInstant? = null,
+    val createdAt: PgInstant,
+    val studioId: String? = null,
+) {
+    val title: String get() = when (action) {
+        "warning" -> "Warning"
+        "ban" -> "Account banned"
+        "lifted" -> "Restriction lifted"
+        else -> if (studioId != null) "Studio suspended" else "Account suspended"
+    }
+}
+
+/** "Changes to your account" made by the EasySesh team (also emailed). */
+@Serializable
+data class AccountChangeNotice(val id: String, val changes: List<String> = emptyList(), val reason: String? = null, val createdAt: PgInstant)
+
 /** An update note written by the EasySesh team ("What's new"). */
 @Serializable
 data class ChangelogEntry(

@@ -662,6 +662,7 @@ struct NotificationsView: View {
     @State private var linkRequest: AppNotification?
     @State private var respondingTo: UUID?
     @State private var error: String?
+    @State private var reading: AppNotification?
 
     var body: some View {
         let fresh = app.notifications.filter { !$0.isRead }
@@ -712,6 +713,10 @@ struct NotificationsView: View {
                 Text(note.body)
             }
             .errorAlert($error)
+            .sheet(item: $reading) { note in
+                NavigationStack { NotificationDetailView(note: note, link: link(for: note)) }
+                    .presentationDetents([.medium, .large])
+            }
             .confirmationDialog("Delete all notifications?", isPresented: $confirmClear, titleVisibility: .visible) {
                 Button("Delete all", role: .destructive) { Task { await app.deleteAllNotifications() } }
             }
@@ -722,7 +727,8 @@ struct NotificationsView: View {
         Button {
             Task { await app.markNotificationRead(note) }
             if isLinkRequest(note) { linkRequest = note }
-            else if let link = link(for: note) { app.open(link) }
+            else if note.kind == .newMessage, let link = link(for: note) { app.open(link) }
+            else { reading = note }
         } label: {
             HStack(alignment: .top, spacing: 12) {
                 IconTile(symbol: note.kind.symbol, size: 40, colors: note.isRead ? TilePalette.muted : palette(for: note.kind))
@@ -793,5 +799,121 @@ struct NotificationsView: View {
         if let id = note.bookingId { return .booking(id) }
         if let id = note.studioId { return .studio(id) }
         return nil
+    }
+}
+
+/// A notification opened in full: the whole text, when it came, and a button to what it's about.
+struct NotificationDetailView: View {
+    @Environment(AppState.self) private var app
+    @Environment(\.dismiss) private var dismiss
+    let note: AppNotification
+    let link: DeepLink?
+
+    private var linkTitle: LocalizedStringKey {
+        switch link {
+        case .conversation?: "Open chat"
+        case .booking?: "View booking"
+        case .studio?: app.account?.role == .studioOwner ? "Open your studio" : "View studio"
+        case nil: "Open"
+        }
+    }
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                HStack(spacing: 12) {
+                    IconTile(symbol: note.kind.symbol, size: 44, colors: TilePalette.signal)
+                    Text(note.createdAt.formatted(date: .abbreviated, time: .shortened)).font(.caption).foregroundStyle(.secondary)
+                }
+                Text(localized: note.title).font(.title3.weight(.bold))
+                Text(note.body).font(.body).textSelection(.enabled)
+                if let link {
+                    Button { dismiss(); app.open(link) } label: { Text(linkTitle).frame(maxWidth: .infinity) }
+                        .buttonStyle(.borderedProminent)
+                }
+                if note.kind == .system {
+                    NavigationLink { AccountHistoryView() } label: { Text("Warnings & account history").frame(maxWidth: .infinity) }
+                        .buttonStyle(.bordered)
+                }
+                Text("Questions? Reply to the email or contact support.").font(.footnote).foregroundStyle(.secondary)
+            }
+            .padding(20)
+        }
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
+    }
+}
+
+/// Warnings, restrictions and changes the EasySesh team made to the account, with the reasons.
+/// Unlike notifications, this can't be deleted.
+struct AccountHistoryView: View {
+    @Environment(AppState.self) private var app
+    @State private var moderation: [ModerationRecord] = []
+    @State private var changes: [AccountChangeNotice] = []
+    @State private var loaded = false
+    @State private var error: String?
+
+    var body: some View {
+        List {
+            Section {
+                Text("Warnings, restrictions and changes the EasySesh team made to your account, with the reasons.")
+                    .font(.footnote).foregroundStyle(.secondary)
+            }
+            if loaded && moderation.isEmpty && changes.isEmpty {
+                ContentUnavailableView("Nothing here", systemImage: "checkmark.shield", description: Text("You have no warnings, and the EasySesh team hasn't changed your account."))
+            }
+            if !moderation.isEmpty {
+                Section("Warnings & restrictions") {
+                    ForEach(moderation) { item in
+                        VStack(alignment: .leading, spacing: 4) {
+                            HStack {
+                                Text(item.title).font(.headline)
+                                Spacer()
+                                Text(item.createdAt.formatted(date: .abbreviated, time: .omitted)).font(.caption).foregroundStyle(.secondary)
+                            }
+                            if !item.reason.isEmpty { Text(item.reason).font(.subheadline).textSelection(.enabled) }
+                            if let end = item.endsAt {
+                                Text(L10n.format("Until %@.", end.formatted(date: .abbreviated, time: .shortened))).font(.caption).foregroundStyle(.secondary)
+                            }
+                        }
+                        .padding(.vertical, 4)
+                    }
+                }
+            }
+            if !changes.isEmpty {
+                Section("Account changes") {
+                    ForEach(changes) { notice in
+                        VStack(alignment: .leading, spacing: 4) {
+                            HStack {
+                                Text("Your account was updated").font(.headline)
+                                Spacer()
+                                Text(notice.createdAt.formatted(date: .abbreviated, time: .omitted)).font(.caption).foregroundStyle(.secondary)
+                            }
+                            ForEach(Array(notice.changes.enumerated()), id: \.offset) { _, change in
+                                Text("• " + change).font(.subheadline)
+                            }
+                            if let reason = notice.reason, !reason.isEmpty {
+                                Text(L10n.tr("Why:") + " " + reason).font(.subheadline).foregroundStyle(.secondary)
+                            }
+                        }
+                        .padding(.vertical, 4)
+                    }
+                }
+            }
+            Section {
+                NavigationLink { SupportCenterView() } label: { Label("Disagree? Contact support", systemImage: "lifepreserver") }
+            }
+        }
+        .navigationTitle("Warnings & account history")
+        .navigationBarTitleDisplayMode(.inline)
+        .task {
+            do {
+                let history = try await app.backend.accountHistory()
+                moderation = history.moderation
+                changes = history.changes
+            } catch { self.error = error.userMessage }
+            loaded = true
+        }
+        .errorAlert($error)
     }
 }

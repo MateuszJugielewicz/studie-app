@@ -724,6 +724,19 @@ final class SupabaseBackend: Backend {
         try await rpcVoid("dispute_rating", ["p_review_type": .string(kind.rawValue), "p_review_id": .string(reviewId.uuidString), "p_reason": .string(reason)])
     }
 
+    func accountHistory() async throws -> (moderation: [ModerationRecord], changes: [AccountChangeNotice]) {
+        guard let userId = try? await client.auth.session.user.id else { return ([], []) }
+        let moderation: [ModerationRecord] = try await mapped {
+            try await client.from("moderation_actions").select("id, action, reason, ends_at, created_at, studio_id")
+                .eq("user_id", value: userId.uuidString).order("created_at", ascending: false).limit(200).execute().value
+        }
+        let changes: [AccountChangeNotice] = try await mapped {
+            try await client.from("account_change_notices").select("id, changes, reason, created_at")
+                .eq("user_id", value: userId.uuidString).order("created_at", ascending: false).limit(200).execute().value
+        }
+        return (moderation, changes)
+    }
+
     func unacknowledgedWarnings() async throws -> [ModerationWarning] {
         let all: [ModerationWarning] = try await mapped {
             try await client.from("moderation_actions").select("id, reason, created_at, acknowledged_at")

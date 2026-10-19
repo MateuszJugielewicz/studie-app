@@ -1092,6 +1092,8 @@ final class MockBackend: Backend {
 
     var warnings: [UUID: [ModerationWarning]] = [:]
 
+    func accountHistory() async throws -> (moderation: [ModerationRecord], changes: [AccountChangeNotice]) { ([], []) }
+
     func unacknowledgedWarnings() async throws -> [ModerationWarning] {
         let user = try requireUser()
         return (warnings[user.id] ?? []).filter { $0.acknowledgedAt == nil }

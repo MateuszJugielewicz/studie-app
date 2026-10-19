@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { Route, Routes, useNavigate } from "react-router-dom";
+import { ShieldAlert } from "lucide-react";
+import AccountHistory from "./AccountHistory";
 import {
   AlarmClock, BadgeCheck, Bell, BellRing, CalendarDays, Contrast, FileText, Globe, Hand, KeyRound, LogOut, Mail, MailOpen, Megaphone, MessagesSquare,
   MapPin, Ruler, ScanSearch, ShieldCheck, Sparkles, SlidersHorizontal, Star, Trash2, CheckCircle2,
@@ -11,7 +13,7 @@ import { useLocation } from "../lib/location";
 import { useApp } from "../lib/state";
 import { DEFAULT_SETTINGS, ROLE_TITLE, type BlockedUser, type UserSettings } from "../lib/types";
 import {
-  Avatar, ConfirmDialog, Empty, IconTile, Item, ItemLabel, Loading, NavItem, PageHead, Section, SelectItem, Spinner, Tiles, ToggleItem, useToast,
+  Avatar, C, ConfirmDialog, Empty, IconTile, Item, ItemLabel, Loading, NavItem, PageHead, Section, SelectItem, Spinner, Tiles, ToggleItem, useToast,
 } from "../components/ui";
 import { DataExportItem } from "./Legal";
 import { ChangelogCard } from "./Gates";
@@ -25,6 +27,7 @@ export default function Settings() {
       <Route path="password" element={<main className="page narrow"><PageHead title="Change password" /><ChangePasswordForm /></main>} />
       <Route path="blocked" element={<BlockedAccounts />} />
       <Route path="whats-new" element={<WhatsNewPage />} />
+      <Route path="history" element={<AccountHistory />} />
     </Routes>
   );
 }
@@ -90,6 +93,7 @@ function AccountSettings() {
         <Section header="Legal">
           <NavItem to="/legal" title="Terms, privacy & policies" icon={FileText} colors={Tiles.muted} />
           <NavItem to="/settings/blocked" title="Blocked accounts" icon={Hand} colors={Tiles.danger} />
+          <NavItem to="/settings/history" title="Warnings & account history" icon={ShieldAlert} colors={[C.warning, C.accent]} />
           {account.accepted_terms_at && <Item><ItemLabel title="Terms accepted" icon={BadgeCheck} colors={Tiles.mint} /><span className="value">{Dates.abbreviated(account.accepted_terms_at)}</span></Item>}
         </Section>
         <Section header="Your data" footer="Download a copy of everything EasySesh stores about you (GDPR). Deleting your account removes your profile; receipts are kept as required by accounting law.">

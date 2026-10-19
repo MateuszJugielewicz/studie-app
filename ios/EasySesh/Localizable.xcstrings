@@ -3482,6 +3482,124 @@
         }
       }
     },
+    "Account banned": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Konto udelukket"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Konto gesperrt"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ο λογαριασμός αποκλείστηκε"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cuenta bloqueada"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compte banni"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Account bannato"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Account verbannen"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Konto zablokowane"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kontot avstängt permanent"
+          }
+        }
+      }
+    },
+    "Account changes": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kontoændringer"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kontoänderungen"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Αλλαγές λογαριασμού"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cambios en la cuenta"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modifications du compte"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modifiche all'account"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accountwijzigingen"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zmiany konta"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kontoändringar"
+          }
+        }
+      }
+    },
     "Account holder / company name": {
       "extractionState": "manual",
       "localizations": {
@@ -3537,6 +3655,65 @@
           "stringUnit": {
             "state": "translated",
             "value": "Kontoinnehavare / företagsnamn"
+          }
+        }
+      }
+    },
+    "Account suspended": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Konto suspenderet"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Konto vorübergehend gesperrt"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ο λογαριασμός ανεστάλη"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cuenta suspendida"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compte suspendu"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Account sospeso"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Account geschorst"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Konto zawieszone"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kontot avstängt"
           }
         }
       }
@@ -17992,6 +18169,65 @@
           "stringUnit": {
             "state": "translated",
             "value": "Vägbeskrivning"
+          }
+        }
+      }
+    },
+    "Disagree? Contact support": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uenig? Kontakt support"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nicht einverstanden? Support kontaktieren"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Διαφωνείς; Επικοινώνησε με την υποστήριξη"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¿No estás de acuerdo? Contacta con soporte"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pas d'accord ? Contacte le support"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non sei d'accordo? Contatta l'assistenza"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Niet eens? Neem contact op met support"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie zgadzasz się? Napisz do pomocy"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Håller du inte med? Kontakta support"
           }
         }
       }
@@ -33395,6 +33631,65 @@
         }
       }
     },
+    "Nothing here": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Intet her"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nichts hier"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Τίποτα εδώ"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nada por aquí"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rien ici"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Niente qui"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Niets hier"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nic tu nie ma"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inget här"
+          }
+        }
+      }
+    },
     "Nothing here yet": {
       "extractionState": "manual",
       "localizations": {
@@ -34693,6 +34988,65 @@
         }
       }
     },
+    "Open chat": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Åbn chat"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chat öffnen"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Άνοιγμα συνομιλίας"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir chat"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouvrir la discussion"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apri chat"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chat openen"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Otwórz czat"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Öppna chatt"
+          }
+        }
+      }
+    },
     "Open each document to continue.": {
       "extractionState": "manual",
       "localizations": {
@@ -34748,6 +35102,65 @@
           "stringUnit": {
             "state": "translated",
             "value": "Öppna varje dokument för att fortsätta."
+          }
+        }
+      }
+    },
+    "Open your studio": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Åbn dit studie"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dein Studio öffnen"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Άνοιξε το στούντιό σου"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir tu estudio"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouvrir ton studio"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apri il tuo studio"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open je studio"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Otwórz swoje studio"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Öppna din studio"
           }
         }
       }
@@ -41360,6 +41773,65 @@
         }
       }
     },
+    "Questions? Reply to the email or contact support.": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spørgsmål? Svar på e-mailen eller kontakt support."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fragen? Antworte auf die E-Mail oder kontaktiere den Support."
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ερωτήσεις; Απάντησε στο email ή επικοινώνησε με την υποστήριξη."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¿Preguntas? Responde al email o contacta con soporte."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Des questions ? Réponds à l'e-mail ou contacte le support."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Domande? Rispondi all'email o contatta l'assistenza."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vragen? Beantwoord de e-mail of neem contact op met support."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pytania? Odpowiedz na e-mail lub skontaktuj się z pomocą."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Frågor? Svara på mejlet eller kontakta support."
+          }
+        }
+      }
+    },
     "R&B": {
       "extractionState": "manual",
       "localizations": {
@@ -45073,6 +45545,65 @@
           "stringUnit": {
             "state": "translated",
             "value": "Svar från studion"
+          }
+        }
+      }
+    },
+    "Restriction lifted": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Begrænsning ophævet"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Einschränkung aufgehoben"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ο περιορισμός άρθηκε"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restricción levantada"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restriction levée"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Limitazione rimossa"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beperking opgeheven"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ograniczenie zniesione"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Begränsning hävd"
           }
         }
       }
@@ -58234,6 +58765,65 @@
         }
       }
     },
+    "View booking": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se booking"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buchung ansehen"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Προβολή κράτησης"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ver reserva"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voir la réservation"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vedi prenotazione"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Boeking bekijken"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zobacz rezerwację"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Visa bokning"
+          }
+        }
+      }
+    },
     "View studio": {
       "extractionState": "manual",
       "localizations": {
@@ -58706,6 +59296,65 @@
         }
       }
     },
+    "Warning": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Advarsel"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verwarnung"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Προειδοποίηση"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aviso"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avertissement"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avviso"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waarschuwing"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ostrzeżenie"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Varning"
+          }
+        }
+      }
+    },
     "Warning from EasySesh": {
       "extractionState": "manual",
       "localizations": {
@@ -58761,6 +59410,183 @@
           "stringUnit": {
             "state": "translated",
             "value": "Varning från EasySesh"
+          }
+        }
+      }
+    },
+    "Warnings & account history": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Advarsler og kontohistorik"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verwarnungen & Kontoverlauf"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Προειδοποιήσεις και ιστορικό λογαριασμού"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avisos e historial de la cuenta"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avertissements et historique du compte"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avvisi e cronologia dell'account"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waarschuwingen en accountgeschiedenis"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ostrzeżenia i historia konta"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Varningar och kontohistorik"
+          }
+        }
+      }
+    },
+    "Warnings & restrictions": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Advarsler og begrænsninger"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verwarnungen & Einschränkungen"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Προειδοποιήσεις και περιορισμοί"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avisos y restricciones"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avertissements et restrictions"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avvisi e limitazioni"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waarschuwingen en beperkingen"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ostrzeżenia i ograniczenia"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Varningar och begränsningar"
+          }
+        }
+      }
+    },
+    "Warnings, restrictions and changes the EasySesh team made to your account, with the reasons.": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Advarsler, begrænsninger og ændringer, som EasySesh-teamet har lavet på din konto, med begrundelser."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verwarnungen, Einschränkungen und Änderungen, die das EasySesh-Team an deinem Konto vorgenommen hat, mit Begründung."
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Προειδοποιήσεις, περιορισμοί και αλλαγές που έκανε η ομάδα του EasySesh στον λογαριασμό σου, με τους λόγους."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avisos, restricciones y cambios que el equipo de EasySesh hizo en tu cuenta, con los motivos."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avertissements, restrictions et modifications faits par l'équipe EasySesh sur ton compte, avec les raisons."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avvisi, limitazioni e modifiche fatte dal team EasySesh al tuo account, con i motivi."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waarschuwingen, beperkingen en wijzigingen die het EasySesh-team aan je account heeft gedaan, met de redenen."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ostrzeżenia, ograniczenia i zmiany wprowadzone na Twoim koncie przez zespół EasySesh, wraz z powodami."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Varningar, begränsningar och ändringar som EasySesh-teamet gjort på ditt konto, med skälen."
           }
         }
       }
@@ -60476,6 +61302,65 @@
         }
       }
     },
+    "Why:": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hvorfor:"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Warum:"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Γιατί:"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Por qué:"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pourquoi :"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Perché:"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waarom:"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dlaczego:"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Varför:"
+          }
+        }
+      }
+    },
     "Wi-Fi": {
       "extractionState": "manual",
       "localizations": {
@@ -62010,6 +62895,65 @@
         }
       }
     },
+    "You have no warnings, and the EasySesh team hasn't changed your account.": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Du har ingen advarsler, og EasySesh-teamet har ikke ændret din konto."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Du hast keine Verwarnungen, und das EasySesh-Team hat dein Konto nicht geändert."
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Δεν έχεις προειδοποιήσεις και η ομάδα του EasySesh δεν έχει αλλάξει τον λογαριασμό σου."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No tienes avisos y el equipo de EasySesh no ha cambiado tu cuenta."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu n'as aucun avertissement et l'équipe EasySesh n'a pas modifié ton compte."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non hai avvisi e il team EasySesh non ha modificato il tuo account."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Je hebt geen waarschuwingen en het EasySesh-team heeft je account niet gewijzigd."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie masz ostrzeżeń, a zespół EasySesh nie zmieniał Twojego konta."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Du har inga varningar och EasySesh-teamet har inte ändrat ditt konto."
+          }
+        }
+      }
+    },
     "You haven't blocked anyone.": {
       "extractionState": "manual",
       "localizations": {
@@ -62596,6 +63540,65 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ditt konto är aktivt igen"
+          }
+        }
+      }
+    },
+    "Your account was updated": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Din konto blev opdateret"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dein Konto wurde geändert"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ο λογαριασμός σου ενημερώθηκε"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu cuenta se actualizó"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ton compte a été modifié"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il tuo account è stato aggiornato"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Je account is bijgewerkt"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Twoje konto zostało zaktualizowane"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ditt konto har uppdaterats"
           }
         }
       }

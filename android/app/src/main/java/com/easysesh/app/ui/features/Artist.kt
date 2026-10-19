@@ -508,6 +508,7 @@ fun SettingsView() {
         FormSection("Legal") {
             FormNavRow("Terms, privacy & policies", "doc.text.fill", iconColors = TilePalette.muted) { LegalListView() }
             FormNavRow("Blocked accounts", "hand.raised.fill", iconColors = listOf(Color.Red, Theme.magenta)) { BlockedAccountsView() }
+            FormNavRow("Warnings & account history", "exclamationmark.shield.fill", iconColors = listOf(Theme.warning, Theme.accent)) { AccountHistoryView() }
             app.account?.acceptedTermsAt?.let { accepted ->
                 FormRow {
                     SettingsIcon("checkmark.seal.fill", TilePalette.mint)

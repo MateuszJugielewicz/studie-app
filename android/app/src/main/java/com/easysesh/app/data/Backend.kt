@@ -735,6 +735,22 @@ class Backend(context: Context) {
     suspend fun disputeRating(kind: RatingKind, reviewId: String, reason: String) =
         rpcVoid("dispute_rating") { put("p_review_type", kind.raw); put("p_review_id", reviewId); put("p_reason", reason) }
 
+    /** Warnings, restrictions and account changes by the team, newest first (kept even when notifications are deleted). */
+    suspend fun accountHistory(): Pair<List<ModerationRecord>, List<AccountChangeNotice>> {
+        val id = userId()
+        val moderation: List<ModerationRecord> = mapped {
+            client.from("moderation_actions").select(io.github.jan.supabase.postgrest.query.Columns.list("id", "action", "reason", "ends_at", "created_at", "studio_id")) {
+                filter { eq("user_id", id) }; order("created_at", Order.DESCENDING); limit(200)
+            }.decodeList()
+        }
+        val changes: List<AccountChangeNotice> = mapped {
+            client.from("account_change_notices").select(io.github.jan.supabase.postgrest.query.Columns.list("id", "changes", "reason", "created_at")) {
+                filter { eq("user_id", id) }; order("created_at", Order.DESCENDING); limit(200)
+            }.decodeList()
+        }
+        return moderation to changes
+    }
+
     suspend fun unacknowledgedWarnings(): List<ModerationWarning> {
         val all: List<ModerationWarning> = mapped {
             client.from("moderation_actions").select(io.github.jan.supabase.postgrest.query.Columns.list("id", "reason", "created_at", "acknowledged_at")) {

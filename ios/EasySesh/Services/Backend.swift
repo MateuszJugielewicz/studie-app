@@ -209,6 +209,8 @@ protocol Backend: AnyObject {
 
     // Moderation
     func unacknowledgedWarnings() async throws -> [ModerationWarning]
+    /// Warnings, restrictions and account changes by the team, newest first (kept even when notifications are deleted).
+    func accountHistory() async throws -> (moderation: [ModerationRecord], changes: [AccountChangeNotice])
     func acknowledgeWarning(id: UUID) async throws
 
     // Changelog & terms updates
