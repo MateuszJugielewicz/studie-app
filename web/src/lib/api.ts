@@ -130,6 +130,22 @@ export class Api {
     return this.account(result.data.session.user.id);
   }
 
+  /** Sends the "Confirm your email" email again (rate limited by the server). */
+  async resendVerificationEmail(): Promise<void> {
+    await this.rpc("resend_email_verification");
+  }
+
+  /** Re-reads the signed-in user's profile (e.g. after they confirmed their email in another tab). */
+  async currentAccount(): Promise<UserAccount | null> {
+    const { data } = await this.client.auth.getSession();
+    return data.session?.user ? this.account(data.session.user.id).catch(() => null) : null;
+  }
+
+  /** The link from the email; works signed in or out. */
+  async verifyEmail(token: string): Promise<boolean> {
+    return this.rpc<boolean>("verify_email", { p_token: token });
+  }
+
   async signIn(email: string, password: string): Promise<UserAccount> {
     const { data, error } = await this.client.auth.signInWithPassword({ email, password });
     if (error) throw mapMessage(error.message);

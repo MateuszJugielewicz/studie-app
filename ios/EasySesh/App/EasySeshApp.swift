@@ -99,6 +99,9 @@ struct RootView: View {
                 WelcomeView()
             }
         }
+        .safeAreaInset(edge: .top, spacing: 0) {
+            if !app.isBootstrapping && !app.needsTermsAcceptance { VerifyEmailBanner() }
+        }
         .animation(.smooth(duration: 0.45), value: app.account?.id)
         .animation(.smooth(duration: 0.45), value: app.isGuest)
         .sheet(item: Binding(
@@ -214,6 +217,54 @@ struct AdminInfoView: View {
         } actions: {
             Button("Sign out") { Task { await app.signOut() } }
                 .buttonStyle(.borderedProminent)
+        }
+    }
+}
+
+/// Shown until the user opens the "Confirm your email" link. They can look around meanwhile; the server
+/// blocks booking, messaging, reviews and sending a studio for approval.
+struct VerifyEmailBanner: View {
+    @Environment(AppState.self) private var app
+    @State private var sending = false
+    @State private var sent = false
+    @State private var error: String?
+
+    var body: some View {
+        if let account = app.account, account.role != .admin, account.emailVerifiedAt == nil {
+            HStack(alignment: .center, spacing: 10) {
+                Image(systemName: "envelope.badge")
+                    .foregroundStyle(Theme.accent)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(account.role == .studioOwner
+                         ? "Verify your email to send your studio for approval and message artists."
+                         : "Verify your email to book sessions and send messages.")
+                        .font(.footnote.weight(.semibold))
+                    Text(sent ? "Email sent. Check your inbox." : "We sent a link to your email.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                Spacer(minLength: 4)
+                Button {
+                    Task {
+                        sending = true
+                        defer { sending = false }
+                        do {
+                            try await app.backend.resendVerificationEmail()
+                            sent = true
+                        } catch {
+                            self.error = error.localizedDescription
+                        }
+                    }
+                } label: {
+                    Text("Resend email").font(.caption.weight(.semibold))
+                }
+                .buttonStyle(.bordered)
+                .disabled(sending || sent)
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 10)
+            .background(.regularMaterial)
+            .errorAlert($error)
         }
     }
 }

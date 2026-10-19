@@ -14,6 +14,7 @@ function reference(): string {
 Deno.serve(handler(async (req, body) => {
   const user = await requireUser(req);
   if (user.role !== "artist") throw new HttpError(403, "Only artist accounts can book sessions.");
+  if (!user.email_verified_at) throw new HttpError(403, "Please verify your email address first. We sent you a link – check your inbox.");
 
   const studio = await loadStudio(requireString(body, "studio_id"));
   if (studio.status !== "approved" || !studio.is_active) throw new HttpError(404, "not_found");

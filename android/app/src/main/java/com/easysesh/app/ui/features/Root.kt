@@ -16,6 +16,10 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -46,7 +50,9 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.easysesh.app.AppState
+import com.easysesh.app.data.userMessage
 import com.easysesh.app.model.UserRole
+import androidx.compose.material3.TextButton
 import com.easysesh.app.services.AppAppearance
 import com.easysesh.app.ui.components.*
 import com.easysesh.app.ui.theme.EasySeshTheme
@@ -125,16 +131,23 @@ fun RootView() {
         else -> RootScreen.Welcome
     }
 
-    AnimatedContent(screen to account?.id, transitionSpec = { fadeIn(tween(450)) togetherWith fadeOut(tween(450)) }, label = "root") { (current, _) ->
-        when (current) {
-            RootScreen.Splash -> Box(Modifier.fillMaxSize().background(Theme.background))
-            RootScreen.Terms -> TermsAcceptanceView()
-            RootScreen.Artist -> ArtistTabView()
-            RootScreen.ArtistOnboarding -> ArtistOnboardingView()
-            RootScreen.Studio -> StudioOwnerRootView()
-            RootScreen.Admin -> AdminInfoView()
-            RootScreen.Guest -> GuestBrowseView()
-            RootScreen.Welcome -> WelcomeView()
+    val showVerifyBanner = account != null && account.role != UserRole.Admin && account.emailVerifiedAt == null &&
+        screen != RootScreen.Splash && screen != RootScreen.Terms
+    Column(Modifier.fillMaxSize()) {
+        if (showVerifyBanner) VerifyEmailBanner(account!!.role)
+        Box(Modifier.weight(1f).then(if (showVerifyBanner) Modifier.consumeWindowInsets(WindowInsets.statusBars) else Modifier)) {
+            AnimatedContent(screen to account?.id, transitionSpec = { fadeIn(tween(450)) togetherWith fadeOut(tween(450)) }, label = "root") { (current, _) ->
+                when (current) {
+                    RootScreen.Splash -> Box(Modifier.fillMaxSize().background(Theme.background))
+                    RootScreen.Terms -> TermsAcceptanceView()
+                    RootScreen.Artist -> ArtistTabView()
+                    RootScreen.ArtistOnboarding -> ArtistOnboardingView()
+                    RootScreen.Studio -> StudioOwnerRootView()
+                    RootScreen.Admin -> AdminInfoView()
+                    RootScreen.Guest -> GuestBrowseView()
+                    RootScreen.Welcome -> WelcomeView()
+                }
+            }
         }
     }
 
@@ -216,4 +229,43 @@ fun AdminInfoView() {
             style = Type.body, color = Theme.secondary, align = TextAlign.Center)
         PrimaryButton("Sign out", Modifier.fillMaxWidth().padding(top = 8.dp)) { app.scope.launch { app.signOut() } }
     }
+}
+
+/**
+ * Shown until the user opens the "Confirm your email" link. They can look around meanwhile; the server
+ * blocks booking, messaging, reviews and sending a studio for approval.
+ */
+@Composable
+private fun VerifyEmailBanner(role: UserRole) {
+    val app = LocalAppState.current
+    var sending by remember { mutableStateOf(false) }
+    var sent by remember { mutableStateOf(false) }
+    var error by remember { mutableStateOf<String?>(null) }
+    Row(
+        Modifier.fillMaxWidth().background(Theme.card).statusBarsPadding().padding(horizontal = 14.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        Column(Modifier.weight(1f)) {
+            T(
+                if (role == UserRole.StudioOwner) "Verify your email to send your studio for approval and message artists."
+                else "Verify your email to book sessions and send messages.",
+                style = Type.footnote.semibold,
+            )
+            T(if (sent) "Email sent. Check your inbox." else "We sent a link to your email.", style = Type.caption, color = Theme.secondary)
+        }
+        TextButton(
+            enabled = !sending && !sent,
+            onClick = {
+                sending = true
+                app.scope.launch {
+                    runCatching { app.backend.resendVerificationEmail() }
+                        .onSuccess { sent = true }
+                        .onFailure { error = it.userMessage }
+                    sending = false
+                }
+            },
+        ) { T("Resend email", style = Type.caption.semibold, color = Theme.accent) }
+    }
+    ErrorAlert(error) { error = null }
 }

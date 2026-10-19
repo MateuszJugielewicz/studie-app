@@ -14,6 +14,7 @@ insert into auth.users (id, email, raw_user_meta_data) values
  ('10000000-0000-0000-0000-0000000000b2', 'owner2@x.io', '{"role":"studio_owner"}'),
  ('10000000-0000-0000-0000-00000000000c', 'admin1@x.io', '{"role":"artist"}');
 update profiles set role = 'admin' where email = 'admin1@x.io';
+update profiles set email_verified_at = now();
 
 -- Owner 1 builds a studio that is open every day, accepts cash, instant book; admin approves it.
 set role authenticated;
@@ -265,7 +266,8 @@ end $$;
 do $$ declare f text; ok boolean := true; begin
   foreach f in array array['run_booking_housekeeping()', 'run_cash_housekeeping()', 'queue_session_reminders()', 'refresh_studio_rating(uuid)',
                            'refresh_artist_rating(uuid)', 'notify(uuid,notification_kind,text,text,uuid,uuid,uuid)', 'run_fee_enforcement()', 'create_fee_invoices()',
-                           'lift_expired_moderation()', 'expire_promotions()', 'is_blocked_between(uuid,uuid)', 'activate_promotion(uuid)', 'resend_api_key()']
+                           'lift_expired_moderation()', 'expire_promotions()', 'is_blocked_between(uuid,uuid)', 'activate_promotion(uuid)', 'resend_api_key()',
+                           'issue_email_verification(uuid)', 'require_verified_email(uuid)']
   loop
     begin
       if has_function_privilege('authenticated', f::regprocedure, 'execute') or has_function_privilege('anon', f::regprocedure, 'execute') then
@@ -276,6 +278,71 @@ do $$ declare f text; ok boolean := true; begin
   end loop;
   perform pg_temp.result('internal jobs not callable by users', ok);
 end $$;
+
+----------------------------------------------------------------------------------------------------
+-- Unverified email: can look around, can't book, message, review or verify themselves
+----------------------------------------------------------------------------------------------------
+reset role;
+create temp table verify_token (token text);
+grant all on verify_token to authenticated, anon;
+insert into auth.users (id, email, raw_user_meta_data, raw_app_meta_data) values
+ ('10000000-0000-0000-0000-0000000000a3', 'fresh@x.io', '{"role":"artist"}', '{"provider":"email"}'),
+ ('10000000-0000-0000-0000-0000000000a4', 'apple@x.io', '{"role":"artist"}', '{"provider":"apple"}'),
+ ('10000000-0000-0000-0000-0000000000b3', 'freshowner@x.io', '{"role":"studio_owner"}', '{"provider":"email"}');
+select pg_temp.result('email sign-up starts unverified', (select email_verified_at is null from profiles where email = 'fresh@x.io'));
+select pg_temp.result('apple sign-up counts as verified', (select email_verified_at is not null from profiles where email = 'apple@x.io'));
+set role authenticated;
+set request.jwt.claim.sub = '10000000-0000-0000-0000-0000000000a3';
+set request.jwt.claims = '{}';
+select pg_temp.result('unverified user can browse studios', (select count(*) > 0 from studios where status = 'approved'));
+do $$ begin
+  perform create_booking('20000000-0000-0000-0000-000000000001', 'rec', date_trunc('hour', now()) + interval '11 days', 1, '[]', '');
+  perform pg_temp.result('unverified user cannot book', false);
+exception when others then perform pg_temp.result('unverified user cannot book', sqlerrm like 'Please verify your email%');
+end $$;
+do $$ begin
+  perform get_or_create_conversation('20000000-0000-0000-0000-000000000001');
+  perform pg_temp.result('unverified user cannot start a chat', false);
+exception when others then perform pg_temp.result('unverified user cannot start a chat', sqlerrm like 'Please verify your email%');
+end $$;
+update profiles set email_verified_at = now() where id = auth.uid();
+select pg_temp.result('cannot mark own email verified', (select email_verified_at is null from profiles where id = auth.uid()));
+select pg_temp.result('made-up verification link rejected', not verify_email(repeat('a', 64)));
+select pg_temp.result('cannot read verification tokens', not has_table_privilege('authenticated', 'email_verification_tokens', 'select'));
+do $$ begin
+  perform resend_email_verification();
+  perform pg_temp.result('can ask for a new link', true);
+exception when others then perform pg_temp.result('can ask for a new link', false);
+end $$;
+set request.jwt.claim.sub = '10000000-0000-0000-0000-0000000000b3';
+do $$ begin
+  insert into studios (id, owner_id, name, description, photo_urls, address, latitude, longitude, contact, session_types, add_ons, genres, opening_hours, booking_policy)
+  values ('20000000-0000-0000-0000-000000000009', auth.uid(), 'Fresh Studio', repeat('x', 60), '{a.jpg}',
+   '{"street":"S 1","postal_code":"1","city":"Athens","area":"Psyri","country":"GR"}', 37.9, 23.7,
+   '{"phone":"+30 210 123 4567","email":"a@studio.gr","website":""}',
+   '[{"id":"rec","name":"Recording","details":"","hourly_rate":2500,"minimum_hours":1,"includes_engineer":false}]',
+   '[]', '{pop}', (select jsonb_agg(jsonb_build_object('weekday', d, 'is_closed', false, 'opens_at', 0, 'closes_at', 1440)) from generate_series(1, 7) d), '{}');
+  perform submit_studio_for_review('20000000-0000-0000-0000-000000000009');
+  perform pg_temp.result('unverified studio cannot apply for approval', (select status <> 'pending_review' from studios where id = '20000000-0000-0000-0000-000000000009'));
+exception when others then perform pg_temp.result('unverified studio cannot apply for approval', sqlerrm like 'Please verify your email%');
+end $$;
+reset role;
+insert into verify_token select issue_email_verification('10000000-0000-0000-0000-0000000000a3') ->> 'token';
+select pg_temp.result('second link within a minute not issued', issue_email_verification('10000000-0000-0000-0000-0000000000a3') is null);
+set role anon;
+set request.jwt.claim.sub = '';
+select pg_temp.result('emailed link verifies', verify_email((select token from verify_token)));
+select pg_temp.result('link works only once', not verify_email((select token from verify_token)));
+reset role;
+select pg_temp.result('verified after link', (select email_verified_at is not null from profiles where email = 'fresh@x.io'));
+set role authenticated;
+set request.jwt.claim.sub = '10000000-0000-0000-0000-0000000000a3';
+do $$ begin
+  perform create_booking('20000000-0000-0000-0000-000000000001', 'rec', date_trunc('hour', now()) + interval '11 days', 1, '[]', '');
+  perform pg_temp.result('verified user can book', true);
+exception when others then raise notice 'verified booking: %', sqlerrm; perform pg_temp.result('verified user can book', false);
+end $$;
+reset role;
 
 -- Guests (signed out)
 set role anon;

@@ -282,6 +282,9 @@ class Backend(context: Context) {
         return ensureActive(account(userId()))
     }
 
+    /** Sends the "Confirm your email" email again (rate limited by the server). */
+    suspend fun resendVerificationEmail() = rpcVoid("resend_email_verification")
+
     suspend fun sendPasswordReset(email: String) {
         mapped { client.auth.resetPasswordForEmail(email, redirectUrl = REDIRECT_URL) }
         // PKCE links have no "type=recovery" marker, so remember that a reset was requested.

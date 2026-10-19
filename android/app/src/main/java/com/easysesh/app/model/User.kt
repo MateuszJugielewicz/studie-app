@@ -21,6 +21,8 @@ data class UserAccount(
     /** When a suspension or ban ends (null = until lifted by the team). */
     val statusUntil: PgInstant? = null,
     val statusReason: String? = null,
+    /** Set once the "Confirm your email" link was opened (right away for Apple/Google sign-ups). */
+    val emailVerifiedAt: PgInstant? = null,
 )
 
 @Serializable

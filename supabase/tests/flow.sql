@@ -9,6 +9,7 @@ insert into auth.users (id, email, raw_user_meta_data) values
  ('00000000-0000-0000-0000-00000000000b', 'owner@x.io', '{"role":"studio_owner"}'),
  ('00000000-0000-0000-0000-00000000000c', 'admin@x.io', '{"role":"admin"}');
 update profiles set role='admin' where email='admin@x.io';
+update profiles set email_verified_at = now();
 select email, role from profiles order by email;
 
 -- owner creates studio as authenticated
@@ -181,6 +182,7 @@ reset role;
 
 -- message requests: studio writes to a new artist → request; artist declines → studio blocked
 insert into auth.users (id, email, raw_user_meta_data) values ('00000000-0000-0000-0000-00000000000d', 'new@x.io', '{"role":"artist"}');
+update profiles set email_verified_at = now() where email = 'new@x.io';
 update artist_profiles set artist_name = 'Luna Beats' where id = '00000000-0000-0000-0000-00000000000d';
 update artist_profiles set artist_name = 'Nova' where id = '00000000-0000-0000-0000-00000000000a';
 set role authenticated;

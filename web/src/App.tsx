@@ -6,6 +6,7 @@ import { t } from "./lib/i18n";
 import { Avatar, Loading, Logo } from "./components/ui";
 import { GlobalSheets } from "./pages/Gates";
 import { adminUrl, hasAdminSubdomain } from "./lib/hosts";
+import { VerifyEmailBanner } from "./pages/VerifyEmail";
 
 const Landing = lazy(() => import("./pages/Landing"));
 const Auth = lazy(() => import("./pages/Auth"));
@@ -23,6 +24,7 @@ const ArtistPublic = lazy(() => import("./pages/ArtistPublic"));
 const Reviews = lazy(() => import("./pages/Reviews"));
 const StudioOwner = lazy(() => import("./pages/StudioOwner"));
 const StudioEditor = lazy(() => import("./pages/StudioEditor"));
+const VerifyEmail = lazy(() => import("./pages/VerifyEmail"));
 
 interface Tab { to: string; title: string; icon: LucideIcon; badge?: number; match?: string[] }
 
@@ -91,6 +93,7 @@ function Shell({ children }: { children: ReactNode }) {
             )}
           </div>
         </header>
+        <VerifyEmailBanner />
         <Suspense fallback={<Loading />}>{children}</Suspense>
         <nav className={`tabbar ${tabs.length > 1 ? "show" : ""}`}>
           {tabs.length > 1 && tabs.map((tab) => (
@@ -142,6 +145,7 @@ export default function App() {
             <Route path="/signin" element={<Auth mode="signin" />} />
             <Route path="/signup" element={<Auth mode="signup" />} />
             <Route path="/auth/callback" element={<Auth mode="callback" />} />
+            <Route path="/verify-email" element={<VerifyEmail />} />
             <Route path="/studios" element={<Discover />} />
             <Route path="/studios/:id" element={<StudioDetail />} />
             <Route path="/studios/:id/reviews" element={<Reviews />} />

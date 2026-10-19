@@ -181,6 +181,10 @@ final class SupabaseBackend: Backend {
         UserDefaults.standard.set(Date().timeIntervalSince1970, forKey: Self.recoveryRequestedKey)
     }
 
+    func resendVerificationEmail() async throws {
+        try await rpcVoid("resend_email_verification", [:])
+    }
+
     func signOut() async {
         try? await client.auth.signOut()
     }

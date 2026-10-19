@@ -395,3 +395,12 @@ html, body { max-width: 100%; }
 .mobile-cta { position: fixed; left: 12px; right: 12px; bottom: calc(88px + env(safe-area-inset-bottom)); z-index: 25; }
 .mobile-cta .btn { box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25); }
 @media (max-width: 760px) { .page.with-cta { padding-bottom: 190px; } .only-mobile.mobile-cta { display: block; } }
+
+/* "Verify your email" banner under the top bar */
+.verify-banner {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  margin: 8px 16px 0; padding: 10px 14px; border-radius: 14px;
+  background: color-mix(in srgb, var(--accent) 12%, var(--card)); color: var(--text);
+  font-size: 14px; line-height: 1.4;
+}
+.verify-banner > span { flex: 1 1 220px; }

@@ -68,6 +68,8 @@ protocol Backend: AnyObject {
     func signInWithApple(idToken: String, nonce: String, role: UserRole) async throws -> UserAccount
     func signInWithGoogle(role: UserRole) async throws -> UserAccount
     func sendPasswordReset(email: String) async throws
+    /// Sends the "Confirm your email" email again (rate limited by the server).
+    func resendVerificationEmail() async throws
     func changePassword(to newPassword: String) async throws
     func signOut() async
     func deleteAccount() async throws

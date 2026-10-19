@@ -15,6 +15,9 @@ struct UserAccount: Codable, Identifiable, Hashable {
     /// When a suspension or ban ends (nil = until lifted by the team).
     var statusUntil: Date? = nil
     var statusReason: String? = nil
+    /// Set once the "Confirm your email" link was opened (right away for Apple/Google sign-ups).
+    /// Until then the server blocks booking, messaging, reviews and sending a studio for approval.
+    var emailVerifiedAt: Date? = nil
 }
 
 struct UserSettings: Codable, Hashable {

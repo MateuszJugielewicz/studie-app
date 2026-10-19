@@ -294,6 +294,10 @@ final class MockBackend: Backend {
         await pause()
     }
 
+    func resendVerificationEmail() async throws {
+        await pause()
+    }
+
     func changePassword(to newPassword: String) async throws {
         let user = try requireUser()
         if let problem = PasswordPolicy.problem(newPassword) { throw BackendError.validation(problem) }

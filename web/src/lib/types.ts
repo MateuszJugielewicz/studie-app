@@ -28,6 +28,8 @@ export interface UserAccount {
   role: UserRole;
   status: AccountStatus;
   is_verified?: boolean;
+  /** Set once the "Confirm your email" link was opened (or right away for Apple/Google sign-ups). */
+  email_verified_at?: string | null;
   settings?: Partial<UserSettings>;
   created_at: string;
   accepted_terms_version?: string | null;

@@ -124,6 +124,10 @@ class AppState(private val context: Context) {
     /** Checks for new update notes, legal updates and warnings. */
     suspend fun refreshUpdates() {
         val account = account ?: return
+        // Pick up an email confirmed in the browser while the app was in the background.
+        if (account.emailVerifiedAt == null) {
+            backend.restoreSession()?.takeIf { it.id == account.id }?.let { this.account = it }
+        }
         if (account.role != UserRole.Admin) runCatching { backend.unacknowledgedWarnings() }.getOrNull()?.let { warnings = it }
         changelogSeenAt = preferences.changelogSeenAt(account.id)?.let { Instant.ofEpochMilli(it) }
         runCatching { backend.currentTermsVersion() }.getOrNull()?.let {

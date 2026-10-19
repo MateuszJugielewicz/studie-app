@@ -117,4 +117,5 @@ export interface Profile {
   status: "active" | "suspended" | "banned";
   settings: Record<string, unknown>;
   stripe_customer_id: string | null;
+  email_verified_at: string | null;
 }

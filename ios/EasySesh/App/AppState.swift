@@ -88,6 +88,10 @@ final class AppState {
     /// Checks for new update notes, legal updates and warnings.
     func refreshUpdates() async {
         guard let account else { return }
+        // Pick up an email confirmed in the browser while the app was in the background.
+        if account.emailVerifiedAt == nil, let fresh = await backend.restoreSession(), fresh.id == account.id {
+            self.account = fresh
+        }
         if account.role != .admin { warnings = (try? await backend.unacknowledgedWarnings()) ?? warnings }
         changelogSeenAt = UserDefaults.standard.object(forKey: "easysesh.changelog.seen.\(account.id)") as? Date
         if let version = try? await backend.currentTermsVersion() {

@@ -13807,6 +13807,65 @@
         }
       }
     },
+    "Confirming your email…": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bekræfter din e-mail…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "E-Mail wird bestätigt…"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Επιβεβαίωση email…"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirmando tu email…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirmation de ton e-mail…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conferma dell'email…"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Je e-mail wordt bevestigd…"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Potwierdzanie e-maila…"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bekräftar din e-post…"
+          }
+        }
+      }
+    },
     "Connect": {
       "extractionState": "manual",
       "localizations": {
@@ -18940,6 +18999,65 @@
         }
       }
     },
+    "Email confirmed": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "E-mail bekræftet"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "E-Mail bestätigt"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Το email επιβεβαιώθηκε"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Email confirmado"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "E-mail confirmé"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Email confermata"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "E-mail bevestigd"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "E-mail potwierdzony"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "E-post bekräftad"
+          }
+        }
+      }
+    },
     "Email notifications": {
       "extractionState": "manual",
       "localizations": {
@@ -19054,6 +19172,65 @@
           "stringUnit": {
             "state": "translated",
             "value": "E-post skickad"
+          }
+        }
+      }
+    },
+    "Email sent. Check your inbox.": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "E-mail sendt. Tjek din indbakke."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "E-Mail gesendet. Schau in dein Postfach."
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Το email στάλθηκε. Έλεγξε τα εισερχόμενά σου."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Email enviado. Revisa tu bandeja de entrada."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "E-mail envoyé. Vérifie ta boîte de réception."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Email inviata. Controlla la posta in arrivo."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "E-mail verstuurd. Kijk in je inbox."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "E-mail wysłany. Sprawdź skrzynkę."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "E-post skickad. Kolla din inkorg."
           }
         }
       }
@@ -36522,6 +36699,65 @@
         }
       }
     },
+    "Please verify your email address first. We sent you a link – check your inbox.": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bekræft først din e-mailadresse. Vi har sendt dig et link – tjek din indbakke."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bitte bestätige zuerst deine E-Mail-Adresse. Wir haben dir einen Link geschickt – schau in dein Postfach."
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Επιβεβαίωσε πρώτα τη διεύθυνση email σου. Σου στείλαμε σύνδεσμο – έλεγξε τα εισερχόμενα."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Primero verifica tu dirección de email. Te enviamos un enlace – revisa tu bandeja de entrada."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirme d'abord ton adresse e-mail. Nous t'avons envoyé un lien – vérifie ta boîte de réception."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conferma prima il tuo indirizzo email. Ti abbiamo inviato un link – controlla la posta."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bevestig eerst je e-mailadres. We hebben je een link gestuurd – kijk in je inbox."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Najpierw potwierdź adres e-mail. Wysłaliśmy Ci link – sprawdź skrzynkę."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bekräfta din e-postadress först. Vi har skickat en länk – kolla din inkorg."
+          }
+        }
+      }
+    },
     "Podcast": {
       "extractionState": "manual",
       "localizations": {
@@ -41710,6 +41946,65 @@
           "stringUnit": {
             "state": "translated",
             "value": "Krävs enligt lag en gång: Stripe bekräftar vem du är (namn, födelsedatum, adress och ibland fotolegitimation). Det öppnas här i appen."
+          }
+        }
+      }
+    },
+    "Resend email": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Send e-mail igen"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "E-Mail erneut senden"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Επαναποστολή email"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reenviar email"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Renvoyer l'e-mail"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invia di nuovo"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "E-mail opnieuw sturen"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wyślij ponownie"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skicka igen"
           }
         }
       }
@@ -49738,6 +50033,65 @@
         }
       }
     },
+    "Thanks! You can now book sessions and send messages.": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tak! Nu kan du booke sessioner og sende beskeder."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Danke! Jetzt kannst du Sessions buchen und Nachrichten senden."
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ευχαριστούμε! Τώρα μπορείς να κλείνεις συνεδρίες και να στέλνεις μηνύματα."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¡Gracias! Ya puedes reservar sesiones y enviar mensajes."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Merci ! Tu peux maintenant réserver des sessions et envoyer des messages."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grazie! Ora puoi prenotare sessioni e inviare messaggi."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bedankt! Je kunt nu sessies boeken en berichten sturen."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dzięki! Możesz teraz rezerwować sesje i wysyłać wiadomości."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tack! Nu kan du boka sessioner och skicka meddelanden."
+          }
+        }
+      }
+    },
     "That time is no longer available. Please pick another slot.": {
       "extractionState": "manual",
       "localizations": {
@@ -51209,6 +51563,65 @@
           "stringUnit": {
             "state": "translated",
             "value": "Länken har gått ut eller redan använts. Försök igen."
+          }
+        }
+      }
+    },
+    "This link has expired or was already used. Sign in to get a new one.": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Linket er udløbet eller allerede brugt. Log ind for at få et nyt."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieser Link ist abgelaufen oder wurde schon benutzt. Melde dich an, um einen neuen zu bekommen."
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ο σύνδεσμος έληξε ή έχει ήδη χρησιμοποιηθεί. Συνδέσου για να πάρεις νέο."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este enlace ha caducado o ya se usó. Inicia sesión para recibir uno nuevo."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ce lien a expiré ou a déjà été utilisé. Connecte-toi pour en recevoir un nouveau."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il link è scaduto o è già stato usato. Accedi per riceverne uno nuovo."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deze link is verlopen of al gebruikt. Log in om een nieuwe te krijgen."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ten link wygasł lub został już użyty. Zaloguj się, aby dostać nowy."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Länken har gått ut eller redan använts. Logga in för att få en ny."
           }
         }
       }
@@ -53573,6 +53986,124 @@
         }
       }
     },
+    "Verify your email to book sessions and send messages.": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bekræft din e-mail for at booke sessioner og sende beskeder."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bestätige deine E-Mail, um Sessions zu buchen und Nachrichten zu senden."
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Επιβεβαίωσε το email σου για να κλείνεις συνεδρίες και να στέλνεις μηνύματα."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verifica tu email para reservar sesiones y enviar mensajes."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirme ton e-mail pour réserver des sessions et envoyer des messages."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conferma la tua email per prenotare sessioni e inviare messaggi."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bevestig je e-mail om sessies te boeken en berichten te sturen."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Potwierdź e-mail, aby rezerwować sesje i wysyłać wiadomości."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bekräfta din e-post för att boka sessioner och skicka meddelanden."
+          }
+        }
+      }
+    },
+    "Verify your email to send your studio for approval and message artists.": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bekræft din e-mail for at sende dit studie til godkendelse og skrive til artister."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bestätige deine E-Mail, um dein Studio zur Prüfung einzureichen und Künstler:innen zu schreiben."
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Επιβεβαίωσε το email σου για να στείλεις το στούντιο για έγκριση και να γράφεις σε καλλιτέχνες."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verifica tu email para enviar tu estudio a aprobación y escribir a artistas."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirme ton e-mail pour envoyer ton studio en validation et écrire aux artistes."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conferma la tua email per inviare lo studio in approvazione e scrivere agli artisti."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bevestig je e-mail om je studio ter goedkeuring in te sturen en artiesten te berichten."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Potwierdź e-mail, aby wysłać studio do zatwierdzenia i pisać do artystów."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bekräfta din e-post för att skicka in din studio för granskning och skriva till artister."
+          }
+        }
+      }
+    },
     "Version": {
       "extractionState": "manual",
       "localizations": {
@@ -54694,6 +55225,65 @@
         }
       }
     },
+    "We just sent you an email. Please wait a minute before asking for another one.": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vi har lige sendt dig en e-mail. Vent et minut, før du beder om en ny."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wir haben dir gerade eine E-Mail geschickt. Bitte warte eine Minute, bevor du eine neue anforderst."
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Μόλις σου στείλαμε email. Περίμενε ένα λεπτό πριν ζητήσεις άλλο."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Acabamos de enviarte un email. Espera un minuto antes de pedir otro."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nous venons de t'envoyer un e-mail. Attends une minute avant d'en demander un autre."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ti abbiamo appena inviato un'email. Attendi un minuto prima di richiederne un'altra."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "We hebben je net een e-mail gestuurd. Wacht een minuut voordat je een nieuwe vraagt."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Właśnie wysłaliśmy Ci e-mail. Poczekaj minutę, zanim poprosisz o kolejny."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vi skickade precis ett mejl. Vänta en minut innan du ber om ett nytt."
+          }
+        }
+      }
+    },
     "We need a few changes before we can approve your studio. Update your listing and resubmit.": {
       "extractionState": "manual",
       "localizations": {
@@ -54808,6 +55398,65 @@
           "stringUnit": {
             "state": "translated",
             "value": "Vi sparar version och tidpunkt för ditt godkännande. Du kan dra tillbaka samtycket genom att radera ditt konto i Inställningar."
+          }
+        }
+      }
+    },
+    "We sent a link to your email.": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vi har sendt et link til din e-mail."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wir haben dir einen Link per E-Mail geschickt."
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Σου στείλαμε έναν σύνδεσμο στο email σου."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Te enviamos un enlace a tu email."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nous t'avons envoyé un lien par e-mail."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ti abbiamo inviato un link via email."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "We hebben een link naar je e-mail gestuurd."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wysłaliśmy link na Twój e-mail."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vi har skickat en länk till din e-post."
           }
         }
       }
