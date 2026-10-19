@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Modal } from "./components";
 import { setReasonAsker } from "./lib/reason";
 
@@ -9,7 +10,11 @@ export function ReasonDialog() {
   const input = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
-    setReasonAsker((action) => new Promise((resolve) => { setText(""); setRequest({ action, resolve }); }));
+    setReasonAsker((action) => new Promise((resolve) => {
+      setText("");
+      // A new question cancels one that's still open, so no button waits forever.
+      setRequest((previous) => { previous?.resolve(null); return { action, resolve }; });
+    }));
     return () => setReasonAsker(null);
   }, []);
   useEffect(() => { if (request) setTimeout(() => input.current?.focus(), 0); }, [request]);
@@ -17,7 +22,8 @@ export function ReasonDialog() {
   if (!request) return null;
   const finish = (value: string | null) => { request.resolve(value); setRequest(null); };
   const valid = text.trim().length >= 5;
-  return (
+  return createPortal(
+    <div className="reason-layer">
     <Modal title={`Why? (${request.action})`} onClose={() => finish(null)}
       footer={<>
         <button className="secondary" onClick={() => finish(null)}>Cancel</button>
@@ -30,5 +36,7 @@ export function ReasonDialog() {
       <textarea ref={input} rows={4} value={text} placeholder="e.g. Studio asked us to update their address by email."
         onChange={(e) => setText(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey) && valid) finish(text.trim()); }} />
     </Modal>
+    </div>,
+    document.body,
   );
 }
