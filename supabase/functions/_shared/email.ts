@@ -80,7 +80,10 @@ export async function sendNotificationEmail(note: any, email: string | null | un
     `<tr><td style="padding:6px 0;color:#6f6c66;width:110px;vertical-align:top">${escape(k)}</td><td style="padding:6px 0;color:#1c1b19">${escape(v)}</td></tr>`).join("");
   const html = `<!doctype html><html><body style="margin:0;background:#f5f5f4;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif">
 <div style="max-width:520px;margin:0 auto;padding:28px 16px">
-  <div style="font-weight:800;font-size:22px;letter-spacing:-0.03em;color:#1c1b19">easysesh<span style="color:#d9431e">.</span></div>
+  <table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:collapse"><tr>
+    <td style="vertical-align:middle"><img src="${SITE}/email-logo.png" width="40" height="40" alt="EasySesh" style="display:block;border:0;border-radius:10px"></td>
+    <td style="vertical-align:middle;padding-left:10px;font-weight:800;font-size:22px;letter-spacing:-0.03em;color:#1c1b19">easysesh<span style="color:#d9431e">.</span></td>
+  </tr></table>
   <div style="background:#fff;border:1px solid #e4e3e0;border-radius:16px;padding:22px;margin-top:16px">
     <h1 style="font-size:20px;margin:0 0 8px;color:#1c1b19">${escape(note.title)}</h1>
     <p style="margin:0 0 16px;color:#3a3935;line-height:1.5">${escape(note.body)}</p>
