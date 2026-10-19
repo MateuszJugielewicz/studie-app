@@ -268,7 +268,8 @@ do $$ declare f text; ok boolean := true; begin
                            'refresh_artist_rating(uuid)', 'notify(uuid,notification_kind,text,text,uuid,uuid,uuid)', 'run_fee_enforcement()', 'create_fee_invoices()',
                            'lift_expired_moderation()', 'expire_promotions()', 'is_blocked_between(uuid,uuid)', 'activate_promotion(uuid)', 'resend_api_key()',
                            'issue_email_verification(uuid)', 'require_verified_email(uuid)',
-                           'find_promo_code(uuid,text,uuid)', 'best_offer(uuid,text,text)']
+                           'find_promo_code(uuid,text,uuid)', 'best_offer(uuid,text,text)',
+                           'write_admin_audit(uuid,text,text,text,uuid,text,jsonb)', 'scan_content(text,boolean)', 'flag_content()']
   loop
     begin
       if has_function_privilege('authenticated', f::regprocedure, 'execute') or has_function_privilege('anon', f::regprocedure, 'execute') then
@@ -422,6 +423,139 @@ update studio_offers set ends_at = now() - interval '1 minute';
 set role anon;
 set request.jwt.claim.sub = '';
 select pg_temp.result('ended offer no longer applies', (quote_booking('20000000-0000-0000-0000-000000000001', 'rec', 2, '[{"id":"mix","quantity":1}]') ->> 'offer_discount')::int = 0);
+reset role;
+
+----------------------------------------------------------------------------------------------------
+-- Automatic flags (minors, paying outside EasySesh, illegal things)
+----------------------------------------------------------------------------------------------------
+reset role;
+create temp table flag_count as select count(*) as n from reports where reporter_id is null;
+grant all on flag_count to authenticated, anon;
+set role authenticated;
+set request.jwt.claim.sub = '10000000-0000-0000-0000-00000000000a';
+set request.jwt.claims = '{}';
+insert into messages (conversation_id, sender_id, body) values ((select id from artist_conv), auth.uid(), 'Can we do the next session tomorrow at 6?');
+insert into messages (conversation_id, sender_id, body) values ((select id from artist_conv), auth.uid(), 'Let''s skip the fees, I can send it on PayPal');
+update artist_profiles set bio = 'Rapper, 16 years old, from Athens' where id = auth.uid();
+select pg_temp.result('users cannot read flag rules', (select count(*) = 0 from content_flag_rules));
+do $$ begin
+  insert into content_flag_rules (category, pattern) values ('other', 'x');
+  perform pg_temp.result('users cannot change flag rules', false);
+exception when others then perform pg_temp.result('users cannot change flag rules', true);
+end $$;
+set request.jwt.claim.sub = '10000000-0000-0000-0000-00000000000b';
+update studios set description = repeat('Great room. ', 6) || 'Weed friendly, bring your own.' where id = '20000000-0000-0000-0000-000000000001';
+reset role;
+select pg_temp.result('payment outside EasySesh flagged', (select count(*) = 1 from reports where reporter_id is null and target_type = 'message' and reason = 'fraud' and details like '%PayPal%'));
+select pg_temp.result('minor in bio flagged', (select count(*) = 1 from reports where reporter_id is null and target_type = 'user' and details like 'Automatic flag: minors%'));
+select pg_temp.result('drugs in studio text flagged', (select count(*) = 1 from reports where reporter_id is null and target_type = 'studio' and details like 'Automatic flag: illegal%'));
+select pg_temp.result('normal message not flagged', (select count(*) - (select n from flag_count) = 3 from reports where reporter_id is null));
+update studios set description = description || ' Also weed.' where id = '20000000-0000-0000-0000-000000000001';
+select pg_temp.result('same flag not repeated', (select count(*) = 1 from reports where reporter_id is null and target_type = 'studio'));
+do $$ begin
+  insert into content_flag_rules (category, pattern) values ('other', '(unclosed');
+  perform pg_temp.result('broken flag pattern rejected', false);
+exception when others then perform pg_temp.result('broken flag pattern rejected', true);
+end $$;
+
+----------------------------------------------------------------------------------------------------
+-- Admin team: ranks, audit log, account change notices, view-only sessions, banners
+----------------------------------------------------------------------------------------------------
+reset role;
+insert into auth.users (id, email, raw_user_meta_data, raw_app_meta_data) values
+ ('10000000-0000-0000-0000-0000000000c2', 'support1@x.io', '{"role":"artist"}', '{"provider":"email"}');
+update profiles set role = 'admin', admin_rank = 'support', email_verified_at = now() where email = 'support1@x.io';
+update profiles set admin_rank = 'owner' where email = 'admin1@x.io';
+set role authenticated;
+
+-- Support staff: can read, can't change accounts or ranks.
+set request.jwt.claim.sub = '10000000-0000-0000-0000-0000000000c2';
+set request.jwt.claims = '{"aal":"aal2"}';
+select pg_temp.result('support staff can read studios', (select count(*) > 0 from studios));
+do $$ begin
+  perform admin_set_studio_tags('20000000-0000-0000-0000-000000000001', array['hacked']);
+  perform pg_temp.result('support staff cannot edit studios', false);
+exception when others then perform pg_temp.result('support staff cannot edit studios', true);
+end $$;
+do $$ begin
+  perform admin_set_rank('support1@x.io', 'owner');
+  perform pg_temp.result('support cannot promote itself', false);
+exception when others then perform pg_temp.result('support cannot promote itself', true);
+end $$;
+do $$ begin
+  update profiles set admin_rank = 'owner' where id = auth.uid();
+  perform pg_temp.result('support cannot set own rank', (select admin_rank = 'support' from profiles where id = auth.uid()));
+exception when others then perform pg_temp.result('support cannot set own rank', true);
+end $$;
+select pg_temp.result('support cannot read audit log', (select count(*) = 0 from admin_audit_log));
+
+-- Owner changes an artist's account with an explanation: logged, and the artist gets a notice.
+set request.jwt.claim.sub = '10000000-0000-0000-0000-00000000000c';
+set request.headers = '{"x-admin-reason":"RmFrZSBuYW1lIHJlcG9ydGVk"}';
+select admin_set_admin_badge('10000000-0000-0000-0000-0000000000a2', true);
+set request.headers = '{}';
+select pg_temp.result('owner reads audit log with reason', (select count(*) > 0 from admin_audit_log where affected_user = '10000000-0000-0000-0000-0000000000a2' and reason = 'Fake name reported'));
+select pg_temp.result('account change notice queued', (select count(*) = 1 from account_change_notices
+  where user_id = '10000000-0000-0000-0000-0000000000a2' and reason = 'Fake name reported' and changes::text like '%admin badge changed%'));
+do $$ begin
+  insert into admin_audit_log (action) values ('forged');
+  perform pg_temp.result('audit log cannot be forged', false);
+exception when others then perform pg_temp.result('audit log cannot be forged', true);
+end $$;
+do $$ begin
+  delete from admin_audit_log;
+  perform pg_temp.result('audit log cannot be wiped', (select count(*) > 0 from admin_audit_log));
+exception when others then perform pg_temp.result('audit log cannot be wiped', true);
+end $$;
+do $$ begin
+  perform admin_set_rank('admin1@x.io', null);
+  perform pg_temp.result('last owner cannot be removed', false);
+exception when others then perform pg_temp.result('last owner cannot be removed', true);
+end $$;
+insert into site_banners (kind, title, body) values ('outage', 'Payments are down', 'We''re on it.');
+
+-- The artist sees their own notice, not others'.
+set request.jwt.claim.sub = '10000000-0000-0000-0000-0000000000a2';
+set request.jwt.claims = '{}';
+select pg_temp.result('user sees own change notice', (select count(*) = 1 from account_change_notices));
+do $$ begin
+  insert into site_banners (title) values ('Fake outage');
+  perform pg_temp.result('users cannot make banners', false);
+exception when others then perform pg_temp.result('users cannot make banners', true);
+end $$;
+
+-- View-as sessions are read-only.
+reset role;
+insert into impersonation_sessions (session_id, admin_id, user_id) values
+ ('30000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-00000000000c', '10000000-0000-0000-0000-0000000000a2');
+set role authenticated;
+set request.jwt.claims = '{"session_id":"30000000-0000-0000-0000-000000000001"}';
+set request.method = 'POST';
+set request.path = '/rpc/book_session';
+do $$ begin
+  perform check_view_only_request();
+  perform pg_temp.result('view-as session cannot write', false);
+exception when others then perform pg_temp.result('view-as session cannot write', sqlerrm like 'View only%');
+end $$;
+set request.path = '/rpc/quote_booking';
+create function pg_temp.request_allowed() returns boolean language plpgsql as $$
+begin perform check_view_only_request(); return true; exception when others then return false; end $$;
+select pg_temp.result('view-as session can price', pg_temp.request_allowed());
+set request.method = 'GET';
+set request.path = '/bookings';
+select pg_temp.result('view-as session can read', pg_temp.request_allowed());
+set request.method = 'POST';
+set request.jwt.claims = '{"session_id":"30000000-0000-0000-0000-000000000099"}';
+select pg_temp.result('normal sessions can write', pg_temp.request_allowed());
+set request.jwt.claims = 'not json';
+select pg_temp.result('odd tokens do not break requests', pg_temp.request_allowed());
+set request.jwt.claims = '{}';
+set request.method = '';
+set request.path = '';
+reset role;
+set role anon;
+set request.jwt.claim.sub = '';
+select pg_temp.result('guests see live banners', (select count(*) = 1 from site_banners));
 reset role;
 
 -- Guests (signed out)

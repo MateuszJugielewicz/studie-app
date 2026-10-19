@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from "react";
-import { ActionButton, Badge, Modal, PageState, Search, Tabs } from "../components";
+import { ActionButton, Badge, Modal, PageState, Search, Tabs, ViewAsButton } from "../components";
 import { useApi, useLoad } from "../lib/apiContext";
 import { ModerationPanel } from "../moderation";
 import { date, label, money, safeUrl } from "../lib/format";
@@ -132,6 +132,7 @@ function StudioModal({ studio, onClose, onChanged }: { studio: Studio; onClose: 
           <ActionButton kind="secondary" onClick={async () => { await api.setStudioState(studio.id, { verified: !studio.is_verified }); await onChanged(); }}>
             {studio.is_verified ? "Remove verification" : "Verify studio"}
           </ActionButton>
+          <ViewAsButton userId={studio.owner_id} title="View as studio" />
         </>
       }
     >

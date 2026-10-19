@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ActionButton, Badge, Modal, PageState, Search, Tabs } from "../components";
+import { ActionButton, Badge, Modal, PageState, Search, Tabs, ViewAsButton } from "../components";
 import { ModerationPanel } from "../moderation";
 import { useApi, useLoad } from "../lib/apiContext";
 import { date, label } from "../lib/format";
@@ -108,6 +108,8 @@ function UserModal({ user, onClose, onChanged }: { user: AdminUser; onClose: () 
           </ActionButton>
           <ActionButton kind="secondary" confirm={`Send a password reset email to ${user.email}?`} onClick={resetPassword("email")}>Reset password</ActionButton>
           <ActionButton kind="secondary" confirm={`Set a temporary password for ${user.email}? Their current password stops working.`} onClick={resetPassword("temporary")}>Temp password</ActionButton>
+          <ViewAsButton userId={user.id} />
+          <a className="button secondary" href={`email?to=${encodeURIComponent(user.email)}`}>Email</a>
         </div>
       )}
       {!isAdmin && <p className="muted small">The team badge is only a label on the profile ("EasySesh team"). It gives no admin rights.</p>}

@@ -18,7 +18,21 @@ export async function requireUser(req: Request): Promise<Profile> {
   const { data: profile } = await admin.from("profiles").select("*").eq("id", data.user.id).single();
   if (!profile) throw new HttpError(401, "Please sign in to continue.");
   if (profile.status !== "active") throw new HttpError(403, "account_suspended");
+  await refuseViewAs(token);
   return profile as Profile;
+}
+
+/** Sessions an admin opened with "View as user" can only read. */
+async function refuseViewAs(token: string) {
+  let sessionId: string | undefined;
+  try {
+    sessionId = JSON.parse(atob(token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/"))).session_id;
+  } catch {
+    return;
+  }
+  if (!sessionId) return;
+  const { data } = await admin.from("impersonation_sessions").select("session_id").eq("session_id", sessionId).maybeSingle();
+  if (data) throw new HttpError(403, "View only: you're seeing EasySesh as this user, so nothing can be changed.");
 }
 
 /** Assurance level from the (already verified) access token: "aal2" = signed in with a second factor. */

@@ -1,5 +1,7 @@
 import { useState, type ReactNode } from "react";
 import { label } from "./lib/format";
+import { useApi } from "./lib/apiContext";
+import { websiteUrl } from "../lib/hosts";
 
 const tone: Record<string, string> = {
   approved: "green", answered: "green", active: "green", confirmed: "green", completed: "blue", paid: "green", succeeded: "green", resolved: "green",
@@ -122,4 +124,20 @@ export function BarChart({ data, height = 160 }: { data: { label: string; value:
 
 export function Search({ value, onChange, placeholder }: { value: string; onChange: (v: string) => void; placeholder: string }) {
   return <input className="search" value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} />;
+}
+
+/** "View as user": makes a read-only session, then links to the website signed in as them. */
+export function ViewAsButton({ userId, title = "View as user" }: { userId: string; title?: string }) {
+  const api = useApi();
+  const [link, setLink] = useState<string | null>(null);
+  if (link) {
+    return <a className="button secondary" href={link} target="_blank" rel="noreferrer" onClick={() => setTimeout(() => setLink(null), 500)}>Open view-only session ↗</a>;
+  }
+  return (
+    <ActionButton kind="secondary" onClick={async () => {
+      const s = await api.viewAs(userId);
+      const hash = new URLSearchParams({ access_token: s.access_token, refresh_token: s.refresh_token, email: s.email, role: s.role }).toString();
+      setLink(`${websiteUrl}view-as#${hash}`);
+    }}>{title}</ActionButton>
+  );
 }

@@ -473,6 +473,11 @@ class Backend(context: Context) {
         put("p_code", code)
     }
 
+    /** Live banners from the EasySesh team. */
+    suspend fun siteBanners(): List<SiteBanner> = mapped {
+        client.from("site_banners").select { order("created_at", Order.DESCENDING); limit(10) }.decodeList()
+    }
+
     // MARK: Offers and promo codes (studio side)
 
     suspend fun studioOffers(studioId: String): List<StudioOffer> = mapped {

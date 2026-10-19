@@ -1,7 +1,13 @@
 import { useEffect, useState } from "react";
-import type { MfaState } from "./lib/types";
+import type { MfaState, StaffRank } from "./lib/types";
 import { NavLink, Navigate, Route, Routes, useLocation } from "react-router-dom";
-import { api as configuredApi, ApiContext } from "./lib/apiContext";
+import { api as configuredApi, ApiContext, rankAtLeast, StaffContext } from "./lib/apiContext";
+import { ReasonDialog } from "./ReasonDialog";
+import TeamPage from "./pages/TeamPage";
+import AuditPage from "./pages/AuditPage";
+import EmailPage from "./pages/EmailPage";
+import BannersPage from "./pages/BannersPage";
+import FlagRulesPage from "./pages/FlagRulesPage";
 import { websiteUrl } from "../lib/hosts";
 import type { AdminApi } from "./lib/api";
 import OverviewPage from "./pages/OverviewPage";
@@ -24,6 +30,10 @@ const icons: Record<string, string> = {
   payments: "M2 7h20v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2zM2 11h20M6 16h4",
   moderation: "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z",
   promotions: "M3 11l18-5v12L3 14v-3zM11.6 16.8a3 3 0 1 1-5.8-1.6",
+  team: "M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M19 8l2 2 4-4",
+  audit: "M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11",
+  email: "M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zM22 6l-10 7L2 6",
+  banners: "M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1zM4 22v-7",
   codes: "M20.6 13.4l-7.2 7.2a2 2 0 0 1-2.8 0L2 12V2h10l8.6 8.6a2 2 0 0 1 0 2.8zM7 7h.01",
   changelog: "M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z",
   support: "M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2zM8 9h8M8 13h5",
@@ -46,7 +56,7 @@ export function Logo({ big = false, tag }: { big?: boolean; tag?: string }) {
   );
 }
 
-const nav = [
+const nav: { to: string; title: string; icon: string; min?: StaffRank }[] = [
   { to: "/", title: "Overview", icon: "overview" },
   { to: "/studios", title: "Studios", icon: "studios" },
   { to: "/users", title: "Users", icon: "users" },
@@ -57,6 +67,11 @@ const nav = [
   { to: "/moderation", title: "Moderation", icon: "moderation" },
   { to: "/support", title: "Support", icon: "support" },
   { to: "/changelog", title: "Changelog", icon: "changelog" },
+  { to: "/banners", title: "Banners", icon: "banners", min: "admin" as StaffRank },
+  { to: "/auto-flags", title: "Auto-flags", icon: "moderation", min: "admin" as StaffRank },
+  { to: "/email", title: "Email", icon: "email" },
+  { to: "/team", title: "Team", icon: "team", min: "owner" as StaffRank },
+  { to: "/audit", title: "Audit log", icon: "audit", min: "owner" as StaffRank },
 ];
 
 export default function App() {
@@ -128,6 +143,11 @@ function Dashboard({ api }: { api: AdminApi }) {
     if (email) void refreshMfa();
   }, [email]);
 
+  const [staff, setStaff] = useState<{ email: string; rank: StaffRank } | null>(null);
+  useEffect(() => {
+    if (mfa?.kind === "verified") api.currentStaff().then(setStaff).catch(() => setStaff({ email: email ?? "", rank: "support" }));
+  }, [mfa?.kind, api, email]);
+
   if (email === undefined) return <div className="center muted">Loading…</div>;
   if (!email) return <Login api={api} onSignedIn={setEmail} />;
   if (!mfa) return <div className="center muted">Checking two-factor authentication…</div>;
@@ -135,13 +155,18 @@ function Dashboard({ api }: { api: AdminApi }) {
     return <TwoFactor api={api} state={mfa} onVerified={refreshMfa} onCancel={async () => { await api.signOut(); setEmail(null); setMfa(null); }} />;
   }
 
+  if (!staff) return <div className="center muted">Loading…</div>;
+  const allowed = (min?: StaffRank) => !min || rankAtLeast(staff.rank, min);
+
   return (
     <ApiContext.Provider value={api}>
+     <StaffContext.Provider value={staff}>
+      <ReasonDialog />
       <div className="layout">
         <aside className="sidebar">
           <Logo tag="admin" />
           <nav>
-            {nav.map((item) => (
+            {nav.filter((item) => allowed(item.min)).map((item) => (
               <NavLink key={item.to} to={item.to} end={item.to === "/"} className={({ isActive }) => (isActive ? "nav active" : "nav")}>
                 <Icon name={item.icon} /> {item.title}
                 {item.to === "/support" && openSupport > 0 && (
@@ -151,7 +176,7 @@ function Dashboard({ api }: { api: AdminApi }) {
             ))}
           </nav>
           <div className="sidebar-footer">
-            <div className="muted small account-email">{email}</div>
+            <div className="muted small account-email">{email} · {staff.rank}</div>
             <a href={websiteUrl} className="muted small">Open the website</a>
             <button className="ghost" onClick={async () => { await api.signOut(); setEmail(null); }}>Sign out</button>
           </div>
@@ -168,10 +193,16 @@ function Dashboard({ api }: { api: AdminApi }) {
             <Route path="/promotions" element={<PromotionsPage />} />
             <Route path="/promo-codes" element={<PromoCodesPage />} />
             <Route path="/changelog" element={<ChangelogPage />} />
+            <Route path="/email" element={<EmailPage />} />
+            {allowed("admin") && <Route path="/banners" element={<BannersPage />} />}
+            {allowed("admin") && <Route path="/auto-flags" element={<FlagRulesPage />} />}
+            {allowed("owner") && <Route path="/team" element={<TeamPage />} />}
+            {allowed("owner") && <Route path="/audit" element={<AuditPage />} />}
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </main>
       </div>
+     </StaffContext.Provider>
     </ApiContext.Provider>
   );
 }

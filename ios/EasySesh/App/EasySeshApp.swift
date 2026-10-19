@@ -100,7 +100,12 @@ struct RootView: View {
             }
         }
         .safeAreaInset(edge: .top, spacing: 0) {
-            if !app.isBootstrapping && !app.needsTermsAcceptance { VerifyEmailBanner() }
+            if !app.isBootstrapping && !app.needsTermsAcceptance {
+                VStack(spacing: 0) {
+                    SiteBannersView()
+                    VerifyEmailBanner()
+                }
+            }
         }
         .animation(.smooth(duration: 0.45), value: app.account?.id)
         .animation(.smooth(duration: 0.45), value: app.isGuest)
@@ -265,6 +270,86 @@ struct VerifyEmailBanner: View {
             .padding(.vertical, 10)
             .background(.regularMaterial)
             .errorAlert($error)
+        }
+    }
+}
+
+/// Banners from the EasySesh team (outages, announcements), refreshed when the app comes back.
+struct SiteBannersView: View {
+    @Environment(AppState.self) private var app
+    @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.openURL) private var openURL
+    @State private var banners: [SiteBanner] = []
+    @AppStorage("easysesh.dismissedBanners") private var dismissedRaw = ""
+
+    private var dismissed: Set<String> { Set(dismissedRaw.split(separator: ",").map(String.init)) }
+
+    private var shown: [SiteBanner] {
+        let role = app.account?.role.rawValue
+        return banners.filter { banner in
+            !dismissed.contains(banner.id.uuidString) &&
+            (banner.audience == "everyone" || (banner.audience == "guests" ? role == nil : banner.audience == role))
+        }
+    }
+
+    var body: some View {
+        VStack(spacing: 0) {
+            ForEach(shown) { banner in
+                HStack(alignment: .top, spacing: 10) {
+                    Image(systemName: symbol(banner.kind))
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(banner.title).font(.footnote.weight(.semibold))
+                        if !banner.body.isEmpty { Text(banner.body).font(.caption) }
+                        if let link = banner.linkUrl, let url = URL(string: link), url.scheme == "https" {
+                            Button(banner.linkLabel ?? L10n.tr("Read more")) { openURL(url) }
+                                .font(.caption.weight(.semibold))
+                                .buttonStyle(.plain)
+                                .underline()
+                        }
+                    }
+                    Spacer(minLength: 4)
+                    if banner.dismissible {
+                        Button {
+                            dismissedRaw = (Array(dismissed) + [banner.id.uuidString]).suffix(50).joined(separator: ",")
+                        } label: {
+                            Image(systemName: "xmark").font(.caption.weight(.bold))
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel(Text("Close"))
+                    }
+                }
+                .foregroundStyle(banner.kind == "outage" ? Color.white : Color.primary)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 10)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(background(banner.kind))
+            }
+        }
+        .task { await load() }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active { Task { await load() } }
+        }
+    }
+
+    private func load() async {
+        if let fresh = try? await app.backend.siteBanners() { banners = fresh }
+    }
+
+    private func symbol(_ kind: String) -> String {
+        switch kind {
+        case "outage": return "exclamationmark.octagon.fill"
+        case "warning": return "exclamationmark.triangle.fill"
+        case "success": return "checkmark.seal.fill"
+        default: return "megaphone.fill"
+        }
+    }
+
+    private func background(_ kind: String) -> AnyShapeStyle {
+        switch kind {
+        case "outage": return AnyShapeStyle(Color.red)
+        case "warning": return AnyShapeStyle(Theme.warning.opacity(0.25))
+        case "success": return AnyShapeStyle(Theme.positive.opacity(0.2))
+        default: return AnyShapeStyle(.regularMaterial)
         }
     }
 }

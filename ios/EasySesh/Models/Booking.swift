@@ -162,6 +162,20 @@ struct PromoCode: Codable, Identifiable, Hashable {
     }
 }
 
+/// A banner from the EasySesh team (outage, announcement) shown at the top of the app.
+struct SiteBanner: Codable, Identifiable, Hashable {
+    let id: UUID
+    /// info | warning | outage | success
+    var kind: String
+    /// everyone | guests | artist | studio_owner
+    var audience: String
+    var title: String
+    var body: String
+    var linkUrl: String?
+    var linkLabel: String?
+    var dismissible: Bool
+}
+
 /// Result of checking a promo code at checkout.
 struct PromoCheck: Codable, Hashable {
     var code: String

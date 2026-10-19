@@ -94,7 +94,9 @@ function ReportCard({ report, onChanged }: { report: Report; onChanged: () => Pr
       </div>
       <p className="strong">{target?.title ?? "…"}</p>
       {target?.body && <blockquote>{target.body}</blockquote>}
-      {report.details && <p className="muted">Reporter: “{report.details}”</p>}
+      {report.details && (report.reporter_id
+        ? <p className="muted">Reporter: “{report.details}”</p>
+        : <p className="muted" style={{ whiteSpace: "pre-wrap" }}><Badge value="pending" text="Automatic flag" /> {report.details.replace(/^Automatic flag: /, "")}</p>)}
       {report.status === "open" ? (
         <>
           <input placeholder="Note (sent to the user when you warn them)" value={note} onChange={(e) => setNote(e.target.value)} />

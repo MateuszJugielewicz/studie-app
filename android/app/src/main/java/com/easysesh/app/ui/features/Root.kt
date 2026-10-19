@@ -14,6 +14,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
@@ -39,6 +40,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.scale
@@ -51,6 +53,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.easysesh.app.AppState
 import com.easysesh.app.data.userMessage
+import com.easysesh.app.core.tr
 import com.easysesh.app.model.UserRole
 import androidx.compose.material3.TextButton
 import com.easysesh.app.services.AppAppearance
@@ -133,9 +136,16 @@ fun RootView() {
 
     val showVerifyBanner = account != null && account.role != UserRole.Admin && account.emailVerifiedAt == null &&
         screen != RootScreen.Splash && screen != RootScreen.Terms
+    val siteBanners = rememberSiteBanners()
+    val showTop = showVerifyBanner || (siteBanners.shown.isNotEmpty() && screen != RootScreen.Splash)
     Column(Modifier.fillMaxSize()) {
-        if (showVerifyBanner) VerifyEmailBanner(account!!.role)
-        Box(Modifier.weight(1f).then(if (showVerifyBanner) Modifier.consumeWindowInsets(WindowInsets.statusBars) else Modifier)) {
+        if (showTop) {
+            Column(Modifier.fillMaxWidth().background(Theme.card).statusBarsPadding()) {
+                if (screen != RootScreen.Splash) SiteBannersList(siteBanners)
+                if (showVerifyBanner) VerifyEmailBanner(account!!.role)
+            }
+        }
+        Box(Modifier.weight(1f).then(if (showTop) Modifier.consumeWindowInsets(WindowInsets.statusBars) else Modifier)) {
             AnimatedContent(screen to account?.id, transitionSpec = { fadeIn(tween(450)) togetherWith fadeOut(tween(450)) }, label = "root") { (current, _) ->
                 when (current) {
                     RootScreen.Splash -> Box(Modifier.fillMaxSize().background(Theme.background))
@@ -242,7 +252,7 @@ private fun VerifyEmailBanner(role: UserRole) {
     var sent by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
     Row(
-        Modifier.fillMaxWidth().background(Theme.card).statusBarsPadding().padding(horizontal = 14.dp, vertical = 10.dp),
+        Modifier.fillMaxWidth().background(Theme.card).padding(horizontal = 14.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {
@@ -268,4 +278,62 @@ private fun VerifyEmailBanner(role: UserRole) {
         ) { T("Resend email", style = Type.caption.semibold, color = Theme.accent) }
     }
     ErrorAlert(error) { error = null }
+}
+
+/** Banners from the EasySesh team (outages, announcements), refreshed when the app comes back. */
+private class SiteBannerState(val shown: List<com.easysesh.app.model.SiteBanner>, val dismiss: (String) -> Unit)
+
+@Composable
+private fun rememberSiteBanners(): SiteBannerState {
+    val app = LocalAppState.current
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val prefs = remember { context.getSharedPreferences("easysesh.banners", android.content.Context.MODE_PRIVATE) }
+    var banners by remember { mutableStateOf<List<com.easysesh.app.model.SiteBanner>>(emptyList()) }
+    var dismissed by remember { mutableStateOf(prefs.getStringSet("dismissed", emptySet())!!.toSet()) }
+    val lifecycle = LocalLifecycleOwner.current.lifecycle
+    DisposableEffect(lifecycle) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) app.scope.launch { runCatching { app.backend.siteBanners() }.getOrNull()?.let { banners = it } }
+        }
+        lifecycle.addObserver(observer)
+        onDispose { lifecycle.removeObserver(observer) }
+    }
+    val role = app.account?.role?.raw
+    val shown = banners.filter { b ->
+        b.id !in dismissed && (b.audience == "everyone" || (if (b.audience == "guests") role == null else b.audience == role))
+    }
+    return SiteBannerState(shown) { id ->
+        dismissed = (dismissed + id).toList().takeLast(50).toSet()
+        prefs.edit().putStringSet("dismissed", dismissed).apply()
+    }
+}
+
+@Composable
+private fun SiteBannersList(state: SiteBannerState) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    state.shown.forEach { b ->
+        val background = when (b.kind) {
+            "outage" -> Color(0xFFE5402F)
+            "warning" -> Theme.warning.copy(alpha = 0.25f)
+            "success" -> Theme.positive.copy(alpha = 0.2f)
+            else -> Theme.card
+        }
+        val text = if (b.kind == "outage") Color.White else Theme.primary
+        Row(
+            Modifier.fillMaxWidth().background(background).padding(horizontal = 14.dp, vertical = 10.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Column(Modifier.weight(1f)) {
+                Txt(b.title, style = Type.footnote.semibold, color = text)
+                if (b.body.isNotEmpty()) Txt(b.body, style = Type.caption, color = text)
+                val link = b.linkUrl
+                if (link != null && link.startsWith("https://")) {
+                    Txt(b.linkLabel ?: tr("Read more"),
+                        Modifier.clickable { runCatching { context.startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(link))) } },
+                        style = Type.caption.semibold, color = text)
+                }
+            }
+            if (b.dismissible) Txt("✕", Modifier.clickable { state.dismiss(b.id) }, style = Type.footnote.semibold, color = text)
+        }
+    }
 }

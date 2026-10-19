@@ -4,11 +4,12 @@ import { createClient, type RealtimeChannel, type SupabaseClient } from "@supaba
 import { config, TERMS_VERSION } from "./config";
 import { format, t } from "./i18n";
 import { passwordProblem, Studios, uuid } from "./core";
+import { endViewAs, takeViewAsTokens, viewAs, viewOnlyFetch } from "./viewAs";
 import type {
   AppNotification, ArtistProfile, ArtistReview, ArtistSearchResult, BlockState, BlockedSlot, BlockedUser, Booking, ChangelogEntry,
   ChatMessage, Conversation, FeeInvoice, FeeLedgerEntry, Interval, ModerationWarning, PaymentIntentInfo, PaymentTransaction, Payout,
   PayoutAccount, ReportReason, ReportTarget, Review, Studio, StudioArtistLink, StudioPromotion, SupportCategory, SupportMessage,
-  SupportTicket, UserAccount, UserRole, UserSettings, PriceBreakdown, PromoCheck, PromoCode, StudioOffer,
+  SupportTicket, UserAccount, UserRole, UserSettings, PriceBreakdown, PromoCheck, PromoCode, SiteBanner, StudioOffer,
 } from "./types";
 
 /** An error whose message is shown to the user (already translated). */
@@ -61,7 +62,12 @@ export class Api {
   readonly client: SupabaseClient;
 
   constructor() {
-    this.client = createClient(config.supabaseUrl, config.supabaseAnonKey || "missing", {
+    const viewing = viewAs();
+    this.client = createClient(config.supabaseUrl, config.supabaseAnonKey || "missing", viewing ? {
+      // Read-only session opened from the admin panel: this tab only, writes refused.
+      auth: { flowType: "pkce", detectSessionInUrl: false, persistSession: true, storageKey: "easysesh.viewas", storage: window.sessionStorage },
+      global: { fetch: viewOnlyFetch },
+    } : {
       auth: { flowType: "pkce", detectSessionInUrl: true, persistSession: true, storageKey: "easysesh.auth" },
     });
   }
@@ -79,6 +85,7 @@ export class Api {
 
   /** Calls an edge function (same JSON contract as the apps). */
   private async invoke<T>(fn: string, body: Record<string, unknown>): Promise<T> {
+    if (viewAs()) throw new AppError("View only: you're seeing EasySesh as this user, so nothing can be changed.");
     const { data } = await this.client.auth.getSession();
     const response = await fetch(`${config.supabaseUrl}/functions/v1/${fn}`, {
       method: "POST",
@@ -106,7 +113,7 @@ export class Api {
       result = (await this.rpc<UserAccount>("lift_my_expired_restriction").catch(() => null)) ?? result;
     }
     if (result.status !== "active") {
-      await this.client.auth.signOut().catch(() => undefined);
+      await this.signOut();
       throw new AppError(restrictionMessage(result));
     }
     return result;
@@ -115,6 +122,8 @@ export class Api {
   // MARK: Auth
 
   async restoreSession(): Promise<UserAccount | null> {
+    const tokens = takeViewAsTokens();
+    if (tokens) await this.client.auth.setSession(tokens).catch(() => undefined);
     const { data } = await this.client.auth.getSession();
     const user = data.session?.user;
     if (!user) return null;
@@ -176,7 +185,15 @@ export class Api {
     if (error) throw mapMessage(error.message);
   }
 
-  async signOut() { await this.client.auth.signOut().catch(() => undefined); }
+  async signOut() {
+    // Leaving view-as only ends that session (a global sign-out would sign the real person out everywhere).
+    if (viewAs()) {
+      await this.client.auth.signOut({ scope: "local" }).catch(() => undefined);
+      endViewAs();
+      return;
+    }
+    await this.client.auth.signOut().catch(() => undefined);
+  }
 
   async changePassword(password: string) {
     const problem = passwordProblem(password);
@@ -298,6 +315,11 @@ export class Api {
 
   checkPromoCode(studioId: string, code: string) {
     return this.rpc<PromoCheck>("check_promo_code", { p_studio_id: studioId, p_code: code });
+  }
+
+  /** Live banners from the EasySesh team (outages, announcements). */
+  async siteBanners(): Promise<SiteBanner[]> {
+    return unwrap(await this.client.from("site_banners").select("*").order("created_at", { ascending: false }).limit(10));
   }
 
   // MARK: Offers and promo codes (studio side)

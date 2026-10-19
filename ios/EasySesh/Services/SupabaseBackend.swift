@@ -408,6 +408,12 @@ final class SupabaseBackend: Backend {
         }
     }
 
+    func siteBanners() async throws -> [SiteBanner] {
+        try await mapped {
+            try await client.from("site_banners").select().order("created_at", ascending: false).limit(10).execute().value
+        }
+    }
+
     func saveOffer(_ offer: StudioOffer) async throws {
         try await mapped { _ = try await client.from("studio_offers").upsert(offer).execute() }
     }

@@ -1,5 +1,6 @@
 import type {
   FeeBalance, FeeInvoice, MfaState, ChangelogEntry, ModerationEvent, Promotion, PromoCode, RatingDispute, StudioOffer, TermsStatus,
+  AuditEntry, FlagRule, SentEmail, SiteBanner, StaffMember, StaffRank,
   AccountStatus, AdminUser, Booking, BookingStatus, DashboardStats, Dispute, Payout, Report, ReportStatus,
   ReportTargetDetails, Review, Studio, StudioEvent, SupportMessage, SupportStatus, SupportTicket, Transaction,
 } from "./types";
@@ -45,6 +46,25 @@ export interface AdminApi {
   cancelPromotion(promotionId: string): Promise<void>;
   grantPromotion(studioId: string, days: number, note?: string): Promise<void>;
   endPromotion(studioId: string): Promise<void>;
+
+  /** The signed-in staff member and their rank (owner > admin > support). */
+  currentStaff(): Promise<{ id: string; email: string; rank: StaffRank }>;
+  team(): Promise<StaffMember[]>;
+  /** Owners only: add someone (by email) to the team, change their rank, or remove them (null). */
+  setRank(email: string, rank: StaffRank | null): Promise<void>;
+  /** Owners only. */
+  auditLog(limit?: number): Promise<AuditEntry[]>;
+  /** A read-only session as this user, for the website's "view as" mode. */
+  viewAs(userId: string): Promise<{ access_token: string; refresh_token: string; email: string; role: string }>;
+  sendEmail(email: { from: string; to: string; subject: string; body: string }): Promise<void>;
+  sentEmails(): Promise<SentEmail[]>;
+  /** Word lists for automatic report flags. */
+  flagRules(): Promise<FlagRule[]>;
+  saveFlagRule(rule: Partial<FlagRule>): Promise<void>;
+  removeFlagRule(id: string): Promise<void>;
+  banners(): Promise<SiteBanner[]>;
+  saveBanner(banner: Partial<SiteBanner>): Promise<void>;
+  removeBanner(id: string): Promise<void>;
 
   /** All promo codes (EasySesh's and studios'), with how often they were used. */
   promoCodes(): Promise<PromoCode[]>;

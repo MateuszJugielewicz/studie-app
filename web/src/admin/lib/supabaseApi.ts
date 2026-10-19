@@ -1,10 +1,21 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { AdminApi, StudioDecision } from "./api";
+import { fetchWithReason } from "./reason";
 import type {
   FeeBalance, FeeInvoice, MfaState, ChangelogEntry, ModerationEvent, Promotion, PromoCode, RatingDispute, StudioOffer, TermsStatus,
+  AuditEntry, FlagRule, SentEmail, SiteBanner, StaffMember, StaffRank,
   AccountStatus, AdminUser, Booking, BookingStatus, DashboardStats, Dispute, Payout, Report, ReportStatus,
   ReportTargetDetails, Review, Studio, StudioEvent, SupportMessage, SupportStatus, SupportTicket, Transaction,
 } from "./types";
+
+/** The message from an edge function's JSON error body, if there is one. */
+async function functionError(error: { message: string; context?: unknown }): Promise<string> {
+  try {
+    const body = await (error.context as Response).json();
+    if (body?.error) return body.error;
+  } catch { /* not JSON */ }
+  return error.message;
+}
 
 function unwrap<T>(result: { data: T | null; error: { message: string } | null }): T {
   if (result.error) throw new Error(result.error.message);
@@ -18,6 +29,7 @@ export class SupabaseAdminApi implements AdminApi {
     // Same session storage as the rest of the website, so signing in once covers both.
     this.client = createClient(url, anonKey, {
       auth: { flowType: "pkce", detectSessionInUrl: true, persistSession: true, storageKey: "easysesh.auth" },
+      global: { fetch: fetchWithReason },
     });
   }
 
@@ -126,6 +138,68 @@ export class SupabaseAdminApi implements AdminApi {
 
   async promotions(): Promise<Promotion[]> {
     return unwrap(await this.client.from("admin_promotions").select("*").order("created_at", { ascending: false }).limit(500));
+  }
+
+  async currentStaff(): Promise<{ id: string; email: string; rank: StaffRank }> {
+    const { data } = await this.client.auth.getUser();
+    const { data: profile } = await this.client.from("profiles").select("id, email, admin_rank").eq("id", data.user?.id ?? "").single();
+    return { id: profile?.id, email: profile?.email, rank: (profile?.admin_rank ?? "admin") as StaffRank };
+  }
+
+  async team(): Promise<StaffMember[]> {
+    return unwrap(await this.client.from("profiles").select("id, email, admin_rank, created_at").eq("role", "admin").order("created_at"))
+      .map((p: { id: string; email: string; admin_rank: StaffRank | null; created_at: string }) => ({ ...p, admin_rank: p.admin_rank ?? "admin" }));
+  }
+
+  async setRank(email: string, rank: StaffRank | null) {
+    unwrap(await this.client.rpc("admin_set_rank", { p_email: email, p_rank: rank }));
+  }
+
+  async auditLog(limit = 500): Promise<AuditEntry[]> {
+    return unwrap(await this.client.from("admin_audit_log").select("*").order("created_at", { ascending: false }).limit(limit));
+  }
+
+  async viewAs(userId: string): Promise<{ access_token: string; refresh_token: string; email: string; role: string }> {
+    const { data, error } = await this.client.functions.invoke("admin-view-as", { body: { user_id: userId } });
+    if (error) throw new Error(await functionError(error));
+    return data;
+  }
+
+  async sendEmail(email: { from: string; to: string; subject: string; body: string }) {
+    const { error } = await this.client.functions.invoke("admin-send-email", { body: email });
+    if (error) throw new Error(await functionError(error));
+  }
+
+  async sentEmails(): Promise<SentEmail[]> {
+    return unwrap(await this.client.from("admin_emails").select("*").order("created_at", { ascending: false }).limit(200));
+  }
+
+  async flagRules(): Promise<FlagRule[]> {
+    return unwrap(await this.client.from("content_flag_rules").select("*").order("category").order("created_at"));
+  }
+
+  async saveFlagRule(rule: Partial<FlagRule>) {
+    const { id, created_at: _c, ...row } = rule;
+    if (id) unwrap(await this.client.from("content_flag_rules").update(row).eq("id", id).select());
+    else unwrap(await this.client.from("content_flag_rules").insert(row).select());
+  }
+
+  async removeFlagRule(id: string) {
+    unwrap(await this.client.from("content_flag_rules").delete().eq("id", id).select());
+  }
+
+  async banners(): Promise<SiteBanner[]> {
+    return unwrap(await this.client.from("site_banners").select("*").order("created_at", { ascending: false }).limit(200));
+  }
+
+  async saveBanner(banner: Partial<SiteBanner>) {
+    const { id, created_at: _c, ...row } = banner;
+    if (id) unwrap(await this.client.from("site_banners").update(row).eq("id", id).select());
+    else unwrap(await this.client.from("site_banners").insert(row).select());
+  }
+
+  async removeBanner(id: string) {
+    unwrap(await this.client.from("site_banners").delete().eq("id", id).select());
   }
 
   async promoCodes(): Promise<PromoCode[]> {

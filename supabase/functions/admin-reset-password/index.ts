@@ -4,13 +4,14 @@
 //                     pass it on (e.g. by phone). The user should change it in Settings.
 // Requires an admin with two-factor authentication. Admin accounts can't be reset here.
 import { handler, HttpError, json, requireString } from "../_shared/http.ts";
-import { admin, requireAdmin } from "../_shared/supabase.ts";
+import { admin } from "../_shared/supabase.ts";
+import { adminReason, audit, requireStaff } from "../_shared/staff.ts";
 import { temporaryPassword } from "../_shared/passwords.ts";
 
 const APP_REDIRECT = "easysesh://auth-callback";
 
 Deno.serve(handler(async (req, body) => {
-  const caller = await requireAdmin(req);
+  const caller = await requireStaff(req, "admin");
   const userId = requireString(body, "user_id");
   const mode = body.mode === "temporary" ? "temporary" : "email";
   if (userId === caller.id) throw new HttpError(400, "Change your own password from the Supabase dashboard.");
@@ -26,6 +27,7 @@ Deno.serve(handler(async (req, body) => {
   if (mode === "email") {
     const { error } = await admin.auth.resetPasswordForEmail(email, { redirectTo: APP_REDIRECT });
     if (error) throw new HttpError(400, error.message);
+    await audit(caller, "password_reset_email", { table: "profiles", id: userId, user: userId }, adminReason(req, body));
     return json({ mode, email });
   }
 
@@ -38,5 +40,6 @@ Deno.serve(handler(async (req, body) => {
     title: "Your password was reset",
     body: "EasySesh support set a temporary password for your account. Please choose a new one in Settings → Change password.",
   });
+  await audit(caller, "temporary_password", { table: "profiles", id: userId, user: userId }, adminReason(req, body));
   return json({ mode, email, password });
 }));

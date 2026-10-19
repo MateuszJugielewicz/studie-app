@@ -124,6 +124,21 @@ data class PromoCode(
     @kotlinx.serialization.Transient val uses: Int = 0,
 )
 
+/** A banner from the EasySesh team (outage, announcement) shown at the top of the app. */
+@Serializable
+data class SiteBanner(
+    val id: String,
+    /** info | warning | outage | success */
+    val kind: String = "info",
+    /** everyone | guests | artist | studio_owner */
+    val audience: String = "everyone",
+    val title: String,
+    val body: String = "",
+    val linkUrl: String? = null,
+    val linkLabel: String? = null,
+    val dismissible: Boolean = true,
+)
+
 /** Result of checking a promo code at checkout. */
 @Serializable
 data class PromoCheck(val code: String, val percentOff: Int, val description: String = "", val byEasysesh: Boolean = false)

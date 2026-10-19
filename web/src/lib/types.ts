@@ -333,3 +333,9 @@ export interface ChangelogEntry { id: string; version: string; title: string; bo
 
 export interface PaymentIntentInfo { client_secret: string; amount: number; currency: string; capture_later: boolean }
 export interface Interval { start: Date; end: Date }
+
+/** A banner from the EasySesh team at the top of the site (outage, announcement…). */
+export interface SiteBanner {
+  id: string; kind: "info" | "warning" | "outage" | "success"; audience: "everyone" | "guests" | "artist" | "studio_owner";
+  title: string; body: string; link_url: string | null; link_label: string | null; ends_at: string | null; dismissible: boolean;
+}

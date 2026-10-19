@@ -39,20 +39,28 @@ async function resendKey(): Promise<string | null> {
   return cachedKey;
 }
 
-async function send(to: string, subject: string, html: string, text: string): Promise<boolean> {
+async function send(to: string | string[], subject: string, html: string, text: string, from = FROM, replyTo = REPLY_TO): Promise<boolean> {
+  return (await sendWithId(to, subject, html, text, from, replyTo)) !== null;
+}
+
+/** Sends through Resend; returns Resend's email id, or null when it failed or no key is set. */
+async function sendWithId(to: string | string[], subject: string, html: string, text: string, from = FROM, replyTo = REPLY_TO): Promise<string | null> {
   const key = await resendKey();
-  if (!key) return false;
+  if (!key) return null;
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: { authorization: `Bearer ${key}`, "content-type": "application/json" },
-    body: JSON.stringify({ from: FROM, to: [to], reply_to: REPLY_TO, subject, html, text }),
+    body: JSON.stringify({ from, to: Array.isArray(to) ? to : [to], reply_to: replyTo, subject, html, text }),
   });
-  if (!response.ok) console.error("Email failed", response.status, await response.text());
-  return response.ok;
+  if (!response.ok) {
+    console.error("Email failed", response.status, await response.text());
+    return null;
+  }
+  return ((await response.json()) as { id?: string }).id ?? "";
 }
 
 /** The EasySesh email layout: logo, a card with title, text, optional detail rows and a button. */
-function render(o: { title: string; body: string; rows?: [string, string][]; button: string; link: string; footer: string; after?: string }) {
+function render(o: { title: string; body: string; rows?: [string, string][]; button?: string; link?: string; footer: string; after?: string; replyTo?: string }) {
   const rows = o.rows ?? [];
   const table = rows.map(([k, v]) =>
     `<tr><td style="padding:6px 0;color:#6f6c66;width:110px;vertical-align:top">${escape(k)}</td><td style="padding:6px 0;color:#1c1b19">${escape(v)}</td></tr>`).join("");
@@ -66,12 +74,12 @@ function render(o: { title: string; body: string; rows?: [string, string][]; but
     <h1 style="font-size:20px;margin:0 0 8px;color:#1c1b19">${escape(o.title)}</h1>
     <p style="margin:0 0 16px;color:#3a3935;line-height:1.5;white-space:pre-line">${escape(o.body)}</p>
     ${table ? `<table style="width:100%;border-collapse:collapse;font-size:14px;border-top:1px solid #eee;margin-bottom:18px">${table}</table>` : ""}
-    <a href="${escape(o.link)}" style="display:inline-block;background:#d9431e;color:#fff;text-decoration:none;font-weight:600;padding:11px 18px;border-radius:10px">${escape(o.button)}</a>
+    ${o.button && o.link ? `<a href="${escape(o.link)}" style="display:inline-block;background:#d9431e;color:#fff;text-decoration:none;font-weight:600;padding:11px 18px;border-radius:10px">${escape(o.button)}</a>` : ""}
     ${o.after ? `<p style="margin:16px 0 0;font-size:13px;color:#6f6c66;line-height:1.5;word-break:break-all">${escape(o.after)}</p>` : ""}
   </div>
-  <p style="font-size:12px;color:#8a877f;line-height:1.5;margin:16px 4px 0">${escape(o.footer)} Questions? Reply to this email or write to ${escape(REPLY_TO)}.</p>
+  <p style="font-size:12px;color:#8a877f;line-height:1.5;margin:16px 4px 0">${escape(o.footer)} Questions? Reply to this email or write to ${escape(o.replyTo ?? REPLY_TO)}.</p>
 </div></body></html>`;
-  const text = [o.title, "", o.body, "", ...rows.map(([k, v]) => `${k}: ${v}`), "", `${o.button}: ${o.link}`, ...(o.after ? ["", o.after] : []), "", `Questions? ${REPLY_TO}`].join("\n");
+  const text = [o.title, "", o.body, "", ...rows.map(([k, v]) => `${k}: ${v}`), ...(o.button && o.link ? ["", `${o.button}: ${o.link}`] : []), ...(o.after ? ["", o.after] : []), "", `Questions? ${o.replyTo ?? REPLY_TO}`].join("\n");
   return { html, text };
 }
 
@@ -139,4 +147,26 @@ export async function sendVerificationEmail(email: string, token: string, role: 
     footer: "You're getting this email because someone signed up to EasySesh with this address. If it wasn't you, you can ignore it.",
   });
   return send(email, "Confirm your email – EasySesh", html, text);
+}
+
+/** "Changes to your account": what the EasySesh team changed, why, and how to object (reply to support@). */
+export async function sendAccountChangeEmail(email: string, changes: string[], reason: string | null): Promise<boolean> {
+  if (!email || email.endsWith(".invalid") || !(await resendKey())) return false;
+  const list = changes.map((c) => `• ${c}`).join("\n");
+  const { html, text } = render({
+    title: "Changes to your account",
+    body: `The EasySesh team made these changes to your account:\n\n${list}\n\nWhy: ${reason?.trim() || "No explanation was added."}\n\n` +
+      "If you disagree, or you don't think this change should have been made, reply to this email and tell us why. A person from our support team will look at it.",
+    button: "Open EasySesh",
+    link: SITE,
+    footer: "You're getting this email because your EasySesh account was changed by our team.",
+  });
+  return send(email, "Changes to your EasySesh account", html, text);
+}
+
+/** An email written in the admin panel, sent from an @easysesh.live address (replies come back to it). */
+export async function sendStaffEmail(fromAddress: string, to: string[], subject: string, body: string): Promise<string | null> {
+  const name = fromAddress.startsWith("support@") ? "EasySesh Support" : "EasySesh";
+  const { html, text } = render({ title: subject, body, footer: "This email was sent by the EasySesh team.", replyTo: fromAddress });
+  return sendWithId(to, subject, html, text, `${name} <${fromAddress}>`, fromAddress);
 }

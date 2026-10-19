@@ -407,3 +407,16 @@ html, body { max-width: 100%; }
 
 /* Offer badge ("−50%") */
 .offer-tag { background: var(--positive); color: #fff; font-weight: 700; font-size: 13px; padding: 3px 8px; border-radius: 8px; flex-shrink: 0; }
+
+/* Team banners (outages, announcements) and the admin "view as" bar */
+.top-banner {
+  display: flex; align-items: center; gap: 10px; margin: 8px 16px 0; padding: 10px 14px; border-radius: 14px;
+  font-size: 14px; line-height: 1.4; background: color-mix(in srgb, var(--blue) 12%, var(--card)); color: var(--text);
+}
+.top-banner > span { flex: 1; }
+.top-banner a { color: inherit; font-weight: 600; text-decoration: underline; }
+.top-banner.warning { background: color-mix(in srgb, var(--warning) 18%, var(--card)); }
+.top-banner.outage { background: var(--red); color: #fff; }
+.top-banner.success { background: color-mix(in srgb, var(--positive) 16%, var(--card)); }
+.top-banner.view-as { background: #1c1b19; color: #fff; }
+.top-banner.outage .tool-btn, .top-banner.view-as .tool-btn { color: #fff; }

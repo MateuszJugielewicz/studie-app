@@ -521,6 +521,7 @@ final class MockBackend: Backend {
 
     func studioOffers(studioId: UUID) async throws -> [StudioOffer] { [] }
     func saveOffer(_ offer: StudioOffer) async throws {}
+    func siteBanners() async throws -> [SiteBanner] { [] }
     func removeOffer(id: UUID) async throws {}
     func promoCodes(studioId: UUID) async throws -> [PromoCode] { [] }
     func savePromoCode(_ code: PromoCode) async throws {}

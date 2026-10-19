@@ -111,6 +111,8 @@ protocol Backend: AnyObject {
     func quoteBooking(studio: Studio, sessionTypeId: String, hours: Int, addOns: [String: Int], promoCode: String?) async throws -> PriceBreakdown
     func checkPromoCode(studioId: UUID, code: String) async throws -> PromoCheck
     func studioOffers(studioId: UUID) async throws -> [StudioOffer]
+    /// Live banners from the EasySesh team.
+    func siteBanners() async throws -> [SiteBanner]
     func saveOffer(_ offer: StudioOffer) async throws
     func removeOffer(id: UUID) async throws
     func promoCodes(studioId: UUID) async throws -> [PromoCode]

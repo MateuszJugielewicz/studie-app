@@ -331,3 +331,18 @@ export interface ModerationEvent {
   created_at: string;
   actor_email: string | null;
 }
+
+export type StaffRank = "owner" | "admin" | "support";
+export interface FlagRule { id: string; category: "minors" | "off_platform_payment" | "illegal" | "contact_details" | "other"; pattern: string; note: string; is_active: boolean; created_at: string }
+export interface StaffMember { id: string; email: string; admin_rank: StaffRank; created_at: string }
+export interface AuditEntry {
+  id: number; admin_id: string | null; admin_email: string | null; admin_rank: string | null; action: string;
+  target_table: string | null; target_id: string | null; affected_user: string | null; reason: string | null;
+  details: Record<string, unknown>; created_at: string;
+}
+export interface SentEmail { id: string; sender_email: string | null; from_address: string; to_addresses: string[]; subject: string; body: string; created_at: string }
+export interface SiteBanner {
+  id: string; kind: "info" | "warning" | "outage" | "success"; audience: "everyone" | "guests" | "artist" | "studio_owner";
+  title: string; body: string; link_url: string | null; link_label: string | null; starts_at: string; ends_at: string | null;
+  dismissible: boolean; is_active: boolean; created_at: string;
+}

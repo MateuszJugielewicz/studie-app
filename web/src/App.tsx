@@ -7,6 +7,7 @@ import { Avatar, Loading, Logo } from "./components/ui";
 import { GlobalSheets } from "./pages/Gates";
 import { adminUrl, hasAdminSubdomain } from "./lib/hosts";
 import { VerifyEmailBanner } from "./pages/VerifyEmail";
+import { SiteBanners, ViewAsBar } from "./components/TopBanners";
 
 const Landing = lazy(() => import("./pages/Landing"));
 const Auth = lazy(() => import("./pages/Auth"));
@@ -93,6 +94,8 @@ function Shell({ children }: { children: ReactNode }) {
             )}
           </div>
         </header>
+        <ViewAsBar />
+        <SiteBanners />
         <VerifyEmailBanner />
         <Suspense fallback={<Loading />}>{children}</Suspense>
         <nav className={`tabbar ${tabs.length > 1 ? "show" : ""}`}>
