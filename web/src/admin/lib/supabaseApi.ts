@@ -170,6 +170,18 @@ export class SupabaseAdminApi implements AdminApi {
     return data;
   }
 
+  async deleteAccount(userId: string): Promise<{ soft: boolean; cancelled: number }> {
+    const { data, error } = await this.client.functions.invoke("admin-delete", { body: { user_id: userId } });
+    if (error) throw new Error(await functionError(error));
+    return data;
+  }
+
+  async deleteStudio(studioId: string): Promise<{ removed: boolean; cancelled: number }> {
+    const { data, error } = await this.client.functions.invoke("admin-delete", { body: { studio_id: studioId } });
+    if (error) throw new Error(await functionError(error));
+    return data;
+  }
+
   async sendEmail(email: { from: string; to: string; subject: string; body: string }) {
     const { error } = await this.client.functions.invoke("admin-send-email", { body: email });
     if (error) throw new Error(await functionError(error));

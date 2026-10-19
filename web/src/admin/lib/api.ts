@@ -58,6 +58,9 @@ export interface AdminApi {
   auditLog(limit?: number): Promise<AuditEntry[]>;
   /** A read-only session as this user, for the website's "view as" mode. */
   viewAs(userId: string): Promise<{ access_token: string; refresh_token: string; email: string; role: string }>;
+  /** Admin rank: deletes an account or a studio (upcoming bookings cancelled and refunded, person emailed). */
+  deleteAccount(userId: string): Promise<{ soft: boolean; cancelled: number }>;
+  deleteStudio(studioId: string): Promise<{ removed: boolean; cancelled: number }>;
   sendEmail(email: { from: string; to: string; subject: string; body: string }): Promise<void>;
   sentEmails(): Promise<SentEmail[]>;
   /** Word lists for automatic report flags. */

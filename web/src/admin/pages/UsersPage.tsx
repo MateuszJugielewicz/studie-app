@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { ActionButton, Badge, Modal, PageState, Search, Tabs, ViewAsButton, EmailButton } from "../components";
 import { ModerationPanel } from "../moderation";
-import { useApi, useLoad } from "../lib/apiContext";
+import { rankAtLeast, useApi, useLoad, useStaff } from "../lib/apiContext";
 import { date, label } from "../lib/format";
 import type { AdminUser } from "../lib/types";
 
@@ -84,6 +84,7 @@ function UserModal({ user, onClose, onChanged }: { user: AdminUser; onClose: () 
   const [resetResult, setResetResult] = useState<{ email: string; password?: string } | null>(null);
   const [copied, setCopied] = useState(false);
   const isAdmin = user.role === "admin";
+  const staff = useStaff();
 
   const resetPassword = (mode: "email" | "temporary") => async () => {
     setCopied(false);
@@ -110,6 +111,10 @@ function UserModal({ user, onClose, onChanged }: { user: AdminUser; onClose: () 
           <ActionButton kind="secondary" confirm={`Set a temporary password for ${user.email}? Their current password stops working.`} onClick={resetPassword("temporary")}>Temp password</ActionButton>
           <ViewAsButton userId={user.id} />
           <EmailButton to={[user.email]} />
+          {rankAtLeast(staff.rank, "admin") && (
+            <ActionButton kind="danger" confirm={`Delete ${user.email}? Upcoming bookings are cancelled and refunded${user.studio_name ? `, and ${user.studio_name} goes offline` : ""}. This can't be undone.`}
+              onClick={async () => { await api.deleteAccount(user.id); await onChanged(); onClose(); }}>Delete account</ActionButton>
+          )}
         </div>
       )}
       {!isAdmin && <p className="muted small">The team badge is only a label on the profile ("EasySesh team"). It gives no admin rights.</p>}

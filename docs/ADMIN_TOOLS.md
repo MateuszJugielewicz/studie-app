@@ -41,3 +41,12 @@ paying/booking outside EasySesh, illegal things (drugs, weapons, sex work), and 
 phone numbers, emails and chat apps. A match creates a report in **Moderation** marked “Automatic
 flag” with the matching text; nothing is hidden or blocked automatically. Edit the word lists under
 **Auto-flags** (there's a box to test a text).
+
+## Deleting accounts and studios
+Admins and owners: **Users → Delete account**, **Studios → Delete studio** (asks why; the person is
+emailed from noreply@ with the reason). Upcoming bookings are cancelled with full refunds.
+- An account with booking history (or a studio) is anonymised and soft-deleted so receipts stay
+  valid; otherwise it's removed completely. A studio owner's studio goes offline.
+- A studio that never had bookings is removed completely; otherwise it's taken offline and hidden
+  (the owner's account stays).
+Admin accounts can't be deleted here – remove them from the team first.

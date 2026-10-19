@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { ActionButton, Badge, Modal, PageState, Search, Tabs, ViewAsButton, EmailButton } from "../components";
-import { useApi, useLoad } from "../lib/apiContext";
+import { rankAtLeast, useApi, useLoad, useStaff } from "../lib/apiContext";
 import { ModerationPanel } from "../moderation";
 import { date, label, money, safeUrl } from "../lib/format";
 import type { Studio } from "../lib/types";
@@ -96,6 +96,7 @@ function StudioModal({ studio, onClose, onChanged }: { studio: Studio; onClose: 
   const [newTag, setNewTag] = useState("");
   const [promoDays, setPromoDays] = useState(7);
   const [ownerEmail, setOwnerEmail] = useState<string | null>(null);
+  const staff = useStaff();
   useEffect(() => { api.accountEmail(studio.owner_id).then(setOwnerEmail).catch(() => setOwnerEmail(null)); }, [api, studio.owner_id]);
   const feeValue = fee.trim() === "" ? null : Number(fee);
   const feeValid = feeValue === null || (Number.isInteger(feeValue) && feeValue >= 0 && feeValue <= 30);
@@ -136,6 +137,10 @@ function StudioModal({ studio, onClose, onChanged }: { studio: Studio; onClose: 
           </ActionButton>
           <ViewAsButton userId={studio.owner_id} title="View as studio" />
           <EmailButton to={[studio.contact?.email, ownerEmail]} title="Email studio" />
+          {rankAtLeast(staff.rank, "admin") && (
+            <ActionButton kind="danger" confirm={`Delete ${studio.name}? Upcoming bookings are cancelled and refunded. Studios with past bookings are taken offline instead, so receipts stay valid. The owner's account stays.`}
+              onClick={async () => { await api.deleteStudio(studio.id); await onChanged(); onClose(); }}>Delete studio</ActionButton>
+          )}
         </>
       }
     >
