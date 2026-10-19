@@ -1,5 +1,5 @@
-import { useState, type ReactNode } from "react";
-import { ActionButton, Badge, Modal, PageState, Search, Tabs, ViewAsButton } from "../components";
+import { useEffect, useState, type ReactNode } from "react";
+import { ActionButton, Badge, Modal, PageState, Search, Tabs, ViewAsButton, EmailButton } from "../components";
 import { useApi, useLoad } from "../lib/apiContext";
 import { ModerationPanel } from "../moderation";
 import { date, label, money, safeUrl } from "../lib/format";
@@ -95,6 +95,8 @@ function StudioModal({ studio, onClose, onChanged }: { studio: Studio; onClose: 
   const [tags, setTags] = useState<string[]>(studio.admin_tags ?? []);
   const [newTag, setNewTag] = useState("");
   const [promoDays, setPromoDays] = useState(7);
+  const [ownerEmail, setOwnerEmail] = useState<string | null>(null);
+  useEffect(() => { api.accountEmail(studio.owner_id).then(setOwnerEmail).catch(() => setOwnerEmail(null)); }, [api, studio.owner_id]);
   const feeValue = fee.trim() === "" ? null : Number(fee);
   const feeValid = feeValue === null || (Number.isInteger(feeValue) && feeValue >= 0 && feeValue <= 30);
   const promoted = studio.promoted_until && new Date(studio.promoted_until) > new Date();
@@ -133,6 +135,7 @@ function StudioModal({ studio, onClose, onChanged }: { studio: Studio; onClose: 
             {studio.is_verified ? "Remove verification" : "Verify studio"}
           </ActionButton>
           <ViewAsButton userId={studio.owner_id} title="View as studio" />
+          <EmailButton to={[studio.contact?.email, ownerEmail]} title="Email studio" />
         </>
       }
     >

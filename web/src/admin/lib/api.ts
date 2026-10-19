@@ -50,6 +50,8 @@ export interface AdminApi {
   /** The signed-in staff member and their rank (owner > admin > support). */
   currentStaff(): Promise<{ id: string; email: string; rank: StaffRank }>;
   team(): Promise<StaffMember[]>;
+  /** The sign-in email of an account (e.g. a studio owner). */
+  accountEmail(userId: string): Promise<string | null>;
   /** Owners only: add someone (by email) to the team, change their rank, or remove them (null). */
   setRank(email: string, rank: StaffRank | null): Promise<void>;
   /** Owners only. */

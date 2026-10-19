@@ -146,6 +146,11 @@ export class SupabaseAdminApi implements AdminApi {
     return { id: profile?.id, email: profile?.email, rank: (profile?.admin_rank ?? "admin") as StaffRank };
   }
 
+  async accountEmail(userId: string): Promise<string | null> {
+    const { data } = await this.client.from("profiles").select("email").eq("id", userId).maybeSingle();
+    return (data?.email as string | undefined) ?? null;
+  }
+
   async team(): Promise<StaffMember[]> {
     return unwrap(await this.client.from("profiles").select("id, email, admin_rank, created_at").eq("role", "admin").order("created_at"))
       .map((p: { id: string; email: string; admin_rank: StaffRank | null; created_at: string }) => ({ ...p, admin_rank: p.admin_rank ?? "admin" }));

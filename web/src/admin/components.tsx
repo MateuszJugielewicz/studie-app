@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from "react";
+import { useNavigate } from "react-router-dom";
 import { label } from "./lib/format";
 import { useApi } from "./lib/apiContext";
 import { websiteUrl } from "../lib/hosts";
@@ -140,4 +141,12 @@ export function ViewAsButton({ userId, title = "View as user" }: { userId: strin
       setLink(`${websiteUrl}view-as#${hash}`);
     }}>{title}</ActionButton>
   );
+}
+
+/** Opens the Email page with the recipients filled in. */
+export function EmailButton({ to, title = "Email" }: { to: (string | null | undefined)[]; title?: string }) {
+  const navigate = useNavigate();
+  const recipients = [...new Set(to.filter((a): a is string => !!a && a.includes("@") && !a.endsWith(".invalid")))];
+  if (recipients.length === 0) return null;
+  return <button className="secondary" onClick={() => navigate(`/email?recipient=${encodeURIComponent(recipients.join(", "))}`)}>{title}</button>;
 }

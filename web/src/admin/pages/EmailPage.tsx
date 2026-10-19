@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { ActionButton, PageState } from "../components";
 import { rankAtLeast, useApi, useLoad, useStaff } from "../lib/apiContext";
 import { date } from "../lib/format";
@@ -11,7 +12,9 @@ export default function EmailPage() {
   const senders = me.rank === "owner" ? ["support", "easysesh", "noreply", "mateusz"] : rankAtLeast(me.rank, "admin") ? ["support", "easysesh", "noreply"] : ["support"];
   const [from, setFrom] = useState(senders[0]);
   const [custom, setCustom] = useState("");
-  const [to, setTo] = useState(() => new URLSearchParams(window.location.search).get("to") ?? "");
+  const [params] = useSearchParams();
+  const [to, setTo] = useState(params.get("recipient") ?? "");
+  useEffect(() => { const r = params.get("recipient"); if (r) setTo(r); }, [params]);
   const [subject, setSubject] = useState("");
   const [body, setBody] = useState("");
   const [done, setDone] = useState<string | null>(null);
