@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, Navigate, Route, Routes, useNavigate } from "react-router-dom";
+import { BadgePercent } from "lucide-react";
+import StudioOffersPage from "./StudioOffers";
 import {
   ArrowDownCircle, Banknote, BarChart3, CalendarClock, CalendarDays, ChevronRight, CircleCheck, CircleDot, CircleUserRound, Clock, Eye, FileText,
   Hourglass, Inbox, Landmark, Link2, Megaphone, MessageSquareText, Moon, OctagonAlert, Pencil, Send, SlidersHorizontal, Sparkles, Star, Tag, Zap, Ban,
@@ -35,6 +37,7 @@ export default function StudioOwner() {
       <Route path="bookings/past" element={studio ? <PastBookings /> : <Navigate to="/studio" replace />} />
       <Route path="payouts" element={studio ? <PayoutPage /> : <Navigate to="/studio" replace />} />
       <Route path="promotion" element={studio ? <PromotionPage /> : <Navigate to="/studio" replace />} />
+      <Route path="offers" element={studio ? <StudioOffersPage /> : <Navigate to="/studio" replace />} />
       <Route path="artist-link" element={studio ? <ArtistLinkPage /> : <Navigate to="/studio" replace />} />
     </Routes>
   );
@@ -442,6 +445,7 @@ function StudioSettings() {
           <TileLink to="/studio/edit/pricing" title="Prices" subtitle="Sessions & add-ons" icon={Tag} colors={Tiles.violet} />
           <TileLink to="/studio/edit/hours" title="Opening hours" subtitle="When you're bookable" icon={Clock} colors={Tiles.ocean} />
           <TileLink to="/studio/edit/policy" title="Booking settings" subtitle={studio.booking_policy.instant_book ? "Instant booking" : "You approve (24h)"} icon={Zap} colors={Tiles.warm} />
+          <TileLink to="/studio/offers" title="Offers & codes" subtitle="Discounts for artists" icon={BadgePercent} colors={Tiles.warm} />
           <TileLink to="/studio/promotion" title="Promotion" subtitle={Studios.isPromoted(studio) ? "Promoted now" : "Not promoted"} icon={Megaphone} colors={Tiles.signal} />
           <TileLink to="/studio/artist-link" title="Artist profile" subtitle="Connect yours" icon={Link2} colors={Tiles.violet} />
           <TileLink to="/studio/payouts" title="Payouts" subtitle="Bank details" icon={Landmark} colors={Tiles.mint} />

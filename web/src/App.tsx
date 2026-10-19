@@ -53,7 +53,7 @@ function useTabs(): Tab[] {
 
 function isActive(tab: Tab, path: string) {
   if (tab.to === "/studio") return path === "/studio" || path.startsWith("/sessions") || path.startsWith("/studio/earnings") || path.startsWith("/studio/bookings") || path.startsWith("/studio/reviews");
-  if (tab.to === "/studio/listing") return path.startsWith("/studio/listing") || path.startsWith("/studio/edit") || path.startsWith("/studio/payouts") || path.startsWith("/studio/promotion") || path.startsWith("/studio/artist-link");
+  if (tab.to === "/studio/listing") return path.startsWith("/studio/listing") || path.startsWith("/studio/edit") || path.startsWith("/studio/payouts") || path.startsWith("/studio/promotion") || path.startsWith("/studio/offers") || path.startsWith("/studio/artist-link");
   if (tab.to === "/profile") return path.startsWith("/profile") || path.startsWith("/settings") || path.startsWith("/support");
   return path === tab.to || path.startsWith(tab.to + "/");
 }

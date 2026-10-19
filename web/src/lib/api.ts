@@ -8,7 +8,7 @@ import type {
   AppNotification, ArtistProfile, ArtistReview, ArtistSearchResult, BlockState, BlockedSlot, BlockedUser, Booking, ChangelogEntry,
   ChatMessage, Conversation, FeeInvoice, FeeLedgerEntry, Interval, ModerationWarning, PaymentIntentInfo, PaymentTransaction, Payout,
   PayoutAccount, ReportReason, ReportTarget, Review, Studio, StudioArtistLink, StudioPromotion, SupportCategory, SupportMessage,
-  SupportTicket, UserAccount, UserRole, UserSettings,
+  SupportTicket, UserAccount, UserRole, UserSettings, PriceBreakdown, PromoCheck, PromoCode, StudioOffer,
 } from "./types";
 
 /** An error whose message is shown to the user (already translated). */
@@ -38,6 +38,9 @@ export function userMessage(error: unknown): string {
 }
 
 type Result<T> = { data: T | null; error: { message: string; code?: string } | null };
+/** [{ id, quantity }] for the booking RPCs. */
+const addOnList = (addOns: Record<string, number>) => Object.entries(addOns).filter(([, q]) => q > 0).map(([id, quantity]) => ({ id, quantity }));
+
 function unwrap<T>(result: Result<T>): T {
   if (result.error) throw mapMessage(result.error.message, result.error.code);
   return result.data as T;
@@ -279,11 +282,49 @@ export class Api {
   // MARK: Bookings
   // Booking actions run as database functions; steps that move card money use the Stripe edge functions.
 
-  createBooking(studioId: string, sessionTypeId: string, startsAt: Date, hours: number, addOns: Record<string, number>, notes: string) {
-    return this.rpc<Booking>("create_booking", {
+  createBooking(studioId: string, sessionTypeId: string, startsAt: Date, hours: number, addOns: Record<string, number>, notes: string, promoCode?: string | null) {
+    return this.rpc<Booking>("book_session", {
       p_studio_id: studioId, p_session_type_id: sessionTypeId, p_starts_at: startsAt.toISOString(), p_hours: hours,
-      p_add_ons: Object.entries(addOns).filter(([, q]) => q > 0).map(([id, quantity]) => ({ id, quantity })), p_notes: notes,
+      p_add_ons: addOnList(addOns), p_notes: notes, p_promo_code: promoCode || null,
     });
+  }
+
+  /** The exact price the booking will get (studio offers and promo code included). */
+  quoteBooking(studioId: string, sessionTypeId: string, hours: number, addOns: Record<string, number>, promoCode?: string | null) {
+    return this.rpc<PriceBreakdown>("quote_booking", {
+      p_studio_id: studioId, p_session_type_id: sessionTypeId, p_hours: hours, p_add_ons: addOnList(addOns), p_promo_code: promoCode || null,
+    });
+  }
+
+  checkPromoCode(studioId: string, code: string) {
+    return this.rpc<PromoCheck>("check_promo_code", { p_studio_id: studioId, p_code: code });
+  }
+
+  // MARK: Offers and promo codes (studio side)
+
+  async studioOffers(studioId: string): Promise<StudioOffer[]> {
+    return unwrap(await this.client.from("studio_offers").select("*").eq("studio_id", studioId).order("percent_off", { ascending: false }));
+  }
+  async saveOffer(offer: Omit<StudioOffer, "id" | "created_at"> & { id?: string }): Promise<StudioOffer> {
+    const { id, ...row } = offer;
+    if (id) return unwrap(await this.client.from("studio_offers").update(row).eq("id", id).select().single());
+    return unwrap(await this.client.from("studio_offers").insert(row).select().single());
+  }
+  async removeOffer(id: string): Promise<void> {
+    unwrap(await this.client.from("studio_offers").delete().eq("id", id));
+  }
+  async promoCodes(studioId: string): Promise<PromoCode[]> {
+    const codes: PromoCode[] = unwrap(await this.client.from("promo_codes").select("*").eq("studio_id", studioId).order("created_at", { ascending: false }));
+    const usage: { promo_code_id: string; uses: number }[] = unwrap(await this.client.from("promo_code_usage").select("*").in("promo_code_id", codes.map((c) => c.id)));
+    return codes.map((c) => ({ ...c, uses: usage.find((u) => u.promo_code_id === c.id)?.uses ?? 0 }));
+  }
+  async savePromoCode(code: Partial<PromoCode> & { studio_id: string }): Promise<PromoCode> {
+    const { id, uses: _u, created_at: _c, ...row } = code;
+    if (id) return unwrap(await this.client.from("promo_codes").update(row).eq("id", id).select().single());
+    return unwrap(await this.client.from("promo_codes").insert(row).select().single());
+  }
+  async removePromoCode(id: string): Promise<void> {
+    unwrap(await this.client.from("promo_codes").delete().eq("id", id));
   }
 
   private async bookingAction(rpcName: string, params: Record<string, unknown>, edge: string, body: Record<string, unknown>): Promise<Booking> {

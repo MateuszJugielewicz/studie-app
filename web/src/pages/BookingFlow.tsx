@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { BadgePercent, Tag, X } from "lucide-react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { loadStripe, type Stripe } from "@stripe/stripe-js";
 import { Elements, PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js";
@@ -12,7 +13,7 @@ import {
 } from "../lib/core";
 import { format, t } from "../lib/i18n";
 import { useApp } from "../lib/state";
-import { CANCELLATION, PAYMENT_STATUS_TITLE, PRICE_UNITS, type Booking, type Interval, type PriceBreakdown, type ServiceAddOn, type Studio } from "../lib/types";
+import { CANCELLATION, PAYMENT_STATUS_TITLE, PRICE_UNITS, type Booking, type Interval, type PriceBreakdown, type PromoCheck, type ServiceAddOn, type Studio, type StudioOffer } from "../lib/types";
 import { InfoRow, Item, Loading, MonthCalendar, Notice, PageHead, Section, Segmented, Spinner, Stepper, Toggle, useToast } from "../components/ui";
 
 let stripePromise: Promise<Stripe | null> | null = null;
@@ -33,6 +34,57 @@ export default function BookingFlow() {
 
 interface Request { studio: Studio; sessionTypeId: string; start: Date; hours: number; addOns: Record<string, number>; notes: string }
 
+/**
+ * The price the booking will actually get. Studio offers and promo codes are applied on the server,
+ * so the local quote is shown first and replaced by the server's as soon as it arrives.
+ */
+function useQuote(studio: Studio, sessionTypeId: string, hours: number, addOns: Record<string, number>, promoCode?: string | null) {
+  const sessionType = studio.session_types.find((s) => s.id === sessionTypeId);
+  const local = sessionType ? quote(studio, sessionType, hours, addOns) : null;
+  const key = JSON.stringify([sessionTypeId, hours, addOns, promoCode ?? null]);
+  const [server, setServer] = useState<{ key: string; price: PriceBreakdown } | null>(null);
+  useEffect(() => {
+    if (!sessionType) return;
+    let current = true;
+    const timer = window.setTimeout(() => {
+      api.quoteBooking(studio.id, sessionTypeId, hours, addOns, promoCode).then((price) => { if (current) setServer({ key, price }); }).catch(() => undefined);
+    }, 200);
+    return () => { current = false; window.clearTimeout(timer); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key, studio.id]);
+  return server?.key === key ? server.price : local;
+}
+
+/** "Mixing 50% off" etc., shown on the studio page and the booking page. */
+export function offerTargetName(offer: StudioOffer, studio: Studio): string {
+  switch (offer.applies_to) {
+    case "everything": return t("Everything");
+    case "sessions": return t("All sessions");
+    case "add_ons": return t("All extras");
+    case "session_type": return studio.session_types.find((s) => s.id === offer.target_id)?.name ?? t("Session");
+    case "add_on": return studio.add_ons.find((a) => a.id === offer.target_id)?.name ?? t("Extra");
+  }
+}
+
+export function OffersList({ studio, offers }: { studio: Studio; offers: StudioOffer[] }) {
+  const live = offers.filter((o) => o.is_active && (!o.ends_at || new Date(o.ends_at) > new Date()));
+  if (live.length === 0) return null;
+  return (
+    <Section header="Offers">
+      {live.map((o) => (
+        <Item key={o.id}>
+          <BadgePercent size={20} color="var(--accent)" style={{ flexShrink: 0 }} />
+          <div className="label">
+            <div className="semibold">{o.title}</div>
+            <div className="caption secondary">{format("%lld%% off · %@", o.percent_off, offerTargetName(o, studio))}{o.ends_at ? " · " + format("Until %@", Dates.abbreviated(o.ends_at)) : ""}</div>
+          </div>
+          <span className="offer-tag">−{o.percent_off}%</span>
+        </Item>
+      ))}
+    </Section>
+  );
+}
+
 function BookingDraft({ studio }: { studio: Studio }) {
   const zone = studioZone(studio);
   const [sessionTypeId, setSessionTypeId] = useState(studio.session_types[0]?.id ?? "");
@@ -45,6 +97,8 @@ function BookingDraft({ studio }: { studio: Studio }) {
   const [busy, setBusy] = useState<Interval[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(true);
   const [checkout, setCheckout] = useState<Request | null>(null);
+  const [offers, setOffers] = useState<StudioOffer[]>([]);
+  useEffect(() => { api.studioOffers(studio.id).then(setOffers).catch(() => setOffers([])); }, [studio.id]);
 
   // The chosen calendar day, as a day in the studio's time zone.
   const dayInstant = useMemo(() => zonedTime({ y: day.getFullYear(), m: day.getMonth() + 1, d: day.getDate() }, 12 * 60, zone), [day, zone]);
@@ -56,7 +110,7 @@ function BookingDraft({ studio }: { studio: Studio }) {
   useEffect(() => { if (sessionType && hours < sessionType.minimum_hours) setHours(sessionType.minimum_hours); }, [sessionType, hours]);
   const slots = useMemo(() => availableSlots(studio, dayInstant, hours, busy), [studio, dayInstant, hours, busy]);
   useEffect(() => { setSlot((s) => (s && slots.some((x) => x.start.getTime() === s.start.getTime()) ? slots.find((x) => x.start.getTime() === s.start.getTime())! : null)); }, [slots]);
-  const price = sessionType ? quote(studio, sessionType, hours, addOns) : null;
+  const price = useQuote(studio, sessionTypeId, hours, addOns);
   const today = dayIn(new Date(), zone);
   const last = new Date(today.y, today.m - 1, today.d + studio.booking_policy.max_advance_days);
 
@@ -73,6 +127,7 @@ function BookingDraft({ studio }: { studio: Studio }) {
       <PageHead title={studio.name} translate={false} />
       <div className="two-col">
         <div className="stack-lg">
+          <OffersList studio={studio} offers={offers} />
           <Section header="Session type">
             {studio.session_types.map((s) => (
               <Item key={s.id} onClick={() => setSessionTypeId(s.id)}>
@@ -144,10 +199,16 @@ export function PriceBreakdownView({ price }: { price: PriceBreakdown }) {
     <div className="stack" style={{ gap: 8, width: "100%" }}>
       <div className="row spread secondary"><span>{Money.format(price.hourly_rate, price.currency)} × {price.hours} h</span><span>{Money.format(price.session_amount, price.currency)}</span></div>
       {price.add_ons_amount > 0 && row("Add-ons", price.add_ons_amount)}
+      {(price.discounts ?? []).map((d, i) => (
+        <div key={i} className="row spread" style={{ color: "var(--positive)" }}>
+          <span className="row" style={{ gap: 6 }}><Tag size={14} />{d.kind === "offer" ? d.label : format("Code %@", d.label)} (−{d.percent}%)</span>
+          <span>−{Money.format(d.amount, price.currency)}</span>
+        </div>
+      ))}
       {price.service_fee > 0 && row("Service fee", price.service_fee)}
       <div className="divider" />
       {row("Total", price.total, true)}
-      {price.deposit_amount > 0 && <>{row("Due now (deposit + fee)", price.due_now)}{row("Charged after the session", price.due_later)}</>}
+      {price.deposit_amount > 0 && <>{row(price.service_fee > 0 ? "Due now (deposit + fee)" : "Due now (deposit)", price.due_now)}{row("Charged after the session", price.due_later)}</>}
     </div>
   );
 }
@@ -167,7 +228,18 @@ function Checkout({ request, onBack }: { request: Request; onBack: () => void })
   const [agreed, setAgreed] = useState(false);
   const [working, setWorking] = useState(false);
   const [payment, setPayment] = useState<{ booking: Booking; clientSecret: string } | null>(null);
-  const price = quote(studio, sessionType, request.hours, request.addOns);
+  const [codeInput, setCodeInput] = useState("");
+  const [promo, setPromo] = useState<PromoCheck | null>(null);
+  const [checking, setChecking] = useState(false);
+  const price = useQuote(studio, request.sessionTypeId, request.hours, request.addOns, promo?.code)!;
+
+  async function applyCode() {
+    const code = codeInput.trim();
+    if (!code) return;
+    setChecking(true);
+    try { setPromo(await api.checkPromoCode(studio.id, code)); setCodeInput(""); } catch (e) { toast(userMessage(e)); }
+    setChecking(false);
+  }
   const amount = Money.format(price.due_now, price.currency);
   const instant = studio.booking_policy.instant_book;
   const payTitle = cash ? t(instant ? "Book · pay cash at the studio" : "Request to book · pay cash") : instant ? format("Pay %@", amount) : format("Request to book · %@", amount);
@@ -176,7 +248,7 @@ function Checkout({ request, onBack }: { request: Request; onBack: () => void })
   async function pay() {
     setWorking(true);
     try {
-      const booking = await api.createBooking(studio.id, sessionType.id, request.start, request.hours, request.addOns, request.notes);
+      const booking = await api.createBooking(studio.id, sessionType.id, request.start, request.hours, request.addOns, request.notes, promo?.code);
       if (cash) {
         const confirmed = await api.confirmCashBooking(booking.id);
         await app.refreshBadges();
@@ -201,6 +273,24 @@ function Checkout({ request, onBack }: { request: Request; onBack: () => void })
               value={`${Dates.time(request.start, zone)} – ${Dates.time(new Date(request.start.getTime() + request.hours * HOUR), zone)}`} /></Item>
           </Section>
           <Section header="Payment"><Item><PriceBreakdownView price={price} /></Item></Section>
+          {!payment && (
+            <Section header="Promo code" footer={promo ? (promo.description || format("%lld%% off this booking.", promo.percent_off)) : undefined} translate={false}>
+              {promo ? (
+                <Item>
+                  <Tag size={18} color="var(--positive)" />
+                  <span className="label semibold">{promo.code} · −{promo.percent_off}%</span>
+                  <button className="tool-btn" aria-label={t("Remove")} onClick={() => setPromo(null)}><X size={18} /></button>
+                </Item>
+              ) : (
+                <Item>
+                  <input value={codeInput} placeholder={t("Enter a code")} autoCapitalize="characters" autoComplete="off" spellCheck={false}
+                    onChange={(e) => setCodeInput(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ""))} onKeyDown={(e) => { if (e.key === "Enter") void applyCode(); }}
+                    style={{ flex: 1, textTransform: "uppercase" }} maxLength={20} />
+                  <button className="btn secondary small" disabled={!codeInput.trim() || checking} onClick={applyCode}>{checking ? <Spinner /> : t("Apply")}</button>
+                </Item>
+              )}
+            </Section>
+          )}
           {cashAvailable && cardAvailable && !payment && (
             <Section header="How do you want to pay?" translate footer={cash ? format("Bring %@ in cash to your session. Paying in the app gives you automatic refunds under the cancellation policy.", Money.format(price.total, price.currency)) : undefined}>
               <div style={{ padding: 10 }}>

@@ -1,7 +1,7 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { AdminApi, StudioDecision } from "./api";
 import type {
-  FeeBalance, FeeInvoice, MfaState, ChangelogEntry, ModerationEvent, Promotion, RatingDispute, TermsStatus,
+  FeeBalance, FeeInvoice, MfaState, ChangelogEntry, ModerationEvent, Promotion, PromoCode, RatingDispute, StudioOffer, TermsStatus,
   AccountStatus, AdminUser, Booking, BookingStatus, DashboardStats, Dispute, Payout, Report, ReportStatus,
   ReportTargetDetails, Review, Studio, StudioEvent, SupportMessage, SupportStatus, SupportTicket, Transaction,
 } from "./types";
@@ -126,6 +126,31 @@ export class SupabaseAdminApi implements AdminApi {
 
   async promotions(): Promise<Promotion[]> {
     return unwrap(await this.client.from("admin_promotions").select("*").order("created_at", { ascending: false }).limit(500));
+  }
+
+  async promoCodes(): Promise<PromoCode[]> {
+    const rows = unwrap(await this.client.from("promo_codes").select("*, studios(name)").order("created_at", { ascending: false }).limit(1000)) as (PromoCode & { studios: { name: string } | null })[];
+    const usage = unwrap(await this.client.from("promo_code_usage").select("*")) as { promo_code_id: string; uses: number }[];
+    return rows.map(({ studios, ...c }) => ({ ...c, studio_name: studios?.name ?? null, uses: usage.find((u) => u.promo_code_id === c.id)?.uses ?? 0 }));
+  }
+
+  async savePromoCode(code: Partial<PromoCode>) {
+    const { id, uses: _u, studio_name: _s, created_at: _c, ...row } = code;
+    if (id) unwrap(await this.client.from("promo_codes").update(row).eq("id", id).select());
+    else unwrap(await this.client.from("promo_codes").insert(row).select());
+  }
+
+  async removePromoCode(id: string) {
+    unwrap(await this.client.from("promo_codes").delete().eq("id", id).select());
+  }
+
+  async studioOffers(): Promise<StudioOffer[]> {
+    const rows = unwrap(await this.client.from("studio_offers").select("*, studios(name)").order("created_at", { ascending: false }).limit(1000)) as (StudioOffer & { studios: { name: string } | null })[];
+    return rows.map(({ studios, ...o }) => ({ ...o, studio_name: studios?.name ?? "" }));
+  }
+
+  async setOfferActive(id: string, active: boolean) {
+    unwrap(await this.client.from("studio_offers").update({ is_active: active }).eq("id", id).select());
   }
 
   async activatePromotion(promotionId: string) {

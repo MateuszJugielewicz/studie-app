@@ -198,7 +198,24 @@ export interface PriceBreakdown {
   currency: string; hourly_rate: number; hours: number; session_amount: number; add_ons_amount: number; subtotal: number;
   service_fee: number; total: number; deposit_amount: number; due_now: number; due_later: number;
   studio_commission: number; studio_payout: number;
+  /** Discounts (server-computed): studio offers and promo codes. An EasySesh code is a negative service_fee. */
+  original_subtotal?: number; offer_discount?: number; promo_discount?: number; promo_code?: string | null;
+  discounts?: PriceDiscount[];
 }
+export interface PriceDiscount { label: string; percent: number; amount: number; kind: "offer" | "studio_code" | "easysesh_code" }
+
+/** A studio's automatic deal, e.g. "Mixing 50% off". */
+export type OfferTarget = "everything" | "sessions" | "add_ons" | "session_type" | "add_on";
+export interface StudioOffer {
+  id: string; studio_id: string; title: string; percent_off: number; applies_to: OfferTarget; target_id: string | null;
+  ends_at: string | null; is_active: boolean; created_at: string;
+}
+/** A code typed in at checkout. studio_id null = an EasySesh code (made by an admin, paid by EasySesh). */
+export interface PromoCode {
+  id: string; code: string; studio_id: string | null; percent_off: number; description: string; starts_at: string; ends_at: string | null;
+  max_uses: number | null; max_uses_per_user: number; is_active: boolean; created_at: string; uses?: number;
+}
+export interface PromoCheck { code: string; percent_off: number; description: string; by_easysesh: boolean; ends_at: string | null }
 
 export interface Booking {
   id: string;

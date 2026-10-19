@@ -404,3 +404,6 @@ html, body { max-width: 100%; }
   font-size: 14px; line-height: 1.4;
 }
 .verify-banner > span { flex: 1 1 220px; }
+
+/* Offer badge ("−50%") */
+.offer-tag { background: var(--positive); color: #fff; font-weight: 700; font-size: 13px; padding: 3px 8px; border-radius: 8px; flex-shrink: 0; }

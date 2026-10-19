@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { OffersList } from "./BookingFlow";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   CalendarDays, ChevronLeft, ChevronRight, CircleCheck, CreditCard, Flag, Globe, Hand, HandMetal, Map as MapIcon, MapPin, MessageCircle,
@@ -12,7 +13,7 @@ import {
 import { format, t } from "../lib/i18n";
 import { useLocation, directionsUrl, mapsUrl } from "../lib/location";
 import { useApp } from "../lib/state";
-import { CANCELLATION, EQUIPMENT_CATEGORIES, PRICE_UNITS, genreTitle, facilityTitle, type ArtistProfile, type Review, type Studio } from "../lib/types";
+import { CANCELLATION, EQUIPMENT_CATEGORIES, PRICE_UNITS, genreTitle, facilityTitle, type ArtistProfile, type Review, type Studio, type StudioOffer } from "../lib/types";
 import {
   AdminBadge, Avatar, Chip, ConfirmDialog, GlowHead, Loading, Photo, PromotedTag, RatingLabel, SpecialTag, VerifiedBadge, useToast,
 } from "../components/ui";
@@ -35,12 +36,14 @@ export default function StudioDetail() {
   const [showReport, setShowReport] = useState(false);
   const [confirmBlock, setConfirmBlock] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [offers, setOffers] = useState<StudioOffer[]>([]);
 
   useEffect(() => {
     (async () => {
       try {
         const loaded = await api.studio(id);
         setStudio(loaded);
+        api.studioOffers(id).then(setOffers).catch(() => undefined);
         const me = app.account?.id;
         if (me && loaded.owner_id !== me) api.blockedUsers().then((list) => setBlocked(list.some((b) => b.user_id === loaded.owner_id))).catch(() => undefined);
         api.studioArtistLink(id).then(async (link) => { if (link?.status === "accepted") setLinkedArtist(await api.artistProfile(link.artist_id)); }).catch(() => undefined);
@@ -131,6 +134,8 @@ export default function StudioDetail() {
               </div>
             </section>
           )}
+
+          <OffersList studio={studio} offers={offers} />
 
           <section className="stack" style={{ gap: 10 }}>
             <GlowHead title="Prices" />

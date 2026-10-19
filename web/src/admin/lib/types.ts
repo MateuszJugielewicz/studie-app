@@ -264,6 +264,16 @@ export interface SupportMessage {
   created_at: string;
 }
 
+/** A promo code. studio_id null = an EasySesh code (valid everywhere, EasySesh pays the discount). */
+export interface PromoCode {
+  id: string; code: string; studio_id: string | null; studio_name?: string | null; percent_off: number; description: string;
+  starts_at: string; ends_at: string | null; max_uses: number | null; max_uses_per_user: number; is_active: boolean; created_at: string; uses?: number;
+}
+export interface StudioOffer {
+  id: string; studio_id: string; studio_name?: string; title: string; percent_off: number; applies_to: string; target_id: string | null;
+  ends_at: string | null; is_active: boolean; created_at: string;
+}
+
 export interface Promotion {
   id: string;
   studio_id: string;

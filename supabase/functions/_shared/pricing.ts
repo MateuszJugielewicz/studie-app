@@ -95,7 +95,8 @@ export function refundAmount(
   const hours = (startsAt.getTime() - now.getTime()) / 3_600_000;
   const pct = refundPercent(policy, hours);
   if (pct === 100) return amountPaid;
-  return percent(Math.max(amountPaid - price.service_fee, 0), pct);
+  // A negative service_fee is an EasySesh promo code (paid by EasySesh), not something to keep back.
+  return percent(Math.max(amountPaid - Math.max(price.service_fee, 0), 0), pct);
 }
 
 /** Cash is offered when the studio allows it and no card deposit is required. */

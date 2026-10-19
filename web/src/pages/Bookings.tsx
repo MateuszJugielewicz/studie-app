@@ -251,9 +251,18 @@ export function BookingDetail() {
           <Item>
             {isStudio ? (
               <div className="stack" style={{ gap: 8, width: "100%" }}>
+                {(booking.price.discounts ?? []).filter((d) => d.kind !== "easysesh_code").length > 0 && <>
+                  <div className="row spread secondary"><span>{t("Before discounts")}</span><span>{money(booking.price.original_subtotal ?? booking.price.subtotal)}</span></div>
+                  {(booking.price.discounts ?? []).filter((d) => d.kind !== "easysesh_code").map((d, i) => (
+                    <div key={i} className="row spread secondary"><span>{d.kind === "offer" ? d.label : format("Code %@", d.label)} (−{d.percent}%)</span><span>{money(-d.amount)}</span></div>
+                  ))}
+                </>}
                 <div className="row spread secondary"><span>{t("Session price")}</span><span>{money(booking.price.subtotal)}</span></div>
                 <div className="row spread secondary"><span>{format("EasySesh platform fee (%lld%%)", feePercent)}</span><span>{money(-booking.price.studio_commission)}</span></div>
                 <div className="row spread bold"><span>{t(cash ? "Yours to keep" : "Your payout")}</span><span>{money(booking.price.studio_payout)}</span></div>
+                {(booking.price.discounts ?? []).some((d) => d.kind === "easysesh_code") && (
+                  <div className="caption secondary">{t("The artist used an EasySesh promo code. EasySesh pays that discount – your payout isn't affected.")}</div>
+                )}
               </div>
             ) : <PriceBreakdownView price={booking.price} />}
           </Item>

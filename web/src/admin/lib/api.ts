@@ -1,5 +1,5 @@
 import type {
-  FeeBalance, FeeInvoice, MfaState, ChangelogEntry, ModerationEvent, Promotion, RatingDispute, TermsStatus,
+  FeeBalance, FeeInvoice, MfaState, ChangelogEntry, ModerationEvent, Promotion, PromoCode, RatingDispute, StudioOffer, TermsStatus,
   AccountStatus, AdminUser, Booking, BookingStatus, DashboardStats, Dispute, Payout, Report, ReportStatus,
   ReportTargetDetails, Review, Studio, StudioEvent, SupportMessage, SupportStatus, SupportTicket, Transaction,
 } from "./types";
@@ -45,6 +45,13 @@ export interface AdminApi {
   cancelPromotion(promotionId: string): Promise<void>;
   grantPromotion(studioId: string, days: number, note?: string): Promise<void>;
   endPromotion(studioId: string): Promise<void>;
+
+  /** All promo codes (EasySesh's and studios'), with how often they were used. */
+  promoCodes(): Promise<PromoCode[]>;
+  savePromoCode(code: Partial<PromoCode>): Promise<void>;
+  removePromoCode(id: string): Promise<void>;
+  studioOffers(): Promise<StudioOffer[]>;
+  setOfferActive(id: string, active: boolean): Promise<void>;
 
   ratingDisputes(): Promise<RatingDispute[]>;
   resolveRatingDispute(disputeId: string, remove: boolean, note?: string): Promise<void>;

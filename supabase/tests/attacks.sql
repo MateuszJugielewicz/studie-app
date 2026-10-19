@@ -267,7 +267,8 @@ do $$ declare f text; ok boolean := true; begin
   foreach f in array array['run_booking_housekeeping()', 'run_cash_housekeeping()', 'queue_session_reminders()', 'refresh_studio_rating(uuid)',
                            'refresh_artist_rating(uuid)', 'notify(uuid,notification_kind,text,text,uuid,uuid,uuid)', 'run_fee_enforcement()', 'create_fee_invoices()',
                            'lift_expired_moderation()', 'expire_promotions()', 'is_blocked_between(uuid,uuid)', 'activate_promotion(uuid)', 'resend_api_key()',
-                           'issue_email_verification(uuid)', 'require_verified_email(uuid)']
+                           'issue_email_verification(uuid)', 'require_verified_email(uuid)',
+                           'find_promo_code(uuid,text,uuid)', 'best_offer(uuid,text,text)']
   loop
     begin
       if has_function_privilege('authenticated', f::regprocedure, 'execute') or has_function_privilege('anon', f::regprocedure, 'execute') then
@@ -342,6 +343,85 @@ do $$ begin
   perform pg_temp.result('verified user can book', true);
 exception when others then raise notice 'verified booking: %', sqlerrm; perform pg_temp.result('verified user can book', false);
 end $$;
+reset role;
+
+----------------------------------------------------------------------------------------------------
+-- Promotions: studio offers and promo codes
+----------------------------------------------------------------------------------------------------
+reset role;
+create temp table promo_results (label text, price jsonb, promo uuid);
+grant all on promo_results to authenticated, anon;
+set role authenticated;
+set request.jwt.claim.sub = '10000000-0000-0000-0000-00000000000b';
+set request.jwt.claims = '{}';
+insert into studio_offers (studio_id, title, percent_off, applies_to, target_id)
+values ('20000000-0000-0000-0000-000000000001', 'Mixing half price', 50, 'add_on', 'mix');
+insert into promo_codes (code, studio_id, percent_off) values ('attack20', '20000000-0000-0000-0000-000000000001', 20);
+do $$ begin
+  insert into studio_offers (studio_id, title, percent_off) values ('20000000-0000-0000-0000-000000000001', 'Too much', 95);
+  perform pg_temp.result('offer over 90% rejected', false);
+exception when others then perform pg_temp.result('offer over 90% rejected', true);
+end $$;
+do $$ begin
+  insert into studio_offers (studio_id, title, percent_off, applies_to, target_id) values ('20000000-0000-0000-0000-000000000001', 'Ghost', 20, 'add_on', 'nope');
+  perform pg_temp.result('offer on unknown extra rejected', false);
+exception when others then perform pg_temp.result('offer on unknown extra rejected', true);
+end $$;
+do $$ begin
+  insert into promo_codes (code, studio_id, percent_off) values ('FREEALL', null, 50);
+  perform pg_temp.result('studio cannot make EasySesh codes', false);
+exception when others then perform pg_temp.result('studio cannot make EasySesh codes', true);
+end $$;
+update promo_codes set studio_id = '20000000-0000-0000-0000-000000000002' where code = 'ATTACK20';
+select pg_temp.result('code cannot move to another studio', (select studio_id = '20000000-0000-0000-0000-000000000001' from promo_codes where code = 'ATTACK20'));
+
+-- Owner 2 can't touch owner 1's offers or codes.
+set request.jwt.claim.sub = '10000000-0000-0000-0000-0000000000b2';
+do $$ begin
+  insert into studio_offers (studio_id, title, percent_off) values ('20000000-0000-0000-0000-000000000001', 'Sabotage', 90);
+  perform pg_temp.result('cannot add offers to another studio', false);
+exception when others then perform pg_temp.result('cannot add offers to another studio', true);
+end $$;
+update studio_offers set percent_off = 90 where studio_id = '20000000-0000-0000-0000-000000000001';
+select pg_temp.result('cannot change another studio''s offers', (select percent_off = 50 from studio_offers where title = 'Mixing half price'));
+select pg_temp.result('cannot read another studio''s codes', (select count(*) = 0 from promo_codes));
+
+-- Admin makes an EasySesh code.
+set request.jwt.claim.sub = '10000000-0000-0000-0000-00000000000c';
+set request.jwt.claims = '{"aal":"aal2"}';
+insert into promo_codes (code, percent_off, max_uses) values ('EASY10', 10, 100);
+do $$ begin
+  insert into promo_codes (code, percent_off) values ('HUGE', 80);
+  perform pg_temp.result('EasySesh codes capped at 50%', false);
+exception when others then perform pg_temp.result('EasySesh codes capped at 50%', true);
+end $$;
+
+-- Artist: offer applies automatically; codes discount the price.
+set request.jwt.claim.sub = '10000000-0000-0000-0000-00000000000a';
+set request.jwt.claims = '{}';
+select pg_temp.result('artists cannot list promo codes', (select count(*) = 0 from promo_codes));
+insert into promo_results select 'offer', quote_booking('20000000-0000-0000-0000-000000000001', 'rec', 2, '[{"id":"mix","quantity":1}]'), null;
+select pg_temp.result('offer applied to mixing', (select (price ->> 'offer_discount')::int = 2500 and (price ->> 'subtotal')::int = 7500 and (price ->> 'total')::int = 7500 from promo_results where label = 'offer'));
+insert into promo_results select 'studio code', to_jsonb(b) -> 'price', b.promo_code_id from book_session('20000000-0000-0000-0000-000000000001', 'rec', date_trunc('hour', now()) + interval '13 days', 2, '[]', '', 'attack20') b;
+select pg_temp.result('studio code lowers studio price', (select (price ->> 'subtotal')::int = 4000 and (price ->> 'total')::int = 4000 and (price ->> 'studio_payout')::int = 3600 and promo is not null from promo_results where label = 'studio code'));
+do $$ begin
+  perform book_session('20000000-0000-0000-0000-000000000001', 'rec', date_trunc('hour', now()) + interval '14 days', 2, '[]', '', 'ATTACK20');
+  perform pg_temp.result('code once per artist', false);
+exception when others then perform pg_temp.result('code once per artist', sqlerrm like 'You''ve already used%');
+end $$;
+insert into promo_results select 'easysesh code', to_jsonb(b) -> 'price', b.promo_code_id from book_session('20000000-0000-0000-0000-000000000001', 'rec', date_trunc('hour', now()) + interval '15 days', 2, '[]', '', 'easy10') b;
+select pg_temp.result('EasySesh code paid by EasySesh', (select (price ->> 'subtotal')::int = 5000 and (price ->> 'total')::int = 4500 and (price ->> 'studio_payout')::int = 4500
+  and (price ->> 'service_fee')::int = -500 and (price ->> 'studio_commission')::int + (price ->> 'service_fee')::int = 0 from promo_results where label = 'easysesh code'));
+do $$ begin
+  perform book_session('20000000-0000-0000-0000-000000000001', 'rec', date_trunc('hour', now()) + interval '16 days', 1, '[]', '', 'MADEUP');
+  perform pg_temp.result('unknown code rejected', false);
+exception when others then perform pg_temp.result('unknown code rejected', true);
+end $$;
+reset role;
+update studio_offers set ends_at = now() - interval '1 minute';
+set role anon;
+set request.jwt.claim.sub = '';
+select pg_temp.result('ended offer no longer applies', (quote_booking('20000000-0000-0000-0000-000000000001', 'rec', 2, '[{"id":"mix","quantity":1}]') ->> 'offer_discount')::int = 0);
 reset role;
 
 -- Guests (signed out)
