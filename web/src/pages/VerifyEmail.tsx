@@ -62,7 +62,11 @@ export default function VerifyEmail() {
     api.verifyEmail(params.get("token") ?? "")
       .then(async (ok) => {
         setState(ok ? "done" : "failed");
-        if (ok) { const next = await api.currentAccount(); if (next) app.setAccount(next); }
+        if (!ok) return;
+        // Hide the banner straight away, then load the updated account.
+        if (app.account) app.setAccount({ ...app.account, email_verified_at: app.account.email_verified_at ?? new Date().toISOString() });
+        const next = await api.currentAccount().catch(() => null);
+        if (next?.email_verified_at) app.setAccount(next);
       })
       .catch(() => setState("failed"));
   }, [params, app]);

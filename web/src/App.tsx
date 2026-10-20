@@ -132,7 +132,9 @@ function Onboarding({ children }: { children: ReactNode }) {
   const app = useApp();
   const { pathname } = useLocation();
   const incomplete = app.account?.role === "artist" && !(app.artistProfile?.artist_name.trim() && app.artistProfile.city);
-  if (incomplete && !pathname.startsWith("/onboarding") && !pathname.startsWith("/legal") && !pathname.startsWith("/auth")) return <Navigate to="/onboarding" replace />;
+  // Links from emails (confirming the address) work before the profile is finished.
+  const exempt = ["/onboarding", "/legal", "/auth", "/verify-email"].some((p) => pathname.startsWith(p));
+  if (incomplete && !exempt) return <Navigate to="/onboarding" replace />;
   return <>{children}</>;
 }
 
