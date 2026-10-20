@@ -50,7 +50,7 @@ targets:
         UILaunchScreen:
           UIColorName: LaunchBackground
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
-        NSLocationWhenInUseUsageDescription: EasySesh uses your location to show recording studios near you and the distance to them.
+        NSLocationWhenInUseUsageDescription: EasySesh uses your location to show recording studios near you and the distance to them, and to confirm you're at the studio when you check in to a session.
         NSPhotoLibraryUsageDescription: Choose photos for your artist or studio profile.
         NSCalendarsWriteOnlyAccessUsageDescription: Add your booked sessions to your calendar.
         LSApplicationQueriesSchemes: [comgooglemaps]

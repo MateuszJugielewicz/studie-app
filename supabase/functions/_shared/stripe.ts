@@ -16,18 +16,32 @@ export async function ensureCustomer(profile: Profile): Promise<string> {
   return customer.id;
 }
 
-type Method = "card" | "apple_pay" | "google_pay";
+type Method =
+  | "card" | "apple_pay" | "google_pay" | "link" | "paypal" | "klarna" | "mobilepay" | "ideal" | "bancontact"
+  | "blik" | "eps" | "revolut_pay" | "other";
 
+/** Stripe payment method types that have their own value in the payment_method enum. */
+const NAMED_METHODS = new Set<string>(["link", "paypal", "klarna", "mobilepay", "ideal", "bancontact", "blik", "eps", "revolut_pay"]);
+
+/**
+ * Which method paid (for the booking and the receipt). Wallets are cards underneath; for the
+ * other methods "brand" is the bank or Stripe's name for the method, and last4 is empty.
+ */
 async function describeMethod(pi: Stripe.PaymentIntent): Promise<{ method: Method; brand: string | null; last4: string | null }> {
   const pmId = typeof pi.payment_method === "string" ? pi.payment_method : pi.payment_method?.id;
   if (!pmId) return { method: "card", brand: null, last4: null };
   const pm = await stripe.paymentMethods.retrieve(pmId);
-  const wallet = pm.card?.wallet?.type;
-  return {
-    method: wallet === "apple_pay" ? "apple_pay" : wallet === "google_pay" ? "google_pay" : "card",
-    brand: pm.card?.brand ?? null,
-    last4: pm.card?.last4 ?? null,
-  };
+  if (pm.type === "card") {
+    const wallet = pm.card?.wallet?.type;
+    return {
+      method: wallet === "apple_pay" ? "apple_pay" : wallet === "google_pay" ? "google_pay" : "card",
+      brand: pm.card?.brand ?? null,
+      last4: pm.card?.last4 ?? null,
+    };
+  }
+  const bank = (pm as unknown as Record<string, { bank?: string | null } | undefined>)[pm.type]?.bank ?? null;
+  if (NAMED_METHODS.has(pm.type)) return { method: pm.type as Method, brand: bank, last4: null };
+  return { method: "other", brand: pm.type.replace(/_/g, " "), last4: null };
 }
 
 /**

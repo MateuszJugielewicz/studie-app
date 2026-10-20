@@ -103,7 +103,7 @@ export interface Booking {
   cancellation_reason: string | null;
   cancelled_by: UserRole | null;
   refund_amount: number;
-  payment_method: "card" | "apple_pay" | "google_pay" | "cash" | null;
+  payment_method: "card" | "apple_pay" | "google_pay" | "cash" | "link" | "paypal" | "klarna" | "mobilepay" | "ideal" | "bancontact" | "blik" | "eps" | "revolut_pay" | "other" | null;
   created_at: string;
 }
 
@@ -138,7 +138,7 @@ export interface Transaction {
   studio_id: string;
   artist_id: string;
   kind: "charge" | "balance" | "refund";
-  method: "card" | "apple_pay" | "google_pay" | "cash";
+  method: "card" | "apple_pay" | "google_pay" | "cash" | "link" | "paypal" | "klarna" | "mobilepay" | "ideal" | "bancontact" | "blik" | "eps" | "revolut_pay" | "other";
   status: "pending" | "succeeded" | "failed";
   amount: number;
   platform_fee: number;

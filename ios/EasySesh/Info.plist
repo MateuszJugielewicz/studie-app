@@ -46,6 +46,10 @@
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>EasySeshApplePayMerchantId</key>
 	<string>$(EASYSESH_APPLE_PAY_MERCHANT_ID)</string>
+	<key>EasySeshApplePayEnabled</key>
+	<string>$(EASYSESH_APPLE_PAY_ENABLED)</string>
+	<key>EasySeshMerchantCountry</key>
+	<string>$(EASYSESH_MERCHANT_COUNTRY)</string>
 	<key>EasySeshStripePublishableKey</key>
 	<string>$(EASYSESH_STRIPE_PUBLISHABLE_KEY)</string>
 	<key>EasySeshSupabaseAnonKey</key>
@@ -63,7 +67,7 @@
 	<key>NSCalendarsWriteOnlyAccessUsageDescription</key>
 	<string>Add your booked sessions to your calendar.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>EasySesh uses your location to show recording studios near you and the distance to them.</string>
+	<string>EasySesh uses your location to show recording studios near you and the distance to them, and to confirm you're at the studio when you check in to a session.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Choose photos for your artist or studio profile.</string>
 	<key>UILaunchScreen</key>

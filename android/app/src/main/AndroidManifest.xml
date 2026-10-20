@@ -80,6 +80,10 @@
                 android:resource="@xml/file_paths" />
         </provider>
 
+        <!-- Google Pay in the Stripe payment sheet. -->
+        <meta-data
+            android:name="com.google.android.gms.wallet.api.enabled"
+            android:value="true" />
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_icon"
             android:resource="@drawable/ic_notification" />

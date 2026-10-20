@@ -6,8 +6,8 @@ import type { Promotion } from "../lib/types";
 
 type Tab = "pending" | "active" | "all";
 
-/** Studios' promotion orders. Without Stripe they arrive as "pending": invoice the studio,
- *  then activate the promotion here once it's paid. */
+/** Studios' and artists' promotion orders. They're paid on the website (Stripe) and start by themselves;
+ *  an order paid some other way can be activated here. */
 export default function PromotionsPage() {
   const api = useApi();
   const { data, loading, error, reload } = useLoad(() => api.promotions());
@@ -23,7 +23,7 @@ export default function PromotionsPage() {
   return (
     <>
       <header className="page-header"><h1>Promotions</h1></header>
-      <p className="muted">Studios buy a period at the top of search with a "Promoted" tag. Paid in the app when Stripe is set up; otherwise send an invoice and activate the order when it's paid.</p>
+      <p className="muted">Studios buy a period at the top of search, and artists a place first in the studios' artist search, both with a "Promoted" tag. They pay on the website and the promotion starts by itself; an order paid some other way can be activated here.</p>
       <Tabs<Tab>
         value={tab}
         onChange={setTab}
@@ -36,7 +36,7 @@ export default function PromotionsPage() {
       <PageState loading={loading && !data} error={error} empty={rows.length === 0}>
         <div className="card flush">
           <table>
-            <thead><tr><th>Studio</th><th>Package</th><th>Price</th><th>Status</th><th>Period</th><th>Ordered</th><th></th></tr></thead>
+            <thead><tr><th>Studio / artist</th><th>Package</th><th>Price</th><th>Status</th><th>Period</th><th>Ordered</th><th></th></tr></thead>
             <tbody>
               {rows.map((p) => (
                 <tr key={p.id}>
@@ -54,7 +54,10 @@ export default function PromotionsPage() {
                       </>
                     )}
                     {p.status === "active" && (
-                      <ActionButton kind="danger" confirm="End this studio's promotion now?" onClick={async () => { await api.endPromotion(p.studio_id); await reload(); }}>End now</ActionButton>
+                      <ActionButton kind="danger" confirm="End this promotion now?" onClick={async () => {
+                        if (p.artist_id) await api.endArtistPromotion(p.artist_id); else if (p.studio_id) await api.endPromotion(p.studio_id);
+                        await reload();
+                      }}>End now</ActionButton>
                     )}
                   </td>
                 </tr>

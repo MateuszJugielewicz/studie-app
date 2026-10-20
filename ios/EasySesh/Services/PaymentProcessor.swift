@@ -6,11 +6,21 @@ enum PaymentOutcome {
     case cancelled
 }
 
-/// Presents Stripe PaymentSheet (card + Apple Pay) for a PaymentIntent created by the
-/// `create-payment-intent` edge function. Google Pay is offered by the same sheet on Android;
-/// on iOS the wallet option is Apple Pay.
+/// Presents Stripe PaymentSheet for a PaymentIntent created by the `create-payment-intent` edge
+/// function. The sheet offers Apple Pay plus every method turned on in the Stripe dashboard that
+/// works for the amount, currency and country (cards, Link, PayPal, Klarna, MobilePay, iDEAL, …).
+/// Methods that settle days later (SEPA Debit, bank transfers) are left out, because a booking needs
+/// to know right away whether it's paid.
 @MainActor
 enum StripePaymentProcessor {
+    /// Return URL for methods that open a bank app or website; matches CFBundleURLSchemes.
+    static let returnURL = "easysesh://stripe-redirect"
+
+    /// Hands a URL opened by the app to Stripe when it belongs to a payment in progress.
+    static func handleRedirect(_ url: URL) -> Bool {
+        StripeAPI.handleURLCallback(with: url)
+    }
+
     static func pay(_ info: PaymentIntentInfo) async throws -> PaymentOutcome {
         guard let key = AppConfig.stripePublishableKey else {
             throw BackendError.paymentFailed("Stripe is not configured.")
@@ -19,8 +29,10 @@ enum StripePaymentProcessor {
 
         var configuration = PaymentSheet.Configuration()
         configuration.merchantDisplayName = "EasySesh"
-        configuration.applePay = .init(merchantId: AppConfig.applePayMerchantId, merchantCountryCode: "GR")
-        configuration.returnURL = "easysesh://stripe-redirect"
+        if AppConfig.applePayEnabled {
+            configuration.applePay = .init(merchantId: AppConfig.applePayMerchantId, merchantCountryCode: AppConfig.merchantCountry)
+        }
+        configuration.returnURL = returnURL
         configuration.style = .alwaysDark
         configuration.allowsDelayedPaymentMethods = false
         if let customerId = info.customerId, let ephemeralKey = info.ephemeralKey {

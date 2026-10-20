@@ -16,6 +16,9 @@ the privacy-manifest rules and the screenshot specifications.
 | 5.1.1(i) Privacy policy | Links pointed to easysesh.app (not your domain) | Public pages served by the `legal` edge function (see URLs below). |
 | Privacy manifest (required since May 2024) | No `PrivacyInfo.xcprivacy` | Added (UserDefaults reason CA92.1, no tracking, collected data listed). |
 | Export compliance | Missing `ITSAppUsesNonExemptEncryption` | Set to NO (the app only uses standard HTTPS). |
+| 3.1.1 / 3.1.3 Promotions | Leftover (hidden) purchase code for promotions in the app | Removed from the iPhone app; the promotion screen only shows status. Don't mention buying promotions on the website in the app, screenshots or App Store description either (that counts as steering). |
+| 3.1.5(a) / 4.9 Apple Pay | — | Sessions are real-world services, so Stripe and Apple Pay are allowed. The price, deposit and cancellation policy are shown before paying, and the Apple Pay button is Stripe's official one. Every Stripe method you turn on also shows (docs/PAYMENTS.md). |
+| 5.1.1 / privacy manifest | Check-in sends the device location to the server, but location wasn't declared | Precise location added to `PrivacyInfo.xcprivacy` and to the App Privacy answers below; the permission text now mentions check-in. |
 | 2.5.4 Background modes | Declared "remote-notification" background mode without using it | Removed (push notifications still work). Unused camera permission text removed. |
 
 ## You must do these before submitting
@@ -35,7 +38,7 @@ the privacy-manifest rules and the screenshot specifications.
 5. **Apple Developer account (paid, 99 USD/year)** → Certificates, Identifiers & Profiles:
    - App ID `com.easysesh.app` with **Sign in with Apple**, **Push Notifications** and **Apple Pay**.
    - Apple Pay merchant ID `merchant.com.easysesh.app` (and upload Stripe's Apple Pay certificate:
-     Stripe Dashboard → Settings → Payment methods → Apple Pay).
+     Stripe Dashboard → Settings → Payment methods → Apple Pay). Step by step: `docs/PAYMENTS.md`.
    - A **Key** with *Apple Push Notifications service* and *Sign in with Apple*. Download the .p8 and set
      Supabase secrets: `APNS_KEY_ID`, `APNS_TEAM_ID`, `APNS_PRIVATE_KEY`, `APNS_PRODUCTION=true` (push) and `APPLE_TEAM_ID`,
      `APPLE_KEY_ID`, `APPLE_PRIVATE_KEY` (token revocation when accounts are deleted).
@@ -47,6 +50,12 @@ the privacy-manifest rules and the screenshot specifications.
      review notes – reviewers are often in the US, far from your studios.
 7. **Build:** in Xcode select *Any iOS Device*, Product → Archive, then Distribute App → App Store
    Connect. Bump `CURRENT_PROJECT_VERSION` in `ios/project.yml` (or in Xcode) for every new upload.
+   Since April 2026 uploads must be built with **Xcode 26 / the iOS 26 SDK** (the app itself still runs
+   on iOS 17 and later).
+8. **EU trader status (Digital Services Act).** App Store Connect → Business → declare whether you're a
+   trader. As a business taking payments you are: your address, phone and email are then shown on the
+   App Store in the EU. Without it the app isn't available in the EU.
+9. **Age rating:** fill in Apple's current questionnaire (ratings 4+, 9+, 13+, 16+, 18+). See below.
 
 ## App Store Connect
 
@@ -54,13 +63,16 @@ the privacy-manifest rules and the screenshot specifications.
 - **Support URL:** `https://gdebbieifsvspszmevwa.supabase.co/functions/v1/legal/support`
 - **Terms (EULA)**: add `…/functions/v1/legal/terms` to the description, or under App Information → License Agreement.
 - **Category:** Music (secondary: Business).
-- **Age rating:** answer *Yes* to user-generated content / messaging between users. Unrestricted web
-  access: No. Gambling, violence, etc.: No.
+- **Age rating:** answer *Yes* to user-generated content and messaging between users, *Yes* to
+  in-app controls (report, block, moderation), and set the minimum age to **18+**, because the terms
+  require users to be 18 (or have a parent's permission). Unrestricted web access: No. Gambling,
+  violence, etc.: No.
 - **App Privacy** (must match `ios/EasySesh/Resources/PrivacyInfo.xcprivacy`) – data **linked to the
   user**, used for **App Functionality** only, **not used for tracking**: Name, Email, Phone number,
   Physical address (studios), User ID, Photos, Emails or text messages (chat), Other user content
   (reviews, bios), Customer support, Purchase history, Payment info (handled by Stripe), Other financial
-  info (studio payouts), Device ID (push token). Location: not collected (used on the device only).
+  info (studio payouts), Device ID (push token), Precise location (sent once when an artist checks in
+  at the studio; finding nearby studios happens on the device).
 - **Screenshots:** at least 1 (up to 10) for the iPhone *Dynamic Island* display – 1206 × 2622 or
   1179 × 2556 px, PNG/JPEG without transparency. Take them on the iPhone 16/17 Pro simulator
   (⌘S in the Simulator).
@@ -81,7 +93,10 @@ Demo accounts:
 Payments: studio sessions are real-world services used outside the app, so they are paid with
 Stripe / Apple Pay (guideline 3.1.3(e)). Test card in this build: 4242 4242 4242 4242, any future
 date, any CVC. The app sells no digital content and has no in-app purchases; studio and artist promotions are
-bought outside the app (on the website) and the app only shows their status.
+bought outside the app and the app only shows their status.
+
+Payment methods: cards, Apple Pay and other Stripe methods (e.g. Klarna, PayPal, iDEAL) in
+Stripe's payment sheet.
 
 User-generated content (guideline 1.2): users can report studios, users, reviews and messages,
 and block other users (⋯ menu in a chat or on a profile; Settings → Blocked accounts). Reports

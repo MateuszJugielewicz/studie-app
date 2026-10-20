@@ -103,7 +103,7 @@ export interface Booking {
   cancellation_reason: string | null;
   cancelled_by: UserRole | null;
   refund_amount: number;
-  payment_method: "card" | "apple_pay" | "google_pay" | "cash" | null;
+  payment_method: "card" | "apple_pay" | "google_pay" | "cash" | "link" | "paypal" | "klarna" | "mobilepay" | "ideal" | "bancontact" | "blik" | "eps" | "revolut_pay" | "other" | null;
   created_at: string;
 }
 
@@ -138,7 +138,7 @@ export interface Transaction {
   studio_id: string;
   artist_id: string;
   kind: "charge" | "balance" | "refund";
-  method: "card" | "apple_pay" | "google_pay" | "cash";
+  method: "card" | "apple_pay" | "google_pay" | "cash" | "link" | "paypal" | "klarna" | "mobilepay" | "ideal" | "bancontact" | "blik" | "eps" | "revolut_pay" | "other";
   status: "pending" | "succeeded" | "failed";
   amount: number;
   platform_fee: number;
@@ -276,7 +276,9 @@ export interface StudioOffer {
 
 export interface Promotion {
   id: string;
-  studio_id: string;
+  /** One of the two: a studio's promotion or an artist profile's. */
+  studio_id: string | null;
+  artist_id: string | null;
   studio_name: string;
   package: "week" | "two_weeks" | "month" | "custom";
   days: number;
@@ -345,4 +347,10 @@ export interface SiteBanner {
   id: string; kind: "info" | "warning" | "outage" | "success"; audience: "everyone" | "guests" | "artist" | "studio_owner";
   title: string; body: string; link_url: string | null; link_label: string | null; starts_at: string; ends_at: string | null;
   dismissible: boolean; is_active: boolean; created_at: string;
+}
+
+/** Stripe's status for each website domain (Apple Pay, Google Pay, Link and PayPal on the web). */
+export interface PaymentDomainsResult {
+  live: boolean;
+  domains: { domain: string; apple_pay: string; google_pay: string; link: string; paypal: string; error: string | null }[];
 }

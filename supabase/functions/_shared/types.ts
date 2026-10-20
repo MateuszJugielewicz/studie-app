@@ -105,7 +105,7 @@ export interface Booking {
   has_review: boolean;
   payment_intent_id: string | null;
   balance_payment_intent_id: string | null;
-  payment_method: "card" | "apple_pay" | "google_pay" | "cash" | null;
+  payment_method: PaymentMethod | null;
   changed_by: string | null;
   created_at: string;
 }
@@ -119,3 +119,13 @@ export interface Profile {
   stripe_customer_id: string | null;
   email_verified_at: string | null;
 }
+
+export type PaymentMethod =
+  | "card" | "apple_pay" | "google_pay" | "cash" | "link" | "paypal" | "klarna" | "mobilepay" | "ideal"
+  | "bancontact" | "blik" | "eps" | "revolut_pay" | "other";
+
+export const PAYMENT_METHOD_TITLE: Record<PaymentMethod, string> = {
+  card: "Card", apple_pay: "Apple Pay", google_pay: "Google Pay", cash: "Cash at the studio", link: "Link", paypal: "PayPal",
+  klarna: "Klarna", mobilepay: "MobilePay", ideal: "iDEAL", bancontact: "Bancontact", blik: "BLIK", eps: "EPS",
+  revolut_pay: "Revolut Pay", other: "Online payment",
+};

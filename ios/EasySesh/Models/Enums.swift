@@ -262,13 +262,31 @@ enum PaymentStatus: String, Codable, CaseIterable, Hashable {
     }
 }
 
+/// How a booking was paid. The online ones all go through Stripe's payment sheet, which offers every
+/// method turned on in the Stripe dashboard; "other" covers methods without their own case.
 enum PaymentMethod: String, Codable, CaseIterable, Identifiable, Hashable {
     case card
     case applePay = "apple_pay"
     case googlePay = "google_pay"
     case cash
+    case link
+    case paypal
+    case klarna
+    case mobilepay
+    case ideal
+    case bancontact
+    case blik
+    case eps
+    case revolutPay = "revolut_pay"
+    case other
 
     var id: String { rawValue }
+
+    /// Methods added on the server later still decode (as "other") in older app versions.
+    init(from decoder: Decoder) throws {
+        let raw = try decoder.singleValueContainer().decode(String.self)
+        self = PaymentMethod(rawValue: raw) ?? .other
+    }
 
     var title: String {
         switch self {
@@ -276,6 +294,16 @@ enum PaymentMethod: String, Codable, CaseIterable, Identifiable, Hashable {
         case .card: "Card"
         case .applePay: "Apple Pay"
         case .googlePay: "Google Pay"
+        case .link: "Link"
+        case .paypal: "PayPal"
+        case .klarna: "Klarna"
+        case .mobilepay: "MobilePay"
+        case .ideal: "iDEAL"
+        case .bancontact: "Bancontact"
+        case .blik: "BLIK"
+        case .eps: "EPS"
+        case .revolutPay: "Revolut Pay"
+        case .other: "Online payment"
         }
     }
 }

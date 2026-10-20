@@ -191,8 +191,14 @@ export const PAYMENT_STATUS_TITLE: Record<PaymentStatus, string> = {
   unpaid: "Unpaid", authorized: "Card authorised", deposit_paid: "Deposit paid", paid: "Paid",
   partially_refunded: "Partially refunded", refunded: "Refunded", failed: "Payment failed", pay_at_studio: "Pay cash at studio",
 };
-export type PaymentMethod = "card" | "apple_pay" | "google_pay" | "cash";
-export const PAYMENT_METHOD_TITLE: Record<PaymentMethod, string> = { card: "Card", apple_pay: "Apple Pay", google_pay: "Google Pay", cash: "Cash at the studio" };
+export type PaymentMethod =
+  | "card" | "apple_pay" | "google_pay" | "cash" | "link" | "paypal" | "klarna" | "mobilepay" | "ideal" | "bancontact"
+  | "blik" | "eps" | "revolut_pay" | "other";
+export const PAYMENT_METHOD_TITLE: Record<PaymentMethod, string> = {
+  card: "Card", apple_pay: "Apple Pay", google_pay: "Google Pay", cash: "Cash at the studio", link: "Link", paypal: "PayPal",
+  klarna: "Klarna", mobilepay: "MobilePay", ideal: "iDEAL", bancontact: "Bancontact", blik: "BLIK", eps: "EPS",
+  revolut_pay: "Revolut Pay", other: "Online payment",
+};
 
 export interface BookedAddOn { id: string; name: string; quantity: number; amount: number }
 export interface PriceBreakdown {

@@ -36,6 +36,9 @@ android {
         buildConfigField("String", "SUPABASE_URL", "\"${shared("supabaseUrl", "EASYSESH_SUPABASE_URL").ifEmpty { "https://gdebbieifsvspszmevwa.supabase.co" }}\"")
         buildConfigField("String", "SUPABASE_ANON_KEY", "\"${shared("supabaseAnonKey", "EASYSESH_SUPABASE_ANON_KEY")}\"")
         buildConfigField("String", "STRIPE_PUBLISHABLE_KEY", "\"${shared("stripePublishableKey", "EASYSESH_STRIPE_PUBLISHABLE_KEY")}\"")
+        buildConfigField("String", "MERCHANT_COUNTRY", "\"${shared("merchantCountry", "EASYSESH_MERCHANT_COUNTRY").ifEmpty { "GR" }}\"")
+        // Google Pay in the payment sheet. Live payments need Google Pay production access (docs/PAYMENTS.md).
+        buildConfigField("boolean", "GOOGLE_PAY_ENABLED", config("googlePayEnabled", "true"))
         buildConfigField("String", "GOOGLE_WEB_CLIENT_ID", "\"${config("googleWebClientId")}\"")
         buildConfigField("String", "SUPPORT_EMAIL", "\"${shared("supportEmail", "EASYSESH_SUPPORT_EMAIL")}\"")
         buildConfigField("String", "FIREBASE_PROJECT_ID", "\"${config("firebaseProjectId")}\"")

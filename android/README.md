@@ -89,12 +89,9 @@ Never put the Stripe **secret** key or the Supabase **service_role** key in the 
    # Upload app\build\outputs\bundle\release\app-release.aab in Play Console
    ```
 
-3. Play Console: privacy policy URL
-   `https://gdebbieifsvspszmevwa.supabase.co/functions/v1/legal/privacy`, Data safety form (same
-   data as the App Store privacy answers in `docs/APP_STORE_RELEASE.md`), content rating
-   (user-generated content + messaging: yes), screenshots, and a test account for review.
-4. Payments are for real-world studio sessions, so Stripe is allowed (Google Play payments policy:
-   physical goods and services). Promotions are not sold in the app.
+3. Play Console: everything Google checks (Data safety, target audience, content rating, closed
+   testing, account deletion link, …) is listed in `docs/PLAY_STORE_RELEASE.md`. Payment keys and
+   Google Pay: `docs/PAYMENTS.md`.
 
 ## Screenshots without a phone
 

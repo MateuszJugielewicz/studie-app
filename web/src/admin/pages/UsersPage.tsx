@@ -83,6 +83,7 @@ function UserModal({ user, onClose, onChanged }: { user: AdminUser; onClose: () 
   const api = useApi();
   const [resetResult, setResetResult] = useState<{ email: string; password?: string } | null>(null);
   const [copied, setCopied] = useState(false);
+  const [promoDays, setPromoDays] = useState(14);
   const isAdmin = user.role === "admin";
   const staff = useStaff();
 
@@ -118,6 +119,16 @@ function UserModal({ user, onClose, onChanged }: { user: AdminUser; onClose: () 
         </div>
       )}
       {!isAdmin && <p className="muted small">The team badge is only a label on the profile ("EasySesh team"). It gives no admin rights.</p>}
+
+      {user.role === "artist" && user.artist_name && (
+        <div className="row gap wrap">
+          <span>Artist promotion</span>
+          <input type="number" min={1} max={365} value={promoDays} onChange={(e) => setPromoDays(Number(e.target.value))} style={{ width: 90 }} />
+          <span>days</span>
+          <ActionButton kind="secondary" disabled={promoDays < 1} onClick={async () => { await api.grantArtistPromotion(user.id, promoDays, "Granted by admin"); await onChanged(); }}>Give free promotion</ActionButton>
+          <ActionButton kind="danger" confirm="End this artist's promotion now?" onClick={async () => { await api.endArtistPromotion(user.id); await onChanged(); }}>End promotion</ActionButton>
+        </div>
+      )}
 
       {resetResult && (
         <div className="card notice">

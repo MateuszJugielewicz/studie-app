@@ -2,6 +2,7 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { AdminApi, StudioDecision } from "./api";
 import { fetchWithReason } from "./reason";
 import type {
+  PaymentDomainsResult,
   FeeBalance, FeeInvoice, MfaState, ChangelogEntry, ModerationEvent, Promotion, PromoCode, RatingDispute, StudioOffer, TermsStatus,
   AuditEntry, FlagRule, SentEmail, SiteBanner, StaffMember, StaffRank,
   AccountStatus, AdminUser, Booking, BookingStatus, DashboardStats, Dispute, Payout, Report, ReportStatus,
@@ -168,6 +169,12 @@ export class SupabaseAdminApi implements AdminApi {
     return unwrap(await this.client.from("admin_audit_log").select("*").order("created_at", { ascending: false }).limit(limit));
   }
 
+  async registerPaymentDomains(): Promise<PaymentDomainsResult> {
+    const { data, error } = await this.client.functions.invoke("payment-domains", { body: {} });
+    if (error) throw new Error(await functionError(error));
+    return data;
+  }
+
   async viewAs(userId: string): Promise<{ access_token: string; refresh_token: string; email: string; role: string }> {
     const { data, error } = await this.client.functions.invoke("admin-view-as", { body: { user_id: userId } });
     if (error) throw new Error(await functionError(error));
@@ -262,6 +269,14 @@ export class SupabaseAdminApi implements AdminApi {
 
   async endPromotion(studioId: string) {
     unwrap(await this.client.rpc("admin_end_promotion", { p_studio_id: studioId }));
+  }
+
+  async grantArtistPromotion(artistId: string, days: number, note?: string) {
+    unwrap(await this.client.rpc("admin_grant_artist_promotion", { p_artist_id: artistId, p_days: days, p_note: note ?? null }));
+  }
+
+  async endArtistPromotion(artistId: string) {
+    unwrap(await this.client.rpc("admin_end_artist_promotion", { p_artist_id: artistId }));
   }
 
   async ratingDisputes(): Promise<RatingDispute[]> {

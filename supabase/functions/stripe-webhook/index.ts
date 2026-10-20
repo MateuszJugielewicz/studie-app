@@ -30,7 +30,7 @@ Deno.serve(async (req) => {
       case "payment_intent.payment_failed": {
         const intent = event.data.object;
         if (intent.metadata?.kind === "promotion") {
-          // Studio promotion paid in the app → start it.
+          // Studio or artist promotion paid on the website → start it.
           if (event.type === "payment_intent.succeeded" && intent.metadata.promotion_id) {
             const { error } = await admin.rpc("activate_promotion", { p_promotion_id: intent.metadata.promotion_id });
             if (error) throw new Error(error.message);

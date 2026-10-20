@@ -10,6 +10,11 @@ enum AppConfig {
     static var supabaseAnonKey: String? { value("EasySeshSupabaseAnonKey") }
     static var stripePublishableKey: String? { value("EasySeshStripePublishableKey") }
     static var applePayMerchantId: String { value("EasySeshApplePayMerchantId") ?? "merchant.com.easysesh.app" }
+    /// Apple Pay needs the merchant ID registered in the Apple Developer account, with Stripe's
+    /// certificate (see docs/PAYMENTS.md). Set EASYSESH_APPLE_PAY_ENABLED = NO to hide it until then.
+    static var applePayEnabled: Bool { value("EasySeshApplePayEnabled")?.uppercased() != "NO" }
+    /// Country of the Stripe account (two letters), used by Apple Pay and Google Pay.
+    static var merchantCountry: String { value("EasySeshMerchantCountry") ?? "GR" }
 
     static let redirectURL = URL(string: "easysesh://auth-callback")!
     /// Public support address (EASYSESH_SUPPORT_EMAIL in App.xcconfig). Without one, the app points

@@ -1,7 +1,12 @@
 package com.easysesh.app.model
 
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 
 // Serial names are snake_case so they map 1:1 to the Postgres enums in supabase/migrations.
 // `title` values are English keys; the UI translates them with tr().
@@ -121,12 +126,32 @@ enum class PaymentStatus(val raw: String, val title: String) {
     @SerialName("pay_at_studio") PayAtStudio("pay_at_studio", "Pay cash at studio"),
 }
 
-@Serializable
+/** How a booking was paid. Values added on the server later decode as [Other] in older app versions. */
+@Serializable(with = PaymentMethodSerializer::class)
 enum class PaymentMethod(val raw: String, val title: String) {
     @SerialName("card") Card("card", "Card"),
     @SerialName("apple_pay") ApplePay("apple_pay", "Apple Pay"),
     @SerialName("google_pay") GooglePay("google_pay", "Google Pay"),
     @SerialName("cash") Cash("cash", "Cash at the studio"),
+    @SerialName("link") Link("link", "Link"),
+    @SerialName("paypal") PayPal("paypal", "PayPal"),
+    @SerialName("klarna") Klarna("klarna", "Klarna"),
+    @SerialName("mobilepay") MobilePay("mobilepay", "MobilePay"),
+    @SerialName("ideal") Ideal("ideal", "iDEAL"),
+    @SerialName("bancontact") Bancontact("bancontact", "Bancontact"),
+    @SerialName("blik") Blik("blik", "BLIK"),
+    @SerialName("eps") Eps("eps", "EPS"),
+    @SerialName("revolut_pay") RevolutPay("revolut_pay", "Revolut Pay"),
+    @SerialName("other") Other("other", "Online payment"),
+}
+
+object PaymentMethodSerializer : KSerializer<PaymentMethod> {
+    override val descriptor = PrimitiveSerialDescriptor("PaymentMethod", PrimitiveKind.STRING)
+    override fun serialize(encoder: Encoder, value: PaymentMethod) = encoder.encodeString(value.raw)
+    override fun deserialize(decoder: Decoder): PaymentMethod {
+        val raw = decoder.decodeString()
+        return PaymentMethod.entries.firstOrNull { it.raw == raw } ?: PaymentMethod.Other
+    }
 }
 
 @Serializable

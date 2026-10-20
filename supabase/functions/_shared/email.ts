@@ -4,6 +4,12 @@
 // a key nothing is sent. Replies go to support.
 import { admin } from "./supabase.ts";
 
+const METHOD_TITLES: Record<string, string> = {
+  card: "Card", apple_pay: "Apple Pay", google_pay: "Google Pay", link: "Link", paypal: "PayPal", klarna: "Klarna",
+  mobilepay: "MobilePay", ideal: "iDEAL", bancontact: "Bancontact", blik: "BLIK", eps: "EPS", revolut_pay: "Revolut Pay",
+};
+const methodTitle = (method?: string | null) => METHOD_TITLES[method ?? ""] ?? "Online payment";
+
 const FROM = Deno.env.get("EMAIL_FROM") ?? "EasySesh <noreply@easysesh.live>";
 const REPLY_TO = Deno.env.get("EMAIL_REPLY_TO") ?? "support@easysesh.live";
 const SITE = (Deno.env.get("SITE_URL") ?? "https://easysesh.live").replace(/\/+$/, "");
@@ -116,7 +122,8 @@ export async function sendNotificationEmail(note: any, email: string | null | un
         ["Session", `${b.session_type_name} · ${b.hours} h`],
         ["When", when(b.starts_at, b.ends_at, zone)],
         ["Total", money(b.price?.total, b.price?.currency ?? "EUR")],
-        ["Payment", b.payment_method === "cash" ? "Cash at the studio" : b.payment_status === "authorized" ? "Card (charged when the studio accepts)" : "Card"],
+        ["Payment", b.payment_method === "cash" ? "Cash at the studio"
+          : b.payment_status === "authorized" ? `${methodTitle(b.payment_method)} (charged when the studio accepts)` : methodTitle(b.payment_method)],
       );
       const address = studio?.address;
       if (address?.street) rows.push(["Address", [address.street, address.postal_code, address.city].filter(Boolean).join(", ")]);

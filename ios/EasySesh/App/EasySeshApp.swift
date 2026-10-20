@@ -60,6 +60,8 @@ struct EasySeshApp: App {
                 appState.launchFinished = true
             }
             .onOpenURL { url in
+                // Back from a bank app or a redirect payment method (iDEAL, Klarna, MobilePay, …).
+                if StripePaymentProcessor.handleRedirect(url) { return }
                 Task { await appState.openAuthLink(url) }
             }
             .sheet(isPresented: $appState.needsNewPassword) {

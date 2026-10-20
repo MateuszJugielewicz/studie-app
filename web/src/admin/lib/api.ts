@@ -1,4 +1,5 @@
 import type {
+  PaymentDomainsResult,
   FeeBalance, FeeInvoice, MfaState, ChangelogEntry, ModerationEvent, Promotion, PromoCode, RatingDispute, StudioOffer, TermsStatus,
   AuditEntry, FlagRule, SentEmail, SiteBanner, StaffMember, StaffRank,
   AccountStatus, AdminUser, Booking, BookingStatus, DashboardStats, Dispute, Payout, Report, ReportStatus,
@@ -48,6 +49,8 @@ export interface AdminApi {
   cancelPromotion(promotionId: string): Promise<void>;
   grantPromotion(studioId: string, days: number, note?: string): Promise<void>;
   endPromotion(studioId: string): Promise<void>;
+  grantArtistPromotion(artistId: string, days: number, note?: string): Promise<void>;
+  endArtistPromotion(artistId: string): Promise<void>;
 
   /** The signed-in staff member and their rank (owner > admin > support). */
   currentStaff(): Promise<{ id: string; email: string; rank: StaffRank }>;
@@ -59,6 +62,7 @@ export interface AdminApi {
   /** Owners only. */
   auditLog(limit?: number): Promise<AuditEntry[]>;
   /** A read-only session as this user, for the website's "view as" mode. */
+  registerPaymentDomains(): Promise<PaymentDomainsResult>;
   viewAs(userId: string): Promise<{ access_token: string; refresh_token: string; email: string; role: string }>;
   /** Admin rank: deletes an account or a studio (upcoming bookings cancelled and refunded, person emailed). */
   deleteAccount(userId: string): Promise<{ soft: boolean; cancelled: number }>;

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { ActionButton, Badge, PageState, Stat, Tabs } from "../components";
-import type { FeeBalance } from "../lib/types";
-import { useApi, useLoad } from "../lib/apiContext";
+import type { FeeBalance, PaymentDomainsResult } from "../lib/types";
+import { useApi, useLoad, useStaff } from "../lib/apiContext";
 import { date, label, money, moneyTotals, safeUrl, sumByCurrency } from "../lib/format";
 
 type Tab = "transactions" | "fees" | "payouts" | "cash" | "invoices" | "refunds" | "failures";
@@ -14,6 +14,8 @@ export default function PaymentsPage() {
   const balances = useLoad(() => api.feeBalances());
   const invoices = useLoad(() => api.feeInvoices());
   const [tab, setTab] = useState<Tab>("transactions");
+  const me = useStaff();
+  const [domains, setDomains] = useState<PaymentDomainsResult | null>(null);
 
   const tx = transactions.data ?? [];
   const po = payouts.data ?? [];
@@ -26,6 +28,30 @@ export default function PaymentsPage() {
   return (
     <>
       <header className="page-header"><h1>Payments</h1></header>
+      {me.rank === "owner" && (
+        <div className="card">
+          <div className="row gap wrap">
+            <div className="grow">
+              <strong>Apple Pay &amp; Google Pay on the website</strong>
+              <div className="muted small">Registers easysesh.live with Stripe so wallets show in the web checkout. Run it again after switching to live Stripe keys.</div>
+            </div>
+            <ActionButton kind="secondary" onClick={async () => setDomains(await api.registerPaymentDomains())}>Register website</ActionButton>
+          </div>
+          {domains && (
+            <table>
+              <thead><tr><th>Domain ({domains.live ? "live" : "test mode"})</th><th>Apple Pay</th><th>Google Pay</th><th>Link</th><th>PayPal</th></tr></thead>
+              <tbody>
+                {domains.domains.map((d) => (
+                  <tr key={d.domain}>
+                    <td className="strong">{d.domain}{d.error && <div className="muted small">{d.error}</div>}</td>
+                    <td><Badge value={d.apple_pay} /></td><td><Badge value={d.google_pay} /></td><td><Badge value={d.link} /></td><td><Badge value={d.paypal} /></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      )}
       <section className="grid stats">
         <Stat title="Payment volume" value={moneyTotals(sumByCurrency(charges, (t) => t.currency, (t) => t.amount))} />
         <Stat title="Platform fees" value={moneyTotals(sumByCurrency(charges, (t) => t.currency, (t) => t.platform_fee))} />

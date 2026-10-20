@@ -17,8 +17,11 @@ import kotlinx.coroutines.CompletableDeferred
 enum class PaymentOutcome { Completed, Cancelled }
 
 /**
- * Presents Stripe PaymentSheet (card + Google Pay) for a PaymentIntent created by the
- * `create-payment-intent` edge function. The Android counterpart of StripePaymentProcessor on iOS.
+ * Presents Stripe PaymentSheet for a PaymentIntent created by the `create-payment-intent` edge
+ * function: Google Pay plus every method turned on in the Stripe dashboard that works for the amount,
+ * currency and country (cards, Link, PayPal, Klarna, MobilePay, iDEAL, …). Methods that settle days
+ * later (SEPA Debit, bank transfers) are left out, because a booking needs to know right away whether
+ * it's paid. The Android counterpart of StripePaymentProcessor on iOS.
  */
 class PaymentLauncher(private val sheet: PaymentSheet?) {
     private var pending: CompletableDeferred<PaymentSheetResult>? = null
@@ -37,13 +40,15 @@ class PaymentLauncher(private val sheet: PaymentSheet?) {
         val live = BuildConfig.STRIPE_PUBLISHABLE_KEY.startsWith("pk_live")
         val builder = PaymentSheet.Configuration.Builder("EasySesh")
             .allowsDelayedPaymentMethods(false)
-            .googlePay(
+        if (BuildConfig.GOOGLE_PAY_ENABLED) {
+            builder.googlePay(
                 PaymentSheet.GooglePayConfiguration(
                     environment = if (live) PaymentSheet.GooglePayConfiguration.Environment.Production else PaymentSheet.GooglePayConfiguration.Environment.Test,
-                    countryCode = "GR",
-                    currencyCode = info.currency,
+                    countryCode = BuildConfig.MERCHANT_COUNTRY,
+                    currencyCode = info.currency.uppercase(),
                 ),
             )
+        }
         if (info.customerId != null && info.ephemeralKey != null) {
             builder.customer(PaymentSheet.CustomerConfiguration(info.customerId, info.ephemeralKey))
         }
