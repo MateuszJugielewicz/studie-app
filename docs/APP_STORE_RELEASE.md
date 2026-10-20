@@ -19,6 +19,7 @@ the privacy-manifest rules and the screenshot specifications.
 | 3.1.1 / 3.1.3 Promotions | Leftover (hidden) purchase code for promotions in the app | Removed from the iPhone app; the promotion screen only shows status. Don't mention buying promotions on the website in the app, screenshots or App Store description either (that counts as steering). |
 | 3.1.5(a) / 4.9 Apple Pay | — | Sessions are real-world services, so Stripe and Apple Pay are allowed. The price, deposit and cancellation policy are shown before paying, and the Apple Pay button is Stripe's official one. Every Stripe method you turn on also shows (docs/PAYMENTS.md). |
 | 5.1.1 / privacy manifest | Check-in sends the device location to the server, but location wasn't declared | Precise location added to `PrivacyInfo.xcprivacy` and to the App Privacy answers below; the permission text now mentions check-in. |
+| 5.1.1 Camera | Stories open the camera in the app | `NSCameraUsageDescription` ("Take photos for your stories."); access is asked the first time someone makes a story, and the camera roll still works without it. |
 | 2.5.4 Background modes | Declared "remote-notification" background mode without using it | Removed (push notifications still work). Unused camera permission text removed. |
 
 ## You must do these before submitting

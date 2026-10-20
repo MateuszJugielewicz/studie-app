@@ -52,6 +52,7 @@ targets:
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
         NSLocationWhenInUseUsageDescription: EasySesh uses your location to show recording studios near you and the distance to them, and to confirm you're at the studio when you check in to a session.
         NSPhotoLibraryUsageDescription: Choose photos for your artist or studio profile.
+        NSCameraUsageDescription: Take photos for your stories.
         NSCalendarsWriteOnlyAccessUsageDescription: Add your booked sessions to your calendar.
         LSApplicationQueriesSchemes: [comgooglemaps]
         # Only standard HTTPS/TLS from the OS is used (export compliance).

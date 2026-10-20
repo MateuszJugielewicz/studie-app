@@ -524,6 +524,10 @@ select pg_temp.result('owner can clear moderation history', (select count(*) = 0
 select pg_temp.result('clearing is logged', (select count(*) > 0 from admin_audit_log where target_table = 'moderation_actions' and action = 'delete'));
 select pg_temp.result('person told history was cleared', (select count(*) > 0 from account_change_notices
   where user_id = '10000000-0000-0000-0000-0000000000a2' and changes::text like '%history was cleared%'));
+select pg_temp.result('cleared warnings leave the inbox', (select count(*) = 0 from notifications
+  where user_id = '10000000-0000-0000-0000-0000000000a2' and title = 'Warning from EasySesh'));
+select pg_temp.result('cleared warnings leave the account history', (select count(*) = 0 from account_change_notices
+  where user_id = '10000000-0000-0000-0000-0000000000a2' and changes::text like '%Moderation: Warning%'));
 select admin_warn('10000000-0000-0000-0000-0000000000a2', 'Second warning');
 
 -- The artist sees their own notice, not others'.

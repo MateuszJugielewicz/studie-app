@@ -157,6 +157,7 @@ object Symbols {
         "play.tv" to Icons.Rounded.LiveTv,
         "percent" to Icons.Rounded.Percent,
         "plus" to Icons.Rounded.Add,
+        "arrow.triangle.2.circlepath.camera" to Icons.Rounded.Cameraswitch,
         "heart" to Icons.Rounded.FavoriteBorder,
         "heart.fill" to Icons.Rounded.Favorite,
         "photo.badge.plus" to Icons.Rounded.AddPhotoAlternate,

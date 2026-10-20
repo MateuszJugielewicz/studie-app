@@ -1,5 +1,6 @@
 import SwiftUI
 import PhotosUI
+import AVFoundation
 import MapKit
 
 @MainActor
@@ -732,8 +733,8 @@ struct StoryBar: View {
         .fullScreenCover(item: $viewing, onDismiss: { Task { await load() } }) { start in
             StoryViewer(authors: start.authors, startIndex: start.index)
         }
-        .sheet(isPresented: $composing) {
-            NavigationStack { StoryComposer { Task { await load() } } }
+        .fullScreenCover(isPresented: $composing) {
+            StoryComposer { Task { await load() } }
         }
     }
 
@@ -1047,56 +1048,234 @@ struct StoryActivityView: View {
     }
 }
 
-/// Pick a photo, add an optional caption, share it as a 24-hour story.
+/// Live camera for stories (AVFoundation): back/front camera, one photo at a time.
+final class StoryCameraController: NSObject, AVCapturePhotoCaptureDelegate {
+    let session = AVCaptureSession()
+    private let output = AVCapturePhotoOutput()
+    private let queue = DispatchQueue(label: "easysesh.story-camera")
+    private var input: AVCaptureDeviceInput?
+    private(set) var position: AVCaptureDevice.Position = .back
+    private var completion: ((Data?) -> Void)?
+
+    /// Asks for camera access if needed, then starts the preview. Calls back on the main queue.
+    func start(_ done: @escaping (Bool) -> Void) {
+        let begin = { [weak self] in
+            guard let self else { return }
+            queue.async {
+                let ok = self.configure(position: self.position)
+                if ok && !self.session.isRunning { self.session.startRunning() }
+                DispatchQueue.main.async { done(ok) }
+            }
+        }
+        switch AVCaptureDevice.authorizationStatus(for: .video) {
+        case .authorized: begin()
+        case .notDetermined:
+            AVCaptureDevice.requestAccess(for: .video) { granted in
+                if granted { begin() } else { DispatchQueue.main.async { done(false) } }
+            }
+        default: done(false)
+        }
+    }
+
+    func stop() {
+        queue.async { if self.session.isRunning { self.session.stopRunning() } }
+    }
+
+    func flip() {
+        queue.async {
+            let next: AVCaptureDevice.Position = self.position == .back ? .front : .back
+            if self.configure(position: next) { self.position = next }
+        }
+    }
+
+    func capture(_ done: @escaping (Data?) -> Void) {
+        queue.async {
+            self.completion = done
+            let settings = AVCapturePhotoSettings()
+            if let connection = self.output.connection(with: .video), connection.isVideoMirroringSupported {
+                connection.isVideoMirrored = self.position == .front
+            }
+            self.output.capturePhoto(with: settings, delegate: self)
+        }
+    }
+
+    func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingPhoto photo: AVCapturePhoto, error: Error?) {
+        let data = error == nil ? photo.fileDataRepresentation() : nil
+        let done = completion
+        completion = nil
+        DispatchQueue.main.async { done?(data) }
+    }
+
+    private func configure(position: AVCaptureDevice.Position) -> Bool {
+        guard let device = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: position),
+              let newInput = try? AVCaptureDeviceInput(device: device) else { return false }
+        session.beginConfiguration()
+        defer { session.commitConfiguration() }
+        session.sessionPreset = .photo
+        if let input { session.removeInput(input) }
+        guard session.canAddInput(newInput) else {
+            if let input { session.addInput(input) }
+            return false
+        }
+        session.addInput(newInput)
+        input = newInput
+        if !session.outputs.contains(output), session.canAddOutput(output) { session.addOutput(output) }
+        return true
+    }
+}
+
+/// Shows the camera's live picture.
+private struct CameraPreview: UIViewRepresentable {
+    let session: AVCaptureSession
+
+    final class PreviewView: UIView {
+        override class var layerClass: AnyClass { AVCaptureVideoPreviewLayer.self }
+        var previewLayer: AVCaptureVideoPreviewLayer { layer as! AVCaptureVideoPreviewLayer }
+    }
+
+    func makeUIView(context: Context) -> PreviewView {
+        let view = PreviewView()
+        view.previewLayer.session = session
+        view.previewLayer.videoGravity = .resizeAspectFill
+        view.backgroundColor = .black
+        return view
+    }
+
+    func updateUIView(_ uiView: PreviewView, context: Context) {}
+}
+
+/// Making a story, like Instagram: the camera opens straight away (back camera, flip for a
+/// selfie), with a button for the camera roll. After taking or choosing a photo: add a caption
+/// and share. Without camera access it falls back to the camera roll.
 struct StoryComposer: View {
     @Environment(AppState.self) private var app
     @Environment(\.dismiss) private var dismiss
     var onPosted: () -> Void
+    @State private var camera = StoryCameraController()
+    @State private var cameraReady = false
+    @State private var cameraDenied = false
     @State private var item: PhotosPickerItem?
+    @State private var showRoll = false
     @State private var photo: Data?
     @State private var caption = ""
     @State private var isPosting = false
+    @State private var isCapturing = false
+    @State private var flash = false
     @State private var error: String?
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 14) {
-                PhotosPicker(selection: $item, matching: .images) {
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 20, style: .continuous)
-                            .strokeBorder(Color.secondary.opacity(0.4), style: StrokeStyle(lineWidth: 1.5, dash: [5, 4]))
-                            .background(Theme.card.opacity(0.6), in: RoundedRectangle(cornerRadius: 20, style: .continuous))
-                        if let photo, let image = UIImage(data: photo) {
-                            Image(uiImage: image).resizable().scaledToFill()
-                                .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-                        } else {
-                            VStack(spacing: 8) {
-                                Image(systemName: "photo.badge.plus").font(.largeTitle)
-                                Text("Choose a photo").font(.subheadline.weight(.semibold))
-                            }
-                            .foregroundStyle(.secondary)
-                        }
-                    }
-                    .aspectRatio(9.0 / 14.0, contentMode: .fit)
-                    .frame(maxHeight: 420)
+        ZStack {
+            Color.black.ignoresSafeArea()
+            if let photo, let image = UIImage(data: photo) {
+                Image(uiImage: image).resizable().scaledToFit().frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else if cameraDenied {
+                VStack(spacing: 14) {
+                    Image(systemName: "camera.fill").font(.largeTitle)
+                    Text("The camera isn't available. Allow camera access in Settings, or choose a photo from your camera roll.")
+                        .font(.subheadline).multilineTextAlignment(.center)
+                    Button("Choose a photo") { showRoll = true }.buttonStyle(.primary)
                 }
-                .onChange(of: item) { load(item) }
-                GlassField(symbol: "text.bubble", isFocused: false) {
-                    TextField("Add a caption (optional)", text: $caption)
-                        .onChange(of: caption) { if caption.count > 200 { caption = String(caption.prefix(200)) } }
-                }
-                Text("Stories are shown to people on EasySesh for 24 hours. Keep it about your music or studio – the community guidelines apply.")
-                    .font(.caption).foregroundStyle(.secondary).frame(maxWidth: .infinity, alignment: .leading)
-                Button { post() } label: { Text(isPosting ? LocalizedStringKey("Posting…") : LocalizedStringKey("Share story")) }
-                    .buttonStyle(.primary)
-                    .disabled(photo == nil || isPosting)
+                .padding(32)
+            } else {
+                CameraPreview(session: camera.session).ignoresSafeArea()
+                if !cameraReady { ProgressView().tint(.white) }
             }
-            .padding()
+            if flash { Color.white.ignoresSafeArea().transition(.opacity) }
+            VStack {
+                HStack {
+                    Button {
+                        if photo != nil { photo = nil } else { dismiss() }
+                    } label: { Image(systemName: photo != nil ? "chevron.left" : "xmark").font(.title2.weight(.semibold)) }
+                    .accessibilityLabel(photo != nil ? "Back" : "Close")
+                    Spacer()
+                    Text("New story").font(.subheadline.weight(.bold))
+                    Spacer()
+                    Color.clear.frame(width: 28, height: 28)
+                }
+                .padding(.horizontal, 16)
+                .padding(.top, 8)
+                Spacer()
+                if photo != nil { shareControls } else { cameraControls }
+            }
         }
-        .navigationTitle("New story")
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } } }
+        .foregroundStyle(.white)
+        .statusBarHidden()
+        .photosPicker(isPresented: $showRoll, selection: $item, matching: .images)
+        .onChange(of: item) { load(item) }
+        .onAppear {
+            camera.start { ok in
+                cameraReady = ok
+                cameraDenied = !ok
+            }
+        }
+        .onDisappear { camera.stop() }
         .errorAlert($error)
+    }
+
+    private var cameraControls: some View {
+        HStack {
+            Button { showRoll = true } label: {
+                Image(systemName: "photo.on.rectangle").font(.title3)
+                    .frame(width: 46, height: 46)
+                    .background(.black.opacity(0.25), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(.white.opacity(0.85), lineWidth: 2))
+            }
+            .accessibilityLabel("Camera roll")
+            Spacer()
+            Button { capture() } label: {
+                Circle().fill(.white).frame(width: 62, height: 62)
+                    .padding(5)
+                    .overlay(Circle().strokeBorder(.white, lineWidth: 4))
+                    .opacity(cameraReady && !isCapturing ? 1 : 0.4)
+            }
+            .disabled(!cameraReady || isCapturing)
+            .accessibilityLabel("Take photo")
+            .sensoryFeedback(.impact, trigger: flash)
+            Spacer()
+            Button { camera.flip() } label: {
+                Image(systemName: "arrow.triangle.2.circlepath.camera").font(.title3)
+                    .frame(width: 46, height: 46)
+                    .background(.black.opacity(0.25), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(.white.opacity(0.85), lineWidth: 2))
+            }
+            .disabled(!cameraReady)
+            .accessibilityLabel("Flip camera")
+        }
+        .padding(.horizontal, 24)
+        .padding(.bottom, 24)
+    }
+
+    private var shareControls: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            TextField("", text: $caption, prompt: Text("Add a caption (optional)").foregroundStyle(.white.opacity(0.75)))
+                .padding(.horizontal, 16)
+                .frame(height: 44)
+                .overlay(Capsule().strokeBorder(.white.opacity(0.55)))
+                .onChange(of: caption) { if caption.count > 200 { caption = String(caption.prefix(200)) } }
+            Text("Stories are shown to people on EasySesh for 24 hours. Keep it about your music or studio – the community guidelines apply.")
+                .font(.caption).opacity(0.8)
+            Button { post() } label: { Text(isPosting ? LocalizedStringKey("Posting…") : LocalizedStringKey("Share story")) }
+                .buttonStyle(.primary)
+                .disabled(isPosting)
+        }
+        .padding(.horizontal, 16)
+        .padding(.top, 30)
+        .padding(.bottom, 16)
+        .background(LinearGradient(colors: [.clear, .black.opacity(0.6)], startPoint: .top, endPoint: .bottom))
+    }
+
+    private func capture() {
+        isCapturing = true
+        withAnimation(.easeOut(duration: 0.15)) { flash = true }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) { withAnimation { flash = false } }
+        camera.capture { data in
+            isCapturing = false
+            guard let data, let jpeg = ImageCompressor.jpeg(from: data, maxDimension: 1440) else {
+                error = L10n.tr("Couldn't take the photo.")
+                return
+            }
+            photo = jpeg
+        }
     }
 
     private func load(_ item: PhotosPickerItem?) {
@@ -1104,6 +1283,7 @@ struct StoryComposer: View {
         Task {
             guard let data = try? await item.loadTransferable(type: Data.self) else { return }
             photo = ImageCompressor.jpeg(from: data, maxDimension: 1440)
+            self.item = nil
         }
     }
 

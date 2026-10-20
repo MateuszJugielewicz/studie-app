@@ -3,7 +3,7 @@
   Content-Security-Policy: frame-ancestors 'none'; base-uri 'self'; object-src 'none'
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
-  Permissions-Policy: geolocation=(self), camera=(), microphone=(), payment=(self "https://js.stripe.com" "https://pay.google.com")
+  Permissions-Policy: geolocation=(self), camera=(self), microphone=(), payment=(self "https://js.stripe.com" "https://pay.google.com")
   Strict-Transport-Security: max-age=31536000; includeSubDomains
 
 https://admin.easysesh.live/*

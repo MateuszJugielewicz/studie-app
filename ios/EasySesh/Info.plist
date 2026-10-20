@@ -64,6 +64,8 @@
 	<array>
 		<string>comgooglemaps</string>
 	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>Take photos for your stories.</string>
 	<key>NSCalendarsWriteOnlyAccessUsageDescription</key>
 	<string>Add your booked sessions to your calendar.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>

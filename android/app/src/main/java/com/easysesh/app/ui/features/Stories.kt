@@ -109,7 +109,7 @@ fun StoryBar() {
         }
     }
     viewing?.let { start -> StoryViewer(ordered, start) { viewing = null; reload++ } }
-    if (composing) Sheet({ composing = false }) { StoryComposer { reload++ } }
+    if (composing) StoryComposer(onClose = { composing = false }, onPosted = { reload++ })
 }
 
 private enum class StoryRing { New, Seen, Add }
@@ -328,52 +328,141 @@ private fun StoryActivityView(storyId: String) {
     }
 }
 
-/** Pick a photo, add an optional caption, share it as a 24-hour story. */
+/**
+ * Making a story, like Instagram: the camera opens straight away (back camera, flip for a selfie),
+ * with a button for the camera roll. After taking or choosing a photo: add a caption and share.
+ * Without camera permission it falls back to the camera roll.
+ */
 @Composable
-private fun StoryComposer(onPosted: () -> Unit) {
+private fun StoryComposer(onClose: () -> Unit, onPosted: () -> Unit) {
     val app = LocalAppState.current
-    val dismiss = LocalDismiss.current
     val context = LocalContext.current
+    val lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current
+    var hasCamera by remember {
+        mutableStateOf(androidx.core.content.ContextCompat.checkSelfPermission(context, android.Manifest.permission.CAMERA) == android.content.pm.PackageManager.PERMISSION_GRANTED)
+    }
+    var cameraDenied by remember { mutableStateOf(false) }
+    var front by remember { mutableStateOf(false) }
     var photo by remember { mutableStateOf<ByteArray?>(null) }
     var caption by remember { mutableStateOf("") }
     var isPosting by remember { mutableStateOf(false) }
+    var isCapturing by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
+    val imageCapture = remember { androidx.camera.core.ImageCapture.Builder().setCaptureMode(androidx.camera.core.ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY).build() }
+
+    val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        hasCamera = granted
+        cameraDenied = !granted
+    }
+    LaunchedEffect(Unit) { if (!hasCamera) permission.launch(android.Manifest.permission.CAMERA) }
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
         if (uri == null) return@rememberLauncherForActivityResult
         app.scope.launch { photo = withContext(Dispatchers.IO) { ImageCompressor.jpeg(context, uri, 1440, 85) } }
     }
     val preview = remember(photo) { photo?.let { bytes -> android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size)?.asImageBitmap() } }
 
-    NavScreen("New story", leading = { ToolbarButton("Cancel") { dismiss() } }) {
-        Box(Modifier.fillMaxWidth().heightIn(max = 420.dp).aspectRatio(9f / 14f).clip(RoundedCornerShape(20.dp))
-            .border(1.5.dp, Theme.secondary.copy(alpha = 0.4f), RoundedCornerShape(20.dp)).background(Theme.card.copy(alpha = 0.6f))
-            .pressable { picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
-            contentAlignment = Alignment.Center) {
-            if (preview != null) {
-                androidx.compose.foundation.Image(preview, null, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
-            } else {
-                Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Sym("photo.badge.plus", size = 34.dp, tint = Theme.secondary)
-                    T("Choose a photo", style = Type.subheadline.semibold, color = Theme.secondary)
+    fun capture() {
+        if (isCapturing) return
+        isCapturing = true
+        val file = java.io.File.createTempFile("story", ".jpg", context.cacheDir)
+        val options = androidx.camera.core.ImageCapture.OutputFileOptions.Builder(file)
+            .setMetadata(androidx.camera.core.ImageCapture.Metadata().apply { isReversedHorizontal = front })
+            .build()
+        imageCapture.takePicture(options, androidx.core.content.ContextCompat.getMainExecutor(context), object : androidx.camera.core.ImageCapture.OnImageSavedCallback {
+            override fun onImageSaved(result: androidx.camera.core.ImageCapture.OutputFileResults) {
+                app.scope.launch {
+                    photo = withContext(Dispatchers.IO) { ImageCompressor.jpeg(context, android.net.Uri.fromFile(file), 1440, 85).also { file.delete() } }
+                    isCapturing = false
+                }
+            }
+            override fun onError(exception: androidx.camera.core.ImageCaptureException) {
+                isCapturing = false
+                error = exception.message ?: tr("Couldn't take the photo.")
+            }
+        })
+    }
+
+    Dialog(onDismissRequest = onClose, properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)) {
+        Box(Modifier.fillMaxSize().background(Color.Black)) {
+            when {
+                preview != null -> androidx.compose.foundation.Image(preview, null, Modifier.fillMaxSize(), contentScale = ContentScale.Fit)
+                hasCamera -> {
+                    // Live camera preview (CameraX), rebound when switching front/back.
+                    androidx.compose.ui.viewinterop.AndroidView(
+                        factory = { ctx -> androidx.camera.view.PreviewView(ctx).apply { scaleType = androidx.camera.view.PreviewView.ScaleType.FILL_CENTER } },
+                        modifier = Modifier.fillMaxSize(),
+                        update = { view ->
+                            val providerFuture = androidx.camera.lifecycle.ProcessCameraProvider.getInstance(view.context)
+                            providerFuture.addListener({
+                                val provider = providerFuture.get()
+                                val previewUseCase = androidx.camera.core.Preview.Builder().build().also { it.surfaceProvider = view.surfaceProvider }
+                                val selector = if (front) androidx.camera.core.CameraSelector.DEFAULT_FRONT_CAMERA else androidx.camera.core.CameraSelector.DEFAULT_BACK_CAMERA
+                                runCatching {
+                                    provider.unbindAll()
+                                    provider.bindToLifecycle(lifecycleOwner, selector, previewUseCase, imageCapture)
+                                }.onFailure { error = tr("The camera isn't available.") }
+                            }, androidx.core.content.ContextCompat.getMainExecutor(view.context))
+                        },
+                    )
+                    androidx.compose.runtime.DisposableEffect(Unit) {
+                        onDispose { runCatching { androidx.camera.lifecycle.ProcessCameraProvider.getInstance(context).get().unbindAll() } }
+                    }
+                }
+                else -> Column(Modifier.align(Alignment.Center).padding(32.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                    Sym("photo.badge.plus", size = 40.dp, tint = Color.White)
+                    Txt(tr(if (cameraDenied) "The camera isn't available. Allow camera access in your settings, or choose a photo from your camera roll." else "Starting the camera…"),
+                        style = Type.subheadline, color = Color.White)
+                    PrimaryButton("Choose a photo") { picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) }
+                }
+            }
+            Row(Modifier.fillMaxWidth().statusBarsPadding().padding(horizontal = 12.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+                Sym("xmark", Modifier.pressable { if (photo != null) photo = null else onClose() }, size = 24.dp, tint = Color.White)
+                Fill()
+                T("New story", style = Type.subheadline.bold, color = Color.White)
+                Fill()
+                Box(Modifier.size(24.dp))
+            }
+            Column(
+                Modifier.align(Alignment.BottomCenter).fillMaxWidth()
+                    .background(Brush.verticalGradient(listOf(Color.Transparent, Color.Black.copy(alpha = 0.6f))))
+                    .navigationBarsPadding().padding(horizontal = 16.dp).padding(top = 30.dp, bottom = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                if (photo != null) {
+                    Box(Modifier.fillMaxWidth().height(44.dp).border(1.dp, Color.White.copy(alpha = 0.55f), CircleShape).padding(horizontal = 16.dp), contentAlignment = Alignment.CenterStart) {
+                        if (caption.isEmpty()) Txt(tr("Add a caption (optional)"), style = Type.subheadline, color = Color.White.copy(alpha = 0.75f))
+                        BasicTextField(caption, { caption = it.take(200) }, Modifier.fillMaxWidth(), singleLine = true,
+                            textStyle = Type.subheadline.copy(color = Color.White), cursorBrush = SolidColor(Color.White))
+                    }
+                    Txt(tr("Stories are shown to people on EasySesh for 24 hours. Keep it about your music or studio – the community guidelines apply."),
+                        style = Type.caption, color = Color.White.copy(alpha = 0.8f))
+                    PrimaryButton(if (isPosting) "Posting…" else "Share story", Modifier.fillMaxWidth(), enabled = !isPosting) {
+                        val data = photo ?: return@PrimaryButton
+                        isPosting = true
+                        app.scope.launch {
+                            try {
+                                app.backend.postStory(data, caption.trim())
+                                onPosted()
+                                onClose()
+                            } catch (e: Exception) { error = e.userMessage } finally { isPosting = false }
+                        }
+                    }
+                } else {
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                        Box(Modifier.size(46.dp).border(2.dp, Color.White.copy(alpha = 0.85f), RoundedCornerShape(14.dp)).clip(RoundedCornerShape(14.dp))
+                            .background(Color.Black.copy(alpha = 0.25f))
+                            .pressable { picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
+                            contentAlignment = Alignment.Center) { Sym("photo.on.rectangle", size = 22.dp, tint = Color.White) }
+                        Box(Modifier.size(76.dp).border(4.dp, Color.White, CircleShape).padding(8.dp).clip(CircleShape)
+                            .background(if (hasCamera && !isCapturing) Color.White else Color.White.copy(alpha = 0.4f))
+                            .pressable(enabled = hasCamera && !isCapturing) { capture() })
+                        Box(Modifier.size(46.dp).border(2.dp, Color.White.copy(alpha = 0.85f), RoundedCornerShape(14.dp)).clip(RoundedCornerShape(14.dp))
+                            .background(Color.Black.copy(alpha = 0.25f)).pressable(enabled = hasCamera) { front = !front },
+                            contentAlignment = Alignment.Center) { Sym("arrow.triangle.2.circlepath.camera", size = 22.dp, tint = Color.White) }
+                    }
                 }
             }
         }
-        GlassField("text.bubble", false) {
-            PlainTextField(caption, { caption = it.take(200) }, "Add a caption (optional)", Modifier.weight(1f))
-        }
-        T("Stories are shown to people on EasySesh for 24 hours. Keep it about your music or studio – the community guidelines apply.",
-            style = Type.caption, color = Theme.secondary)
-        PrimaryButton(if (isPosting) "Posting…" else "Share story", Modifier.fillMaxWidth(), enabled = photo != null && !isPosting) {
-            val data = photo ?: return@PrimaryButton
-            isPosting = true
-            app.scope.launch {
-                try {
-                    app.backend.postStory(data, caption.trim())
-                    onPosted()
-                    dismiss()
-                } catch (e: Exception) { error = e.userMessage } finally { isPosting = false }
-            }
-        }
+        ErrorAlert(error) { error = null }
     }
-    ErrorAlert(error) { error = null }
 }

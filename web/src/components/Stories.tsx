@@ -4,7 +4,7 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
-import { Eye, Flag, Heart, ImagePlus, MessageCircle, Plus, Send, Trash2, X } from "lucide-react";
+import { Eye, Flag, Heart, ImagePlus, Images, MessageCircle, Plus, Send, SwitchCamera, Trash2, X } from "lucide-react";
 import { api, userMessage } from "../lib/api";
 import { Dates } from "../lib/core";
 import { compressImage } from "../lib/image";
@@ -12,7 +12,7 @@ import { format, t } from "../lib/i18n";
 import { useApp } from "../lib/state";
 import type { Story, StoryActivity, StoryAuthor } from "../lib/types";
 import { ReportSheet } from "./social";
-import { Avatar, ConfirmDialog, PromotedTag, Sheet, Spinner, ToolButton, VerifiedBadge, useToast } from "./ui";
+import { Avatar, ConfirmDialog, PromotedTag, Sheet, Spinner, VerifiedBadge, useToast } from "./ui";
 
 const STORY_SECONDS = 6;
 
@@ -222,18 +222,62 @@ function ActivitySheet({ open, storyId, onClose }: { open: boolean; storyId: str
   );
 }
 
+/**
+ * Making a story, like Instagram: the camera opens straight away (back camera, flip to selfie),
+ * with a button for the camera roll. After taking or choosing a photo: add a caption and share.
+ * Without a camera (or permission) it falls back to the camera roll.
+ */
 export function StoryComposer({ open, onClose, onPosted }: { open: boolean; onClose: () => void; onPosted: () => void }) {
   const toast = useToast();
+  const video = useRef<HTMLVideoElement>(null);
+  const input = useRef<HTMLInputElement>(null);
+  const [stream, setStream] = useState<MediaStream | null>(null);
+  const [facing, setFacing] = useState<"environment" | "user">("environment");
+  const [cameraError, setCameraError] = useState(false);
   const [photo, setPhoto] = useState<Blob | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [caption, setCaption] = useState("");
   const [posting, setPosting] = useState(false);
-  const input = useRef<HTMLInputElement>(null);
-  useEffect(() => { if (!open) { setPhoto(null); setPreview(null); setCaption(""); } }, [open]);
+  const [flash, setFlash] = useState(false);
+
+  // Camera on while the composer is open and no photo is picked yet.
+  useEffect(() => {
+    if (!open || photo) return;
+    let cancelled = false;
+    let current: MediaStream | null = null;
+    setCameraError(false);
+    if (!navigator.mediaDevices?.getUserMedia) { setCameraError(true); return; }
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: facing, width: { ideal: 1920 }, height: { ideal: 1920 } }, audio: false })
+      .then((s) => { if (cancelled) { s.getTracks().forEach((tr) => tr.stop()); return; } current = s; setStream(s); })
+      .catch(() => { if (!cancelled) setCameraError(true); });
+    return () => { cancelled = true; current?.getTracks().forEach((tr) => tr.stop()); setStream(null); };
+  }, [open, photo, facing]);
+  useEffect(() => { if (video.current && stream) { video.current.srcObject = stream; video.current.play().catch(() => undefined); } }, [stream]);
+  useEffect(() => { if (!open) { setPhoto(null); setPreview(null); setCaption(""); setFacing("environment"); } }, [open]);
   useEffect(() => () => { if (preview) URL.revokeObjectURL(preview); }, [preview]);
+
+  async function usePhoto(blob: Blob) {
+    const file = new File([blob], "story.jpg", { type: blob.type || "image/jpeg" });
+    const small = await compressImage(file, 1440, 0.85);
+    setPhoto(small);
+    setPreview(URL.createObjectURL(small));
+  }
   async function choose(file: File | undefined) {
     if (!file) return;
-    try { const blob = await compressImage(file, 1440, 0.85); setPhoto(blob); setPreview(URL.createObjectURL(blob)); } catch (e) { toast(userMessage(e)); }
+    try { await usePhoto(file); } catch (e) { toast(userMessage(e)); }
+  }
+  function capture() {
+    const v = video.current;
+    if (!v || !v.videoWidth) return;
+    const canvas = document.createElement("canvas");
+    canvas.width = v.videoWidth;
+    canvas.height = v.videoHeight;
+    const ctx = canvas.getContext("2d")!;
+    if (facing === "user") { ctx.translate(canvas.width, 0); ctx.scale(-1, 1); } // selfies are saved as you see them
+    ctx.drawImage(v, 0, 0);
+    setFlash(true);
+    window.setTimeout(() => setFlash(false), 180);
+    canvas.toBlob((blob) => { if (blob) usePhoto(blob).catch((e) => toast(userMessage(e))); }, "image/jpeg", 0.92);
   }
   async function post() {
     if (!photo) return;
@@ -241,18 +285,47 @@ export function StoryComposer({ open, onClose, onPosted }: { open: boolean; onCl
     try { await api.postStory(photo, caption.trim()); toast(t("Your story is up for 24 hours."), "info"); onPosted(); } catch (e) { toast(userMessage(e)); }
     setPosting(false);
   }
+  if (!open) return null;
+
   return (
-    <Sheet open={open} onClose={onClose} title="New story" closeLabel="Cancel"
-      actions={<ToolButton title={posting ? "Posting…" : "Share"} bold disabled={!photo || posting} onClick={post} />}>
-      <div className="stack">
-        <input ref={input} type="file" accept="image/*" hidden onChange={(e) => choose(e.target.files?.[0])} />
-        <button className="story-pick" onClick={() => input.current?.click()} style={preview ? { backgroundImage: `url(${preview})` } : undefined}>
-          {!preview && <><ImagePlus size={32} /><span className="subhead semibold">{t("Choose a photo")}</span></>}
-        </button>
-        <label className="field"><input placeholder={t("Add a caption (optional)")} value={caption} maxLength={200} onChange={(e) => setCaption(e.target.value)} /></label>
-        <div className="caption secondary">{t("Stories are shown to people on EasySesh for 24 hours. Keep it about your music or studio – the community guidelines apply.")}</div>
-        <button className="btn primary block" disabled={!photo || posting} onClick={post}>{posting ? <Spinner /> : t("Share story")}</button>
+    <Overlay>
+      <div className="story-stage">
+        <input ref={input} type="file" accept="image/*" hidden onChange={(e) => { choose(e.target.files?.[0]); e.target.value = ""; }} />
+        {preview ? (
+          <img src={preview} alt="" className="story-media" />
+        ) : cameraError ? (
+          <div className="story-media center stack" style={{ gap: 14, padding: 32, textAlign: "center" }}>
+            <ImagePlus size={40} />
+            <div className="subhead">{t("The camera isn't available. Allow camera access in your browser settings, or choose a photo from your camera roll.")}</div>
+            <button className="btn primary" onClick={() => input.current?.click()}>{t("Choose a photo")}</button>
+          </div>
+        ) : (
+          <video ref={video} className="story-media" playsInline muted autoPlay style={{ objectFit: "cover", transform: facing === "user" ? "scaleX(-1)" : undefined }} />
+        )}
+        {flash && <div className="story-flash" />}
+        <div className="story-top">
+          <div className="row" style={{ gap: 10 }}>
+            <button className="story-icon" aria-label={t(preview ? "Back" : "Close")} onClick={() => (preview ? (setPhoto(null), setPreview(null)) : onClose())}><X size={24} /></button>
+            <span className="grow center subhead bold">{t("New story")}</span>
+            <span style={{ width: 44 }} />
+          </div>
+        </div>
+        <div className="story-bottom">
+          {preview ? (
+            <>
+              <input className="story-reply" placeholder={t("Add a caption (optional)")} value={caption} maxLength={200} onChange={(e) => setCaption(e.target.value)} />
+              <div className="caption" style={{ opacity: 0.8 }}>{t("Stories are shown to people on EasySesh for 24 hours. Keep it about your music or studio – the community guidelines apply.")}</div>
+              <button className="btn primary block" disabled={posting} onClick={post}>{posting ? <Spinner /> : t("Share story")}</button>
+            </>
+          ) : (
+            <div className="story-camera-controls">
+              <button className="story-roll" aria-label={t("Camera roll")} onClick={() => input.current?.click()}><Images size={22} /></button>
+              <button className="story-shutter" aria-label={t("Take photo")} disabled={!stream} onClick={capture}><span /></button>
+              <button className="story-roll" aria-label={t("Flip camera")} disabled={cameraError} onClick={() => setFacing(facing === "user" ? "environment" : "user")}><SwitchCamera size={22} /></button>
+            </div>
+          )}
+        </div>
       </div>
-    </Sheet>
+    </Overlay>
   );
 }

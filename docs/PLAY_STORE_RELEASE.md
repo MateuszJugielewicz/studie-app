@@ -12,7 +12,7 @@ the target API level, 16 KB page size, account deletion, Data safety and payment
 | Payments policy | Studio sessions are real-world services, so Stripe (cards, Google Pay, Klarna, PayPal, …) is allowed instead of Google Play Billing. Promotions are a digital service, so the app doesn't sell them and doesn't link or point to where they're sold. Keep it that way in the store listing too. |
 | User-generated content | Report studios, users, reviews and messages; block users; automatic flags for minors, off-platform payments and illegal content; a moderation team that can warn, suspend and ban; zero-tolerance terms. |
 | Account deletion | In the app (Settings → Delete account) **and** on the web (sign in at https://easysesh.live → Settings → Delete account). Play asks for that web link. |
-| Permissions | Only location (nearby studios, check-in), notifications (asked at runtime on Android 13+) and internet. Photos are picked with the system photo picker, so there's no photo/media permission to justify. No background location. |
+| Permissions | Only location (nearby studios, check-in), camera (asked only when someone makes a story), notifications (asked at runtime on Android 13+) and internet. Photos are picked with the system photo picker, so there's no photo/media permission to justify. No background location. |
 | Edge-to-edge (enforced from Android 15) | Enabled (`enableEdgeToEdge()`). |
 | Google Pay | `com.google.android.gms.wallet.api.enabled` is in the manifest; production mode turns on with the live Stripe key (`docs/PAYMENTS.md`). |
 | Sign-in | Google (Credential Manager) and email. A demo account is needed for review (below). |
