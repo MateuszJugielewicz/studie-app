@@ -2833,6 +2833,65 @@
         }
       }
     },
+    "A studio can show up to 10 artist profiles.": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Et studie kan vise op til 10 kunstnerprofiler."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ein Studio kann bis zu 10 Artist-Profile zeigen."
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ένα στούντιο μπορεί να εμφανίζει έως 10 προφίλ καλλιτεχνών."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un estudio puede mostrar hasta 10 perfiles de artista."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un studio peut afficher jusqu'à 10 profils d'artistes."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uno studio può mostrare fino a 10 profili artista."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Een studio kan tot 10 artiestenprofielen tonen."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Studio może pokazać do 10 profili artystów."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En studio kan visa upp till 10 artistprofiler."
+          }
+        }
+      }
+    },
     "A studio wants to connect": {
       "extractionState": "manual",
       "localizations": {
@@ -4363,6 +4422,65 @@
           "stringUnit": {
             "state": "translated",
             "value": "Lägg till en giltig e-postadress."
+          }
+        }
+      }
+    },
+    "Add another artist profile": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tilføj endnu en kunstnerprofil"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weiteres Artist-Profil hinzufügen"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Πρόσθεσε κι άλλο προφίλ καλλιτέχνη"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Añadir otro perfil de artista"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajouter un autre profil d'artiste"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aggiungi un altro profilo artista"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nog een artiestenprofiel toevoegen"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dodaj kolejny profil artysty"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lägg till en artistprofil till"
           }
         }
       }
@@ -6845,6 +6963,65 @@
         }
       }
     },
+    "Are you artists too? Connect the artist profiles of the people behind the studio (co-owners included): they're shown on your studio page, and your studio on their profiles.": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Er I også kunstnere? Tilknyt kunstnerprofilerne for folkene bag studiet (også medejere): de vises på jeres studieside, og studiet på deres profiler."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seid ihr auch Künstler? Verbinde die Artist-Profile der Leute hinter dem Studio (auch Mitinhaber): Sie erscheinen auf eurer Studioseite und das Studio auf ihren Profilen."
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Είστε κι εσείς καλλιτέχνες; Σύνδεσε τα προφίλ καλλιτεχνών των ανθρώπων πίσω από το στούντιο (και των συνιδιοκτητών): εμφανίζονται στη σελίδα του στούντιο και το στούντιο στα προφίλ τους."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¿También sois artistas? Conecta los perfiles de artista de las personas detrás del estudio (copropietarios incluidos): aparecen en la página del estudio y el estudio en sus perfiles."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vous êtes aussi artistes ? Reliez les profils d'artistes des personnes derrière le studio (copropriétaires compris) : ils apparaissent sur la page du studio, et le studio sur leurs profils."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Siete anche artisti? Collega i profili artista delle persone dietro lo studio (contitolari compresi): appaiono sulla pagina dello studio e lo studio sui loro profili."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zijn jullie ook artiesten? Koppel de artiestenprofielen van de mensen achter de studio (mede-eigenaren inbegrepen): ze verschijnen op de studiopagina en de studio op hun profielen."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jesteście też artystami? Połącz profile artystów osób stojących za studiem (także współwłaścicieli): pojawią się na stronie studia, a studio na ich profilach."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Är ni också artister? Koppla artistprofilerna för personerna bakom studion (även delägare): de visas på er studiosida och studion på deras profiler."
+          }
+        }
+      }
+    },
     "Area / neighbourhood": {
       "extractionState": "manual",
       "localizations": {
@@ -7195,6 +7372,65 @@
           "stringUnit": {
             "state": "translated",
             "value": "Artistprofil"
+          }
+        }
+      }
+    },
+    "Artist profiles": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kunstnerprofiler"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Artist-Profile"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Προφίλ καλλιτεχνών"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Perfiles de artista"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profils d'artistes"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profili artista"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Artiestenprofielen"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profile artystów"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Artistprofiler"
           }
         }
       }
@@ -19585,6 +19821,65 @@
           "stringUnit": {
             "state": "translated",
             "value": "Längd"
+          }
+        }
+      }
+    },
+    "Each artist has to confirm the connection from their own profile.": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hver kunstner skal bekræfte tilknytningen fra sin egen profil."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jeder Künstler muss die Verbindung in seinem eigenen Profil bestätigen."
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Κάθε καλλιτέχνης πρέπει να επιβεβαιώσει τη σύνδεση από το δικό του προφίλ."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cada artista tiene que confirmar la conexión desde su propio perfil."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chaque artiste doit confirmer le lien depuis son propre profil."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ogni artista deve confermare il collegamento dal proprio profilo."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elke artiest moet de koppeling bevestigen vanuit het eigen profiel."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Każdy artysta musi potwierdzić połączenie na swoim profilu."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Varje artist måste bekräfta kopplingen från sin egen profil."
           }
         }
       }
@@ -36522,6 +36817,65 @@
         }
       }
     },
+    "Owners & team": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ejere og team"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inhaber & Team"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ιδιοκτήτες και ομάδα"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Propietarios y equipo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Propriétaires et équipe"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Titolari e team"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eigenaren en team"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Właściciele i zespół"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ägare och team"
+          }
+        }
+      }
+    },
     "Page %lld of %lld": {
       "extractionState": "manual",
       "localizations": {
@@ -47374,6 +47728,65 @@
           "stringUnit": {
             "state": "translated",
             "value": "Sök artister"
+          }
+        }
+      }
+    },
+    "Search by artist name": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Søg efter kunstnernavn"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nach Künstlername suchen"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Αναζήτηση με όνομα καλλιτέχνη"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buscar por nombre artístico"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rechercher par nom d'artiste"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cerca per nome d'arte"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zoeken op artiestennaam"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Szukaj po nazwie artysty"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sök på artistnamn"
           }
         }
       }

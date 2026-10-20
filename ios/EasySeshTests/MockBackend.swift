@@ -27,7 +27,7 @@ final class MockBackend: Backend {
     private var supportTicketsById: [UUID: SupportTicket] = [:]
     private var promotionsById: [UUID: StudioPromotion] = [:]
     private var artistReviewsById: [UUID: ArtistReview] = [:]
-    private var studioLinks: [UUID: StudioArtistLink] = [:]
+    private var studioLinks: [StudioArtistLink] = []
     private var supportMessagesById: [UUID: SupportMessage] = [:]
     private var streams: [UUID: [UUID: AsyncStream<ChatMessage>.Continuation]] = [:]
     private var currentUserId: UUID?
@@ -1007,28 +1007,39 @@ final class MockBackend: Backend {
 
     // MARK: Studio ↔ artist profile
 
-    func studioArtistLink(studioId: UUID) async throws -> StudioArtistLink? { studioLinks[studioId] }
+    func studioArtistLinks(studioId: UUID) async throws -> [StudioArtistLink] {
+        studioLinks.filter { $0.studioId == studioId }
+    }
 
     func artistStudioLinks(artistId: UUID) async throws -> [StudioArtistLink] {
-        studioLinks.values.filter { $0.artistId == artistId }
+        studioLinks.filter { $0.artistId == artistId }
     }
 
     func requestStudioArtistLink(artistId: UUID) async throws -> StudioArtistLink {
         let user = try requireUser()
         guard let studio = studios.values.first(where: { $0.ownerId == user.id }) else { throw BackendError.forbidden }
         _ = try requireApprovedOwner(of: studio.id)
+        if let existing = studioLinks.first(where: { $0.studioId == studio.id && $0.artistId == artistId }) { return existing }
+        guard studioLinks.filter({ $0.studioId == studio.id }).count < 10 else {
+            throw BackendError.validation("A studio can show up to 10 artist profiles.")
+        }
         let link = StudioArtistLink(studioId: studio.id, artistId: artistId, status: "pending", createdAt: .now)
-        studioLinks[studio.id] = link
+        studioLinks.append(link)
         return link
     }
 
     func respondStudioArtistLink(studioId: UUID, accept: Bool) async throws {
         let user = try requireUser()
-        guard studioLinks[studioId]?.artistId == user.id else { throw BackendError.notFound }
-        if accept { studioLinks[studioId]?.status = "accepted" } else { studioLinks[studioId] = nil }
+        guard let index = studioLinks.firstIndex(where: { $0.studioId == studioId && $0.artistId == user.id }) else { throw BackendError.notFound }
+        if accept { studioLinks[index].status = "accepted" } else { studioLinks.remove(at: index) }
     }
 
-    func removeStudioArtistLink(studioId: UUID) async throws { studioLinks[studioId] = nil }
+    func removeStudioArtistLink(studioId: UUID, artistId: UUID) async throws {
+        let user = try requireUser()
+        let isOwner = studios[studioId]?.ownerId == user.id
+        guard isOwner || artistId == user.id else { throw BackendError.forbidden }
+        studioLinks.removeAll { $0.studioId == studioId && $0.artistId == artistId }
+    }
 
     // MARK: Blocking
 

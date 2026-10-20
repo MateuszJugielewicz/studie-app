@@ -296,59 +296,89 @@ function PromotionPaymentForm({ promotion, returnPath, onPaid, onCancel }: { pro
   );
 }
 
-// MARK: Artist profile link
+// MARK: Artist profiles
 
-/** A studio shows its owner's artist profile on its page (and the studio on the artist profile) once the artist confirms. */
+/**
+ * The artist profiles a studio shows on its page (and the studio on theirs): the owner's own, and
+ * co-owners' or in-house artists'. Each artist confirms from their own profile. Up to 10.
+ */
 export function ArtistLinkPage() {
   const app = useApp();
   const toast = useToast();
   const studio = app.ownedStudio!;
-  const [link, setLink] = useState<StudioArtistLink | null | undefined>(undefined);
-  const [artist, setArtist] = useState<ArtistProfile | null>(null);
+  const [links, setLinks] = useState<StudioArtistLink[] | undefined>(undefined);
+  const [artists, setArtists] = useState<Record<string, ArtistProfile>>({});
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<ArtistSearchResult[]>([]);
   const [working, setWorking] = useState(false);
-  useEffect(() => {
-    api.studioArtistLink(studio.id).then(async (l) => { setLink(l); if (l) setArtist(await api.artistProfile(l.artist_id).catch(() => null)); }).catch((e) => { toast(userMessage(e)); setLink(null); });
+  const [adding, setAdding] = useState(false);
+
+  const load = useCallback(async () => {
+    try {
+      const list = await api.studioArtistLinks(studio.id);
+      setLinks(list);
+      const profiles = await Promise.all(list.map((l) => api.artistProfile(l.artist_id).catch(() => null)));
+      setArtists(Object.fromEntries(profiles.filter((p): p is ArtistProfile => !!p).map((p) => [p.id, p])));
+    } catch (e) { toast(userMessage(e)); setLinks([]); }
   }, [studio.id, toast]);
+  useEffect(() => { load(); }, [load]);
   useEffect(() => {
     if (query.length < 2) { setResults([]); return; }
     const timer = window.setTimeout(() => api.searchArtists(query).then(setResults).catch(() => setResults([])), 250);
     return () => window.clearTimeout(timer);
   }, [query]);
+
   async function request(a: ArtistSearchResult) {
     setWorking(true);
-    try { setLink(await api.requestStudioArtistLink(a.id)); setArtist(await api.artistProfile(a.id).catch(() => null)); } catch (e) { toast(userMessage(e)); }
+    try { await api.requestStudioArtistLink(a.id); setQuery(""); setAdding(false); await load(); } catch (e) { toast(userMessage(e)); }
     setWorking(false);
   }
-  async function remove() {
+  async function remove(link: StudioArtistLink) {
     setWorking(true);
-    try { await api.removeStudioArtistLink(studio.id); setLink(null); setArtist(null); } catch (e) { toast(userMessage(e)); }
+    try { await api.removeStudioArtistLink(studio.id, link.artist_id); await load(); } catch (e) { toast(userMessage(e)); }
     setWorking(false);
   }
+  const linkedIds = new Set((links ?? []).map((l) => l.artist_id));
+  const showSearch = links !== undefined && (links.length === 0 || adding) && links.length < 10;
+
   return (
     <main className="page narrow">
-      <PageHead title="Artist profile" />
+      <PageHead title="Artist profiles" />
       <div className="stack">
-        <div className="row top"><IconTile icon={Link2} size={48} colors={Tiles.violet} /><div><div style={{ fontSize: 26, fontWeight: 800 }}>{t("Your artist profile")}</div><div className="subhead secondary">{t("Are you an artist too? Connect your artist profile: it's shown on your studio page, and your studio on your artist profile.")}</div></div></div>
-        {link === undefined ? <Loading /> : link ? (
-          <div className="card stack">
-            <div className="row"><Avatar url={artist?.avatar_url} name={artist?.artist_name ?? "?"} size={48} /><div><div className="headline">{artist?.artist_name ?? "…"}</div><div className="caption" style={{ color: link.status === "accepted" ? "var(--positive)" : "var(--text-2)" }}>{t(link.status === "accepted" ? "Connected" : "Waiting for the artist to confirm in their profile")}</div></div></div>
-            {link.status === "accepted" && <Link to={`/artists/${link.artist_id}`} className="row subhead semibold accent" style={{ gap: 6 }}><UserRound size={16} />{t("View artist profile")}</Link>}
-            <button className="btn danger block" disabled={working} onClick={remove}>{t(link.status === "accepted" ? "Remove connection" : "Cancel request")}</button>
-          </div>
-        ) : (
+        <div className="row top"><IconTile icon={Link2} size={48} colors={Tiles.violet} /><div><div style={{ fontSize: 26, fontWeight: 800 }}>{t("Artist profiles")}</div><div className="subhead secondary">{t("Are you artists too? Connect the artist profiles of the people behind the studio (co-owners included): they're shown on your studio page, and your studio on their profiles.")}</div></div></div>
+        {links === undefined ? <Loading /> : (
           <>
-            <label className="field"><Search size={18} /><input placeholder={t("Search your artist name")} value={query} onChange={(e) => setQuery(e.target.value)} autoCapitalize="none" /></label>
-            <div className="caption secondary">{t("The artist has to confirm the connection from their profile, so only your own profile can be connected.")}</div>
-            {query.length >= 2 && results.length === 0 && <Empty icon={Search} title="No artists found." />}
-            {results.map((a) => (
-              <div key={a.id} className="card tight row">
-                <Avatar url={a.avatar_url} name={a.artist_name} size={42} />
-                <div className="grow"><div className="row subhead semibold" style={{ gap: 4 }}>{a.artist_name}{a.is_verified && <VerifiedBadge />}{a.has_admin_badge && <AdminBadge compact />}</div>{a.city && <div className="caption secondary">{a.city}</div>}</div>
-                <button className="btn primary small" disabled={working} onClick={() => request(a)}>{t("Connect")}</button>
-              </div>
-            ))}
+            {links.map((link) => {
+              const artist = artists[link.artist_id];
+              return (
+                <div key={link.artist_id} className="card stack">
+                  <div className="row">
+                    <Avatar url={artist?.avatar_url} name={artist?.artist_name ?? "?"} size={48} />
+                    <div className="grow"><div className="headline">{artist?.artist_name ?? "…"}</div><div className="caption" style={{ color: link.status === "accepted" ? "var(--positive)" : "var(--text-2)" }}>{t(link.status === "accepted" ? "Connected" : "Waiting for the artist to confirm in their profile")}</div></div>
+                    {link.status === "accepted" && <Link to={`/artists/${link.artist_id}`} className="icon-btn" aria-label={t("View artist profile")}><UserRound size={16} /></Link>}
+                  </div>
+                  <button className="btn danger block" disabled={working} onClick={() => remove(link)}>{t(link.status === "accepted" ? "Remove connection" : "Cancel request")}</button>
+                </div>
+              );
+            })}
+            {links.length > 0 && !adding && links.length < 10 && (
+              <button className="btn block" onClick={() => setAdding(true)}>{t("Add another artist profile")}</button>
+            )}
+            {showSearch && (
+              <>
+                <label className="field"><Search size={18} /><input placeholder={t("Search by artist name")} value={query} onChange={(e) => setQuery(e.target.value)} autoCapitalize="none" autoFocus={adding} /></label>
+                <div className="caption secondary">{t("Each artist has to confirm the connection from their own profile.")}</div>
+                {query.length >= 2 && results.length === 0 && <Empty icon={Search} title="No artists found." />}
+                {results.filter((a) => !linkedIds.has(a.id)).map((a) => (
+                  <div key={a.id} className="card tight row">
+                    <Avatar url={a.avatar_url} name={a.artist_name} size={42} />
+                    <div className="grow"><div className="row subhead semibold" style={{ gap: 4 }}>{a.artist_name}{a.is_verified && <VerifiedBadge />}{a.has_admin_badge && <AdminBadge compact />}</div>{a.city && <div className="caption secondary">{a.city}</div>}</div>
+                    <button className="btn primary small" disabled={working} onClick={() => request(a)}>{t("Connect")}</button>
+                  </div>
+                ))}
+              </>
+            )}
+            {links.length >= 10 && <div className="caption secondary">{t("A studio can show up to 10 artist profiles.")}</div>}
           </>
         )}
       </div>

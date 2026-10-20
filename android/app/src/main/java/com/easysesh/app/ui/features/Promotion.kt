@@ -1,10 +1,12 @@
 package com.easysesh.app.ui.features
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -119,27 +121,33 @@ fun PromotionView(studio: Studio) {
 }
 
 /**
- * A studio shows its owner's artist profile on its page (and the studio appears on the artist
- * profile) once the artist confirms.
+ * The artist profiles a studio shows on its page (and the studio on theirs): the owner's own, and
+ * co-owners' or in-house artists'. Each artist confirms from their own profile. Up to 10.
  */
 @Composable
 fun StudioArtistLinkView(studio: Studio) {
     val app = LocalAppState.current
     val navigator = LocalNavigator.current
-    var link by remember { mutableStateOf<StudioArtistLink?>(null) }
-    var linkedArtist by remember { mutableStateOf<ArtistProfile?>(null) }
+    var links by remember { mutableStateOf<List<StudioArtistLink>?>(null) }
+    var artists by remember { mutableStateOf<Map<String, ArtistProfile>>(emptyMap()) }
+    var adding by remember { mutableStateOf(false) }
     var query by remember { mutableStateOf("") }
     var results by remember { mutableStateOf<List<ArtistSearchResult>>(emptyList()) }
     var isWorking by remember { mutableStateOf(false) }
     var focused by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
 
-    LaunchedEffect(Unit) {
+    suspend fun load() {
         try {
-            link = app.backend.studioArtistLink(studio.id)
-            link?.let { l -> linkedArtist = runCatching { app.backend.artistProfile(l.artistId) }.getOrNull() }
-        } catch (e: Exception) { error = e.userMessage }
+            val list = app.backend.studioArtistLinks(studio.id)
+            artists = list.mapNotNull { l -> runCatching { app.backend.artistProfile(l.artistId) }.getOrNull()?.let { l.artistId to it } }.toMap()
+            links = list
+        } catch (e: Exception) {
+            error = e.userMessage
+            if (links == null) links = emptyList()
+        }
     }
+    LaunchedEffect(Unit) { load() }
     LaunchedEffect(query) {
         if (query.length < 2) { results = emptyList(); return@LaunchedEffect }
         delay(250)
@@ -150,76 +158,88 @@ fun StudioArtistLinkView(studio: Studio) {
         isWorking = true
         app.scope.launch {
             try {
-                link = app.backend.requestStudioArtistLink(artist.id)
-                linkedArtist = runCatching { app.backend.artistProfile(artist.id) }.getOrNull()
+                app.backend.requestStudioArtistLink(artist.id)
+                query = ""
+                adding = false
+                load()
             } catch (e: Exception) { error = e.userMessage }
             isWorking = false
         }
     }
 
-    fun remove() {
+    fun remove(link: StudioArtistLink) {
         isWorking = true
         app.scope.launch {
             try {
-                app.backend.removeStudioArtistLink(studio.id)
-                link = null
-                linkedArtist = null
+                app.backend.removeStudioArtistLink(studio.id, link.artistId)
+                load()
             } catch (e: Exception) { error = e.userMessage }
             isWorking = false
         }
     }
 
-    NavScreen("Artist profile") {
+    NavScreen("Artist profiles") {
         Row(Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
             IconTile("link", 48.dp, TilePalette.violet)
             Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                T("Your artist profile", style = Type.system(26, FontWeight.ExtraBold).tracking(-0.5f))
-                T("Are you an artist too? Connect your artist profile: it's shown on your studio page, and your studio on your artist profile.", style = Type.subheadline, color = Theme.secondary)
+                T("Artist profiles", style = Type.system(26, FontWeight.ExtraBold).tracking(-0.5f))
+                T("Are you artists too? Connect the artist profiles of the people behind the studio (co-owners included): they're shown on your studio page, and your studio on their profiles.", style = Type.subheadline, color = Theme.secondary)
             }
         }
 
-        val current = link
-        if (current != null) {
-            GlassCard {
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Avatar(linkedArtist?.avatarUrl, linkedArtist?.artistName ?: "?", 48.dp)
-                        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                            Txt(linkedArtist?.artistName ?: "…", style = Type.headline)
-                            T(if (current.isAccepted) "Connected" else "Waiting for the artist to confirm in their profile", style = Type.caption,
-                                color = if (current.isAccepted) Theme.positive else Theme.secondary)
+        val current = links
+        if (current == null) {
+            Box(Modifier.fillMaxWidth().padding(top = 40.dp), contentAlignment = Alignment.Center) { CircularProgressIndicator(color = Theme.accent) }
+        } else {
+            current.forEach { link ->
+                val artist = artists[link.artistId]
+                GlassCard {
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Avatar(artist?.avatarUrl, artist?.artistName ?: "?", 48.dp)
+                            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                Txt(artist?.artistName ?: "…", style = Type.headline)
+                                T(if (link.isAccepted) "Connected" else "Waiting for the artist to confirm in their profile", style = Type.caption,
+                                    color = if (link.isAccepted) Theme.positive else Theme.secondary)
+                            }
                         }
-                    }
-                    if (current.isAccepted) {
-                        Row(Modifier.pressable { navigator?.push { ArtistPublicProfileView(current.artistId, linkedArtist) } },
-                            horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Sym("person.crop.circle", size = 16.dp, tint = Theme.accent)
-                            T("View artist profile", style = Type.subheadline.semibold, color = Theme.accent)
+                        if (link.isAccepted) {
+                            Row(Modifier.pressable { navigator?.push { ArtistPublicProfileView(link.artistId, artist) } },
+                                horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Sym("person.crop.circle", size = 16.dp, tint = Theme.accent)
+                                T("View artist profile", style = Type.subheadline.semibold, color = Theme.accent)
+                            }
                         }
+                        SecondaryButton(if (link.isAccepted) "Remove connection" else "Cancel request", Modifier.fillMaxWidth(), enabled = !isWorking, color = Theme.red) { remove(link) }
                     }
-                    SecondaryButton(if (current.isAccepted) "Remove connection" else "Cancel request", Modifier.fillMaxWidth(), enabled = !isWorking, color = Theme.red) { remove() }
                 }
             }
-        } else {
-            GlassField("magnifyingglass", focused) {
-                PlainTextField(query, { query = it }, "Search your artist name", Modifier.weight(1f).onFocusChanged { focused = it.isFocused },
-                    capitalization = KeyboardCapitalization.None)
-            }
-            T("The artist has to confirm the connection from their profile, so only your own profile can be connected.", style = Type.caption, color = Theme.secondary)
-            results.forEach { artist ->
-                GlassCard(padding = 12.dp) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Avatar(artist.avatarUrl, artist.artistName, 42.dp)
-                        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                            Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
-                                Txt(artist.artistName, style = Type.subheadline.semibold)
-                                if (artist.isVerified) VerifiedBadge()
-                                if (artist.hasAdminBadge == true) AdminBadge(compact = true)
-                                if (artist.isPromoted == true) PromotedTag()
+            if (current.size >= 10) {
+                T("A studio can show up to 10 artist profiles.", style = Type.caption, color = Theme.secondary)
+            } else if (current.isNotEmpty() && !adding) {
+                SecondaryButton("Add another artist profile", Modifier.fillMaxWidth()) { adding = true }
+            } else {
+                val linked = current.map { it.artistId }.toSet()
+                GlassField("magnifyingglass", focused) {
+                    PlainTextField(query, { query = it }, "Search by artist name", Modifier.weight(1f).onFocusChanged { focused = it.isFocused },
+                        capitalization = KeyboardCapitalization.None)
+                }
+                T("Each artist has to confirm the connection from their own profile.", style = Type.caption, color = Theme.secondary)
+                results.filter { it.id !in linked }.forEach { artist ->
+                    GlassCard(padding = 12.dp) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Avatar(artist.avatarUrl, artist.artistName, 42.dp)
+                            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
+                                    Txt(artist.artistName, style = Type.subheadline.semibold)
+                                    if (artist.isVerified) VerifiedBadge()
+                                    if (artist.hasAdminBadge == true) AdminBadge(compact = true)
+                                    if (artist.isPromoted == true) PromotedTag()
+                                }
+                                if (artist.city.isNotEmpty()) Txt(artist.city, style = Type.caption, color = Theme.secondary)
                             }
-                            if (artist.city.isNotEmpty()) Txt(artist.city, style = Type.caption, color = Theme.secondary)
+                            PrimaryButton("Connect", enabled = !isWorking) { request(artist) }
                         }
-                        PrimaryButton("Connect", enabled = !isWorking) { request(artist) }
                     }
                 }
             }

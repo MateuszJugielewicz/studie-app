@@ -109,18 +109,21 @@ extension PromotionStatus {
     }
 }
 
-/// A studio shows its owner's artist profile on its page (and the studio appears on the artist
-/// profile) once the artist confirms.
+/// The artist profiles a studio shows on its page (and the studio on theirs): the owner's own, and
+/// co-owners' or in-house artists'. Each artist confirms from their own profile. Up to 10.
 struct StudioArtistLinkView: View {
     @Environment(AppState.self) private var app
     let studio: Studio
 
-    @State private var link: StudioArtistLink?
-    @State private var linkedArtist: ArtistProfile?
+    @State private var links: [StudioArtistLink]?
+    @State private var artists: [UUID: ArtistProfile] = [:]
+    @State private var isAdding = false
     @State private var query = ""
     @State private var results: [ArtistSearchResult] = []
     @State private var isWorking = false
     @State private var error: String?
+
+    private static let maximum = 10
 
     var body: some View {
         ScrollView {
@@ -128,46 +131,55 @@ struct StudioArtistLinkView: View {
                 HStack(spacing: 12) {
                     IconTile(symbol: "link", size: 48, colors: TilePalette.violet)
                     VStack(alignment: .leading, spacing: 3) {
-                        Text("Your artist profile").font(.system(size: 26, weight: .heavy)).tracking(-0.5)
-                        Text("Are you an artist too? Connect your artist profile: it's shown on your studio page, and your studio on your artist profile.")
+                        Text("Artist profiles").font(.system(size: 26, weight: .heavy)).tracking(-0.5)
+                        Text("Are you artists too? Connect the artist profiles of the people behind the studio (co-owners included): they're shown on your studio page, and your studio on their profiles.")
                             .font(.subheadline).foregroundStyle(.secondary)
                     }
                 }
                 .padding(.top, 8)
 
-                if let link {
-                    current(link)
+                if let links {
+                    ForEach(links, id: \.artistId) { row($0) }
+                    if links.count >= Self.maximum {
+                        Text("A studio can show up to 10 artist profiles.").font(.caption).foregroundStyle(.secondary)
+                    } else if links.isEmpty || isAdding {
+                        search(excluding: Set(links.map(\.artistId)))
+                    } else {
+                        Button { isAdding = true } label: { Label("Add another artist profile", systemImage: "plus") }
+                            .buttonStyle(.secondary)
+                    }
                 } else {
-                    search
+                    ProgressView().frame(maxWidth: .infinity).padding(.top, 40)
                 }
             }
             .padding(.horizontal)
             .padding(.bottom, 32)
         }
         .auroraBackground(height: 340)
-        .navigationTitle("Artist profile")
+        .navigationTitle("Artist profiles")
         .navigationBarTitleDisplayMode(.inline)
         .task { await load() }
         .errorAlert($error)
     }
 
-    private func current(_ link: StudioArtistLink) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
+    private func row(_ link: StudioArtistLink) -> some View {
+        let artist = artists[link.artistId]
+        return VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 12) {
-                Avatar(url: linkedArtist?.avatarUrl, name: linkedArtist?.artistName ?? "?", size: 48)
+                Avatar(url: artist?.avatarUrl, name: artist?.artistName ?? "?", size: 48)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(linkedArtist?.artistName ?? "…").font(.headline)
+                    Text(artist?.artistName ?? "…").font(.headline)
                     Text(link.isAccepted ? LocalizedStringKey("Connected") : LocalizedStringKey("Waiting for the artist to confirm in their profile"))
                         .font(.caption).foregroundStyle(link.isAccepted ? Theme.positive : Color.secondary)
                 }
                 Spacer()
             }
             if link.isAccepted {
-                NavigationLink { ArtistPublicProfileView(artistId: link.artistId, initial: linkedArtist) } label: {
+                NavigationLink { ArtistPublicProfileView(artistId: link.artistId, initial: artist) } label: {
                     Label("View artist profile", systemImage: "person.crop.circle").font(.subheadline.weight(.semibold))
                 }
             }
-            Button(role: .destructive) { remove() } label: {
+            Button(role: .destructive) { remove(link) } label: {
                 Text(link.isAccepted ? LocalizedStringKey("Remove connection") : LocalizedStringKey("Cancel request"))
             }
             .buttonStyle(.secondary)
@@ -176,17 +188,17 @@ struct StudioArtistLinkView: View {
         .glassCard()
     }
 
-    @ViewBuilder private var search: some View {
+    @ViewBuilder private func search(excluding linked: Set<UUID>) -> some View {
         GlassField(symbol: "magnifyingglass", isFocused: false) {
-            TextField("Search your artist name", text: $query)
+            TextField("Search by artist name", text: $query)
                 .autocorrectionDisabled()
                 .textInputAutocapitalization(.never)
                 .onSubmit { find() }
         }
         .onChange(of: query) { _, value in if value.count >= 2 { find() } else { results = [] } }
-        Text("The artist has to confirm the connection from their profile, so only your own profile can be connected.")
+        Text("Each artist has to confirm the connection from their own profile.")
             .font(.caption).foregroundStyle(.secondary)
-        ForEach(results) { artist in
+        ForEach(results.filter { !linked.contains($0.id) }) { artist in
             HStack(spacing: 12) {
                 Avatar(url: artist.avatarUrl, name: artist.artistName, size: 42)
                 VStack(alignment: .leading, spacing: 2) {
@@ -194,7 +206,7 @@ struct StudioArtistLinkView: View {
                         Text(artist.artistName).font(.subheadline.weight(.semibold))
                         if artist.isVerified { VerifiedBadge() }
                         if artist.hasAdminBadge == true { AdminBadge(compact: true) }
-                                    if artist.isPromoted == true { PromotedTag() }
+                        if artist.isPromoted == true { PromotedTag() }
                     }
                     if !artist.city.isEmpty { Text(artist.city).font(.caption).foregroundStyle(.secondary) }
                 }
@@ -211,9 +223,17 @@ struct StudioArtistLinkView: View {
 
     private func load() async {
         do {
-            link = try await app.backend.studioArtistLink(studioId: studio.id)
-            if let link { linkedArtist = try? await app.backend.artistProfile(id: link.artistId) }
-        } catch { self.error = error.userMessage }
+            let list = try await app.backend.studioArtistLinks(studioId: studio.id)
+            var profiles: [UUID: ArtistProfile] = [:]
+            for link in list {
+                if let profile = try? await app.backend.artistProfile(id: link.artistId) { profiles[link.artistId] = profile }
+            }
+            artists = profiles
+            links = list
+        } catch {
+            self.error = error.userMessage
+            links = links ?? []
+        }
     }
 
     private func find() {
@@ -229,20 +249,22 @@ struct StudioArtistLinkView: View {
         Task {
             defer { isWorking = false }
             do {
-                link = try await app.backend.requestStudioArtistLink(artistId: artist.id)
-                linkedArtist = try? await app.backend.artistProfile(id: artist.id)
+                _ = try await app.backend.requestStudioArtistLink(artistId: artist.id)
+                query = ""
+                results = []
+                isAdding = false
+                await load()
             } catch { self.error = error.userMessage }
         }
     }
 
-    private func remove() {
+    private func remove(_ link: StudioArtistLink) {
         isWorking = true
         Task {
             defer { isWorking = false }
             do {
-                try await app.backend.removeStudioArtistLink(studioId: studio.id)
-                link = nil
-                linkedArtist = nil
+                try await app.backend.removeStudioArtistLink(studioId: studio.id, artistId: link.artistId)
+                await load()
             } catch { self.error = error.userMessage }
         }
     }

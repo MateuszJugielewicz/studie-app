@@ -192,7 +192,7 @@ struct ArtistPublicProfileView: View {
                             if isOwn {
                                 Button {
                                     Task {
-                                        try? await app.backend.removeStudioArtistLink(studioId: studio.id)
+                                        try? await app.backend.removeStudioArtistLink(studioId: studio.id, artistId: artistId)
                                         await load()
                                     }
                                 } label: { Image(systemName: "link.badge.plus").rotationEffect(.degrees(45)) }

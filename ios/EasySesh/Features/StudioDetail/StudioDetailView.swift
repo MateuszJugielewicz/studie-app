@@ -14,7 +14,7 @@ struct StudioDetailView: View {
     @State private var confirmBlock = false
     @State private var blocked = false
     @State private var conversation: Conversation?
-    @State private var linkedArtist: ArtistProfile?
+    @State private var linkedArtists: [ArtistProfile] = []
     @State private var offers: [StudioOffer] = []
     @State private var error: String?
 
@@ -124,7 +124,7 @@ struct StudioDetailView: View {
                     ForEach(studio.specialTags, id: \.self) { SpecialTagChip(title: $0) }
                 }
             }
-            if let linkedArtist {
+            ForEach(linkedArtists) { linkedArtist in
                 NavigationLink { ArtistPublicProfileView(artistId: linkedArtist.id, initial: linkedArtist) } label: {
                     HStack(spacing: 10) {
                         Avatar(url: linkedArtist.avatarUrl, name: linkedArtist.artistName, size: 34)
@@ -407,9 +407,11 @@ struct StudioDetailView: View {
             if let me = app.account?.id, loaded.ownerId != me, let list = try? await app.backend.blockedUsers() {
                 blocked = list.contains { $0.userId == loaded.ownerId }
             }
-            if let link = try? await app.backend.studioArtistLink(studioId: studioId), link.isAccepted {
-                linkedArtist = try? await app.backend.artistProfile(id: link.artistId)
+            var artists: [ArtistProfile] = []
+            for link in ((try? await app.backend.studioArtistLinks(studioId: studioId)) ?? []) where link.isAccepted {
+                if let artist = try? await app.backend.artistProfile(id: link.artistId) { artists.append(artist) }
             }
+            linkedArtists = artists
             reviews = try await app.backend.reviews(studioId: studioId)
             nextSlots = await Self.nextSlots(for: loaded, backend: app.backend)
         } catch { self.error = error.userMessage }

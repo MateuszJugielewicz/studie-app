@@ -699,9 +699,9 @@ class Backend(context: Context) {
 
     // MARK: Studio ↔ artist profile
 
-    /** Accepted connection for a studio (or pending, for its owner). */
-    suspend fun studioArtistLink(studioId: String): StudioArtistLink? = mapped {
-        client.from("studio_artist_links").select { filter { eq("studio_id", studioId) }; limit(1) }.decodeList<StudioArtistLink>().firstOrNull()
+    /** Artist profiles a studio shows (several when it has more than one owner); pending ones only for its owner. */
+    suspend fun studioArtistLinks(studioId: String): List<StudioArtistLink> = mapped {
+        client.from("studio_artist_links").select { filter { eq("studio_id", studioId) }; order("created_at", Order.ASCENDING) }.decodeList()
     }
 
     /** Connections that involve this artist (accepted, and pending ones for the artist). */
@@ -715,7 +715,8 @@ class Backend(context: Context) {
     suspend fun respondStudioArtistLink(studioId: String, accept: Boolean) =
         rpcVoid("respond_studio_artist_link") { put("p_studio_id", studioId); put("p_accept", accept) }
 
-    suspend fun removeStudioArtistLink(studioId: String) = rpcVoid("remove_studio_artist_link") { put("p_studio_id", studioId) }
+    suspend fun removeStudioArtistLink(studioId: String, artistId: String) =
+        rpcVoid("remove_studio_artist_link") { put("p_studio_id", studioId); put("p_artist_id", artistId) }
 
     // MARK: Blocking
 

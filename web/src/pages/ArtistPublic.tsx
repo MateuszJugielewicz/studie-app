@@ -78,7 +78,7 @@ export default function ArtistPublic() {
           return (
             <div key={s.id} className="card tight row">
               <Link to={`/studios/${s.id}`} className="row grow"><Photo url={s.photo_urls[0]} style={{ width: 54, height: 54, borderRadius: 14 }} /><span className="grow"><div className="headline">{s.name}</div><div className="caption secondary">{Studios.publicArea(s)}</div></span></Link>
-              {isOwn && <button onClick={async () => { await api.removeStudioArtistLink(s.id).catch(() => undefined); load(); }} aria-label={t("Remove connection")} className="secondary"><Unlink size={18} /></button>}
+              {isOwn && <button onClick={async () => { await api.removeStudioArtistLink(s.id, link.artist_id).catch(() => undefined); load(); }} aria-label={t("Remove connection")} className="secondary"><Unlink size={18} /></button>}
               <ChevronRight size={14} className="tertiary" />
             </div>
           );

@@ -447,7 +447,7 @@ function StudioSettings() {
           <TileLink to="/studio/edit/policy" title="Booking settings" subtitle={studio.booking_policy.instant_book ? "Instant booking" : "You approve (24h)"} icon={Zap} colors={Tiles.warm} />
           <TileLink to="/studio/offers" title="Offers & codes" subtitle="Discounts for artists" icon={BadgePercent} colors={Tiles.warm} />
           <TileLink to="/studio/promotion" title="Promotion" subtitle={Studios.isPromoted(studio) ? "Promoted now" : "Not promoted"} icon={Megaphone} colors={Tiles.signal} />
-          <TileLink to="/studio/artist-link" title="Artist profile" subtitle="Connect yours" icon={Link2} colors={Tiles.violet} />
+          <TileLink to="/studio/artist-link" title="Artist profiles" subtitle="Owners & team" icon={Link2} colors={Tiles.violet} />
           <TileLink to="/studio/payouts" title="Payouts" subtitle="Bank details" icon={Landmark} colors={Tiles.mint} />
           <TileLink to="/settings" title="Account" subtitle="Notifications & data" icon={CircleUserRound} colors={Tiles.muted} />
           <TileLink to="/settings/app" title="App settings" subtitle="Language, look, storage" icon={SlidersHorizontal} colors={Tiles.ocean} />

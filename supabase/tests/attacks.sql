@@ -615,6 +615,33 @@ select pg_temp.result('admin ends artist promotion', (select promoted_until is n
 set request.jwt.claims = '{}';
 reset role;
 
+-- Several artist profiles on one studio (co-owners): each artist confirms their own, and only the
+-- studio owner or the artist themself can remove a connection.
+set role authenticated;
+set request.jwt.claims = '{}';
+set request.jwt.claim.sub = '10000000-0000-0000-0000-00000000000b';
+select request_studio_artist_link('10000000-0000-0000-0000-00000000000a');
+select request_studio_artist_link('10000000-0000-0000-0000-0000000000a2');
+select request_studio_artist_link('10000000-0000-0000-0000-0000000000a2');
+select pg_temp.result('studio links several artists', (select count(*) = 2 from studio_artist_links where studio_id = '20000000-0000-0000-0000-000000000001'));
+set request.jwt.claim.sub = '10000000-0000-0000-0000-00000000000a';
+select respond_studio_artist_link('20000000-0000-0000-0000-000000000001', true);
+set request.jwt.claim.sub = '10000000-0000-0000-0000-0000000000a2';
+select respond_studio_artist_link('20000000-0000-0000-0000-000000000001', true);
+select pg_temp.result('each artist confirms their own link', (select count(*) = 2 from studio_artist_links where studio_id = '20000000-0000-0000-0000-000000000001' and status = 'accepted'));
+select remove_studio_artist_link('20000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-00000000000a');
+select pg_temp.result('artist cannot remove another artist''s link', (select count(*) = 2 from studio_artist_links where studio_id = '20000000-0000-0000-0000-000000000001'));
+set request.jwt.claim.sub = '10000000-0000-0000-0000-0000000000b2';
+select remove_studio_artist_link('20000000-0000-0000-0000-000000000001');
+select pg_temp.result('other owner cannot remove links', (select count(*) = 2 from studio_artist_links where studio_id = '20000000-0000-0000-0000-000000000001'));
+set request.jwt.claim.sub = '10000000-0000-0000-0000-00000000000b';
+select remove_studio_artist_link('20000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-0000000000a2');
+select pg_temp.result('owner removes one artist only', (select array_agg(artist_id::text) = array['10000000-0000-0000-0000-00000000000a'] from studio_artist_links where studio_id = '20000000-0000-0000-0000-000000000001'));
+set request.jwt.claim.sub = '10000000-0000-0000-0000-00000000000a';
+select remove_studio_artist_link('20000000-0000-0000-0000-000000000001');
+select pg_temp.result('artist removes own link', (select count(*) = 0 from studio_artist_links where studio_id = '20000000-0000-0000-0000-000000000001'));
+reset role;
+
 -- Guests (signed out)
 set role anon;
 set request.jwt.claim.sub = '';

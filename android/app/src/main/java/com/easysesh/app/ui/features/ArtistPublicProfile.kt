@@ -208,7 +208,7 @@ fun ArtistPublicProfileView(artistId: String, initial: ArtistProfile?) {
                                 Txt(studio.address.publicArea, style = Type.caption, color = Theme.secondary)
                             }
                             if (isOwn) {
-                                Box(Modifier.pressable { app.scope.launch { runCatching { app.backend.removeStudioArtistLink(studio.id) }; reload++ } }) {
+                                Box(Modifier.pressable { app.scope.launch { runCatching { app.backend.removeStudioArtistLink(studio.id, artistId) }; reload++ } }) {
                                     Sym("link.badge.plus", Modifier.graphicsLayer { rotationZ = 45f }, tint = Theme.secondary)
                                 }
                             }

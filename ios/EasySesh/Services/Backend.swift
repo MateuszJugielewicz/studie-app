@@ -189,12 +189,13 @@ protocol Backend: AnyObject {
 
     // MARK: Studio ↔ artist profile
     /// Accepted connection for a studio (or pending, for its owner).
-    func studioArtistLink(studioId: UUID) async throws -> StudioArtistLink?
+    /// The artist profiles a studio shows (several when it has more than one owner).
+    func studioArtistLinks(studioId: UUID) async throws -> [StudioArtistLink]
     /// Connections that involve this artist (accepted, and pending ones for the artist).
     func artistStudioLinks(artistId: UUID) async throws -> [StudioArtistLink]
     func requestStudioArtistLink(artistId: UUID) async throws -> StudioArtistLink
     func respondStudioArtistLink(studioId: UUID, accept: Bool) async throws
-    func removeStudioArtistLink(studioId: UUID) async throws
+    func removeStudioArtistLink(studioId: UUID, artistId: UUID) async throws
 
     // MARK: Blocking
     func conversationBlockState(conversationId: UUID) async throws -> BlockState

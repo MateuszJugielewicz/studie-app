@@ -84,7 +84,7 @@ fun StudioDetailView(studioId: String, initial: Studio?) {
     var showReport by remember { mutableStateOf(false) }
     var confirmBlock by remember { mutableStateOf(false) }
     var blocked by remember { mutableStateOf(false) }
-    var linkedArtist by remember { mutableStateOf<ArtistProfile?>(null) }
+    var linkedArtists by remember { mutableStateOf<List<ArtistProfile>>(emptyList()) }
     var offers by remember { mutableStateOf<List<com.easysesh.app.model.StudioOffer>>(emptyList()) }
     var error by remember { mutableStateOf<String?>(null) }
 
@@ -97,9 +97,9 @@ fun StudioDetailView(studioId: String, initial: Studio?) {
             if (me != null && loaded.ownerId != me) {
                 runCatching { app.backend.blockedUsers() }.getOrNull()?.let { list -> blocked = list.any { it.userId == loaded.ownerId } }
             }
-            runCatching { app.backend.studioArtistLink(studioId) }.getOrNull()?.takeIf { it.isAccepted }?.let { link ->
-                linkedArtist = runCatching { app.backend.artistProfile(link.artistId) }.getOrNull()
-            }
+            linkedArtists = runCatching { app.backend.studioArtistLinks(studioId) }.getOrDefault(emptyList())
+                .filter { it.isAccepted }
+                .mapNotNull { link -> runCatching { app.backend.artistProfile(link.artistId) }.getOrNull() }
             reviews = app.backend.reviews(studioId)
             nextSlots = nextSlots(loaded, app.backend)
         } catch (e: Exception) { error = e.userMessage }
@@ -127,7 +127,7 @@ fun StudioDetailView(studioId: String, initial: Studio?) {
                 Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(24.dp)) {
                     Gallery(current.photoUrls)
                     Column(Modifier.padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(24.dp)) {
-                        Header(current, linkedArtist)
+                        Header(current, linkedArtists)
                         if (nextSlots.isNotEmpty()) AvailabilitySection(nextSlots, current) { startBooking() }
                         PricingSection(current, offers)
                         TextSection("About", current.description)
@@ -192,7 +192,7 @@ private fun LabelButton(title: String, symbol: String, onClick: () -> Unit) {
 }
 
 @Composable
-private fun Header(studio: Studio, linkedArtist: ArtistProfile?) {
+private fun Header(studio: Studio, linkedArtists: List<ArtistProfile>) {
     val app = LocalAppState.current
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         if (studio.isPromoted) PromotedTag()
@@ -202,7 +202,7 @@ private fun Header(studio: Studio, linkedArtist: ArtistProfile?) {
             if (studio.showsAdminBadge) AdminBadge()
         }
         if (studio.specialTags.isNotEmpty()) FlowLayout(6.dp) { studio.specialTags.forEach { SpecialTagChip(it) } }
-        if (linkedArtist != null) {
+        linkedArtists.forEach { linkedArtist ->
             NavLink({ ArtistPublicProfileView(linkedArtist.id, linkedArtist) }) {
                 GlassCard(padding = 10.dp, cornerRadius = 18.dp) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {

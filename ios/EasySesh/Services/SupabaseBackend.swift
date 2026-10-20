@@ -665,11 +665,10 @@ final class SupabaseBackend: Backend {
 
     // MARK: Studio ↔ artist profile
 
-    func studioArtistLink(studioId: UUID) async throws -> StudioArtistLink? {
-        let rows: [StudioArtistLink] = try await mapped {
-            try await client.from("studio_artist_links").select().eq("studio_id", value: studioId.uuidString).limit(1).execute().value
+    func studioArtistLinks(studioId: UUID) async throws -> [StudioArtistLink] {
+        try await mapped {
+            try await client.from("studio_artist_links").select().eq("studio_id", value: studioId.uuidString).order("created_at").execute().value
         }
-        return rows.first
     }
 
     func artistStudioLinks(artistId: UUID) async throws -> [StudioArtistLink] {
@@ -686,8 +685,8 @@ final class SupabaseBackend: Backend {
         try await rpcVoid("respond_studio_artist_link", ["p_studio_id": .string(studioId.uuidString), "p_accept": .bool(accept)])
     }
 
-    func removeStudioArtistLink(studioId: UUID) async throws {
-        try await rpcVoid("remove_studio_artist_link", ["p_studio_id": .string(studioId.uuidString)])
+    func removeStudioArtistLink(studioId: UUID, artistId: UUID) async throws {
+        try await rpcVoid("remove_studio_artist_link", ["p_studio_id": .string(studioId.uuidString), "p_artist_id": .string(artistId.uuidString)])
     }
 
     // MARK: Blocking

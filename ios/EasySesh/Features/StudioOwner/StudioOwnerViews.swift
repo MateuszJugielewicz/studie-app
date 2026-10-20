@@ -839,7 +839,7 @@ struct StudioSettingsView: View {
                         }
                         tile("Offers & codes", "Discounts for artists", "percent", [Theme.warning, Theme.accent]) { StudioOffersView(studio: studio) }
                         tile("Promotion", studio.isPromoted ? "Promoted now" : "Not promoted", "megaphone.fill", TilePalette.signal) { PromotionView(studio: studio) }
-                        tile("Artist profile", "Connect yours", "link", TilePalette.violet) { StudioArtistLinkView(studio: studio) }
+                        tile("Artist profiles", "Owners & team", "link", TilePalette.violet) { StudioArtistLinkView(studio: studio) }
                         tile("Payouts", "Bank details", "building.columns.fill", TilePalette.mint) { PayoutAccountEditor(studioId: studio.id) }
                         tile("Account", "Notifications & data", "person.crop.circle.fill", TilePalette.muted) { SettingsView() }
                         tile("App settings", "Language, look, storage", "slider.horizontal.3", TilePalette.ocean) { AppSettingsView() }

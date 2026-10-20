@@ -457,15 +457,16 @@ export class Api {
   cancelPromotionRequest = (promotionId: string) => this.rpc<void>("cancel_promotion_request", { p_promotion_id: promotionId });
   promotionPayment = (promotionId: string) => this.invoke<{ client_secret: string; amount: number; currency: string }>("promotion-payment", { promotion_id: promotionId });
   confirmPromotion = (promotionId: string) => this.invoke<{ status: string }>("promotion-payment", { promotion_id: promotionId, confirm: true });
-  async studioArtistLink(studioId: string): Promise<StudioArtistLink | null> {
-    return unwrap(await this.client.from("studio_artist_links").select("*").eq("studio_id", studioId).limit(1).maybeSingle());
+  /** The artist profiles a studio shows (a studio can have several owners); pending ones only for its owner. */
+  async studioArtistLinks(studioId: string): Promise<StudioArtistLink[]> {
+    return unwrap(await this.client.from("studio_artist_links").select("*").eq("studio_id", studioId).order("created_at"));
   }
   async artistStudioLinks(artistId: string): Promise<StudioArtistLink[]> {
     return unwrap(await this.client.from("studio_artist_links").select("*").eq("artist_id", artistId));
   }
   requestStudioArtistLink = (artistId: string) => this.rpc<StudioArtistLink>("request_studio_artist_link", { p_artist_id: artistId });
   respondStudioArtistLink = (studioId: string, accept: boolean) => this.rpc<void>("respond_studio_artist_link", { p_studio_id: studioId, p_accept: accept });
-  removeStudioArtistLink = (studioId: string) => this.rpc<void>("remove_studio_artist_link", { p_studio_id: studioId });
+  removeStudioArtistLink = (studioId: string, artistId: string) => this.rpc<void>("remove_studio_artist_link", { p_studio_id: studioId, p_artist_id: artistId });
 
   // MARK: Artist ratings
 

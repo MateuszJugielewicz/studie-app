@@ -31,7 +31,7 @@ export default function StudioDetail() {
   const [studio, setStudio] = useState<Studio | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [slots, setSlots] = useState<TimeSlot[]>([]);
-  const [linkedArtist, setLinkedArtist] = useState<ArtistProfile | null>(null);
+  const [linkedArtists, setLinkedArtists] = useState<ArtistProfile[]>([]);
   const [blocked, setBlocked] = useState(false);
   const [showReport, setShowReport] = useState(false);
   const [confirmBlock, setConfirmBlock] = useState(false);
@@ -46,7 +46,10 @@ export default function StudioDetail() {
         api.studioOffers(id).then(setOffers).catch(() => undefined);
         const me = app.account?.id;
         if (me && loaded.owner_id !== me) api.blockedUsers().then((list) => setBlocked(list.some((b) => b.user_id === loaded.owner_id))).catch(() => undefined);
-        api.studioArtistLink(id).then(async (link) => { if (link?.status === "accepted") setLinkedArtist(await api.artistProfile(link.artist_id)); }).catch(() => undefined);
+        api.studioArtistLinks(id).then(async (links) => {
+          const profiles = await Promise.all(links.filter((l) => l.status === "accepted").map((l) => api.artistProfile(l.artist_id).catch(() => null)));
+          setLinkedArtists(profiles.filter((p): p is ArtistProfile => !!p));
+        }).catch(() => undefined);
         setReviews(await api.reviews(id));
         // Next free times over the coming week (2 per day, like the apps).
         const start = startOfDay(new Date());
@@ -101,12 +104,16 @@ export default function StudioDetail() {
             {Studios.isPromoted(studio) && <div><PromotedTag /></div>}
             <div className="row" style={{ gap: 6 }}><h1 className="title-l">{studio.name}</h1>{studio.is_verified && <VerifiedBadge />}{studio.has_admin_badge && <AdminBadge />}</div>
             {!!studio.admin_tags?.length && <div className="chips">{studio.admin_tags.map((tag) => <SpecialTag key={tag} title={tag} />)}</div>}
-            {linkedArtist && (
-              <Link to={`/artists/${linkedArtist.id}`} className="card tight row pressable" style={{ maxWidth: 360, borderRadius: 18 }}>
-                <Avatar url={linkedArtist.avatar_url} name={linkedArtist.artist_name} size={34} ring />
-                <span className="grow"><div className="caption2 bold secondary">{t("Run by").toUpperCase()}</div><div className="subhead bold row" style={{ gap: 4 }}>{linkedArtist.artist_name}{linkedArtist.has_admin_badge && <AdminBadge compact />}</div></span>
-                <ChevronRight size={16} className="tertiary" />
-              </Link>
+            {linkedArtists.length > 0 && (
+              <div className="row wrap" style={{ gap: 8 }}>
+                {linkedArtists.map((artist) => (
+                  <Link key={artist.id} to={`/artists/${artist.id}`} className="card tight row pressable" style={{ maxWidth: 360, borderRadius: 18 }}>
+                    <Avatar url={artist.avatar_url} name={artist.artist_name} size={34} ring />
+                    <span className="grow"><div className="caption2 bold secondary">{t("Run by").toUpperCase()}</div><div className="subhead bold row" style={{ gap: 4 }}>{artist.artist_name}{artist.has_admin_badge && <AdminBadge compact />}</div></span>
+                    <ChevronRight size={16} className="tertiary" />
+                  </Link>
+                ))}
+              </div>
             )}
             {studio.tagline && <div className="secondary">{studio.tagline}</div>}
             <div className="row wrap" style={{ gap: 14 }}>

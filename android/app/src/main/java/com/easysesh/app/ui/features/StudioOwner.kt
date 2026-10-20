@@ -751,7 +751,7 @@ fun StudioSettingsView() {
                     },
                     ProfileTile("Offers & codes", "Discounts for artists", "percent", listOf(Theme.warning, Theme.accent)) { StudioOffersView(studio) },
                     ProfileTile("Promotion", if (studio.isPromoted) "Promoted now" else "Not promoted", "megaphone.fill", TilePalette.signal) { PromotionView(studio) },
-                    ProfileTile("Artist profile", "Connect yours", "link", TilePalette.violet) { StudioArtistLinkView(studio) },
+                    ProfileTile("Artist profiles", "Owners & team", "link", TilePalette.violet) { StudioArtistLinkView(studio) },
                     ProfileTile("Payouts", "Bank details", "building.columns.fill", TilePalette.mint) { PayoutAccountEditor(studio.id) },
                     ProfileTile("Account", "Notifications & data", "person.crop.circle.fill", TilePalette.muted) { SettingsView() },
                     ProfileTile("App settings", "Language, look, storage", "slider.horizontal.3", TilePalette.ocean) { AppSettingsView() },
