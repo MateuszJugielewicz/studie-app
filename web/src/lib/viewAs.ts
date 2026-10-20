@@ -43,7 +43,7 @@ export function endViewAs() {
 }
 
 /** Reads that go through POST. */
-const READ_RPCS = /\/rpc\/(quote_booking|check_promo_code|studio_busy_intervals|current_terms_version|search_artists|conversation_block_state|my_blocked_users)\b/;
+const READ_RPCS = /\/rpc\/(quote_booking|check_promo_code|studio_busy_intervals|current_terms_version|search_artists|discover_artists|conversation_block_state|my_blocked_users)\b/;
 
 /** fetch for the website's Supabase client in view-as mode: changes are refused before they're sent. */
 export const viewOnlyFetch: typeof fetch = async (input, init) => {

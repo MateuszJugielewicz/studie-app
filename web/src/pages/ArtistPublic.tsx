@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
-import { CheckCircle2, ChevronRight, Flag, Hand, HandMetal, Link2, MapPin, Star, Unlink } from "lucide-react";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { CheckCircle2, ChevronRight, Flag, Hand, HandMetal, Link2, MapPin, MessageCircle, Star, Unlink } from "lucide-react";
 import { api, userMessage } from "../lib/api";
 import { Dates, resolveLink, Studios } from "../lib/core";
 import { format, t } from "../lib/i18n";
@@ -9,6 +9,7 @@ import { genreTitle, platformTitle, PLATFORM_COLORS, type ArtistProfile, type Ar
 import { AdminBadge, Avatar, ConfirmDialog, Empty, GlowHead, IconTile, Loading, PageHead, Photo, PromotedTag, Stars, Tiles, VerifiedBadge, useToast } from "../components/ui";
 import { DisputeRatingSheet, Menu, ReportSheet } from "../components/social";
 import { platformIcon } from "./Profile";
+import { MessageArtistSheet } from "./FindArtists";
 
 /**
  * An artist's public profile: seen by studios (from a chat, booking or studio page) and by the
@@ -28,6 +29,10 @@ export default function ArtistPublic() {
   const [blocked, setBlocked] = useState(false);
   const [showReport, setShowReport] = useState(false);
   const [confirmBlock, setConfirmBlock] = useState(false);
+  const [messaging, setMessaging] = useState(false);
+  const navigate = useNavigate();
+  // Approved studios can write to artists from their profile (as from Find artists).
+  const canMessage = !isOwn && app.account?.role === "studio_owner" && app.ownedStudio?.status === "approved";
 
   const load = useCallback(async () => {
     try {
@@ -64,6 +69,9 @@ export default function ArtistPublic() {
       )} />
       <div className="stack">
         <ArtistHero profile={profile} />
+        {canMessage && !blocked && (
+          <button className="btn primary block" onClick={() => setMessaging(true)}><MessageCircle size={16} />{t("Message")}</button>
+        )}
         <SocialLinks profile={profile} />
         {isOwn && pending.map((link) => (
           <div key={link.studio_id} className="card stack" style={{ gap: 10 }}>
@@ -103,6 +111,7 @@ export default function ArtistPublic() {
         actions={[{ title: "Block", destructive: true, action: () => setBlock(true) }]} />
       <ReportSheet open={showReport} onClose={() => setShowReport(false)} target="user" targetId={id} />
       {disputing && <DisputeRatingSheet open onClose={() => setDisputing(null)} kind="artist_review" reviewId={disputing.id} onSent={() => setDisputed([...disputed, disputing.id])} />}
+      <MessageArtistSheet artist={messaging ? profile : null} onClose={() => setMessaging(false)} onSent={(c) => navigate(`/messages/${c.id}`)} />
     </main>
   );
 }

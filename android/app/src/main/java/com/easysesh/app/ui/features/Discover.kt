@@ -45,11 +45,15 @@ import com.easysesh.app.core.SearchFilters
 import com.easysesh.app.core.StudioResult
 import com.easysesh.app.core.StudioSort
 import com.easysesh.app.core.AreaSummary
+import com.easysesh.app.core.ArtistFilters
+import com.easysesh.app.core.ArtistSearch
+import com.easysesh.app.core.ArtistSort
 import com.easysesh.app.core.addingDays
 import com.easysesh.app.core.startOfDay
 import com.easysesh.app.core.tr
 import com.easysesh.app.data.Backend
 import com.easysesh.app.data.userMessage
+import com.easysesh.app.model.DiscoveredArtist
 import com.easysesh.app.model.EquipmentCategory
 import com.easysesh.app.model.Facility
 import com.easysesh.app.model.Genre
@@ -401,6 +405,139 @@ fun FilterSheet(initial: SearchFilters, onApply: (SearchFilters) -> Unit) {
         FormSection("Equipment") {
             FormTextField("e.g. U87, SM7B, Neve", draft.equipmentQuery, { draft = draft.copy(equipmentQuery = it) })
             FormContent { ChipPicker(EquipmentCategory.entries, draft.equipmentCategories, { it.title }) { draft = draft.copy(equipmentCategories = it) } }
+        }
+    }
+}
+
+// MARK: Find artists (studios)
+
+/**
+ * Studios find artists the way artists find studios: search, filters and sorting over every artist,
+ * promoted artists first with a Promoted tag. "Message" writes to them (a message request unless they
+ * booked the studio before).
+ */
+@Composable
+fun FindArtistsView() {
+    val app = LocalAppState.current
+    var artists by remember { mutableStateOf<List<DiscoveredArtist>>(emptyList()) }
+    var filters by remember { mutableStateOf(ArtistFilters()) }
+    var sort by remember { mutableStateOf(ArtistSort.Recommended) }
+    var isLoading by remember { mutableStateOf(true) }
+    var showFilters by remember { mutableStateOf(false) }
+    var sortOpen by remember { mutableStateOf(false) }
+    var messaging by remember { mutableStateOf<DiscoveredArtist?>(null) }
+    var focused by remember { mutableStateOf(false) }
+    var error by remember { mutableStateOf<String?>(null) }
+
+    suspend fun load() {
+        try { artists = app.backend.discoverArtists() } catch (e: CancellationException) { throw e } catch (e: Exception) { error = e.userMessage }
+        isLoading = false
+    }
+    LaunchedEffect(Unit) { load() }
+    val results = ArtistSearch.search(artists, filters, sort)
+
+    NavigationStack {
+        val navigator = LocalNavigator.current
+        EasySeshScreen("Find artists", eyebrow = tr("For your studio"), refresh = { load() }) {
+            GlassField("magnifyingglass", focused) {
+                PlainTextField(filters.query, { filters = filters.copy(query = it) }, "Artist, genre or city", Modifier.weight(1f).onFocusChanged { focused = it.isFocused })
+                if (filters.query.isNotEmpty()) Sym("xmark.circle.fill", Modifier.pressable { filters = filters.copy(query = "") }, tint = Theme.secondary)
+            }
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                FilterPill(if (filters.activeCount > 0) L10n.format("Filters · %lld", filters.activeCount) else tr("Filters"),
+                    "slider.horizontal.3", filters.activeCount > 0, Modifier.pressable { showFilters = true })
+                Box {
+                    FilterPill(tr(sort.title), "arrow.up.arrow.down", false, Modifier.pressable { sortOpen = true })
+                    DropdownMenu(sortOpen, { sortOpen = false }, containerColor = Theme.card) {
+                        ArtistSort.entries.forEach { option ->
+                            DropdownMenuItem(
+                                text = { T(option.title) },
+                                trailingIcon = if (option == sort) ({ Sym("checkmark", tint = Theme.accent) }) else null,
+                                onClick = { sort = option; sortOpen = false },
+                            )
+                        }
+                    }
+                }
+                Fill()
+                Txt(L10n.format("%lld artists", results.size), style = Type.footnote.bold)
+            }
+            if (results.any { it.isPromoted }) T("Promoted artists are shown first.", style = Type.caption, color = Theme.secondary)
+            when {
+                isLoading -> ProgressSpinner()
+                results.isEmpty() -> {
+                    GlassEmptyState("No artists found", "music.mic", "Try another search or fewer filters.")
+                    if (filters.activeCount > 0) SecondaryButton("Clear filters") { filters = ArtistFilters(query = filters.query) }
+                }
+            }
+            Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                results.forEach { artist ->
+                    ArtistDiscoveryCard(artist, onOpen = { navigator?.push { ArtistPublicProfileView(artist.id, null) } }, onMessage = { messaging = artist })
+                }
+            }
+        }
+    }
+    if (showFilters) Sheet({ showFilters = false }) { ArtistFilterSheet(filters) { filters = it } }
+    messaging?.let { artist ->
+        Sheet({ messaging = null }) {
+            NewMessageSheet(artist.searchResult) { conversation -> app.open(com.easysesh.app.services.DeepLink.ConversationLink(conversation.id)) }
+        }
+    }
+    ErrorAlert(error) { error = null }
+}
+
+@Composable
+private fun ArtistDiscoveryCard(artist: DiscoveredArtist, onOpen: () -> Unit, onMessage: () -> Unit) {
+    val shape = RoundedCornerShape(22.dp)
+    GlassCard(if (artist.isPromoted) Modifier.border(1.5.dp, Theme.neon, shape) else Modifier) {
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(Modifier.pressable(onClick = onOpen), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.Top) {
+                Avatar(artist.avatarUrl, artist.artistName, 58.dp, if (artist.isPromoted) Modifier.border(2.dp, Theme.neon, CircleShape) else Modifier)
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Txt(artist.artistName, Modifier.weight(1f, fill = false), style = Type.headline, maxLines = 1)
+                        if (artist.isVerified) VerifiedBadge()
+                        if (artist.hasAdminBadge) AdminBadge(compact = true)
+                    }
+                    Txt(listOf(artist.city, if (artist.hasBooked) tr("Booked you before") else "").filter { it.isNotEmpty() }.joinToString(" · "),
+                        style = Type.subheadline, color = Theme.secondary, maxLines = 1)
+                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
+                        if (artist.reviewCount > 0) RatingLabel(artist.ratingAverage, artist.reviewCount, compact = true)
+                        if (artist.sessionCount > 0) Txt(L10n.format("%lld sessions", artist.sessionCount), style = Type.caption, color = Theme.secondary)
+                    }
+                }
+                if (artist.isPromoted) PromotedTag()
+            }
+            if (artist.bio.isNotEmpty()) Txt(artist.bio, style = Type.footnote, color = Theme.secondary, maxLines = 2)
+            if (artist.genres.isNotEmpty()) {
+                Txt(artist.genres.take(4).joinToString(" · ") { g -> Genre.entries.firstOrNull { it.raw == g }?.let { tr(it.title) } ?: g },
+                    style = Type.caption.semibold, color = Theme.accent)
+            }
+            SecondaryButton("Message", Modifier.fillMaxWidth(), symbol = "bubble.left", onClick = onMessage)
+        }
+    }
+}
+
+@Composable
+private fun ArtistFilterSheet(initial: ArtistFilters, onApply: (ArtistFilters) -> Unit) {
+    val dismiss = LocalDismiss.current
+    var draft by remember { mutableStateOf(initial) }
+    val ratingSteps = listOf<Double?>(null, 4.0, 4.5, 4.8)
+    NavScreen(
+        "Filters",
+        leading = { ToolbarButton("Reset") { draft = ArtistFilters(query = initial.query) } },
+        actions = { ToolbarButton("Show results", bold = true) { onApply(draft); dismiss() } },
+    ) {
+        FormSection("Rating") {
+            FormContent {
+                GlassSegmentedControl(draft.minRating, ratingSteps, { it?.let { r -> "%.1f+".format(r) } ?: "Any" }) { draft = draft.copy(minRating = it) }
+            }
+        }
+        FormSection("Artists") {
+            FormToggle("Verified artists only", draft.verifiedOnly) { draft = draft.copy(verifiedOnly = it) }
+            FormToggle("Booked your studio before", draft.bookedBefore) { draft = draft.copy(bookedBefore = it) }
+        }
+        FormSection("Genres") {
+            FormContent { ChipPicker(Genre.entries, draft.genres, { it.title }) { draft = draft.copy(genres = it) } }
         }
     }
 }

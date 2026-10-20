@@ -58,6 +58,28 @@ data class ArtistSearchResult(
     val isPromoted: Boolean? = null,
 )
 
+/** An artist in the studios' "Find artists" list (`discover_artists`). */
+@Serializable
+data class DiscoveredArtist(
+    val id: String,
+    val artistName: String,
+    val city: String = "",
+    val genres: List<String> = emptyList(),
+    val avatarUrl: String? = null,
+    val bio: String = "",
+    val isVerified: Boolean = false,
+    val hasAdminBadge: Boolean = false,
+    val ratingAverage: Double = 0.0,
+    val reviewCount: Int = 0,
+    val sessionCount: Int = 0,
+    val isPromoted: Boolean = false,
+    /** Has booked this studio before (messages skip the request step). */
+    val hasBooked: Boolean = false,
+    val joinedAt: PgInstant? = null,
+) {
+    val searchResult get() = ArtistSearchResult(id, artistName, city, genres, avatarUrl, isVerified, hasBooked, hasAdminBadge, isPromoted)
+}
+
 @Serializable
 data class ChatMessage(
     val id: String,

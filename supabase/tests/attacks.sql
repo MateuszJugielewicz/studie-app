@@ -642,6 +642,28 @@ select remove_studio_artist_link('20000000-0000-0000-0000-000000000001');
 select pg_temp.result('artist removes own link', (select count(*) = 0 from studio_artist_links where studio_id = '20000000-0000-0000-0000-000000000001'));
 reset role;
 
+-- Studios browsing artists: approved studios only, promoted artists first.
+set role authenticated;
+set request.jwt.claims = '{}';
+set request.jwt.claim.sub = '10000000-0000-0000-0000-00000000000b';
+select pg_temp.result('promoted artist first when browsing', (select artist_name = 'Artie One' and is_promoted from discover_artists() limit 1));
+select pg_temp.result('browsing lists every active artist', (select count(*) = 2 from discover_artists()));
+set request.jwt.claim.sub = '10000000-0000-0000-0000-00000000000a';
+do $$ begin
+  perform discover_artists();
+  perform pg_temp.result('artists cannot browse artists', false);
+exception when others then perform pg_temp.result('artists cannot browse artists', true);
+end $$;
+reset role;
+set role anon;
+set request.jwt.claim.sub = '';
+do $$ begin
+  perform discover_artists();
+  perform pg_temp.result('guests cannot browse artists', false);
+exception when others then perform pg_temp.result('guests cannot browse artists', true);
+end $$;
+reset role;
+
 -- Guests (signed out)
 set role anon;
 set request.jwt.claim.sub = '';

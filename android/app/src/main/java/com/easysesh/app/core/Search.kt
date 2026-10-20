@@ -3,6 +3,7 @@ package com.easysesh.app.core
 import com.easysesh.app.model.AddOnKind
 import com.easysesh.app.model.EquipmentCategory
 import com.easysesh.app.model.Facility
+import com.easysesh.app.model.DiscoveredArtist
 import com.easysesh.app.model.Genre
 import com.easysesh.app.model.Interval
 import com.easysesh.app.model.Studio
@@ -161,5 +162,46 @@ object SearchText {
         val lowered = text.lowercase()
             .replace("ø", "o").replace("æ", "ae").replace("å", "a").replace("ß", "ss").replace("ł", "l")
         return marks.replace(Normalizer.normalize(lowered, Normalizer.Form.NFD), "")
+    }
+}
+
+// MARK: Artists (studios' "Find artists")
+
+enum class ArtistSort(val title: String) { Recommended("Recommended"), TopRated("Top rated"), MostSessions("Most sessions"), Newest("Newest") }
+
+data class ArtistFilters(
+    val query: String = "",
+    val genres: Set<Genre> = emptySet(),
+    val verifiedOnly: Boolean = false,
+    val bookedBefore: Boolean = false,
+    val minRating: Double? = null,
+) {
+    val activeCount: Int get() = genres.size + (if (verifiedOnly) 1 else 0) + (if (bookedBefore) 1 else 0) + (if (minRating != null) 1 else 0)
+}
+
+object ArtistSearch {
+    /** Same rules as the website and iOS: filters, the chosen sort, and promoted artists first. */
+    fun search(artists: List<DiscoveredArtist>, f: ArtistFilters, sort: ArtistSort): List<DiscoveredArtist> {
+        val words = SearchText.normalize(f.query.trim()).split(" ").filter { it.isNotEmpty() }
+        val matching = artists.filter { a ->
+            if (words.isNotEmpty()) {
+                val genreNames = a.genres.map { g -> Genre.entries.firstOrNull { it.raw == g }?.let { L10n.tr(it.title) } ?: g }
+                val text = SearchText.normalize((listOf(a.artistName, a.city, a.bio) + genreNames).joinToString(" "))
+                if (!words.all { text.contains(it) }) return@filter false
+            }
+            if (f.genres.isNotEmpty() && f.genres.none { a.genres.contains(it.raw) }) return@filter false
+            if (f.verifiedOnly && !a.isVerified) return@filter false
+            if (f.bookedBefore && !a.hasBooked) return@filter false
+            if (f.minRating != null && (a.reviewCount == 0 || a.ratingAverage < f.minRating)) return@filter false
+            true
+        }
+        val score = { a: DiscoveredArtist -> a.ratingAverage * minOf(a.reviewCount, 5) }
+        val sorted = when (sort) {
+            ArtistSort.TopRated -> matching.sortedWith(compareByDescending<DiscoveredArtist> { it.ratingAverage }.thenByDescending { it.reviewCount })
+            ArtistSort.MostSessions -> matching.sortedByDescending { it.sessionCount }
+            ArtistSort.Newest -> matching.sortedByDescending { it.joinedAt }
+            ArtistSort.Recommended -> matching.sortedWith(compareByDescending<DiscoveredArtist> { it.hasBooked }.thenByDescending(score).thenByDescending { it.sessionCount })
+        }
+        return sorted.filter { it.isPromoted } + sorted.filter { !it.isPromoted }
     }
 }

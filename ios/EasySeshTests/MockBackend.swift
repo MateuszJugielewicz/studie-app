@@ -908,6 +908,21 @@ final class MockBackend: Backend {
             .sorted { $0.artistName < $1.artistName }
     }
 
+    func discoverArtists() async throws -> [DiscoveredArtist] {
+        let user = try requireUser()
+        guard let studio = studios.values.first(where: { $0.ownerId == user.id }) else { throw BackendError.forbidden }
+        _ = try requireApprovedOwner(of: studio.id)
+        let list = artistProfiles.values.filter { !$0.artistName.isEmpty && $0.id != user.id }.map { profile in
+            DiscoveredArtist(id: profile.id, artistName: profile.artistName, city: profile.city, genres: profile.genres.map(\.rawValue),
+                             avatarUrl: profile.avatarUrl, bio: String(profile.bio.prefix(280)), isVerified: profile.isVerified,
+                             hasAdminBadge: profile.hasAdminBadge ?? false, ratingAverage: profile.ratingAverage ?? 0, reviewCount: profile.reviewCount ?? 0,
+                             sessionCount: bookings.values.filter { $0.artistId == profile.id && $0.status == .completed }.count,
+                             isPromoted: profile.isPromoted,
+                             hasBooked: bookings.values.contains { $0.artistId == profile.id && $0.studioId == studio.id }, joinedAt: .now)
+        }
+        return ArtistSearch.search(list, filters: ArtistFilters(), sort: .recommended)
+    }
+
     // MARK: Promotions
 
     func promotions(studioId: UUID) async throws -> [StudioPromotion] {

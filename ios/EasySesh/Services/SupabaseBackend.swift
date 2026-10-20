@@ -608,6 +608,10 @@ final class SupabaseBackend: Backend {
         try await rpc("search_artists", ["p_query": .string(query)])
     }
 
+    func discoverArtists() async throws -> [DiscoveredArtist] {
+        try await rpc("discover_artists")
+    }
+
     // MARK: Promotions
 
     func promotions(studioId: UUID) async throws -> [StudioPromotion] {

@@ -29,7 +29,7 @@ enum class AppTab {
     // Artist
     Discover, Bookings,
     // Studio
-    Dashboard, Calendar,
+    Dashboard, Calendar, Artists,
     // Shared
     Messages, Notifications, Profile,
 }

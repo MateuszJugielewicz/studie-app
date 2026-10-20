@@ -17,8 +17,11 @@ struct ArtistPublicProfileView: View {
     @State private var showReport = false
     @State private var confirmBlock = false
     @State private var blocked = false
+    @State private var messaging = false
 
     private var isOwn: Bool { app.account?.id == artistId }
+    /// Approved studios can write to artists from their profile (as from Find artists).
+    private var canMessage: Bool { !isOwn && !blocked && app.role == .studioOwner && app.ownedStudio?.status == .approved }
     private var shown: ArtistProfile? { profile ?? initial }
 
     var body: some View {
@@ -26,6 +29,10 @@ struct ArtistPublicProfileView: View {
             VStack(alignment: .leading, spacing: 18) {
                 if let shown {
                     hero(shown)
+                    if canMessage {
+                        Button { messaging = true } label: { Label("Message", systemImage: "bubble.left.fill") }
+                            .buttonStyle(.primary)
+                    }
                     if !shown.links.isEmpty { linkChips(shown) }
                 }
                 studioSection
@@ -60,6 +67,18 @@ struct ArtistPublicProfileView: View {
             Text("Neither of you can send messages in this conversation. You can unblock them any time in Settings → Blocked accounts.")
         }
         .sheet(isPresented: $showReport) { ReportSheet(target: .user, targetId: artistId) }
+        .sheet(isPresented: $messaging) {
+            if let shown {
+                NavigationStack {
+                    NewMessageSheet(initial: ArtistSearchResult(id: shown.id, artistName: shown.artistName, city: shown.city,
+                                                                genres: shown.genres.map(\.rawValue), avatarUrl: shown.avatarUrl,
+                                                                isVerified: shown.isVerified, hasBooked: false, hasAdminBadge: shown.hasAdminBadge,
+                                                                isPromoted: shown.isPromoted)) { conversation in
+                        app.open(.conversation(conversation.id))
+                    }
+                }
+            }
+        }
         .sheet(item: $disputing) { review in
             DisputeRatingSheet(kind: .artistReview, reviewId: review.id) { disputed.insert(review.id) }
         }

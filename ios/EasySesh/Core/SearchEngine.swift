@@ -212,3 +212,60 @@ enum SearchText {
             .folding(options: [.diacriticInsensitive, .caseInsensitive], locale: nil)
     }
 }
+
+// MARK: - Artists (studios' "Find artists")
+
+enum ArtistSort: String, CaseIterable, Identifiable {
+    case recommended, topRated, mostSessions, newest
+    var id: String { rawValue }
+    var title: String {
+        switch self {
+        case .recommended: "Recommended"
+        case .topRated: "Top rated"
+        case .mostSessions: "Most sessions"
+        case .newest: "Newest"
+        }
+    }
+}
+
+struct ArtistFilters: Equatable {
+    var query = ""
+    var genres: Set<Genre> = []
+    var verifiedOnly = false
+    var bookedBefore = false
+    var minRating: Double?
+
+    var activeCount: Int { genres.count + (verifiedOnly ? 1 : 0) + (bookedBefore ? 1 : 0) + (minRating == nil ? 0 : 1) }
+}
+
+enum ArtistSearch {
+    /// Same rules as the website: filters, the chosen sort, and promoted artists first.
+    static func search(_ artists: [DiscoveredArtist], filters f: ArtistFilters, sort: ArtistSort) -> [DiscoveredArtist] {
+        let words = SearchText.normalize(f.query.trimmingCharacters(in: .whitespaces)).split(separator: " ").map(String.init)
+        let matching = artists.filter { a in
+            if !words.isEmpty {
+                let genreNames = a.genres.map { Genre(rawValue: $0).map { L10n.tr($0.title) } ?? $0 }
+                let text = SearchText.normalize(([a.artistName, a.city, a.bio] + genreNames).joined(separator: " "))
+                if !words.allSatisfy({ text.contains($0) }) { return false }
+            }
+            if !f.genres.isEmpty && !f.genres.contains(where: { a.genres.contains($0.rawValue) }) { return false }
+            if f.verifiedOnly && !a.isVerified { return false }
+            if f.bookedBefore && !a.hasBooked { return false }
+            if let min = f.minRating, a.reviewCount == 0 || a.ratingAverage < min { return false }
+            return true
+        }
+        let sorted = matching.sorted { a, b in
+            switch sort {
+            case .topRated: return (a.ratingAverage, a.reviewCount) > (b.ratingAverage, b.reviewCount)
+            case .mostSessions: return a.sessionCount > b.sessionCount
+            case .newest: return a.joinedAt > b.joinedAt
+            case .recommended:
+                if a.hasBooked != b.hasBooked { return a.hasBooked }
+                let scoreA = a.ratingAverage * Double(min(a.reviewCount, 5)), scoreB = b.ratingAverage * Double(min(b.reviewCount, 5))
+                if scoreA != scoreB { return scoreA > scoreB }
+                return a.sessionCount > b.sessionCount
+            }
+        }
+        return sorted.filter { $0.isPromoted } + sorted.filter { !$0.isPromoted }
+    }
+}

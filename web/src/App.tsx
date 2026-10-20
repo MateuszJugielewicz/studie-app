@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect, type ReactNode } from "react";
 import { BrowserRouter, Link, Navigate, NavLink, Route, Routes, useLocation } from "react-router-dom";
-import { Bell, Building2, CalendarDays, LayoutGrid, LogIn, MessagesSquare, SearchCheck, UserRound, type LucideIcon } from "lucide-react";
+import { Bell, Building2, CalendarDays, LayoutGrid, LogIn, MessagesSquare, Mic2, SearchCheck, UserRound, type LucideIcon } from "lucide-react";
 import { useApp } from "./lib/state";
 import { t } from "./lib/i18n";
 import { Avatar, Loading, Logo } from "./components/ui";
@@ -26,6 +26,7 @@ const Reviews = lazy(() => import("./pages/Reviews"));
 const StudioOwner = lazy(() => import("./pages/StudioOwner"));
 const StudioEditor = lazy(() => import("./pages/StudioEditor"));
 const VerifyEmail = lazy(() => import("./pages/VerifyEmail"));
+const FindArtists = lazy(() => import("./pages/FindArtists"));
 
 interface Tab { to: string; title: string; icon: LucideIcon; badge?: number; match?: string[] }
 
@@ -37,6 +38,7 @@ function useTabs(): Tab[] {
     return [
       { to: "/studio", title: "Dashboard", icon: LayoutGrid },
       { to: "/studio/calendar", title: "Calendar", icon: CalendarDays },
+      { to: "/artists", title: "Artists", icon: Mic2 },
       { to: "/messages", title: "Messages", icon: MessagesSquare, badge: app.unreadMessages },
       { to: "/inbox", title: "Inbox", icon: Bell, badge: app.unreadNotifications },
       { to: "/studio/listing", title: "Studio", icon: Building2 },
@@ -151,6 +153,7 @@ export default function App() {
             <Route path="/signup" element={<Auth mode="signup" />} />
             <Route path="/auth/callback" element={<Auth mode="callback" />} />
             <Route path="/verify-email" element={<VerifyEmail />} />
+            <Route path="/artists" element={<RequireAuth role="studio_owner"><FindArtists /></RequireAuth>} />
             <Route path="/studios" element={<Discover />} />
             <Route path="/studios/:id" element={<StudioDetail />} />
             <Route path="/studios/:id/reviews" element={<Reviews />} />

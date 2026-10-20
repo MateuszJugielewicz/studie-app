@@ -661,6 +661,9 @@ class Backend(context: Context) {
     /** Artists a studio can message. An empty query returns artists who booked the studio. */
     suspend fun searchArtists(query: String): List<ArtistSearchResult> = rpc("search_artists") { put("p_query", query) }
 
+    /** Every artist an approved studio can browse (Find artists); promoted ones first. */
+    suspend fun discoverArtists(): List<DiscoveredArtist> = rpc("discover_artists") { }
+
     /** Live stream of new messages in a conversation. */
     fun messageStream(conversationId: String): Flow<ChatMessage> {
         val id = conversationId.lowercase()

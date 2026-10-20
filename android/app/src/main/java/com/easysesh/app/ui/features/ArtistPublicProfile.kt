@@ -77,6 +77,7 @@ fun ArtistPublicProfileView(artistId: String, initial: ArtistProfile?) {
     var showReport by remember { mutableStateOf(false) }
     var confirmBlock by remember { mutableStateOf(false) }
     var blocked by remember { mutableStateOf(false) }
+    var messaging by remember { mutableStateOf(false) }
     var menu by remember { mutableStateOf(false) }
     var reload by remember { mutableStateOf(0) }
     val isOwn = app.account?.id == artistId
@@ -154,6 +155,11 @@ fun ArtistPublicProfileView(artistId: String, initial: ArtistProfile?) {
                     }
                     if (p.bio.isNotEmpty()) Txt(p.bio, style = Type.subheadline, color = Theme.secondary, align = TextAlign.Center)
                 }
+            }
+            // Approved studios can write to artists from their profile (as from Find artists).
+            if (app.account?.id != artistId && !blocked && app.role == com.easysesh.app.model.UserRole.StudioOwner &&
+                app.ownedStudio?.status == com.easysesh.app.model.StudioStatus.Approved) {
+                PrimaryButton("Message", Modifier.fillMaxWidth(), symbol = "bubble.left.fill") { messaging = true }
             }
             if (p.links.isNotEmpty()) {
                 Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -254,6 +260,16 @@ fun ArtistPublicProfileView(artistId: String, initial: ArtistProfile?) {
             listOf(DialogAction("Block", destructive = true) { setBlocked(true) }), { confirmBlock = false }, translateTitle = false)
     }
     if (showReport) Sheet({ showReport = false }) { ReportSheet(ReportTarget.User, artistId) }
+    val profileForMessage = shown
+    if (messaging && profileForMessage != null) {
+        Sheet({ messaging = false }) {
+            NewMessageSheet(com.easysesh.app.model.ArtistSearchResult(profileForMessage.id, profileForMessage.artistName, profileForMessage.city,
+                profileForMessage.genres.map { it.raw }, profileForMessage.avatarUrl, profileForMessage.isVerified, false,
+                profileForMessage.hasAdminBadge, profileForMessage.isPromoted)) { conversation ->
+                app.open(com.easysesh.app.services.DeepLink.ConversationLink(conversation.id))
+            }
+        }
+    }
     disputing?.let { review -> Sheet({ disputing = null }) { DisputeRatingSheet(RatingKind.ArtistReview, review.id) { disputed = disputed + review.id } } }
     ErrorAlert(error) { error = null }
 }

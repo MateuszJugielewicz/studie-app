@@ -8,7 +8,7 @@ import { endViewAs, takeViewAsTokens, viewAs, viewOnlyFetch } from "./viewAs";
 import type {
   AppNotification, ArtistProfile, ArtistReview, ArtistSearchResult, BlockState, BlockedSlot, BlockedUser, Booking, ChangelogEntry,
   ChatMessage, Conversation, FeeInvoice, FeeLedgerEntry, Interval, ModerationWarning, PaymentIntentInfo, PaymentTransaction, Payout,
-  PayoutAccount, ReportReason, ReportTarget, Review, Studio, StudioArtistLink, StudioPromotion, SupportCategory, SupportMessage,
+  DiscoveredArtist, PayoutAccount, ReportReason, ReportTarget, Review, Studio, StudioArtistLink, StudioPromotion, SupportCategory, SupportMessage,
   SupportTicket, UserAccount, UserRole, UserSettings, PriceBreakdown, PromoCheck, PromoCode, SiteBanner, StudioOffer, ModerationRecord, AccountChangeNotice,
 } from "./types";
 
@@ -423,6 +423,8 @@ export class Api {
 
   startConversation = (artistId: string, body: string) => this.rpc<Conversation>("studio_start_conversation", { p_artist_id: artistId, p_body: body });
   respondToMessageRequest = (id: string, accept: boolean) => this.rpc<Conversation>("respond_message_request", { p_conversation_id: id, p_accept: accept });
+  /** Every artist an approved studio can browse; promoted ones first. Filtering happens on the device. */
+  discoverArtists = () => this.rpc<DiscoveredArtist[]>("discover_artists", {});
   searchArtists = (query: string) => this.rpc<ArtistSearchResult[]>("search_artists", { p_query: query });
   markConversationRead = (id: string) => this.rpc<void>("mark_conversation_read", { p_conversation_id: id });
 

@@ -418,4 +418,20 @@ final class PostgresCodingTests: XCTestCase {
         XCTAssertEqual(ticket.status, .answered)
         XCTAssertEqual(ticket.userUnread, 1)
     }
+
+    func testArtistSearchPutsPromotedArtistsFirstAndFilters() {
+        func artist(_ name: String, promoted: Bool = false, rating: Double = 0, reviews: Int = 0, genres: [String] = [], verified: Bool = false) -> DiscoveredArtist {
+            DiscoveredArtist(id: UUID(), artistName: name, city: "Athens", genres: genres, avatarUrl: nil, bio: "", isVerified: verified,
+                             hasAdminBadge: false, ratingAverage: rating, reviewCount: reviews, sessionCount: 0, isPromoted: promoted,
+                             hasBooked: false, joinedAt: .now)
+        }
+        let list = [artist("Top", rating: 5, reviews: 9, genres: ["rap"], verified: true), artist("Boosted", promoted: true, genres: ["pop"]), artist("New")]
+        XCTAssertEqual(ArtistSearch.search(list, filters: ArtistFilters(), sort: .topRated).map(\.artistName), ["Boosted", "Top", "New"])
+        var rap = ArtistFilters(); rap.genres = [.rap]
+        XCTAssertEqual(ArtistSearch.search(list, filters: rap, sort: .recommended).map(\.artistName), ["Top"])
+        var verified = ArtistFilters(); verified.verifiedOnly = true
+        XCTAssertEqual(ArtistSearch.search(list, filters: verified, sort: .recommended).map(\.artistName), ["Top"])
+        var named = ArtistFilters(); named.query = "boost"
+        XCTAssertEqual(ArtistSearch.search(list, filters: named, sort: .recommended).map(\.artistName), ["Boosted"])
+    }
 }

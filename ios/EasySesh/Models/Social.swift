@@ -54,6 +54,25 @@ struct ArtistSearchResult: Codable, Identifiable, Hashable {
     var isPromoted: Bool? = nil
 }
 
+/// An artist in the studios' "Find artists" list (`discover_artists`).
+struct DiscoveredArtist: Codable, Identifiable, Hashable {
+    let id: UUID
+    var artistName: String
+    var city: String
+    var genres: [String]
+    var avatarUrl: String?
+    var bio: String
+    var isVerified: Bool
+    var hasAdminBadge: Bool
+    var ratingAverage: Double
+    var reviewCount: Int
+    var sessionCount: Int
+    var isPromoted: Bool
+    /// Has booked this studio before (messages skip the request step).
+    var hasBooked: Bool
+    var joinedAt: Date
+}
+
 struct ChatMessage: Codable, Identifiable, Hashable {
     let id: UUID
     var conversationId: UUID

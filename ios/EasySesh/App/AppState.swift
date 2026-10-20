@@ -5,7 +5,7 @@ enum AppTab: Hashable {
     // Artist
     case discover, bookings
     // Studio
-    case dashboard, calendar
+    case dashboard, calendar, artists
     // Shared
     case messages, notifications, profile
 }

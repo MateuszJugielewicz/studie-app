@@ -37,6 +37,7 @@ object Symbols {
         "bubble.left.and.bubble.right.fill" to Icons.Rounded.Forum,
         "bubble.left.and.text.bubble.right.fill" to Icons.Rounded.Forum,
         "bubble.left.fill" to Icons.AutoMirrored.Rounded.Chat,
+        "bubble.left" to Icons.Rounded.ChatBubbleOutline,
         "building.2" to Icons.Outlined.Business,
         "building.2.fill" to Icons.Rounded.Business,
         "building.columns" to Icons.Outlined.AccountBalance,

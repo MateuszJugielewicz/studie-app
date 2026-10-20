@@ -154,6 +154,8 @@ protocol Backend: AnyObject {
     func respondToMessageRequest(conversationId: UUID, accept: Bool) async throws -> Conversation
     /// Artists a studio can message. An empty query returns artists who booked the studio.
     func searchArtists(query: String) async throws -> [ArtistSearchResult]
+    /// Every artist an approved studio can browse (Find artists); promoted ones first.
+    func discoverArtists() async throws -> [DiscoveredArtist]
     /// Live stream of new messages in a conversation.
     func messageStream(conversationId: UUID) -> AsyncStream<ChatMessage>
 

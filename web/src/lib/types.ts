@@ -281,6 +281,12 @@ export interface Conversation {
   request_status?: ConversationRequestStatus | null; started_by_studio?: boolean | null; artist_avatar_url?: string | null;
 }
 export interface ChatMessage { id: string; conversation_id: string; sender_id?: string | null; kind: "text" | "system" | "booking"; body: string; created_at: string }
+/** An artist in the studios' "Find artists" list (discover_artists). */
+export interface DiscoveredArtist {
+  id: string; artist_name: string; city: string; genres: string[]; avatar_url?: string | null; bio: string; is_verified: boolean;
+  has_admin_badge: boolean; rating_average: number; review_count: number; session_count: number; is_promoted: boolean;
+  has_booked: boolean; joined_at: string;
+}
 export interface ArtistSearchResult { id: string; artist_name: string; city: string; genres: string[]; avatar_url?: string | null; is_verified: boolean; has_booked: boolean; has_admin_badge?: boolean | null; is_promoted?: boolean | null }
 
 export interface Review {

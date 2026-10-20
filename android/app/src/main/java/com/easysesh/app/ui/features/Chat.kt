@@ -239,12 +239,12 @@ private fun Tag(text: String, symbol: String) {
 
 /** Studio → artist: pick an artist (search, or someone who booked you) and write the first message. */
 @Composable
-fun NewMessageSheet(onSent: (Conversation) -> Unit) {
+fun NewMessageSheet(initial: ArtistSearchResult? = null, onSent: (Conversation) -> Unit) {
     val app = LocalAppState.current
     val dismiss = LocalDismiss.current
     var query by remember { mutableStateOf("") }
     var results by remember { mutableStateOf<List<ArtistSearchResult>>(emptyList()) }
-    var selected by remember { mutableStateOf<ArtistSearchResult?>(null) }
+    var selected by remember { mutableStateOf(initial) }
     var message by remember { mutableStateOf("") }
     var isSending by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }

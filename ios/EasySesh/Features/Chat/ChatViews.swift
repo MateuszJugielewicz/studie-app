@@ -177,7 +177,15 @@ struct ConversationsView: View {
 
     private func openDeepLink() {
         guard case .conversation(let id) = app.consumeDeepLink({ if case .conversation = $0 { return true }; return false }) else { return }
-        if let conversation = conversations.first(where: { $0.id == id }) { path.append(conversation) }
+        if let conversation = conversations.first(where: { $0.id == id }) {
+            path.append(conversation)
+        } else {
+            // Just started from another tab (Find artists, a profile): load it first.
+            Task {
+                conversations = (try? await app.backend.conversations()) ?? conversations
+                if let conversation = conversations.first(where: { $0.id == id }) { path.append(conversation) }
+            }
+        }
     }
 }
 
@@ -248,6 +256,8 @@ struct ConversationRow: View {
 struct NewMessageSheet: View {
     @Environment(AppState.self) private var app
     @Environment(\.dismiss) private var dismiss
+    /// Opens straight on the message to this artist (from Find artists or their profile).
+    var initial: ArtistSearchResult?
     var onSent: (Conversation) -> Void
 
     @State private var query = ""
@@ -266,6 +276,7 @@ struct NewMessageSheet: View {
             }
         }
         .easyseshGrouped()
+        .onAppear { if selected == nil, let initial { selected = initial } }
         .navigationTitle(selected == nil ? "New message" : selected!.artistName)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {

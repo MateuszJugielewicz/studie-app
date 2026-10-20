@@ -500,3 +500,187 @@ struct FilterSheet: View {
         }
     }
 }
+
+// MARK: - Find artists (studios)
+
+extension DiscoveredArtist {
+    var searchResult: ArtistSearchResult {
+        ArtistSearchResult(id: id, artistName: artistName, city: city, genres: genres, avatarUrl: avatarUrl, isVerified: isVerified,
+                           hasBooked: hasBooked, hasAdminBadge: hasAdminBadge, isPromoted: isPromoted)
+    }
+}
+
+/// Studios find artists the way artists find studios: search, filters and sorting over every artist,
+/// promoted artists first with a Promoted tag. "Message" writes to them (a message request unless they
+/// booked the studio before).
+struct FindArtistsView: View {
+    @Environment(AppState.self) private var app
+    @State private var artists: [DiscoveredArtist] = []
+    @State private var filters = ArtistFilters()
+    @State private var sort: ArtistSort = .recommended
+    @State private var isLoading = true
+    @State private var showFilters = false
+    @State private var messaging: DiscoveredArtist?
+    @State private var error: String?
+    @FocusState private var searchFocused: Bool
+
+    var body: some View {
+        NavigationStack {
+            let results = ArtistSearch.search(artists, filters: filters, sort: sort)
+            EasySeshScreen("Find artists", eyebrow: L10n.tr("For your studio"), refresh: { await load() }) {
+                VStack(alignment: .leading, spacing: 14) {
+                    GlassField(symbol: "magnifyingglass", isFocused: searchFocused) {
+                        TextField("Artist, genre or city", text: $filters.query)
+                            .focused($searchFocused)
+                            .submitLabel(.search)
+                            .autocorrectionDisabled()
+                            .onSubmit { searchFocused = false }
+                        if !filters.query.isEmpty {
+                            Button { filters.query = "" } label: { Image(systemName: "xmark.circle.fill").foregroundStyle(.secondary) }
+                                .buttonStyle(.plain)
+                                .accessibilityLabel("Clear search")
+                        }
+                    }
+                    HStack(spacing: 8) {
+                        Button { showFilters = true } label: {
+                            FilterPill(title: filters.activeCount > 0 ? L10n.format("Filters · %lld", filters.activeCount) : L10n.tr("Filters"),
+                                       symbol: "slider.horizontal.3", isActive: filters.activeCount > 0)
+                        }
+                        .buttonStyle(PressableCardStyle())
+                        Menu {
+                            Picker("Sort", selection: $sort) {
+                                ForEach(ArtistSort.allCases) { Text(localized: $0.title).tag($0) }
+                            }
+                        } label: {
+                            FilterPill(title: sort.title, symbol: "arrow.up.arrow.down", isActive: false)
+                        }
+                        Spacer(minLength: 4)
+                        Text(L10n.format("%lld artists", results.count)).font(.footnote.weight(.bold)).monospacedDigit()
+                    }
+                    if results.contains(where: \.isPromoted) {
+                        Text("Promoted artists are shown first.").font(.caption).foregroundStyle(.secondary)
+                    }
+                    if isLoading {
+                        ProgressView().frame(maxWidth: .infinity).padding(40)
+                    } else if results.isEmpty {
+                        GlassEmptyState(title: "No artists found", symbol: "music.mic", message: "Try another search or fewer filters.")
+                        if filters.activeCount > 0 {
+                            Button("Clear filters") { filters = ArtistFilters(query: filters.query) }.buttonStyle(.secondary)
+                        }
+                    }
+                    LazyVStack(spacing: 14) {
+                        ForEach(results) { artist in
+                            ArtistDiscoveryCard(artist: artist) { messaging = artist }
+                        }
+                    }
+                }
+            }
+            .scrollDismissesKeyboard(.interactively)
+            .navigationDestination(for: DiscoveredArtist.self) { artist in
+                ArtistPublicProfileView(artistId: artist.id, initial: nil)
+            }
+            .sheet(isPresented: $showFilters) {
+                ArtistFilterSheet(filters: $filters).presentationDetents([.medium, .large])
+            }
+            .sheet(item: $messaging) { artist in
+                NavigationStack {
+                    NewMessageSheet(initial: artist.searchResult) { conversation in app.open(.conversation(conversation.id)) }
+                }
+            }
+            .task { await load() }
+            .errorAlert($error)
+        }
+    }
+
+    private func load() async {
+        defer { isLoading = false }
+        do { artists = try await app.backend.discoverArtists() } catch { self.error = error.userMessage }
+    }
+}
+
+private struct ArtistDiscoveryCard: View {
+    let artist: DiscoveredArtist
+    var onMessage: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            NavigationLink(value: artist) {
+                HStack(alignment: .top, spacing: 12) {
+                    Avatar(url: artist.avatarUrl, name: artist.artistName, size: 58)
+                        .overlay(Circle().strokeBorder(artist.isPromoted ? AnyShapeStyle(Theme.neon) : AnyShapeStyle(Color.clear), lineWidth: 2))
+                    VStack(alignment: .leading, spacing: 3) {
+                        HStack(spacing: 4) {
+                            Text(artist.artistName).font(.headline).foregroundStyle(.primary).lineLimit(1)
+                            if artist.isVerified { VerifiedBadge() }
+                            if artist.hasAdminBadge { AdminBadge(compact: true) }
+                        }
+                        Text([artist.city, artist.hasBooked ? L10n.tr("Booked you before") : ""].filter { !$0.isEmpty }.joined(separator: " · "))
+                            .font(.subheadline).foregroundStyle(.secondary).lineLimit(1)
+                        HStack(spacing: 10) {
+                            if artist.reviewCount > 0 { RatingLabel(rating: artist.ratingAverage, count: artist.reviewCount, compact: true) }
+                            if artist.sessionCount > 0 { Text(L10n.format("%lld sessions", artist.sessionCount)).font(.caption).foregroundStyle(.secondary) }
+                        }
+                    }
+                    Spacer(minLength: 0)
+                    if artist.isPromoted { PromotedTag() }
+                }
+            }
+            .buttonStyle(.plain)
+            if !artist.bio.isEmpty {
+                Text(artist.bio).font(.footnote).foregroundStyle(.secondary).lineLimit(2)
+            }
+            if !artist.genres.isEmpty {
+                Text(artist.genres.prefix(4).map { Genre(rawValue: $0).map { L10n.tr($0.title) } ?? $0 }.joined(separator: " · "))
+                    .font(.caption.weight(.semibold)).foregroundStyle(Theme.accent)
+            }
+            Button(action: onMessage) { Label("Message", systemImage: "bubble.left") }
+                .buttonStyle(.secondary)
+        }
+        .glassCard()
+        .overlay(RoundedRectangle(cornerRadius: 22, style: .continuous)
+            .strokeBorder(artist.isPromoted ? AnyShapeStyle(Theme.neon) : AnyShapeStyle(Color.clear), lineWidth: 1.5))
+    }
+}
+
+private struct ArtistFilterSheet: View {
+    @Binding var filters: ArtistFilters
+    @Environment(\.dismiss) private var dismiss
+    @State private var draft = ArtistFilters()
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("Rating") {
+                    Picker("Minimum rating", selection: $draft.minRating) {
+                        Text("Any").tag(Double?.none)
+                        Text("4.0+").tag(Double?.some(4.0))
+                        Text("4.5+").tag(Double?.some(4.5))
+                        Text("4.8+").tag(Double?.some(4.8))
+                    }
+                    .pickerStyle(.segmented)
+                }
+                Section("Artists") {
+                    Toggle("Verified artists only", isOn: $draft.verifiedOnly)
+                    Toggle("Booked your studio before", isOn: $draft.bookedBefore)
+                }
+                Section("Genres") {
+                    ChipPicker(items: Genre.allCases, selection: $draft.genres, title: { $0.title })
+                        .padding(.vertical, 4)
+                }
+            }
+            .easyseshGrouped()
+            .navigationTitle("Filters")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
+                ToolbarItem(placement: .primaryAction) {
+                    Button("Show results") { filters = draft; dismiss() }.bold()
+                }
+                ToolbarItem(placement: .bottomBar) {
+                    Button("Reset") { draft = ArtistFilters(query: filters.query) }
+                }
+            }
+            .onAppear { draft = filters }
+        }
+    }
+}

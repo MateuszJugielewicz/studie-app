@@ -175,12 +175,14 @@ struct StudioTabView: View {
         EasySeshTabContainer(selection: $app.selectedTab, tour: tour, tabs: [
             TabSpec(tab: .dashboard, title: "Dashboard", symbol: "square.grid.2x2"),
             TabSpec(tab: .calendar, title: "Calendar", symbol: "calendar"),
+            TabSpec(tab: .artists, title: "Artists", symbol: "music.mic"),
             TabSpec(tab: .messages, title: "Messages", symbol: "bubble.left.and.bubble.right", badge: app.unreadMessages),
             TabSpec(tab: .notifications, title: "Inbox", symbol: "bell", badge: app.unreadNotifications),
             TabSpec(tab: .profile, title: "Studio", symbol: "building.2"),
         ]) { tab in
             switch tab {
             case .calendar: StudioCalendarView()
+            case .artists: FindArtistsView()
             case .messages: ConversationsView()
             case .notifications: NotificationsView()
             case .profile: StudioSettingsView()

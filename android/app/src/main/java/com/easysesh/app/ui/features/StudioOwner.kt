@@ -198,6 +198,7 @@ fun StudioTabView() {
         tabs = listOf(
             TabSpec(AppTab.Dashboard, "Dashboard", "square.grid.2x2"),
             TabSpec(AppTab.Calendar, "Calendar", "calendar"),
+            TabSpec(AppTab.Artists, "Artists", "music.mic"),
             TabSpec(AppTab.Messages, "Messages", "bubble.left.and.bubble.right", app.unreadMessages),
             TabSpec(AppTab.Notifications, "Inbox", "bell", app.unreadNotifications),
             TabSpec(AppTab.Profile, "Studio", "building.2"),
@@ -207,6 +208,7 @@ fun StudioTabView() {
     ) { tab ->
         when (tab) {
             AppTab.Calendar -> StudioCalendarView()
+            AppTab.Artists -> FindArtistsView()
             AppTab.Messages -> ConversationsView()
             AppTab.Notifications -> NotificationsView()
             AppTab.Profile -> StudioSettingsView()
