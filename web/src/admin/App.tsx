@@ -21,6 +21,7 @@ import PromotionsPage from "./pages/PromotionsPage";
 import PromoCodesPage from "./pages/PromoCodesPage";
 import ChangelogPage from "./pages/ChangelogPage";
 import VerificationPage from "./pages/VerificationPage";
+import StoriesPage from "./pages/StoriesPage";
 
 // Simple 24px stroke icons (Lucide-style paths).
 const icons: Record<string, string> = {
@@ -38,6 +39,7 @@ const icons: Record<string, string> = {
   codes: "M20.6 13.4l-7.2 7.2a2 2 0 0 1-2.8 0L2 12V2h10l8.6 8.6a2 2 0 0 1 0 2.8zM7 7h.01",
   changelog: "M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z",
   verification: "M12 2l2.4 2.4 3.4-.4.4 3.4L20.6 10l-2.4 2.4.4 3.4-3.4.4L12.8 18.6 10.4 16.2 7 16.6l-.4-3.4L4.2 10.8 6.6 8.4 6.2 5l3.4-.4zM9 11l2 2 4-4",
+  stories: "M12 2a10 10 0 1 0 10 10M12 7v5l3 3M17 2.5a10 10 0 0 1 4.5 4.5",
   support: "M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2zM8 9h8M8 13h5",
 };
 
@@ -68,6 +70,7 @@ const nav: { to: string; title: string; icon: string; min?: StaffRank }[] = [
   { to: "/promo-codes", title: "Promo codes", icon: "codes" },
   { to: "/moderation", title: "Moderation", icon: "moderation" },
   { to: "/verification", title: "Verification", icon: "verification" },
+  { to: "/stories", title: "Stories", icon: "stories" },
   { to: "/support", title: "Support", icon: "support" },
   { to: "/changelog", title: "Changelog", icon: "changelog" },
   { to: "/banners", title: "Banners", icon: "banners", min: "admin" as StaffRank },
@@ -193,6 +196,7 @@ function Dashboard({ api }: { api: AdminApi }) {
             <Route path="/payments" element={<PaymentsPage />} />
             <Route path="/moderation" element={<ModerationPage />} />
             <Route path="/verification" element={<VerificationPage />} />
+            <Route path="/stories" element={<StoriesPage />} />
             <Route path="/support" element={<SupportPage />} />
             <Route path="/promotions" element={<PromotionsPage />} />
             <Route path="/promo-codes" element={<PromoCodesPage />} />

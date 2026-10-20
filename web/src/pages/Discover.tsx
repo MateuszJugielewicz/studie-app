@@ -16,6 +16,7 @@ import {
   SpecialTag, Stepper, ToggleItem, ToolButton, VerifiedBadge,
 } from "../components/ui";
 import { StudioMap } from "../components/StudioMap";
+import { StoryBar } from "../components/Stories";
 
 // Filters survive going to a studio and back (like the app's tab keeping its state).
 let saved: { filters: SearchFilters; sort: StudioSort; map: boolean } = { filters: EMPTY_FILTERS, sort: "nearest", map: false };
@@ -83,6 +84,7 @@ export default function Discover() {
         <button className="icon-btn" onClick={() => setShowMap(!showMap)} aria-label={t(showMap ? "Show list" : "Show map")}>{showMap ? <List size={18} /> : <MapIcon size={18} />}</button>
       } />
       <div className="stack">
+        <StoryBar />
         <label className="field">
           <Search size={18} />
           <input type="search" placeholder={t("Studio, area or city")} value={filters.query} onChange={(e) => setFilters({ ...filters, query: e.target.value })} />

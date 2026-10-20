@@ -719,6 +719,59 @@ set request.jwt.claims = '{}';
 reset role;
 select pg_temp.result('applicants are told the decision', (select count(*) = 2 from notifications where title in ('You''re verified', 'Verification not granted')));
 
+-- Stories: post, see, like, reply; nobody can post or remove for someone else.
+set role authenticated;
+set request.jwt.claims = '{}';
+set request.jwt.claim.sub = '10000000-0000-0000-0000-00000000000a';
+create temp table story_a as select * from post_story('https://x.supabase.co/storage/v1/object/public/media/10000000-0000-0000-0000-00000000000a/stories/one.jpg', 'In the booth tonight');
+grant all on story_a to authenticated, anon;
+select pg_temp.result('artist can post a story', (select expires_at > now() + interval '23 hours' from story_a));
+do $$ begin
+  perform post_story('https://x.supabase.co/storage/v1/object/public/media/10000000-0000-0000-0000-0000000000a2/stories/theirs.jpg', 'stolen photo');
+  perform pg_temp.result('cannot post someone else''s photo', false);
+exception when others then perform pg_temp.result('cannot post someone else''s photo', true);
+end $$;
+do $$ begin
+  insert into stories (user_id, media_url) values ('10000000-0000-0000-0000-0000000000a2', 'https://x/forged.jpg');
+  perform pg_temp.result('cannot insert stories directly', false);
+exception when others then perform pg_temp.result('cannot insert stories directly', true);
+end $$;
+set request.jwt.claim.sub = '10000000-0000-0000-0000-00000000000b';
+create temp table story_b as select * from post_story('https://x.supabase.co/storage/v1/object/public/media/10000000-0000-0000-0000-00000000000b/stories/room.jpg', 'Live room ready');
+grant all on story_b to authenticated, anon;
+select pg_temp.result('studio story is posted as the studio', (select studio_id = '20000000-0000-0000-0000-000000000001' from story_b));
+select pg_temp.result('stories show in the feed', (select count(*) = 2 from story_feed()));
+select mark_story_viewed((select id from story_a));
+select pg_temp.result('liking counts', (select like_story((select id from story_a), true) = 1));
+select reply_to_story((select id from story_a), 'Sounds great, come record with us!');
+do $$ begin
+  perform remove_story((select id from story_a));
+  perform pg_temp.result('cannot remove someone else''s story', false);
+exception when others then perform pg_temp.result('cannot remove someone else''s story', true);
+end $$;
+do $$ begin
+  perform story_activity((select id from story_a));
+  perform pg_temp.result('only the poster sees who viewed', false);
+exception when others then perform pg_temp.result('only the poster sees who viewed', true);
+end $$;
+set request.jwt.claim.sub = '10000000-0000-0000-0000-00000000000a';
+select pg_temp.result('poster sees views, likes and replies', (select view_count = 1 and like_count = 1 and reply_count = 1 from user_stories('10000000-0000-0000-0000-00000000000a')));
+select pg_temp.result('poster sees the reply', (select reply is not null and liked from story_activity((select id from story_a)) limit 1));
+select pg_temp.result('poster is told about the reply', (select count(*) = 1 from notifications where user_id = auth.uid() and title like '%replied to your story'));
+select remove_story((select id from story_a));
+set request.jwt.claim.sub = '10000000-0000-0000-0000-00000000000b';
+select pg_temp.result('removed stories disappear', (select count(*) = 0 from stories where id = (select id from story_a)));
+do $$ begin
+  perform reply_to_story((select id from story_a), 'still there?');
+  perform pg_temp.result('cannot reply to a removed story', false);
+exception when others then perform pg_temp.result('cannot reply to a removed story', true);
+end $$;
+reset role;
+set role anon;
+set request.jwt.claim.sub = '';
+select pg_temp.result('guests cannot see stories', (select count(*) = 0 from stories));
+reset role;
+
 -- Guests (signed out)
 set role anon;
 set request.jwt.claim.sub = '';

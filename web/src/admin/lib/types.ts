@@ -375,3 +375,9 @@ export interface VerificationRequest {
   studio_city: string | null;
   booking_count: number;
 }
+
+/** A story with its poster, for moderation (admin_stories). */
+export interface AdminStory {
+  id: string; user_id: string; studio_id: string | null; media_url: string; caption: string; created_at: string; expires_at: string;
+  removed_at: string | null; poster_name: string | null; poster_email: string; like_count: number; view_count: number; reply_count: number;
+}

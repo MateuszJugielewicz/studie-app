@@ -2,7 +2,7 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { AdminApi, StudioDecision } from "./api";
 import { fetchWithReason } from "./reason";
 import type {
-  PaymentDomainsResult, VerificationRequest,
+  AdminStory, PaymentDomainsResult, VerificationRequest,
   FeeBalance, FeeInvoice, MfaState, ChangelogEntry, ModerationEvent, Promotion, PromoCode, RatingDispute, StudioOffer, TermsStatus,
   AuditEntry, FlagRule, SentEmail, SiteBanner, StaffMember, StaffRank,
   AccountStatus, AdminUser, Booking, BookingStatus, DashboardStats, Dispute, Payout, Report, ReportStatus,
@@ -200,6 +200,14 @@ export class SupabaseAdminApi implements AdminApi {
 
   async sentEmails(): Promise<SentEmail[]> {
     return unwrap(await this.client.from("admin_emails").select("*").order("created_at", { ascending: false }).limit(200));
+  }
+
+  async stories(): Promise<AdminStory[]> {
+    return unwrap(await this.client.from("admin_stories").select("*").order("created_at", { ascending: false }).limit(200));
+  }
+
+  async removeStory(storyId: string) {
+    unwrap(await this.client.rpc("remove_story", { p_story_id: storyId }));
   }
 
   async verificationRequests(): Promise<VerificationRequest[]> {

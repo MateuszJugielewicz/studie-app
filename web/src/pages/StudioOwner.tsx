@@ -24,6 +24,7 @@ import { BookingRow } from "./Bookings";
 import { SignOutButton } from "./Profile";
 import { PayoutPage, PromotionPage, ArtistLinkPage } from "./StudioExtras";
 import { VerificationCard } from "./Verification";
+import { StoryBar } from "../components/Stories";
 
 export default function StudioOwner() {
   const app = useApp();
@@ -150,6 +151,7 @@ function Dashboard() {
           {studio.status === "suspended" && (
             <div className="card row"><IconTile icon={OctagonAlert} colors={Tiles.danger} /><span className="subhead">{t("Your studio is suspended and hidden from artists. Contact support.")}</span></div>
           )}
+          <StoryBar />
           <LiveToggle studio={studio} />
           <div className="neon-card stack" style={{ gap: 14 }}>
             <div className="row spread"><span className="subhead semibold" style={{ opacity: 0.85 }}>{t("Earned this month")}</span><BarChart3 size={16} style={{ opacity: 0.8 }} /></div>

@@ -1,5 +1,5 @@
 import type {
-  PaymentDomainsResult, VerificationRequest,
+  AdminStory, PaymentDomainsResult, VerificationRequest,
   FeeBalance, FeeInvoice, MfaState, ChangelogEntry, ModerationEvent, Promotion, PromoCode, RatingDispute, StudioOffer, TermsStatus,
   AuditEntry, FlagRule, SentEmail, SiteBanner, StaffMember, StaffRank,
   AccountStatus, AdminUser, Booking, BookingStatus, DashboardStats, Dispute, Payout, Report, ReportStatus,
@@ -72,6 +72,8 @@ export interface AdminApi {
   /** Word lists for automatic report flags. */
   flagRules(): Promise<FlagRule[]>;
   verificationRequests(): Promise<VerificationRequest[]>;
+  stories(): Promise<AdminStory[]>;
+  removeStory(storyId: string): Promise<void>;
   reviewVerification(requestId: string, approve: boolean, note: string): Promise<void>;
   saveFlagRule(rule: Partial<FlagRule>): Promise<void>;
   removeFlagRule(id: string): Promise<void>;

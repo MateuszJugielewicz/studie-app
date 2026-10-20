@@ -8,7 +8,7 @@ import { endViewAs, takeViewAsTokens, viewAs, viewOnlyFetch } from "./viewAs";
 import type {
   AppNotification, ArtistProfile, ArtistReview, ArtistSearchResult, BlockState, BlockedSlot, BlockedUser, Booking, ChangelogEntry,
   ChatMessage, Conversation, FeeInvoice, FeeLedgerEntry, Interval, ModerationWarning, PaymentIntentInfo, PaymentTransaction, Payout,
-  DiscoveredArtist, PayoutAccount, VerificationRequest, ReportReason, ReportTarget, Review, Studio, StudioArtistLink, StudioPromotion, SupportCategory, SupportMessage,
+  DiscoveredArtist, PayoutAccount, Story, StoryActivity, StoryAuthor, VerificationRequest, ReportReason, ReportTarget, Review, Studio, StudioArtistLink, StudioPromotion, SupportCategory, SupportMessage,
   SupportTicket, UserAccount, UserRole, UserSettings, PriceBreakdown, PromoCheck, PromoCode, SiteBanner, StudioOffer, ModerationRecord, AccountChangeNotice,
 } from "./types";
 
@@ -451,6 +451,20 @@ export class Api {
   async promotions(studioId: string): Promise<StudioPromotion[]> {
     return unwrap(await this.client.from("studio_promotions").select("*").eq("studio_id", studioId).order("created_at", { ascending: false }));
   }
+  // MARK: Stories
+
+  storyFeed = () => this.rpc<StoryAuthor[]>("story_feed", {});
+  userStories = (userId: string) => this.rpc<Story[]>("user_stories", { p_user_id: userId });
+  storyActivity = (storyId: string) => this.rpc<StoryActivity[]>("story_activity", { p_story_id: storyId });
+  async postStory(photo: Blob, caption: string): Promise<Story> {
+    const url = await this.uploadImage(photo, "stories");
+    return this.rpc<Story>("post_story", { p_media_url: url, p_caption: caption });
+  }
+  removeStory = (storyId: string) => this.rpc<void>("remove_story", { p_story_id: storyId });
+  markStoryViewed = (storyId: string) => this.rpc<void>("mark_story_viewed", { p_story_id: storyId });
+  likeStory = (storyId: string, like: boolean) => this.rpc<number>("like_story", { p_story_id: storyId, p_like: like });
+  replyToStory = (storyId: string, body: string) => this.rpc<unknown>("reply_to_story", { p_story_id: storyId, p_body: body });
+
   async verificationRequests(userId: string): Promise<VerificationRequest[]> {
     return unwrap(await this.client.from("verification_requests").select("*").eq("user_id", userId).order("created_at", { ascending: false }).limit(10));
   }

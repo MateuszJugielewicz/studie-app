@@ -421,3 +421,40 @@ html, body { max-width: 100%; }
 .top-banner.success { background: color-mix(in srgb, var(--positive) 16%, var(--card)); }
 .top-banner.view-as { background: #1c1b19; color: #fff; }
 .top-banner.outage .tool-btn, .top-banner.view-as .tool-btn { color: #fff; }
+
+/* Stories */
+.story-bar { display: flex; gap: 14px; overflow-x: auto; padding: 4px 2px 8px; scrollbar-width: none; }
+.story-bar::-webkit-scrollbar { display: none; }
+.story-circle { display: flex; flex-direction: column; align-items: center; gap: 5px; width: 72px; flex-shrink: 0; }
+.story-circle .caption2 { max-width: 72px; text-align: center; }
+.story-ring { position: relative; padding: 3px; border-radius: 50%; background: var(--neon); }
+.story-ring > * { border: 2.5px solid var(--bg); }
+.story-ring.seen { background: var(--stroke); }
+.story-ring.add { background: transparent; border: 1.5px dashed var(--stroke); padding: 2px; }
+.story-ring.add > * { border: 0; }
+.story-plus { position: absolute; right: -2px; bottom: -2px; width: 22px; height: 22px; border-radius: 11px; background: var(--neon); color: #fff;
+  display: flex; align-items: center; justify-content: center; border: 2px solid var(--bg); }
+.story-overlay { position: fixed; inset: 0; z-index: 60; background: #000; display: flex; align-items: center; justify-content: center; animation: fade 0.2s; }
+.story-stage { position: relative; width: min(100vw, calc(100vh * 9 / 16)); height: 100vh; max-height: 100dvh; background: #111; overflow: hidden; user-select: none; touch-action: manipulation; }
+.story-media { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+.story-media.center { display: flex; align-items: center; justify-content: center; color: #fff; }
+.story-top { position: absolute; top: 0; left: 0; right: 0; padding: 10px 12px 24px; z-index: 3; color: #fff;
+  background: linear-gradient(rgba(0,0,0,0.55), transparent); display: flex; flex-direction: column; gap: 10px; }
+.story-progress { display: flex; gap: 4px; }
+.story-progress > span { flex: 1; height: 2.5px; border-radius: 2px; background: rgba(255,255,255,0.35); overflow: hidden; }
+.story-progress > span > span { display: block; height: 100%; background: #fff; }
+.story-tap { position: absolute; top: 80px; bottom: 120px; width: 35%; z-index: 2; }
+.story-tap.left { left: 0; }
+.story-tap.right { right: 0; width: 65%; }
+.story-bottom { position: absolute; left: 0; right: 0; bottom: 0; z-index: 3; padding: 30px 12px calc(14px + env(safe-area-inset-bottom));
+  background: linear-gradient(transparent, rgba(0,0,0,0.6)); display: flex; flex-direction: column; gap: 10px; color: #fff; }
+.story-caption { font-size: 16px; font-weight: 600; text-shadow: 0 1px 4px rgba(0,0,0,0.6); }
+.story-reply { flex: 1; min-width: 0; height: 44px; border-radius: 22px; border: 1px solid rgba(255,255,255,0.55); background: rgba(0,0,0,0.25);
+  color: #fff; padding: 0 16px; font-size: 15px; outline: none; }
+.story-reply::placeholder { color: rgba(255,255,255,0.75); }
+.story-icon { width: 44px; height: 44px; border-radius: 22px; display: flex; align-items: center; justify-content: center; color: #fff; flex-shrink: 0; }
+.story-icon.liked { color: #FF3D6E; }
+.story-activity-btn { display: inline-flex; align-items: center; gap: 6px; align-self: flex-start; color: #fff; font-weight: 600; font-size: 14px;
+  padding: 8px 14px; border-radius: 18px; background: rgba(0,0,0,0.35); }
+.story-pick { width: 100%; aspect-ratio: 9 / 14; max-height: 52vh; border-radius: 20px; border: 1.5px dashed var(--stroke); background: var(--fill) center / cover no-repeat;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: var(--text-2); }

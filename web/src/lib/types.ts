@@ -373,3 +373,18 @@ export interface VerificationRequest {
   status: "pending" | "approved" | "denied" | "cancelled"; message: string; links: string[];
   staff_note?: string | null; reviewed_at?: string | null; created_at: string;
 }
+
+/** Someone with live stories, for the row of circles (story_feed). */
+export interface StoryAuthor {
+  user_id: string; studio_id?: string | null; name: string; avatar_url?: string | null; is_verified: boolean; is_promoted: boolean;
+  story_count: number; latest_at: string; all_seen: boolean; is_own: boolean;
+}
+/** One story (user_stories). Views and replies are only filled in for the poster. */
+export interface Story {
+  id: string; user_id: string; studio_id?: string | null; media_url: string; caption: string; created_at: string; expires_at: string;
+  like_count: number; liked_by_me: boolean; view_count?: number | null; reply_count?: number | null; seen: boolean;
+}
+/** Who viewed, liked or replied to the poster's story (story_activity). */
+export interface StoryActivity {
+  person_id: string; name: string; avatar_url?: string | null; viewed_at?: string | null; liked: boolean; reply?: string | null; replied_at?: string | null;
+}
