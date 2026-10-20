@@ -39,8 +39,8 @@ struct ConversationsView: View {
     var body: some View {
         NavigationStack(path: $path) {
             EasySeshScreen("Messages", eyebrow: eyebrow, refresh: { await load() }) {
-                if app.role == .studioOwner && app.ownedStudio?.status == .approved {
-                    GlassIconButton(symbol: "square.and.pencil", label: "New message") { isComposing = true }
+                if app.role == .artist || (app.role == .studioOwner && app.ownedStudio?.status == .approved) {
+                    GlassIconButton(symbol: "plus", label: "New message") { isComposing = true }
                 }
             } content: {
                 filterChips
@@ -69,10 +69,18 @@ struct ConversationsView: View {
             .navigationDestination(for: Conversation.self) { ChatView(conversation: $0) }
             .sheet(isPresented: $isComposing) {
                 NavigationStack {
-                    NewMessageSheet { conversation in
-                        conversations.removeAll { $0.id == conversation.id }
-                        conversations.insert(conversation, at: 0)
-                        path.append(conversation)
+                    if app.role == .artist {
+                        NewStudioMessageSheet { conversation in
+                            conversations.removeAll { $0.id == conversation.id }
+                            conversations.insert(conversation, at: 0)
+                            path.append(conversation)
+                        }
+                    } else {
+                        NewMessageSheet { conversation in
+                            conversations.removeAll { $0.id == conversation.id }
+                            conversations.insert(conversation, at: 0)
+                            path.append(conversation)
+                        }
                     }
                 }
             }
@@ -153,7 +161,7 @@ struct ConversationsView: View {
         default:
             app.role == .artist
                 ? L10n.tr("Message a studio from its profile or from one of your bookings.")
-                : L10n.tr("Artists can message you about your studio and bookings. Tap ✎ to write to an artist.")
+                : L10n.tr("Artists can message you about your studio and bookings. Tap + to write to an artist.")
         }
     }
 
@@ -249,6 +257,83 @@ struct ConversationRow: View {
             .padding(.horizontal, 7).padding(.vertical, 3)
             .background(Theme.violet.opacity(0.15), in: Capsule())
             .foregroundStyle(Theme.violet)
+    }
+}
+
+/// Artist → studio: search any studio (name, area, city) and open the chat with it.
+struct NewStudioMessageSheet: View {
+    @Environment(AppState.self) private var app
+    @Environment(\.dismiss) private var dismiss
+    var onOpen: (Conversation) -> Void
+
+    @State private var query = ""
+    @State private var studios: [Studio]?
+    @State private var opening: UUID?
+    @State private var error: String?
+
+    private var results: [StudioResult] {
+        var filters = SearchFilters()
+        filters.query = query
+        return Array(SearchEngine().search(studios: studios ?? [], filters: filters, sort: .mostPopular, origin: nil).prefix(30))
+    }
+
+    var body: some View {
+        List {
+            Section {
+                if studios == nil {
+                    ProgressView().frame(maxWidth: .infinity)
+                } else if results.isEmpty {
+                    Text("No studios found").font(.subheadline).foregroundStyle(.secondary)
+                }
+                ForEach(results) { result in
+                    let studio = result.studio
+                    Button { open(studio) } label: {
+                        HStack(spacing: 12) {
+                            RemoteImage(url: studio.photoUrls.first)
+                                .frame(width: 44, height: 44)
+                                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                            VStack(alignment: .leading, spacing: 2) {
+                                HStack(spacing: 4) {
+                                    Text(studio.name).font(.headline).foregroundStyle(.primary)
+                                    if studio.isVerified { VerifiedBadge() }
+                                    if studio.showsAdminBadge { AdminBadge(compact: true) }
+                                    if studio.isPromoted { PromotedTag() }
+                                }
+                                Text(studio.address.publicArea).font(.caption).foregroundStyle(.secondary)
+                            }
+                            Spacer()
+                            if opening == studio.id { ProgressView() }
+                        }
+                    }
+                    .disabled(opening != nil)
+                }
+            } header: {
+                Text(LocalizedStringKey(query.trimmingCharacters(in: .whitespaces).isEmpty ? "Popular studios" : "Studios"))
+            }
+        }
+        .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search studios")
+        .easyseshGrouped()
+        .navigationTitle("New message")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
+        }
+        .task {
+            do { studios = try await app.backend.publishedStudios() } catch { self.error = error.userMessage; studios = [] }
+        }
+        .errorAlert($error)
+    }
+
+    private func open(_ studio: Studio) {
+        opening = studio.id
+        Task {
+            defer { opening = nil }
+            do {
+                let conversation = try await app.backend.conversation(studioId: studio.id, bookingId: nil)
+                dismiss()
+                onOpen(conversation)
+            } catch { self.error = error.userMessage }
+        }
     }
 }
 

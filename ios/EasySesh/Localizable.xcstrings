@@ -7848,61 +7848,61 @@
         }
       }
     },
-    "Artists can message you about your studio and bookings. Tap ✎ to write to an artist.": {
+    "Artists can message you about your studio and bookings. Tap + to write to an artist.": {
       "extractionState": "manual",
       "localizations": {
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kunstnere kan skrive til dig om dit studie og dine bookinger. Tryk på ✎ for at skrive til en kunstner."
+            "value": "Kunstnere kan skrive til dig om dit studie og dine bookinger. Tryk på + for at skrive til en kunstner."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Artists können dir zu deinem Studio und zu Buchungen schreiben. Tippe auf ✎, um einem Artist zu schreiben."
+            "value": "Artists können dir zu deinem Studio und zu Buchungen schreiben. Tippe auf +, um einem Artist zu schreiben."
           }
         },
         "el": {
           "stringUnit": {
             "state": "translated",
-            "value": "Οι καλλιτέχνες μπορούν να σου γράψουν για το στούντιο και τις κρατήσεις. Πάτα ✎ για να γράψεις σε καλλιτέχνη."
+            "value": "Οι καλλιτέχνες μπορούν να σου γράψουν για το στούντιο και τις κρατήσεις. Πάτα + για να γράψεις σε καλλιτέχνη."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Los artistas pueden escribirte sobre tu estudio y las reservas. Toca ✎ para escribir a un artista."
+            "value": "Los artistas pueden escribirte sobre tu estudio y las reservas. Toca + para escribir a un artista."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Les artistes peuvent t'écrire au sujet de ton studio et des réservations. Touche ✎ pour écrire à un artiste."
+            "value": "Les artistes peuvent t'écrire au sujet de ton studio et des réservations. Touche + pour écrire à un artiste."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Gli artisti possono scriverti sullo studio e le prenotazioni. Tocca ✎ per scrivere a un artista."
+            "value": "Gli artisti possono scriverti sullo studio e le prenotazioni. Tocca + per scrivere a un artista."
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Artiesten kunnen je berichten over je studio en boekingen. Tik op ✎ om een artiest te schrijven."
+            "value": "Artiesten kunnen je berichten over je studio en boekingen. Tik op + om een artiest te schrijven."
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Artyści mogą pisać do Ciebie o studiu i rezerwacjach. Stuknij ✎, aby napisać do artysty."
+            "value": "Artyści mogą pisać do Ciebie o studiu i rezerwacjach. Stuknij +, aby napisać do artysty."
           }
         },
         "sv": {
           "stringUnit": {
             "state": "translated",
-            "value": "Artister kan skriva till dig om din studio och dina bokningar. Tryck på ✎ för att skriva till en artist."
+            "value": "Artister kan skriva till dig om din studio och dina bokningar. Tryck på + för att skriva till en artist."
           }
         }
       }
@@ -13217,61 +13217,61 @@
         }
       }
     },
-    "Chat with artists about their bookings, or write to an artist first with the ✎ button.": {
+    "Chat with artists about their bookings, or write to an artist first with the + button.": {
       "extractionState": "manual",
       "localizations": {
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "Skriv med kunstnere om deres bookinger, eller skriv først til en kunstner med ✎-knappen."
+            "value": "Skriv med kunstnere om deres bookinger, eller skriv først til en kunstner med +-knappen."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Chatte mit Künstler:innen über Buchungen oder schreib sie mit ✎ zuerst an."
+            "value": "Chatte mit Künstler:innen über Buchungen oder schreib sie mit + zuerst an."
           }
         },
         "el": {
           "stringUnit": {
             "state": "translated",
-            "value": "Συζήτησε με καλλιτέχνες για τις κρατήσεις τους ή γράψε πρώτος με το κουμπί ✎."
+            "value": "Συζήτησε με καλλιτέχνες για τις κρατήσεις τους ή γράψε πρώτος με το κουμπί +."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Habla con artistas sobre sus reservas o escríbeles primero con el botón ✎."
+            "value": "Habla con artistas sobre sus reservas o escríbeles primero con el botón +."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Discute avec les artistes de leurs réservations, ou écris-leur en premier avec ✎."
+            "value": "Discute avec les artistes de leurs réservations, ou écris-leur en premier avec +."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Chatta con gli artisti sulle prenotazioni o scrivi per primo con il pulsante ✎."
+            "value": "Chatta con gli artisti sulle prenotazioni o scrivi per primo con il pulsante +."
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Chat met artiesten over hun boekingen, of schrijf eerst met de ✎-knop."
+            "value": "Chat met artiesten over hun boekingen, of schrijf eerst met de +-knop."
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Rozmawiaj z artystami o rezerwacjach lub napisz pierwszy przyciskiem ✎."
+            "value": "Rozmawiaj z artystami o rezerwacjach lub napisz pierwszy przyciskiem +."
           }
         },
         "sv": {
           "stringUnit": {
             "state": "translated",
-            "value": "Chatta med artister om bokningar, eller skriv först med ✎-knappen."
+            "value": "Chatta med artister om bokningar, eller skriv först med +-knappen."
           }
         }
       }
@@ -41596,6 +41596,65 @@
         }
       }
     },
+    "Popular studios": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Populære studier"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beliebte Studios"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Δημοφιλή στούντιο"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Estudios populares"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Studios populaires"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Studi popolari"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Populaire studio's"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Popularne studia"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Populära studior"
+          }
+        }
+      }
+    },
     "Post": {
       "extractionState": "manual",
       "localizations": {
@@ -48672,6 +48731,65 @@
           "stringUnit": {
             "state": "translated",
             "value": "Sök stad, studio, utrustning…"
+          }
+        }
+      }
+    },
+    "Search studios": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Søg i studier"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Studios suchen"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Αναζήτηση στούντιο"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buscar estudios"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rechercher des studios"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cerca studi"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Studio's zoeken"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Szukaj studiów"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sök studior"
           }
         }
       }

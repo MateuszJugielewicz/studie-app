@@ -62,7 +62,7 @@ data class TabTour(val steps: List<TourStep>, val onFinish: () -> Unit) {
             TourStep(AppTab.Calendar, "calendar", "Calendar",
                 "Every session by day. Block time when the studio is busy so nobody can book it."),
             TourStep(AppTab.Messages, "bubble.left.and.bubble.right.fill", "Messages",
-                "Chat with artists about their bookings, or write to an artist first with the ✎ button."),
+                "Chat with artists about their bookings, or write to an artist first with the + button."),
             TourStep(AppTab.Notifications, "bell.badge.fill", "Inbox",
                 "Booking requests, reviews and payouts land here and as push notifications."),
             TourStep(AppTab.Profile, "building.2.fill", "Your studio",

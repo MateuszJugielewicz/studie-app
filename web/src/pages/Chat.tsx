@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, Route, Routes, useNavigate, useParams } from "react-router-dom";
-import { ArrowUp, CalendarDays, Check, ChevronLeft, ChevronRight, Copy, Flag, Hand, HandMetal, Info, Inbox as InboxIcon, MessagesSquare, Search, SquarePen, Star, Trash2 } from "lucide-react";
+import { ArrowUp, CalendarDays, Check, ChevronLeft, ChevronRight, Copy, Flag, Hand, HandMetal, Info, Inbox as InboxIcon, MessagesSquare, Plus, Search, Star, Trash2 } from "lucide-react";
 import { api, userMessage } from "../lib/api";
-import { Dates } from "../lib/core";
+import { Dates, EMPTY_FILTERS, searchStudios, Studios } from "../lib/core";
 import { format, t } from "../lib/i18n";
 import { useApp } from "../lib/state";
-import { BOOKING_STATUS_TITLE, type ArtistSearchResult, type BlockState, type Booking, type ChatMessage, type Conversation, type UserRole } from "../lib/types";
+import { BOOKING_STATUS_TITLE, type ArtistSearchResult, type BlockState, type Booking, type ChatMessage, type Conversation, type Studio, type UserRole } from "../lib/types";
 import {
-  AdminBadge, Avatar, bookingStatusColor, ConfirmDialog, Empty, IconTile, Item, LargeHead, Loading, Photo, PromotedTag, Section, Sheet, StatusPill, Tiles, ToolButton, VerifiedBadge, useToast,
+  AdminBadge, Avatar, bookingStatusColor, ConfirmDialog, Empty, IconTile, Item, LargeHead, Loading, Photo, PromotedTag, Section, Sheet, Spinner, StatusPill, Tiles, ToolButton, VerifiedBadge, useToast,
 } from "../components/ui";
 import { Menu, ReportSheet } from "../components/social";
 
@@ -63,8 +63,8 @@ function ConversationList({ activeId }: { activeId?: string }) {
   return (
     <div className="stack">
       <LargeHead title="Messages" eyebrow={unread > 0 ? format("%lld unread", unread) : "Inbox"} actions={
-        role === "studio_owner" && app.ownedStudio?.status === "approved"
-          ? <button className="icon-btn" onClick={() => setComposing(true)} aria-label={t("New message")}><SquarePen size={18} /></button> : undefined
+        role === "artist" || (role === "studio_owner" && app.ownedStudio?.status === "approved")
+          ? <button className="icon-btn" onClick={() => setComposing(true)} aria-label={t("New message")}><Plus size={20} /></button> : undefined
       } />
       <div className="row" style={{ gap: 8, overflowX: "auto" }}>
         {(["all", "unread", "requests"] as Filter[]).map((f) => (
@@ -86,7 +86,7 @@ function ConversationList({ activeId }: { activeId?: string }) {
           title={filter === "all" ? "No messages yet" : filter === "unread" ? "You're all caught up" : role === "artist" ? "No message requests" : "No pending requests"}
           message={filter === "requests"
             ? (role === "artist" ? "When a studio you haven't booked writes to you, it shows up here first." : "Artists you message who haven't booked you yet see it as a request until they accept.")
-            : (role === "artist" ? "Message a studio from its profile or from one of your bookings." : "Artists can message you about your studio and bookings. Tap ✎ to write to an artist.")} />
+            : (role === "artist" ? "Message a studio from its profile or from one of your bookings." : "Artists can message you about your studio and bookings. Tap + to write to an artist.")} />
       ) : visible.map((c) => (
         <div key={c.id} className="row" style={{ gap: 6 }}>
           <button className="grow" style={{ textAlign: "left" }} onClick={() => navigate(`/messages/${c.id}`)}>
@@ -97,7 +97,9 @@ function ConversationList({ activeId }: { activeId?: string }) {
           )}
         </div>
       ))}
-      <NewMessageSheet open={composing} onClose={() => setComposing(false)} onSent={(c) => { setConversations([c, ...list.filter((x) => x.id !== c.id)]); navigate(`/messages/${c.id}`); }} />
+      {role === "artist"
+        ? <NewStudioMessageSheet open={composing} onClose={() => setComposing(false)} onOpen={(c) => { setConversations([c, ...list.filter((x) => x.id !== c.id)]); navigate(`/messages/${c.id}`); }} />
+        : <NewMessageSheet open={composing} onClose={() => setComposing(false)} onSent={(c) => { setConversations([c, ...list.filter((x) => x.id !== c.id)]); navigate(`/messages/${c.id}`); }} />}
     </div>
   );
 }
@@ -267,6 +269,41 @@ function ChatThread({ id }: { id: string }) {
 }
 
 /** Studio → artist: pick an artist (search, or someone who booked you) and write the first message. */
+/** Artist → studio: search any studio (name, area, city) and open the chat with it. */
+function NewStudioMessageSheet({ open, onClose, onOpen }: { open: boolean; onClose: () => void; onOpen: (c: Conversation) => void }) {
+  const toast = useToast();
+  const [query, setQuery] = useState("");
+  const [studios, setStudios] = useState<Studio[] | null>(null);
+  const [opening, setOpening] = useState<string | null>(null);
+  useEffect(() => { if (open && !studios) api.publishedStudios().then(setStudios).catch((e) => { toast(userMessage(e)); setStudios([]); }); }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
+  const results = searchStudios(studios ?? [], { ...EMPTY_FILTERS, query }, "most_popular", null).slice(0, 30);
+  async function choose(studio: Studio) {
+    setOpening(studio.id);
+    try { const c = await api.conversation(studio.id, null); onClose(); setQuery(""); onOpen(c); } catch (e) { toast(userMessage(e)); }
+    setOpening(null);
+  }
+  return (
+    <Sheet open={open} onClose={onClose} title="New message" closeLabel="Cancel">
+      <div className="stack-lg">
+        <label className="field"><Search size={18} /><input autoFocus placeholder={t("Search studios")} value={query} onChange={(e) => setQuery(e.target.value)} /></label>
+        <Section header={query.trim() ? "Studios" : "Popular studios"}>
+          {studios == null ? <Item><Loading /></Item> : results.length === 0 && <Item><span className="subhead secondary">{t("No studios found")}</span></Item>}
+          {results.map(({ studio: s }) => (
+            <Item key={s.id} onClick={() => opening ? undefined : choose(s)}>
+              <Photo url={s.photo_urls[0]} style={{ width: 44, height: 44, borderRadius: 12, flexShrink: 0 }} />
+              <div className="label">
+                <div className="row headline" style={{ gap: 4 }}>{s.name}{s.is_verified && <VerifiedBadge />}{s.has_admin_badge && <AdminBadge compact />}{Studios.isPromoted(s) && <PromotedTag />}</div>
+                <div className="caption secondary">{Studios.publicArea(s)}</div>
+              </div>
+              {opening === s.id && <Spinner />}
+            </Item>
+          ))}
+        </Section>
+      </div>
+    </Sheet>
+  );
+}
+
 function NewMessageSheet({ open, onClose, onSent }: { open: boolean; onClose: () => void; onSent: (c: Conversation) => void }) {
   const toast = useToast();
   const [query, setQuery] = useState("");

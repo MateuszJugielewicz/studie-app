@@ -37,7 +37,7 @@ extension TabTour {
                      message: "Every session by day. Block time when the studio is busy so nobody can book it."),
             TourStep(tab: .messages, symbol: "bubble.left.and.bubble.right.fill",
                      title: "Messages",
-                     message: "Chat with artists about their bookings, or write to an artist first with the ✎ button."),
+                     message: "Chat with artists about their bookings, or write to an artist first with the + button."),
             TourStep(tab: .notifications, symbol: "bell.badge.fill",
                      title: "Inbox",
                      message: "Booking requests, reviews and payouts land here and as push notifications."),

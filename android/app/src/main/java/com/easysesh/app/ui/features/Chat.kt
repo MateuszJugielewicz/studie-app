@@ -118,8 +118,8 @@ fun ConversationsView() {
     NavigationStack(navigator) {
         val unread = conversations.sumOf { it.badgeCount(app.role) }
         EasySeshScreen("Messages", eyebrow = if (unread > 0) L10n.format("%lld unread", unread) else tr("Inbox"), refresh = { load() }, trailing = {
-            if (app.role == UserRole.StudioOwner && app.ownedStudio?.status == StudioStatus.Approved) {
-                GlassIconButton("square.and.pencil", "New message") { isComposing = true }
+            if (app.role == UserRole.Artist || (app.role == UserRole.StudioOwner && app.ownedStudio?.status == StudioStatus.Approved)) {
+                GlassIconButton("plus", "New message") { isComposing = true }
             }
         }) {
             Row(Modifier.horizontalScroll(rememberScrollState()).padding(vertical = 4.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -156,7 +156,7 @@ fun ConversationsView() {
                     else "Artists you message who haven't booked you yet see it as a request until they accept."
                 } else {
                     if (app.role == UserRole.Artist) "Message a studio from its profile or from one of your bookings."
-                    else "Artists can message you about your studio and bookings. Tap ✎ to write to an artist."
+                    else "Artists can message you about your studio and bookings. Tap + to write to an artist."
                 }
                 GlassEmptyState(title, if (filter == ConversationFilter.Requests) "tray" else "bubble.left.and.bubble.right.fill", message)
             }
@@ -179,10 +179,11 @@ fun ConversationsView() {
     }
     if (isComposing) {
         Sheet({ isComposing = false }) {
-            NewMessageSheet { conversation ->
+            val opened: (Conversation) -> Unit = { conversation ->
                 conversations = listOf(conversation) + conversations.filter { it.id != conversation.id }
                 navigator.push { ChatView(conversation) }
             }
+            if (app.role == UserRole.Artist) NewStudioMessageSheet(opened) else NewMessageSheet(onSent = opened)
         }
     }
     ErrorAlert(error) { error = null }
@@ -235,6 +236,61 @@ private fun Tag(text: String, symbol: String) {
         Sym(symbol, size = 11.dp, tint = Theme.violet)
         T(text, style = Type.caption2.bold, color = Theme.violet)
     }
+}
+
+/** Artist → studio: search any studio (name, area, city) and open the chat with it. */
+@Composable
+fun NewStudioMessageSheet(onOpen: (Conversation) -> Unit) {
+    val app = LocalAppState.current
+    val dismiss = LocalDismiss.current
+    var query by remember { mutableStateOf("") }
+    var studios by remember { mutableStateOf<List<com.easysesh.app.model.Studio>?>(null) }
+    var opening by remember { mutableStateOf<String?>(null) }
+    var error by remember { mutableStateOf<String?>(null) }
+    LaunchedEffect(Unit) {
+        studios = try { app.backend.publishedStudios() } catch (e: Exception) { error = e.userMessage; emptyList() }
+    }
+    val results = remember(studios, query) {
+        com.easysesh.app.core.SearchEngine().search(studios ?: emptyList(), com.easysesh.app.core.SearchFilters(query = query),
+            com.easysesh.app.core.StudioSort.MostPopular, null).take(30)
+    }
+    NavScreen("New message", leading = { ToolbarButton("Cancel") { dismiss() } }) {
+        GlassField("magnifyingglass", false) { PlainTextField(query, { query = it }, "Search studios", Modifier.weight(1f)) }
+        FormSection(if (query.isBlank()) "Popular studios" else "Studios") {
+            when {
+                studios == null -> FormContent { ProgressSpinner() }
+                results.isEmpty() -> FormContent { T("No studios found", style = Type.subheadline, color = Theme.secondary) }
+            }
+            results.forEach { result ->
+                val studio = result.studio
+                FormRow(onClick = {
+                    if (opening == null) {
+                        opening = studio.id
+                        app.scope.launch {
+                            try {
+                                val conversation = app.backend.conversation(studio.id, null)
+                                dismiss()
+                                onOpen(conversation)
+                            } catch (e: Exception) { error = e.userMessage } finally { opening = null }
+                        }
+                    }
+                }) {
+                    RemoteImage(studio.photoUrls.firstOrNull(), Modifier.size(44.dp).clip(RoundedCornerShape(12.dp)))
+                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Txt(studio.name, style = Type.headline)
+                            if (studio.isVerified) VerifiedBadge()
+                            if (studio.showsAdminBadge) AdminBadge(compact = true)
+                            if (studio.isPromoted) PromotedTag()
+                        }
+                        Txt(studio.address.publicArea, style = Type.caption, color = Theme.secondary)
+                    }
+                    if (opening == studio.id) ProgressSpinner()
+                }
+            }
+        }
+    }
+    ErrorAlert(error) { error = null }
 }
 
 /** Studio → artist: pick an artist (search, or someone who booked you) and write the first message. */
