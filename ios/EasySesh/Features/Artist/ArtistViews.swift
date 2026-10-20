@@ -148,6 +148,7 @@ struct ArtistProfileView: View {
                         .tracking(-0.5)
                     if profile.isVerified { VerifiedBadge() }
                     if profile.hasAdminBadge == true { AdminBadge() }
+                    if profile.isPromoted { PromotedTag() }
                 }
                 if !profile.city.isEmpty {
                     Label(profile.city, systemImage: "mappin.and.ellipse")

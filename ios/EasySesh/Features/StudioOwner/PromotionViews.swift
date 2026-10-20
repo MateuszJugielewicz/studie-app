@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// A studio's promotion status: a "Promoted" tag and a place at the top of search for a period.
-/// Promotions are granted by the EasySesh team (admin panel); the app doesn't sell them.
+/// Promotions are bought on the website or given by the EasySesh team; the app doesn't sell them.
 struct PromotionView: View {
     @Environment(AppState.self) private var app
     let studio: Studio
@@ -341,6 +341,7 @@ struct StudioArtistLinkView: View {
                         Text(artist.artistName).font(.subheadline.weight(.semibold))
                         if artist.isVerified { VerifiedBadge() }
                         if artist.hasAdminBadge == true { AdminBadge(compact: true) }
+                                    if artist.isPromoted == true { PromotedTag() }
                     }
                     if !artist.city.isEmpty { Text(artist.city).font(.caption).foregroundStyle(.secondary) }
                 }

@@ -7,7 +7,7 @@ import { format, t } from "../lib/i18n";
 import { useApp } from "../lib/state";
 import { BOOKING_STATUS_TITLE, type ArtistSearchResult, type BlockState, type Booking, type ChatMessage, type Conversation, type UserRole } from "../lib/types";
 import {
-  AdminBadge, Avatar, bookingStatusColor, ConfirmDialog, Empty, IconTile, Item, LargeHead, Loading, Photo, Section, Sheet, StatusPill, Tiles, ToolButton, VerifiedBadge, useToast,
+  AdminBadge, Avatar, bookingStatusColor, ConfirmDialog, Empty, IconTile, Item, LargeHead, Loading, Photo, PromotedTag, Section, Sheet, StatusPill, Tiles, ToolButton, VerifiedBadge, useToast,
 } from "../components/ui";
 import { Menu, ReportSheet } from "../components/social";
 
@@ -297,7 +297,7 @@ function NewMessageSheet({ open, onClose, onSent }: { open: boolean; onClose: ()
               <Item key={a.id} onClick={() => setChosen(a)}>
                 <Avatar url={a.avatar_url} name={a.artist_name} size={44} />
                 <div className="label">
-                  <div className="row headline" style={{ gap: 4 }}>{a.artist_name}{a.is_verified && <VerifiedBadge />}{a.has_admin_badge && <AdminBadge compact />}</div>
+                  <div className="row headline" style={{ gap: 4 }}>{a.artist_name}{a.is_verified && <VerifiedBadge />}{a.has_admin_badge && <AdminBadge compact />}{a.is_promoted && <PromotedTag />}</div>
                   <div className="caption secondary">{[a.city, a.genres.slice(0, 2).join(", ")].filter(Boolean).join(" · ")}</div>
                 </div>
                 {a.has_booked && <span className="caption2 bold positive">{t("Booked you")}</span>}

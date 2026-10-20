@@ -1,4 +1,4 @@
-// Card payment for a studio promotion (Stripe).
+// Card payment for a studio or artist promotion (Stripe, on the website).
 //   { promotion_id }                 → PaymentIntent for the payment sheet
 //   { promotion_id, confirm: true }  → checks the payment and starts the promotion
 // The promotion itself is ordered with the request_promotion RPC (price comes from the database).
@@ -11,8 +11,13 @@ Deno.serve(handler(async (req, body) => {
   const user = await requireUser(req);
   const promotionId = requireString(body, "promotion_id");
 
-  const { data: promotion } = await admin.from("studio_promotions").select("*, studios!inner(owner_id, name)").eq("id", promotionId).maybeSingle();
-  if (!promotion || promotion.studios.owner_id !== user.id) throw new HttpError(404, "not_found");
+  const { data: promotion } = await admin.from("studio_promotions")
+    .select("*, studios(owner_id, name)").eq("id", promotionId).maybeSingle();
+  const isOwn = promotion && (promotion.artist_id ? promotion.artist_id === user.id : promotion.studios?.owner_id === user.id);
+  if (!promotion || !isOwn) throw new HttpError(404, "not_found");
+  const promotedName = promotion.artist_id
+    ? `${(await admin.from("artist_profiles").select("artist_name").eq("id", promotion.artist_id).maybeSingle()).data?.artist_name ?? "Artist"} (artist)`
+    : promotion.studios?.name;
 
   if (body.confirm === true) {
     if (promotion.status === "active") return json({ status: "active" });
@@ -34,9 +39,9 @@ Deno.serve(handler(async (req, body) => {
       currency: String(promotion.currency).toLowerCase(),
       customer,
       automatic_payment_methods: { enabled: true },
-      description: `EasySesh promotion · ${promotion.studios.name} · ${promotion.days} days`,
+      description: `EasySesh promotion · ${promotedName} · ${promotion.days} days`,
       statement_descriptor_suffix: "EASYSESH",
-      metadata: { kind: "promotion", promotion_id: promotion.id, studio_id: promotion.studio_id },
+      metadata: { kind: "promotion", promotion_id: promotion.id, studio_id: promotion.studio_id ?? "", artist_id: promotion.artist_id ?? "" },
     }, { idempotencyKey: `promotion-${promotion.id}` });
     await admin.from("studio_promotions").update({ payment_intent_id: intent.id }).eq("id", promotion.id);
   }

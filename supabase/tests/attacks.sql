@@ -570,6 +570,51 @@ set request.jwt.claim.sub = '';
 select pg_temp.result('guests see live banners', (select count(*) = 1 from site_banners));
 reset role;
 
+-- Artist promotions: artists order their own, can't promote themselves for free, and promoted
+-- artists come first in the studios' artist search.
+set role authenticated;
+set request.jwt.claims = '{}';
+set request.jwt.claim.sub = '10000000-0000-0000-0000-0000000000a2';
+update artist_profiles set artist_name = 'Artie Two' where id = auth.uid();
+set request.jwt.claim.sub = '10000000-0000-0000-0000-00000000000a';
+update artist_profiles set artist_name = 'Artie One' where id = auth.uid();
+update artist_profiles set promoted_until = now() + interval '1 year' where id = auth.uid();
+select pg_temp.result('artist cannot promote themselves', (select promoted_until is null from artist_profiles where id = auth.uid()));
+create temp table artist_promo as select * from request_promotion('week');
+grant all on artist_promo to authenticated, anon;
+select pg_temp.result('artist can order a promotion',
+  (select status = 'pending' and artist_id = auth.uid() and studio_id is null and amount = 1900 from artist_promo));
+do $$ begin
+  perform activate_promotion((select id from artist_promo));
+  perform pg_temp.result('artist cannot activate own promotion', false);
+exception when others then perform pg_temp.result('artist cannot activate own promotion', true);
+end $$;
+set request.jwt.claim.sub = '10000000-0000-0000-0000-0000000000a2';
+select pg_temp.result('other artist cannot see the promotion', (select count(*) = 0 from studio_promotions where id = (select id from artist_promo)));
+select cancel_promotion_request((select id from artist_promo));
+reset role;
+select pg_temp.result('other artist cannot cancel the promotion', (select status = 'pending' from studio_promotions where id = (select id from artist_promo)));
+select activate_promotion((select id from artist_promo));
+select pg_temp.result('paid artist promotion starts', (select promoted_until > now() + interval '6 days' from artist_profiles where id = '10000000-0000-0000-0000-00000000000a'));
+set role authenticated;
+set request.jwt.claim.sub = '10000000-0000-0000-0000-00000000000b';
+select pg_temp.result('promoted artist listed first', (select artist_name = 'Artie One' from search_artists('Artie') limit 1));
+update artist_profiles set promoted_until = null where id = '10000000-0000-0000-0000-00000000000a';
+select pg_temp.result('studio cannot end an artist promotion', (select promoted_until is not null from artist_profiles where id = '10000000-0000-0000-0000-00000000000a'));
+do $$ begin
+  perform admin_grant_artist_promotion('10000000-0000-0000-0000-0000000000a2', 30, 'free');
+  perform pg_temp.result('studio cannot give artist promotions', false);
+exception when others then perform pg_temp.result('studio cannot give artist promotions', true);
+end $$;
+set request.jwt.claim.sub = '10000000-0000-0000-0000-00000000000c';
+set request.jwt.claims = '{"aal":"aal2"}';
+select admin_grant_artist_promotion('10000000-0000-0000-0000-0000000000a2', 30, 'free');
+select pg_temp.result('admin gives artist promotion', (select promoted_until > now() + interval '29 days' from artist_profiles where id = '10000000-0000-0000-0000-0000000000a2'));
+select admin_end_artist_promotion('10000000-0000-0000-0000-0000000000a2');
+select pg_temp.result('admin ends artist promotion', (select promoted_until is null from artist_profiles where id = '10000000-0000-0000-0000-0000000000a2'));
+set request.jwt.claims = '{}';
+reset role;
+
 -- Guests (signed out)
 set role anon;
 set request.jwt.claim.sub = '';

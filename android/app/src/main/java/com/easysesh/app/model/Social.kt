@@ -54,6 +54,8 @@ data class ArtistSearchResult(
     /** Has booked this studio before (skips the message request). */
     val hasBooked: Boolean = false,
     val hasAdminBadge: Boolean? = null,
+    /** Bought (or was given) a promotion: listed first, with a Promoted tag. */
+    val isPromoted: Boolean? = null,
 )
 
 @Serializable

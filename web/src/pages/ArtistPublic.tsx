@@ -6,7 +6,7 @@ import { Dates, resolveLink, Studios } from "../lib/core";
 import { format, t } from "../lib/i18n";
 import { useApp } from "../lib/state";
 import { genreTitle, platformTitle, PLATFORM_COLORS, type ArtistProfile, type ArtistReview, type Studio, type StudioArtistLink } from "../lib/types";
-import { AdminBadge, Avatar, ConfirmDialog, Empty, GlowHead, IconTile, Loading, PageHead, Photo, Stars, Tiles, VerifiedBadge, useToast } from "../components/ui";
+import { AdminBadge, Avatar, ConfirmDialog, Empty, GlowHead, IconTile, Loading, PageHead, Photo, PromotedTag, Stars, Tiles, VerifiedBadge, useToast } from "../components/ui";
 import { DisputeRatingSheet, Menu, ReportSheet } from "../components/social";
 import { platformIcon } from "./Profile";
 
@@ -117,7 +117,7 @@ export function ArtistHero({ profile, children }: { profile: ArtistProfile; chil
       </div>
       <div className="row" style={{ gap: 6, justifyContent: "center" }}>
         <span style={{ fontSize: 26, fontWeight: 800, letterSpacing: "-0.02em" }}>{profile.artist_name || t("Artist")}</span>
-        {profile.is_verified && <VerifiedBadge />}{profile.has_admin_badge && <AdminBadge />}
+        {profile.is_verified && <VerifiedBadge />}{profile.has_admin_badge && <AdminBadge />}{profile.promoted_until && new Date(profile.promoted_until) > new Date() && <PromotedTag />}
       </div>
       <div className="row wrap" style={{ gap: 8, justifyContent: "center" }}>
         {profile.city && <span className="chip subhead semibold secondary" style={{ cursor: "default" }}><MapPin size={14} />{profile.city}</span>}

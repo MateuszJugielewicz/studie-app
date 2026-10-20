@@ -449,6 +449,14 @@ export class Api {
   async promotions(studioId: string): Promise<StudioPromotion[]> {
     return unwrap(await this.client.from("studio_promotions").select("*").eq("studio_id", studioId).order("created_at", { ascending: false }));
   }
+  async artistPromotions(artistId: string): Promise<StudioPromotion[]> {
+    return unwrap(await this.client.from("studio_promotions").select("*").eq("artist_id", artistId).order("created_at", { ascending: false }));
+  }
+  /** Orders a promotion for the caller's studio, or their artist profile; paid with promotionPayment. */
+  requestPromotion = (pkg: string) => this.rpc<StudioPromotion>("request_promotion", { p_package: pkg });
+  cancelPromotionRequest = (promotionId: string) => this.rpc<void>("cancel_promotion_request", { p_promotion_id: promotionId });
+  promotionPayment = (promotionId: string) => this.invoke<{ client_secret: string; amount: number; currency: string }>("promotion-payment", { promotion_id: promotionId });
+  confirmPromotion = (promotionId: string) => this.invoke<{ status: string }>("promotion-payment", { promotion_id: promotionId, confirm: true });
   async studioArtistLink(studioId: string): Promise<StudioArtistLink | null> {
     return unwrap(await this.client.from("studio_artist_links").select("*").eq("studio_id", studioId).limit(1).maybeSingle());
   }

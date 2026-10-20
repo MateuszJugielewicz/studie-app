@@ -10,7 +10,7 @@ the privacy-manifest rules and the screenshot specifications.
 |---|---|---|
 | 1.2 User-generated content | No way to block abusive users | Block / unblock from the chat (⋯ menu), artist profiles and studio pages; list under Settings → Blocked accounts. Blocked people can't message each other (enforced in the database). |
 | 1.2 | Terms didn't say "zero tolerance for objectionable content" | Added to Terms §10 and Community Guidelines in all 10 languages. |
-| 3.1.3(g) Buying "boosts" | Studios paid for promotions with Stripe inside the app | The app only shows promotion status. Promotions are granted by admins (admin panel → Promotions). |
+| 3.1.3(g) Buying "boosts" | Studios paid for promotions with Stripe inside the app | The app only shows promotion status. Promotions are bought on the website (easysesh.live) or granted by admins; the app neither sells nor links to them. |
 | 5.1.1(v) Login | The app required an account just to look at studios | "Look around first" on the start screen: guests can browse studios, prices and reviews. Booking, messaging and reporting ask them to sign up. |
 | 5.1.1(v) Account deletion | Sign in with Apple tokens weren't revoked; posted content stayed | Deleting an account asks Apple for a fresh code and revokes the token on the server; review texts and messages are removed, ratings stay anonymous. |
 | 5.1.1(i) Privacy policy | Links pointed to easysesh.app (not your domain) | Public pages served by the `legal` edge function (see URLs below). |
@@ -80,8 +80,8 @@ Demo accounts:
 
 Payments: studio sessions are real-world services used outside the app, so they are paid with
 Stripe / Apple Pay (guideline 3.1.3(e)). Test card in this build: 4242 4242 4242 4242, any future
-date, any CVC. The app sells no digital content and has no in-app purchases; studio promotions are
-arranged by our team outside the app and the app only shows their status.
+date, any CVC. The app sells no digital content and has no in-app purchases; studio and artist promotions are
+bought outside the app (on the website) and the app only shows their status.
 
 User-generated content (guideline 1.2): users can report studios, users, reviews and messages,
 and block other users (⋯ menu in a chat or on a profile; Settings → Blocked accounts). Reports

@@ -336,7 +336,7 @@ function Checkout({ request, onBack }: { request: Request; onBack: () => void })
   );
 }
 
-function stripeAppearance() {
+export function stripeAppearance() {
   const dark = document.documentElement.getAttribute("data-theme") === "dark" || (!document.documentElement.getAttribute("data-theme") && matchMedia("(prefers-color-scheme: dark)").matches);
   return { theme: dark ? "night" : "stripe", variables: { colorPrimary: dark ? "#FF3D8B" : "#E0246F", borderRadius: "12px" } } as const;
 }

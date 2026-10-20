@@ -76,6 +76,7 @@ export interface ArtistProfile {
   has_admin_badge?: boolean | null;
   rating_average?: number | null;
   review_count?: number | null;
+  promoted_until?: string | null;
 }
 
 export type Facility =
@@ -274,7 +275,7 @@ export interface Conversation {
   request_status?: ConversationRequestStatus | null; started_by_studio?: boolean | null; artist_avatar_url?: string | null;
 }
 export interface ChatMessage { id: string; conversation_id: string; sender_id?: string | null; kind: "text" | "system" | "booking"; body: string; created_at: string }
-export interface ArtistSearchResult { id: string; artist_name: string; city: string; genres: string[]; avatar_url?: string | null; is_verified: boolean; has_booked: boolean; has_admin_badge?: boolean | null }
+export interface ArtistSearchResult { id: string; artist_name: string; city: string; genres: string[]; avatar_url?: string | null; is_verified: boolean; has_booked: boolean; has_admin_badge?: boolean | null; is_promoted?: boolean | null }
 
 export interface Review {
   id: string; booking_id: string; studio_id: string; artist_id: string; artist_name: string; rating: number;
@@ -323,7 +324,17 @@ export interface SupportMessage { id: string; ticket_id: string; sender_id?: str
 export type PromotionStatus = "pending" | "active" | "expired" | "cancelled";
 export const PROMOTION_STATUS_TITLE: Record<PromotionStatus, string> = { pending: "Waiting for payment", active: "Active", expired: "Ended", cancelled: "Cancelled" };
 export const PROMOTION_PACKAGE_TITLE: Record<string, string> = { week: "1 week", two_weeks: "2 weeks", month: "1 month", custom: "Promotion" };
-export interface StudioPromotion { id: string; studio_id: string; package: string; days: number; amount: number; currency: string; status: PromotionStatus; starts_at?: string | null; ends_at?: string | null; created_at: string }
+export const PROMOTION_PACKAGES = ["week", "two_weeks", "month"] as const;
+/** Same table as the database's promotion_price (minor units); the database decides the actual charge. */
+export function promotionPrice(pkg: string, currency: string): number {
+  const table: Record<string, [number, number, number]> = {
+    DKK: [14900, 26900, 44900], SEK: [21900, 39900, 65900], NOK: [21900, 39900, 65900], GBP: [1600, 2900, 4900],
+    USD: [2100, 3900, 6500], PLN: [8900, 15900, 25900],
+  };
+  const row = table[currency.toUpperCase()] ?? [1900, 3500, 5900];
+  return row[PROMOTION_PACKAGES.indexOf(pkg as typeof PROMOTION_PACKAGES[number])] ?? 0;
+}
+export interface StudioPromotion { id: string; studio_id?: string | null; artist_id?: string | null; package: string; days: number; amount: number; currency: string; status: PromotionStatus; starts_at?: string | null; ends_at?: string | null; created_at: string }
 export interface StudioArtistLink { studio_id: string; artist_id: string; status: string; created_at: string }
 
 export type BlockState = "none" | "by_me" | "by_them";

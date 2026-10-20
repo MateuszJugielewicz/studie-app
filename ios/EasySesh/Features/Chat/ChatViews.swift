@@ -302,6 +302,7 @@ struct NewMessageSheet: View {
                                     Text(artist.artistName).font(.headline).foregroundStyle(.primary)
                                     if artist.isVerified { VerifiedBadge() }
                                     if artist.hasAdminBadge == true { AdminBadge(compact: true) }
+                                    if artist.isPromoted == true { PromotedTag() }
                                 }
                                 Text([artist.city, artist.genres.prefix(2).joined(separator: ", ")].filter { !$0.isEmpty }.joined(separator: " · "))
                                     .font(.caption).foregroundStyle(.secondary)

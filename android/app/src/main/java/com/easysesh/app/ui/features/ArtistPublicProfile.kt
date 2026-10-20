@@ -134,6 +134,7 @@ fun ArtistPublicProfileView(artistId: String, initial: ArtistProfile?) {
                         Txt(p.artistName, style = Type.system(26, FontWeight.ExtraBold).tracking(-0.5f))
                         if (p.isVerified) VerifiedBadge()
                         if (p.hasAdminBadge == true) AdminBadge()
+                        if (p.isPromoted) PromotedTag()
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                         if (p.city.isNotEmpty()) {

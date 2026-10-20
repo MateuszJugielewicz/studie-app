@@ -54,8 +54,11 @@ data class ArtistProfile(
     /** Average of the ratings studios gave this artist (1–5), and how many. */
     val ratingAverage: Double? = null,
     val reviewCount: Int? = null,
+    /** Promoted artists are shown first, with a Promoted tag, when studios look for artists. Set by the server only. */
+    val promotedUntil: PgInstant? = null,
 ) {
     val isComplete: Boolean get() = artistName.isNotBlank() && city.isNotEmpty()
+    val isPromoted: Boolean get() = (promotedUntil ?: Instant.MIN).isAfter(Instant.now())
 
     companion object {
         fun empty(id: String) = ArtistProfile(id = id)

@@ -141,6 +141,14 @@ export class SupabaseAdminApi implements AdminApi {
     unwrap(await this.client.rpc("admin_end_promotion", { p_studio_id: studioId }));
   }
 
+  async grantArtistPromotion(artistId: string, days: number, note?: string) {
+    unwrap(await this.client.rpc("admin_grant_artist_promotion", { p_artist_id: artistId, p_days: days, p_note: note ?? null }));
+  }
+
+  async endArtistPromotion(artistId: string) {
+    unwrap(await this.client.rpc("admin_end_artist_promotion", { p_artist_id: artistId }));
+  }
+
   async ratingDisputes(): Promise<RatingDispute[]> {
     return unwrap(await this.client.from("admin_rating_disputes").select("*").order("created_at", { ascending: false }).limit(500));
   }

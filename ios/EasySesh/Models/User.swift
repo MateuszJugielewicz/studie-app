@@ -64,6 +64,11 @@ struct ArtistProfile: Codable, Identifiable, Hashable {
     /// Average of the ratings studios gave this artist (1–5), and how many.
     var ratingAverage: Double? = nil
     var reviewCount: Int? = nil
+    /// Promoted artists are shown first, with a Promoted tag, when studios look for artists.
+    /// Bought on the website or given by EasySesh; set by the server only.
+    var promotedUntil: Date? = nil
+
+    var isPromoted: Bool { (promotedUntil ?? .distantPast) > .now }
 
     static func empty(id: UUID) -> ArtistProfile {
         ArtistProfile(id: id, artistName: "", genres: [], city: "", bio: "", avatarUrl: nil, links: [], isVerified: false)

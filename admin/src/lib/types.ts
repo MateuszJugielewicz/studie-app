@@ -266,7 +266,9 @@ export interface SupportMessage {
 
 export interface Promotion {
   id: string;
-  studio_id: string;
+  /** One of the two: a studio's promotion or an artist profile's. */
+  studio_id: string | null;
+  artist_id: string | null;
   studio_name: string;
   package: "week" | "two_weeks" | "month" | "custom";
   days: number;

@@ -2597,6 +2597,65 @@
         }
       }
     },
+    "A new promotion starts when the current one ends.": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En ny promovering starter, når den nuværende slutter."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eine neue Werbung beginnt, wenn die aktuelle endet."
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Μια νέα προώθηση ξεκινά όταν λήξει η τρέχουσα."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Una nueva promoción empieza cuando termine la actual."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Une nouvelle mise en avant commence à la fin de l'actuelle."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Una nuova promozione inizia quando finisce quella attuale."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Een nieuwe promotie begint wanneer de huidige afloopt."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nowa promocja zaczyna się po zakończeniu obecnej."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En ny marknadsföring börjar när den nuvarande slutar."
+          }
+        }
+      }
+    },
     "A studio": {
       "extractionState": "manual",
       "localizations": {
@@ -10680,6 +10739,65 @@
         }
       }
     },
+    "Buy a promotion": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Køb en promovering"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Werbung kaufen"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Αγόρασε προώθηση"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comprar una promoción"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Acheter une mise en avant"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Acquista una promozione"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Koop een promotie"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kup promocję"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Köp marknadsföring"
+          }
+        }
+      }
+    },
     "Cache cleared": {
       "extractionState": "manual",
       "localizations": {
@@ -11561,6 +11679,65 @@
           "stringUnit": {
             "state": "translated",
             "value": "Kort eller Google Pay – hanteras säkert av Stripe."
+          }
+        }
+      }
+    },
+    "Card payments aren't available yet. Contact EasySesh support to be promoted.": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kortbetaling er ikke tilgængelig endnu. Kontakt EasySesh support for at blive promoveret."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kartenzahlung ist noch nicht verfügbar. Kontaktiere den EasySesh-Support für eine Werbung."
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Οι πληρωμές με κάρτα δεν είναι ακόμη διαθέσιμες. Επικοινώνησε με την υποστήριξη του EasySesh για προώθηση."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los pagos con tarjeta aún no están disponibles. Contacta con el soporte de EasySesh para promocionarte."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le paiement par carte n'est pas encore disponible. Contacte le support EasySesh pour être mis en avant."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I pagamenti con carta non sono ancora disponibili. Contatta il supporto EasySesh per una promozione."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kaartbetalingen zijn nog niet beschikbaar. Neem contact op met EasySesh-support voor een promotie."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Płatności kartą nie są jeszcze dostępne. Skontaktuj się z pomocą EasySesh, aby uzyskać promocję."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kortbetalning är inte tillgänglig än. Kontakta EasySesh support för att bli marknadsförd."
           }
         }
       }
@@ -22008,6 +22185,65 @@
         }
       }
     },
+    "Extend your promotion": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Forlæng din promovering"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Werbung verlängern"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Επέκτεινε την προώθησή σου"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Amplía tu promoción"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prolonger ta mise en avant"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Estendi la tua promozione"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verleng je promotie"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Przedłuż promocję"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Förläng din marknadsföring"
+          }
+        }
+      }
+    },
     "Extra": {
       "extractionState": "manual",
       "localizations": {
@@ -23184,6 +23420,65 @@
           "stringUnit": {
             "state": "translated",
             "value": "Söker …"
+          }
+        }
+      }
+    },
+    "Finish your artist profile first.": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Færdiggør din artistprofil først."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vervollständige zuerst dein Künstlerprofil."
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ολοκλήρωσε πρώτα το προφίλ καλλιτέχνη σου."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Completa primero tu perfil de artista."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Complète d'abord ton profil d'artiste."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Completa prima il tuo profilo artista."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maak eerst je artiestenprofiel af."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Najpierw uzupełnij profil artysty."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gör klart din artistprofil först."
           }
         }
       }
@@ -37997,6 +38292,65 @@
         }
       }
     },
+    "Payment received – your promotion has started.": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Betaling modtaget – din promovering er startet."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zahlung erhalten – deine Werbung hat begonnen."
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Η πληρωμή ελήφθη – η προώθησή σου ξεκίνησε."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pago recibido: tu promoción ha empezado."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paiement reçu – ta mise en avant a commencé."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pagamento ricevuto: la tua promozione è iniziata."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Betaling ontvangen – je promotie is begonnen."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Płatność otrzymana – Twoja promocja się rozpoczęła."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Betalningen har tagits emot – din marknadsföring har börjat."
+          }
+        }
+      }
+    },
     "Payments & refunds": {
       "extractionState": "manual",
       "localizations": {
@@ -41297,6 +41651,65 @@
           "stringUnit": {
             "state": "translated",
             "value": "Marknadsförd"
+          }
+        }
+      }
+    },
+    "Promoted artists are shown first, with a Promoted tag, when studios look for artists to work with.": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Promoverede artister vises først, med et Promoveret-mærke, når studier leder efter artister at arbejde med."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beworbene Künstler werden zuerst angezeigt, mit einem Beworben-Tag, wenn Studios nach Künstlern suchen."
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Οι προωθημένοι καλλιτέχνες εμφανίζονται πρώτοι, με την ετικέτα Προβεβλημένο, όταν τα στούντιο ψάχνουν καλλιτέχνες για συνεργασία."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los artistas promocionados aparecen primero, con una etiqueta Promocionado, cuando los estudios buscan artistas."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les artistes mis en avant apparaissent en premier, avec un badge Mis en avant, quand les studios cherchent des artistes."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gli artisti in evidenza compaiono per primi, con l'etichetta In evidenza, quando gli studi cercano artisti con cui lavorare."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gepromote artiesten worden als eerste getoond, met een Uitgelicht-label, wanneer studio's naar artiesten zoeken."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Promowani artyści są pokazywani jako pierwsi, z oznaczeniem Promowane, gdy studia szukają artystów do współpracy."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Marknadsförda artister visas först, med en Marknadsförd-tagg, när studior letar efter artister att jobba med."
           }
         }
       }
@@ -63776,6 +64189,124 @@
           "stringUnit": {
             "state": "translated",
             "value": "Din artistprofil"
+          }
+        }
+      }
+    },
+    "Your artist profile is promoted": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Din artistprofil er promoveret"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dein Künstlerprofil wird beworben"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Το προφίλ καλλιτέχνη σου προωθείται"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu perfil de artista está promocionado"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ton profil d'artiste est mis en avant"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il tuo profilo artista è in evidenza"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Je artiestenprofiel wordt gepromoot"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Twój profil artysty jest promowany"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Din artistprofil marknadsförs"
+          }
+        }
+      }
+    },
+    "Your artist profile isn't promoted right now.": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Din artistprofil er ikke promoveret lige nu."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dein Künstlerprofil wird gerade nicht beworben."
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Το προφίλ καλλιτέχνη σου δεν προωθείται αυτή τη στιγμή."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu perfil de artista no está promocionado ahora mismo."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ton profil d'artiste n'est pas mis en avant en ce moment."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il tuo profilo artista non è in evidenza al momento."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Je artiestenprofiel wordt momenteel niet gepromoot."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Twój profil artysty nie jest teraz promowany."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Din artistprofil marknadsförs inte just nu."
           }
         }
       }

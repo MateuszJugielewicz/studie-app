@@ -50,6 +50,8 @@ struct ArtistSearchResult: Codable, Identifiable, Hashable {
     /// Has booked this studio before (skips the message request).
     var hasBooked: Bool
     var hasAdminBadge: Bool? = nil
+    /// Bought (or was given) a promotion: listed first, with a Promoted tag.
+    var isPromoted: Bool? = nil
 }
 
 struct ChatMessage: Codable, Identifiable, Hashable {

@@ -45,6 +45,8 @@ export interface AdminApi {
   cancelPromotion(promotionId: string): Promise<void>;
   grantPromotion(studioId: string, days: number, note?: string): Promise<void>;
   endPromotion(studioId: string): Promise<void>;
+  grantArtistPromotion(artistId: string, days: number, note?: string): Promise<void>;
+  endArtistPromotion(artistId: string): Promise<void>;
 
   ratingDisputes(): Promise<RatingDispute[]>;
   resolveRatingDispute(disputeId: string, remove: boolean, note?: string): Promise<void>;

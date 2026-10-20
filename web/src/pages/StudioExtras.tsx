@@ -1,15 +1,16 @@
-// Studio payout details (bank + Stripe identity check), promotion status and the artist-profile link.
+// Studio payout details (bank + Stripe identity check), promotions (studio and artist) and the artist-profile link.
 import { useCallback, useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { ArrowRight, ArrowUpToLine, BadgeCheck, Info, Landmark, LockKeyhole, Megaphone, IdCard, Search, ShieldCheck, TriangleAlert, UserCheck, UserRound, Link2 } from "lucide-react";
 import { api, userMessage } from "../lib/api";
-import { PlatformConfig } from "../lib/config";
+import { config, PlatformConfig } from "../lib/config";
 import { Dates, Money, Studios } from "../lib/core";
 import { format, t } from "../lib/i18n";
 import { useApp } from "../lib/state";
-import { PROMOTION_PACKAGE_TITLE, PROMOTION_STATUS_TITLE, type ArtistProfile, type ArtistSearchResult, type PayoutAccount, type StudioArtistLink, type StudioPromotion } from "../lib/types";
+import { PROMOTION_PACKAGE_TITLE, PROMOTION_PACKAGES, PROMOTION_STATUS_TITLE, promotionPrice, type ArtistProfile, type ArtistSearchResult, type PayoutAccount, type StudioArtistLink, type StudioPromotion } from "../lib/types";
 import { AdminBadge, Avatar, C, Empty, GlowHead, IconTile, Item, ItemLabel, Loading, PageHead, PromotedTag, PulseDot, Section, Spinner, StatusPill, Tiles, VerifiedBadge, useToast } from "../components/ui";
-import { getStripe } from "./BookingFlow";
+import { Elements, PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js";
+import { getStripe, stripeAppearance } from "./BookingFlow";
 
 // MARK: Payouts
 
@@ -128,33 +129,134 @@ export function PayoutPage({ studioId, prepare }: { studioId?: string; prepare?:
 // MARK: Promotion
 
 /**
- * A studio's promotion status: a "Promoted" tag and a place at the top of search for a period.
- * Promotions are granted by the EasySesh team (admin panel); the app doesn't sell them.
+ * Promotion for a studio (top of Discover and search, with a Promoted tag) or an artist profile (first
+ * in the studios' artist search, with a Promoted tag). Bought here on the website with Stripe; the
+ * apps only show the status (App Store / Play rules). The EasySesh team can also grant one.
  */
 export function PromotionPage() {
   const app = useApp();
-  const toast = useToast();
   const studio = app.ownedStudio!;
+  return (
+    <PromotionScreen
+      load={() => api.promotions(studio.id)}
+      currency={studio.currency}
+      promotedUntil={studio.promoted_until}
+      onChanged={async () => app.setOwnedStudio(await api.ownedStudio().catch(() => studio))}
+      pitch="Promoted studios are shown at the top of Discover and search, with a Promoted tag."
+      activeTitle="Your studio is promoted"
+      inactiveTitle="Your studio isn't promoted right now."
+      returnPath="/studio/promotion"
+    />
+  );
+}
+
+export function ArtistPromotionPage() {
+  const app = useApp();
+  const profile = app.artistProfile;
+  if (!profile) return <main className="page narrow"><Loading /></main>;
+  return (
+    <PromotionScreen
+      load={() => api.artistPromotions(profile.id)}
+      currency="EUR"
+      promotedUntil={profile.promoted_until}
+      onChanged={async () => app.setArtistProfile(await api.artistProfile(profile.id).catch(() => profile))}
+      pitch="Promoted artists are shown first, with a Promoted tag, when studios look for artists to work with."
+      activeTitle="Your artist profile is promoted"
+      inactiveTitle="Your artist profile isn't promoted right now."
+      returnPath="/profile/promotion"
+      needsName={!profile.artist_name}
+    />
+  );
+}
+
+function PromotionScreen({ load, currency, promotedUntil, onChanged, pitch, activeTitle, inactiveTitle, returnPath, needsName }: {
+  load: () => Promise<StudioPromotion[]>; currency: string; promotedUntil?: string | null; onChanged: () => void | Promise<void>;
+  pitch: string; activeTitle: string; inactiveTitle: string; returnPath: string; needsName?: boolean;
+}) {
+  const toast = useToast();
+  const [params, setParams] = useSearchParams();
   const [promotions, setPromotions] = useState<StudioPromotion[]>([]);
-  useEffect(() => { api.promotions(studio.id).then(setPromotions).catch((e) => toast(userMessage(e))); }, [studio.id, toast]);
+  const [pkg, setPkg] = useState<string>("two_weeks");
+  const [checkout, setCheckout] = useState<{ promotion: StudioPromotion; clientSecret: string } | null>(null);
+  const [working, setWorking] = useState(false);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const reload = useCallback(() => load().then(setPromotions).catch((e) => toast(userMessage(e))), [toast]);
+  useEffect(() => { reload(); }, [reload]);
+
+  // Back from a payment method that redirects (e.g. bank apps): finish it here.
+  const returned = params.get("promotion");
+  useEffect(() => {
+    if (!returned) return;
+    api.confirmPromotion(returned)
+      .then(async () => { toast(t("Payment received – your promotion has started.")); await onChanged(); reload(); })
+      .catch((e) => toast(userMessage(e)))
+      .finally(() => setParams({}, { replace: true }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [returned]);
+
   const active = promotions.find((p) => p.status === "active");
   const history = promotions.filter((p) => p.status !== "pending" && p.status !== "active");
-  const end = active?.ends_at ?? studio.promoted_until;
+  const end = active?.ends_at ?? promotedUntil;
+  const cardAvailable = !!config.stripePublishableKey;
+
+  async function buy() {
+    setWorking(true);
+    try {
+      const promotion = await api.requestPromotion(pkg);
+      const payment = await api.promotionPayment(promotion.id);
+      setCheckout({ promotion, clientSecret: payment.client_secret });
+    } catch (e) { toast(userMessage(e)); }
+    setWorking(false);
+  }
+  async function paid() {
+    setCheckout(null);
+    toast(t("Payment received – your promotion has started."));
+    await onChanged();
+    reload();
+  }
+  async function cancel() {
+    if (checkout) await api.cancelPromotionRequest(checkout.promotion.id).catch(() => undefined);
+    setCheckout(null);
+  }
+
   return (
     <main className="page narrow">
       <PageHead title="Promote" />
       <div className="stack">
         <div className="card big">
-          <div className="row"><IconTile icon={Megaphone} size={48} /><div><div style={{ fontSize: 26, fontWeight: 800 }}>{t("Get seen first")}</div><div className="subhead secondary">{t("Promoted studios are shown at the top of Discover and search, with a Promoted tag.")}</div></div></div>
+          <div className="row"><IconTile icon={Megaphone} size={48} /><div><div style={{ fontSize: 26, fontWeight: 800 }}>{t("Get seen first")}</div><div className="subhead secondary">{t(pitch)}</div></div></div>
           <div className="row caption semibold secondary" style={{ gap: 8, marginTop: 12 }}><PromotedTag /><ArrowRight size={12} /><ArrowUpToLine size={12} />{t("Top of results")}</div>
         </div>
         {active ? (
           <div className="card row">
             <PulseDot color={C.positive} />
-            <div className="grow"><div className="headline">{t("Your studio is promoted")}</div>{end && <div className="subhead secondary">{format("Until %@", Dates.abbreviatedWithTime(end))}</div>}</div>
+            <div className="grow"><div className="headline">{t(activeTitle)}</div>{end && <div className="subhead secondary">{format("Until %@", Dates.abbreviatedWithTime(end))}</div>}</div>
             <PromotedTag />
           </div>
-        ) : <div className="card row subhead secondary" style={{ gap: 8 }}><Info size={16} />{t("Your studio isn't promoted right now.")}</div>}
+        ) : <div className="card row subhead secondary" style={{ gap: 8 }}><Info size={16} />{t(inactiveTitle)}</div>}
+
+        <GlowHead title={active ? "Extend your promotion" : "Buy a promotion"} />
+        {checkout ? (
+          <Elements stripe={getStripe()} options={{ clientSecret: checkout.clientSecret, appearance: stripeAppearance() }}>
+            <PromotionPaymentForm promotion={checkout.promotion} returnPath={returnPath} onPaid={paid} onCancel={cancel} />
+          </Elements>
+        ) : (
+          <div className="stack">
+            {PROMOTION_PACKAGES.map((p) => (
+              <button key={p} className={`card tight row pressable${pkg === p ? " selected" : ""}`} style={pkg === p ? { outline: "2px solid var(--magenta)" } : undefined} onClick={() => setPkg(p)}>
+                <div className="grow" style={{ textAlign: "left" }}><div className="headline">{t(PROMOTION_PACKAGE_TITLE[p])}</div></div>
+                <span className="headline">{Money.format(promotionPrice(p, currency), currency)}</span>
+              </button>
+            ))}
+            {active && <div className="caption secondary">{t("A new promotion starts when the current one ends.")}</div>}
+            {needsName && <div className="caption" style={{ color: "var(--warning)" }}>{t("Finish your artist profile first.")}</div>}
+            <button className="btn primary block" disabled={working || !cardAvailable || needsName} onClick={buy}>
+              {working ? <Spinner /> : format("Pay %@", Money.format(promotionPrice(pkg, currency), currency))}
+            </button>
+            <div className="row caption secondary" style={{ gap: 6 }}><LockKeyhole size={13} />{t(cardAvailable ? "Card, Apple Pay or Google Pay – securely processed by Stripe." : "Card payments aren't available yet. Contact EasySesh support to be promoted.")}</div>
+          </div>
+        )}
+
         {history.length > 0 && <GlowHead title="History" count={history.length} />}
         {history.map((p) => (
           <div key={p.id} className="card tight row">
@@ -165,6 +267,32 @@ export function PromotionPage() {
         ))}
       </div>
     </main>
+  );
+}
+
+function PromotionPaymentForm({ promotion, returnPath, onPaid, onCancel }: { promotion: StudioPromotion; returnPath: string; onPaid: () => void; onCancel: () => void }) {
+  const stripe = useStripe();
+  const elements = useElements();
+  const toast = useToast();
+  const [paying, setPaying] = useState(false);
+  async function submit() {
+    if (!stripe || !elements) return;
+    setPaying(true);
+    const { error } = await stripe.confirmPayment({
+      elements, redirect: "if_required",
+      confirmParams: { return_url: `${window.location.origin}${returnPath}?promotion=${promotion.id}` },
+    });
+    if (error) { toast(format("Payment failed: %@", error.message ?? "")); setPaying(false); return; }
+    try { await api.confirmPromotion(promotion.id); onPaid(); } catch (e) { toast(userMessage(e)); }
+    setPaying(false);
+  }
+  return (
+    <div className="card stack">
+      <div className="row"><div className="grow headline">{t(PROMOTION_PACKAGE_TITLE[promotion.package] ?? "Promotion")}</div><span className="headline">{Money.format(promotion.amount, promotion.currency)}</span></div>
+      <PaymentElement options={{ layout: "tabs" }} />
+      <button className="btn primary block" disabled={!stripe || paying} onClick={submit}>{paying ? <Spinner /> : format("Pay %@", Money.format(promotion.amount, promotion.currency))}</button>
+      <button className="btn block" disabled={paying} onClick={onCancel}>{t("Cancel")}</button>
+    </div>
   );
 }
 

@@ -50,3 +50,14 @@ emailed from noreply@ with the reason). Upcoming bookings are cancelled with ful
 - A studio that never had bookings is removed completely; otherwise it's taken offline and hidden
   (the owner's account stays).
 Admin accounts can't be deleted here – remove them from the team first.
+
+## Promotions (studios and artists)
+
+Studios buy a period at the top of Discover and search; artists buy a place first in the studios'
+artist search. Both get a "Promoted" tag. They pay on the website (Studio → Promotion, or Profile →
+Promotion) with Stripe, and the promotion starts by itself (`promotion-payment` + `stripe-webhook`).
+Prices are in `promotion_price` (artists pay in EUR). The apps only show the status and the tag; they
+don't sell or link to promotions (App Store 3.1.3 / Google Play payments rules).
+
+Admins can give a free promotion and end one: studios in Studios, artists in Users, and both in
+Promotions ("End now", or "Paid – activate" for an order paid some other way).

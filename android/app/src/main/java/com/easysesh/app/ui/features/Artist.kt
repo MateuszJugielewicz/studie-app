@@ -138,6 +138,7 @@ fun ArtistProfileView() {
                                 Txt(profile.artistName.ifEmpty { tr("Artist") }, style = Type.system(26, FontWeight.ExtraBold).tracking(-0.5f))
                                 if (profile.isVerified) VerifiedBadge()
                                 if (profile.hasAdminBadge == true) AdminBadge()
+                                if (profile.isPromoted) PromotedTag()
                             }
                             if (profile.city.isNotEmpty()) {
                                 Row(

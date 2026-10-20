@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, Route, Routes, useNavigate } from "react-router-dom";
 import {
   AudioWaveform, BadgeCheck, Building2, Camera, CalendarDays, Check, ChevronRight, CircleUserRound, FileText, Globe, History, Link2, MapPin, Music2,
-  Pencil, PlayCircle, SlidersHorizontal, UserRound, CircleHelp, Instagram, Youtube, Contact, type LucideIcon,
+  Megaphone, Pencil, PlayCircle, SlidersHorizontal, UserRound, CircleHelp, Instagram, Youtube, Contact, type LucideIcon,
 } from "lucide-react";
 import { api, userMessage } from "../lib/api";
 import { Bookings, greeting } from "../lib/core";
@@ -12,6 +12,7 @@ import { useApp } from "../lib/state";
 import { GENRES, SOCIAL_PLATFORMS, PLATFORM_COLORS, platformTitle, type ArtistProfile, type Booking, type Genre, type SocialPlatform } from "../lib/types";
 import { C, Chip, IconTile, LargeHead, PageHead, PulseDot, Spinner, StatCard, TileLink, Tiles, ToolButton, useToast } from "../components/ui";
 import { ArtistHero, SocialLinks } from "./ArtistPublic";
+import { ArtistPromotionPage } from "./StudioExtras";
 
 const PLATFORM_ICONS: Record<SocialPlatform, LucideIcon> = {
   spotify: Music2, apple_music: Music2, instagram: Instagram, tiktok: PlayCircle, youtube: Youtube, soundcloud: AudioWaveform, website: Globe,
@@ -24,6 +25,7 @@ export default function Profile({ onboarding }: { onboarding?: boolean }) {
     <Routes>
       <Route index element={<ArtistProfilePage />} />
       <Route path="edit" element={<EditPage />} />
+      <Route path="promotion" element={<ArtistPromotionPage />} />
     </Routes>
   );
 }
@@ -74,6 +76,7 @@ function ArtistProfilePage() {
         )}
         <div className="grid-2">
           {profile && <TileLink to={`/artists/${profile.id}`} title="Public profile" subtitle="Studio & ratings" icon={Contact} colors={Tiles.signal} />}
+          {profile && <TileLink to="/profile/promotion" title="Promotion" subtitle={profile.promoted_until && new Date(profile.promoted_until) > new Date() ? "Promoted now" : "Get seen first"} icon={Megaphone} colors={Tiles.blue} />}
           <TileLink to="/sessions/history" title="Sessions" subtitle="History & receipts" icon={History} colors={Tiles.ocean} />
           <TileLink to="/settings" title="Account" subtitle="Notifications & data" icon={CircleUserRound} colors={Tiles.muted} />
           <TileLink to="/settings/app" title="App settings" subtitle="Language, look, storage" icon={SlidersHorizontal} colors={Tiles.violet} />

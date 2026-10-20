@@ -101,6 +101,7 @@ struct ArtistPublicProfileView: View {
                 Text(profile.artistName).font(.system(size: 26, weight: .heavy)).tracking(-0.5)
                 if profile.isVerified { VerifiedBadge() }
                 if profile.hasAdminBadge == true { AdminBadge() }
+                if profile.isPromoted { PromotedTag() }
             }
             HStack(spacing: 8) {
                 if !profile.city.isEmpty {

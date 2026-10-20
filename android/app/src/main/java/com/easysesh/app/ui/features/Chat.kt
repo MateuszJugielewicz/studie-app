@@ -283,6 +283,7 @@ fun NewMessageSheet(onSent: (Conversation) -> Unit) {
                                 Txt(artist.artistName, style = Type.headline)
                                 if (artist.isVerified) VerifiedBadge()
                                 if (artist.hasAdminBadge == true) AdminBadge(compact = true)
+                                if (artist.isPromoted == true) PromotedTag()
                             }
                             Txt(listOf(artist.city, artist.genres.take(2).joinToString(", ")).filter { it.isNotEmpty() }.joinToString(" · "), style = Type.caption, color = Theme.secondary)
                         }
