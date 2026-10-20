@@ -258,6 +258,7 @@ fun StudioDashboardView() {
         EasySeshScreen(studio.name, eyebrow = greeting(), refresh = { reload(studio) }, trailing = {
             GlassIcon("eye", Modifier.pressable { navigator.push { StudioDetailView(studio.id, studio) } })
         }) {
+            StoryBar()
             StudioDashboardContent(studio, model, navigator)
         }
     }

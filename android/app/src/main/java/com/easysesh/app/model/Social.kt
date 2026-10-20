@@ -58,6 +58,50 @@ data class ArtistSearchResult(
     val isPromoted: Boolean? = null,
 )
 
+/** Someone with live stories, for the row of circles (`story_feed`). */
+@Serializable
+data class StoryAuthor(
+    val userId: String,
+    val studioId: String? = null,
+    val name: String,
+    val avatarUrl: String? = null,
+    val isVerified: Boolean = false,
+    val isPromoted: Boolean = false,
+    val storyCount: Int = 0,
+    val latestAt: PgInstant? = null,
+    val allSeen: Boolean = false,
+    val isOwn: Boolean = false,
+)
+
+/** One 24-hour story (`user_stories`). Views and replies are only filled in for the poster. */
+@Serializable
+data class Story(
+    val id: String,
+    val userId: String,
+    val studioId: String? = null,
+    val mediaUrl: String,
+    val caption: String = "",
+    val createdAt: PgInstant,
+    val expiresAt: PgInstant,
+    val likeCount: Int = 0,
+    val likedByMe: Boolean = false,
+    val viewCount: Int? = null,
+    val replyCount: Int? = null,
+    val seen: Boolean = false,
+)
+
+/** Who viewed, liked or replied to the poster's story (`story_activity`). */
+@Serializable
+data class StoryActivity(
+    val personId: String,
+    val name: String,
+    val avatarUrl: String? = null,
+    val viewedAt: PgInstant? = null,
+    val liked: Boolean = false,
+    val reply: String? = null,
+    val repliedAt: PgInstant? = null,
+)
+
 /** An application for the verified badge (artist profile or studio), reviewed by the EasySesh team. */
 @Serializable
 data class VerificationRequest(

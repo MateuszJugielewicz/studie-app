@@ -945,6 +945,90 @@ final class MockBackend: Backend {
         return promotion
     }
 
+    // MARK: Stories (kept simple: no blocking or expiry checks)
+
+    private var storiesById: [UUID: Story] = [:]
+    private var storyViewers: [UUID: Set<UUID>] = [:]
+    private var storyLikers: [UUID: Set<UUID>] = [:]
+    private var storyReplies: [UUID: [(UUID, String, Date)]] = [:]
+
+    private func displayName(_ userId: UUID) -> String {
+        studios.values.first { $0.ownerId == userId }?.name ?? artistProfiles[userId]?.artistName ?? "EasySesh user"
+    }
+
+    func storyFeed() async throws -> [StoryAuthor] {
+        let user = try requireUser()
+        let live = storiesById.values.filter { $0.expiresAt > .now }
+        return Dictionary(grouping: live, by: \.userId).map { userId, list in
+            let studio = studios.values.first { $0.id == list.first?.studioId }
+            return StoryAuthor(userId: userId, studioId: studio?.id, name: displayName(userId),
+                               avatarUrl: studio?.photoUrls.first ?? artistProfiles[userId]?.avatarUrl,
+                               isVerified: studio?.isVerified ?? artistProfiles[userId]?.isVerified ?? false,
+                               isPromoted: studio?.isPromoted ?? artistProfiles[userId]?.isPromoted ?? false,
+                               storyCount: list.count, latestAt: list.map(\.createdAt).max() ?? .now,
+                               allSeen: list.allSatisfy { storyViewers[$0.id]?.contains(user.id) == true }, isOwn: userId == user.id)
+        }
+        .sorted { ($0.isOwn ? 1 : 0, $0.allSeen ? 0 : 1, $0.latestAt) > ($1.isOwn ? 1 : 0, $1.allSeen ? 0 : 1, $1.latestAt) }
+    }
+
+    func userStories(userId: UUID) async throws -> [Story] {
+        let user = try requireUser()
+        return storiesById.values.filter { $0.userId == userId && $0.expiresAt > .now }.sorted { $0.createdAt < $1.createdAt }.map { story in
+            var s = story
+            s.likeCount = storyLikers[s.id]?.count ?? 0
+            s.likedByMe = storyLikers[s.id]?.contains(user.id) == true
+            s.seen = storyViewers[s.id]?.contains(user.id) == true
+            if s.userId == user.id { s.viewCount = storyViewers[s.id]?.count ?? 0; s.replyCount = storyReplies[s.id]?.count ?? 0 }
+            return s
+        }
+    }
+
+    func storyActivity(storyId: UUID) async throws -> [StoryActivity] {
+        let user = try requireUser()
+        guard storiesById[storyId]?.userId == user.id else { throw BackendError.notFound }
+        let people = (storyViewers[storyId] ?? []).union(storyLikers[storyId] ?? []).union(Set((storyReplies[storyId] ?? []).map(\.0)))
+        return people.map { id in
+            let reply = storyReplies[storyId]?.last { $0.0 == id }
+            return StoryActivity(personId: id, name: displayName(id), avatarUrl: nil, viewedAt: storyViewers[storyId]?.contains(id) == true ? .now : nil,
+                                 liked: storyLikers[storyId]?.contains(id) == true, reply: reply?.1, repliedAt: reply?.2)
+        }
+    }
+
+    func postStory(photo: Data, caption: String) async throws -> Story {
+        let user = try requireUser()
+        let studio = studios.values.first { $0.ownerId == user.id && $0.status == .approved }
+        if user.role == .studioOwner && studio == nil { throw BackendError.validation("Your studio must be approved before it can post stories.") }
+        let story = Story(id: UUID(), userId: user.id, studioId: studio?.id, mediaUrl: "https://example.com/story.jpg", caption: String(caption.prefix(200)),
+                          createdAt: .now, expiresAt: .now.addingTimeInterval(86_400), likeCount: 0, likedByMe: false, viewCount: 0, replyCount: 0, seen: false)
+        storiesById[story.id] = story
+        return story
+    }
+
+    func removeStory(id: UUID) async throws {
+        let user = try requireUser()
+        guard storiesById[id]?.userId == user.id else { throw BackendError.notFound }
+        storiesById[id] = nil
+    }
+
+    func markStoryViewed(id: UUID) async throws {
+        let user = try requireUser()
+        storyViewers[id, default: []].insert(user.id)
+    }
+
+    func likeStory(id: UUID, like: Bool) async throws -> Int {
+        let user = try requireUser()
+        guard storiesById[id] != nil else { throw BackendError.notFound }
+        if like { storyLikers[id, default: []].insert(user.id) } else { storyLikers[id]?.remove(user.id) }
+        return storyLikers[id]?.count ?? 0
+    }
+
+    func replyToStory(id: UUID, body: String) async throws {
+        let user = try requireUser()
+        guard let story = storiesById[id] else { throw BackendError.validation("This story is no longer available.") }
+        guard story.userId != user.id else { throw BackendError.validation("You can't reply to your own story.") }
+        storyReplies[id, default: []].append((user.id, body, .now))
+    }
+
     private var verificationRequestsById: [UUID: VerificationRequest] = [:]
 
     func verificationRequests() async throws -> [VerificationRequest] {

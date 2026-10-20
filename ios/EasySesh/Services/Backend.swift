@@ -180,6 +180,17 @@ protocol Backend: AnyObject {
     /// Orders a promotion (pending until paid in the app or activated by EasySesh).
     func requestPromotion(_ package: PromotionPackage) async throws -> StudioPromotion
     func cancelPromotionRequest(id: UUID) async throws
+    // Stories
+    func storyFeed() async throws -> [StoryAuthor]
+    func userStories(userId: UUID) async throws -> [Story]
+    func storyActivity(storyId: UUID) async throws -> [StoryActivity]
+    /// Uploads the (already compressed) photo and posts it as a 24-hour story.
+    func postStory(photo: Data, caption: String) async throws -> Story
+    func removeStory(id: UUID) async throws
+    func markStoryViewed(id: UUID) async throws
+    func likeStory(id: UUID, like: Bool) async throws -> Int
+    func replyToStory(id: UUID, body: String) async throws
+
     /// The signed-in user's applications for the verified badge, newest first.
     func verificationRequests() async throws -> [VerificationRequest]
     func requestVerification(message: String, links: [String]) async throws -> VerificationRequest

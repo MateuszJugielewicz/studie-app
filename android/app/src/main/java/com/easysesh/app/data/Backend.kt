@@ -679,6 +679,23 @@ class Backend(context: Context) {
 
     // MARK: Promotions
 
+    // MARK: Stories
+
+    suspend fun storyFeed(): List<StoryAuthor> = rpc("story_feed") { }
+    suspend fun userStories(userId: String): List<Story> = rpc("user_stories") { put("p_user_id", userId) }
+    suspend fun storyActivity(storyId: String): List<StoryActivity> = rpc("story_activity") { put("p_story_id", storyId) }
+
+    /** Uploads the (already compressed) photo and posts it as a 24-hour story. */
+    suspend fun postStory(photo: ByteArray, caption: String): Story {
+        val url = uploadImage(photo, "stories")
+        return rpc("post_story") { put("p_media_url", url); put("p_caption", caption) }
+    }
+
+    suspend fun removeStory(id: String) = rpcVoid("remove_story") { put("p_story_id", id) }
+    suspend fun markStoryViewed(id: String) = rpcVoid("mark_story_viewed") { put("p_story_id", id) }
+    suspend fun likeStory(id: String, like: Boolean): Int = rpc("like_story") { put("p_story_id", id); put("p_like", like) }
+    suspend fun replyToStory(id: String, body: String) = rpcVoid("reply_to_story") { put("p_story_id", id); put("p_body", body) }
+
     /** The signed-in user's applications for the verified badge, newest first. */
     suspend fun verificationRequests(): List<VerificationRequest> = mapped {
         client.from("verification_requests").select { filter { eq("user_id", userId()) }; order("created_at", Order.DESCENDING); limit(10) }.decodeList()

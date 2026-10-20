@@ -228,6 +228,7 @@ struct StudioDashboardView: View {
                         .buttonStyle(PressableCardStyle())
                         .accessibilityLabel("Preview public profile")
                 } content: {
+                    StoryBar()
                     StudioDashboardContent(studio: studio, model: model)
                 }
                 .navigationDestination(for: Booking.self) { BookingDetailView(bookingId: $0.id, initial: $0) }

@@ -142,6 +142,7 @@ fun DiscoverView() {
                 refresh = { model.load(app.backend) },
                 trailing = { GlassIconButton("map", "Show map") { showMap = true } },
             ) {
+                StoryBar()
                 SearchField(model)
                 ControlsRow(model, results.size) { showFilters = true }
                 AreaSummaryCard(

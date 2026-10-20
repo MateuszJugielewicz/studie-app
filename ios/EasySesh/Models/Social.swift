@@ -54,6 +54,49 @@ struct ArtistSearchResult: Codable, Identifiable, Hashable {
     var isPromoted: Bool? = nil
 }
 
+/// Someone with live stories, for the row of circles (`story_feed`).
+struct StoryAuthor: Codable, Identifiable, Hashable {
+    var userId: UUID
+    var studioId: UUID?
+    var name: String
+    var avatarUrl: String?
+    var isVerified: Bool
+    var isPromoted: Bool
+    var storyCount: Int
+    var latestAt: Date
+    var allSeen: Bool
+    var isOwn: Bool
+    var id: UUID { userId }
+}
+
+/// One 24-hour story (`user_stories`). Views and replies are only filled in for the poster.
+struct Story: Codable, Identifiable, Hashable {
+    let id: UUID
+    var userId: UUID
+    var studioId: UUID?
+    var mediaUrl: String
+    var caption: String
+    var createdAt: Date
+    var expiresAt: Date
+    var likeCount: Int
+    var likedByMe: Bool
+    var viewCount: Int?
+    var replyCount: Int?
+    var seen: Bool
+}
+
+/// Who viewed, liked or replied to the poster's story (`story_activity`).
+struct StoryActivity: Codable, Identifiable, Hashable {
+    var personId: UUID
+    var name: String
+    var avatarUrl: String?
+    var viewedAt: Date?
+    var liked: Bool
+    var reply: String?
+    var repliedAt: Date?
+    var id: UUID { personId }
+}
+
 /// An application for the verified badge (artist profile or studio), reviewed by the EasySesh team.
 struct VerificationRequest: Codable, Identifiable, Hashable {
     enum Status: String, Codable, Hashable { case pending, approved, denied, cancelled }

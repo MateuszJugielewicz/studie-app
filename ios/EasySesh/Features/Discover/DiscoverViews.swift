@@ -1,4 +1,5 @@
 import SwiftUI
+import PhotosUI
 import MapKit
 
 @MainActor
@@ -82,6 +83,7 @@ struct DiscoverView: View {
                             withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) { showMap = true }
                         }
                     } content: {
+                        StoryBar()
                         searchField
                         controlsRow(count: results.count)
                         AreaSummaryCard(summary: model.summary(origin: origin, areaName: app.location.cityName ?? L10n.tr("Your area"), radiusKm: app.account?.settings.searchRadiusKm ?? 5),
@@ -681,6 +683,440 @@ private struct ArtistFilterSheet: View {
                 }
             }
             .onAppear { draft = filters }
+        }
+    }
+}
+
+// MARK: - Stories
+
+/// A row of circles for everyone with a live story (like Instagram), plus "Your story" to post one.
+/// Shown at the top of Discover and the studio dashboard.
+struct StoryBar: View {
+    @Environment(AppState.self) private var app
+    @State private var authors: [StoryAuthor]?
+    @State private var viewing: StoryViewerStart?
+    @State private var composing = false
+
+    private var canPost: Bool {
+        guard let account = app.account, account.emailVerifiedAt != nil else { return false }
+        switch account.role {
+        case .artist: return !(app.artistProfile?.artistName.trimmingCharacters(in: .whitespaces).isEmpty ?? true)
+        case .studioOwner: return app.ownedStudio?.status == .approved
+        default: return false
+        }
+    }
+
+    var body: some View {
+        Group {
+            if let authors, app.account != nil, canPost || authors.contains(where: { !$0.isOwn }) {
+                let own = authors.first { $0.isOwn }
+                let ordered = (own.map { [$0] } ?? []) + authors.filter { !$0.isOwn }
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(alignment: .top, spacing: 14) {
+                        if canPost && own == nil {
+                            circle(name: L10n.tr("Your story"), avatar: myAvatar, ring: .add) { composing = true }
+                        }
+                        ForEach(Array(ordered.enumerated()), id: \.element.userId) { index, author in
+                            circle(name: author.isOwn ? L10n.tr("Your story") : author.name, avatar: author.avatarUrl,
+                                   ring: author.allSeen ? .seen : .new, showsPlus: author.isOwn && canPost, onPlus: { composing = true }) {
+                                viewing = StoryViewerStart(authors: ordered, index: index)
+                            }
+                        }
+                    }
+                    .padding(.horizontal, 2)
+                    .padding(.vertical, 4)
+                }
+            }
+        }
+        .task { await load() }
+        .fullScreenCover(item: $viewing, onDismiss: { Task { await load() } }) { start in
+            StoryViewer(authors: start.authors, startIndex: start.index)
+        }
+        .sheet(isPresented: $composing) {
+            NavigationStack { StoryComposer { Task { await load() } } }
+        }
+    }
+
+    private var myAvatar: String? {
+        app.role == .studioOwner ? app.ownedStudio?.photoUrls.first : app.artistProfile?.avatarUrl
+    }
+
+    private enum Ring { case new, seen, add }
+
+    private func circle(name: String, avatar: String?, ring: Ring, showsPlus: Bool = false, onPlus: @escaping () -> Void = {}, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            VStack(spacing: 5) {
+                ZStack(alignment: .bottomTrailing) {
+                    Avatar(url: avatar, name: name, size: 58)
+                        .padding(3)
+                        .overlay(Circle().strokeBorder(ring == .new ? AnyShapeStyle(Theme.neon) : AnyShapeStyle(Color.secondary.opacity(0.35)),
+                                                       style: StrokeStyle(lineWidth: ring == .new ? 3 : 1.5, dash: ring == .add ? [4, 3] : [])))
+                    if ring == .add || showsPlus {
+                        Image(systemName: "plus").font(.caption.weight(.bold)).foregroundStyle(.white)
+                            .frame(width: 22, height: 22).background(Theme.neon, in: Circle())
+                            .overlay(Circle().strokeBorder(Color(.systemBackground), lineWidth: 2))
+                            .onTapGesture { ring == .add ? action() : onPlus() }
+                    }
+                }
+                Text(name).font(.caption2).lineLimit(1).frame(width: 72).foregroundStyle(.primary)
+            }
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func load() async {
+        guard app.account != nil else { return }
+        authors = (try? await app.backend.storyFeed()) ?? authors ?? []
+    }
+}
+
+struct StoryViewerStart: Identifiable {
+    let id = UUID()
+    let authors: [StoryAuthor]
+    let index: Int
+}
+
+/// Full-screen story player: tap right/left for next/previous, hold to pause, like or reply at the
+/// bottom. The poster sees views, likes and replies instead, and can remove the story.
+struct StoryViewer: View {
+    @Environment(AppState.self) private var app
+    @Environment(\.dismiss) private var dismiss
+    let authors: [StoryAuthor]
+    @State var authorIndex: Int
+    @State private var stories: [Story]?
+    @State private var index = 0
+    @State private var progress: Double = 0
+    @State private var isHolding = false
+    @State private var reply = ""
+    @State private var showActivity = false
+    @State private var confirmRemove = false
+    @State private var reporting = false
+    @State private var info: String?
+    @State private var error: String?
+    @FocusState private var replyFocused: Bool
+
+    private static let seconds = 6.0
+    private let tick = Timer.publish(every: 0.05, on: .main, in: .common).autoconnect()
+
+    init(authors: [StoryAuthor], startIndex: Int) {
+        self.authors = authors
+        _authorIndex = State(initialValue: startIndex)
+    }
+
+    private var author: StoryAuthor { authors[authorIndex] }
+    private var story: Story? { stories.flatMap { $0.indices.contains(index) ? $0[index] : nil } }
+    private var isPaused: Bool { isHolding || showActivity || confirmRemove || reporting || replyFocused || !reply.isEmpty }
+
+    var body: some View {
+        ZStack {
+            Color.black.ignoresSafeArea()
+            if let story {
+                RemoteImage(url: story.mediaUrl, contentMode: .fit)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .id(story.id)
+            } else {
+                ProgressView().tint(.white)
+            }
+            HStack(spacing: 0) {
+                Color.clear.contentShape(Rectangle()).onTapGesture { previous() }.frame(maxWidth: .infinity)
+                Color.clear.contentShape(Rectangle()).onTapGesture { next() }.frame(maxWidth: .infinity).layoutPriority(1.8)
+            }
+            .simultaneousGesture(DragGesture(minimumDistance: 0)
+                .onChanged { _ in isHolding = true }
+                .onEnded { value in
+                    isHolding = false
+                    if value.translation.height > 120 { dismiss() }
+                })
+            VStack(spacing: 0) {
+                header
+                Spacer()
+                footer
+            }
+        }
+        .foregroundStyle(.white)
+        .statusBarHidden()
+        .task(id: authorIndex) { await loadStories() }
+        .onReceive(tick) { _ in
+            guard story != nil, !isPaused else { return }
+            progress += 0.05 / Self.seconds
+            if progress >= 1 { next() }
+        }
+        .onChange(of: story?.id) {
+            guard let story, !author.isOwn, !story.seen else { return }
+            Task { try? await app.backend.markStoryViewed(id: story.id) }
+        }
+        .sheet(isPresented: $showActivity) {
+            if let story { NavigationStack { StoryActivityView(storyId: story.id) } }
+        }
+        .sheet(isPresented: $reporting) {
+            ReportSheet(target: author.studioId == nil ? .user : .studio, targetId: author.studioId ?? author.userId)
+        }
+        .confirmationDialog("Remove this story?", isPresented: $confirmRemove, titleVisibility: .visible) {
+            Button("Remove", role: .destructive) { remove() }
+        } message: {
+            Text("It disappears for everyone right away.")
+        }
+        .alert(Text(localized: info ?? ""), isPresented: Binding(get: { info != nil }, set: { if !$0 { info = nil } })) {
+            Button("OK") { info = nil }
+        }
+        .errorAlert($error)
+    }
+
+    private var header: some View {
+        VStack(spacing: 10) {
+            HStack(spacing: 4) {
+                ForEach(Array((stories ?? []).enumerated()), id: \.element.id) { i, _ in
+                    GeometryReader { geo in
+                        ZStack(alignment: .leading) {
+                            Capsule().fill(.white.opacity(0.35))
+                            Capsule().fill(.white).frame(width: geo.size.width * (i < index ? 1 : i == index ? min(progress, 1) : 0))
+                        }
+                    }
+                    .frame(height: 2.5)
+                }
+            }
+            HStack(spacing: 8) {
+                Avatar(url: author.avatarUrl, name: author.name, size: 34)
+                Text(author.name).font(.subheadline.weight(.bold)).lineLimit(1)
+                if author.isVerified { VerifiedBadge() }
+                if author.isPromoted { PromotedTag() }
+                if let story {
+                    Text(story.createdAt.formatted(.relative(presentation: .named))).font(.caption).opacity(0.75)
+                }
+                Spacer()
+                if story != nil {
+                    if author.isOwn {
+                        Button { confirmRemove = true } label: { Image(systemName: "trash") }.accessibilityLabel("Remove story")
+                    } else {
+                        Button { reporting = true } label: { Image(systemName: "flag") }.accessibilityLabel("Report")
+                    }
+                }
+                Button { dismiss() } label: { Image(systemName: "xmark").font(.title3.weight(.semibold)) }.accessibilityLabel("Close")
+            }
+            .font(.headline)
+        }
+        .padding(.horizontal, 12)
+        .padding(.top, 10)
+        .padding(.bottom, 24)
+        .background(LinearGradient(colors: [.black.opacity(0.55), .clear], startPoint: .top, endPoint: .bottom))
+    }
+
+    @ViewBuilder private var footer: some View {
+        if let story {
+            VStack(alignment: .leading, spacing: 10) {
+                if !story.caption.isEmpty {
+                    Text(story.caption).font(.body.weight(.semibold)).shadow(radius: 3)
+                }
+                if author.isOwn {
+                    Button { showActivity = true } label: {
+                        HStack(spacing: 6) {
+                            Image(systemName: "eye"); Text(L10n.format("%lld views", story.viewCount ?? 0))
+                            Image(systemName: "heart"); Text("\(story.likeCount)")
+                            Image(systemName: "bubble.left"); Text("\(story.replyCount ?? 0)")
+                        }
+                        .font(.subheadline.weight(.semibold))
+                        .padding(.horizontal, 14).padding(.vertical, 8)
+                        .background(.black.opacity(0.35), in: Capsule())
+                    }
+                } else {
+                    HStack(spacing: 10) {
+                        TextField("", text: $reply, prompt: Text(L10n.format("Reply to %@…", author.name)).foregroundStyle(.white.opacity(0.75)))
+                            .focused($replyFocused)
+                            .submitLabel(.send)
+                            .onSubmit { sendReply() }
+                            .padding(.horizontal, 16)
+                            .frame(height: 44)
+                            .overlay(Capsule().strokeBorder(.white.opacity(0.55)))
+                        if reply.trimmingCharacters(in: .whitespaces).isEmpty {
+                            Button { toggleLike() } label: {
+                                Image(systemName: story.likedByMe ? "heart.fill" : "heart").font(.title2)
+                                    .foregroundStyle(story.likedByMe ? Color(red: 1, green: 0.24, blue: 0.43) : .white)
+                            }
+                            .accessibilityLabel(story.likedByMe ? "Unlike" : "Like")
+                            .sensoryFeedback(.impact, trigger: story.likedByMe)
+                        } else {
+                            Button { sendReply() } label: { Image(systemName: "paperplane.fill").font(.title3) }.accessibilityLabel("Send")
+                        }
+                    }
+                }
+            }
+            .padding(.horizontal, 12)
+            .padding(.top, 30)
+            .padding(.bottom, 12)
+            .background(LinearGradient(colors: [.clear, .black.opacity(0.6)], startPoint: .top, endPoint: .bottom))
+        }
+    }
+
+    private func loadStories() async {
+        stories = nil
+        progress = 0
+        do {
+            let list = try await app.backend.userStories(userId: author.userId)
+            guard !list.isEmpty else { next(); return }
+            stories = list
+            let firstNew = list.firstIndex { !$0.seen } ?? 0
+            index = author.isOwn ? 0 : firstNew
+        } catch {
+            self.error = error.userMessage
+        }
+    }
+
+    private func next() {
+        progress = 0
+        if let stories, index < stories.count - 1 { index += 1 }
+        else if authorIndex < authors.count - 1 { authorIndex += 1 }
+        else { dismiss() }
+    }
+
+    private func previous() {
+        progress = 0
+        if index > 0 { index -= 1 } else if authorIndex > 0 { authorIndex -= 1 }
+    }
+
+    private func toggleLike() {
+        guard let story, var list = stories, let i = list.firstIndex(where: { $0.id == story.id }) else { return }
+        let like = !story.likedByMe
+        list[i].likedByMe = like
+        list[i].likeCount += like ? 1 : -1
+        stories = list
+        Task { do { _ = try await app.backend.likeStory(id: story.id, like: like) } catch { self.error = error.userMessage } }
+    }
+
+    private func sendReply() {
+        let text = reply.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let story, !text.isEmpty else { return }
+        Task {
+            do {
+                try await app.backend.replyToStory(id: story.id, body: text)
+                reply = ""
+                replyFocused = false
+                info = "Reply sent."
+            } catch { self.error = error.userMessage }
+        }
+    }
+
+    private func remove() {
+        guard let story else { return }
+        Task {
+            do {
+                try await app.backend.removeStory(id: story.id)
+                let rest = (stories ?? []).filter { $0.id != story.id }
+                if rest.isEmpty { dismiss() } else { stories = rest; index = min(index, rest.count - 1); progress = 0 }
+            } catch { self.error = error.userMessage }
+        }
+    }
+}
+
+/// For the poster: who viewed, liked and replied to a story.
+struct StoryActivityView: View {
+    @Environment(AppState.self) private var app
+    @Environment(\.dismiss) private var dismiss
+    let storyId: UUID
+    @State private var people: [StoryActivity]?
+
+    var body: some View {
+        List {
+            if let people {
+                if people.isEmpty {
+                    Text("No one has seen this story yet.").foregroundStyle(.secondary)
+                }
+                ForEach(people) { person in
+                    HStack(alignment: .top, spacing: 10) {
+                        Avatar(url: person.avatarUrl, name: person.name, size: 40)
+                        VStack(alignment: .leading, spacing: 2) {
+                            HStack(spacing: 6) {
+                                Text(person.name).font(.subheadline.weight(.semibold))
+                                if person.liked { Image(systemName: "heart.fill").font(.caption).foregroundStyle(.red) }
+                            }
+                            if let reply = person.reply {
+                                Text(reply).font(.footnote)
+                            } else if let viewed = person.viewedAt {
+                                Text(viewed.formatted(.relative(presentation: .named))).font(.caption).foregroundStyle(.secondary)
+                            }
+                        }
+                    }
+                }
+            } else {
+                ProgressView().frame(maxWidth: .infinity)
+            }
+        }
+        .navigationTitle("Activity")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
+        .task { people = (try? await app.backend.storyActivity(storyId: storyId)) ?? [] }
+    }
+}
+
+/// Pick a photo, add an optional caption, share it as a 24-hour story.
+struct StoryComposer: View {
+    @Environment(AppState.self) private var app
+    @Environment(\.dismiss) private var dismiss
+    var onPosted: () -> Void
+    @State private var item: PhotosPickerItem?
+    @State private var photo: Data?
+    @State private var caption = ""
+    @State private var isPosting = false
+    @State private var error: String?
+
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 14) {
+                PhotosPicker(selection: $item, matching: .images) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 20, style: .continuous)
+                            .strokeBorder(Color.secondary.opacity(0.4), style: StrokeStyle(lineWidth: 1.5, dash: [5, 4]))
+                            .background(Theme.card.opacity(0.6), in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+                        if let photo, let image = UIImage(data: photo) {
+                            Image(uiImage: image).resizable().scaledToFill()
+                                .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                        } else {
+                            VStack(spacing: 8) {
+                                Image(systemName: "photo.badge.plus").font(.largeTitle)
+                                Text("Choose a photo").font(.subheadline.weight(.semibold))
+                            }
+                            .foregroundStyle(.secondary)
+                        }
+                    }
+                    .aspectRatio(9.0 / 14.0, contentMode: .fit)
+                    .frame(maxHeight: 420)
+                }
+                .onChange(of: item) { load(item) }
+                GlassField(symbol: "text.bubble", isFocused: false) {
+                    TextField("Add a caption (optional)", text: $caption)
+                        .onChange(of: caption) { if caption.count > 200 { caption = String(caption.prefix(200)) } }
+                }
+                Text("Stories are shown to people on EasySesh for 24 hours. Keep it about your music or studio – the community guidelines apply.")
+                    .font(.caption).foregroundStyle(.secondary).frame(maxWidth: .infinity, alignment: .leading)
+                Button { post() } label: { Text(isPosting ? LocalizedStringKey("Posting…") : LocalizedStringKey("Share story")) }
+                    .buttonStyle(.primary)
+                    .disabled(photo == nil || isPosting)
+            }
+            .padding()
+        }
+        .navigationTitle("New story")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } } }
+        .errorAlert($error)
+    }
+
+    private func load(_ item: PhotosPickerItem?) {
+        guard let item else { return }
+        Task {
+            guard let data = try? await item.loadTransferable(type: Data.self) else { return }
+            photo = ImageCompressor.jpeg(from: data, maxDimension: 1440)
+        }
+    }
+
+    private func post() {
+        guard let photo else { return }
+        isPosting = true
+        Task {
+            defer { isPosting = false }
+            do {
+                _ = try await app.backend.postStory(photo: photo, caption: caption.trimmingCharacters(in: .whitespacesAndNewlines))
+                onPosted()
+                dismiss()
+            } catch { self.error = error.userMessage }
         }
     }
 }

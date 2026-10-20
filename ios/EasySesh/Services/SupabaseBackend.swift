@@ -629,6 +629,37 @@ final class SupabaseBackend: Backend {
         try await rpcVoid("cancel_promotion_request", ["p_promotion_id": .string(id.uuidString)])
     }
 
+    func storyFeed() async throws -> [StoryAuthor] { try await rpc("story_feed") }
+
+    func userStories(userId: UUID) async throws -> [Story] {
+        try await rpc("user_stories", ["p_user_id": .string(userId.uuidString)])
+    }
+
+    func storyActivity(storyId: UUID) async throws -> [StoryActivity] {
+        try await rpc("story_activity", ["p_story_id": .string(storyId.uuidString)])
+    }
+
+    func postStory(photo: Data, caption: String) async throws -> Story {
+        let url = try await uploadImage(photo, folder: "stories")
+        return try await rpc("post_story", ["p_media_url": .string(url), "p_caption": .string(caption)])
+    }
+
+    func removeStory(id: UUID) async throws {
+        try await rpcVoid("remove_story", ["p_story_id": .string(id.uuidString)])
+    }
+
+    func markStoryViewed(id: UUID) async throws {
+        try await rpcVoid("mark_story_viewed", ["p_story_id": .string(id.uuidString)])
+    }
+
+    func likeStory(id: UUID, like: Bool) async throws -> Int {
+        try await rpc("like_story", ["p_story_id": .string(id.uuidString), "p_like": .bool(like)])
+    }
+
+    func replyToStory(id: UUID, body: String) async throws {
+        try await rpcVoid("reply_to_story", ["p_story_id": .string(id.uuidString), "p_body": .string(body)])
+    }
+
     func verificationRequests() async throws -> [VerificationRequest] {
         guard let userId = client.auth.currentUser?.id else { return [] }
         return try await mapped {
