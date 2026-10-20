@@ -488,6 +488,11 @@ do $$ begin
 exception when others then perform pg_temp.result('support cannot set own rank', true);
 end $$;
 select pg_temp.result('support cannot read audit log', (select count(*) = 0 from admin_audit_log));
+do $$ begin
+  perform admin_clear_moderation_history('10000000-0000-0000-0000-0000000000a2');
+  perform pg_temp.result('only owners clear moderation history', false);
+exception when others then perform pg_temp.result('only owners clear moderation history', true);
+end $$;
 
 -- Owner changes an artist's account with an explanation: logged, and the artist gets a notice.
 set request.jwt.claim.sub = '10000000-0000-0000-0000-00000000000c';
@@ -513,6 +518,13 @@ do $$ begin
 exception when others then perform pg_temp.result('last owner cannot be removed', true);
 end $$;
 insert into site_banners (kind, title, body) values ('outage', 'Payments are down', 'We''re on it.');
+select admin_warn('10000000-0000-0000-0000-0000000000a2', 'Test warning');
+select admin_clear_moderation_history('10000000-0000-0000-0000-0000000000a2');
+select pg_temp.result('owner can clear moderation history', (select count(*) = 0 from moderation_actions where user_id = '10000000-0000-0000-0000-0000000000a2'));
+select pg_temp.result('clearing is logged', (select count(*) > 0 from admin_audit_log where target_table = 'moderation_actions' and action = 'delete'));
+select pg_temp.result('person told history was cleared', (select count(*) > 0 from account_change_notices
+  where user_id = '10000000-0000-0000-0000-0000000000a2' and changes::text like '%history was cleared%'));
+select admin_warn('10000000-0000-0000-0000-0000000000a2', 'Second warning');
 
 -- The artist sees their own notice, not others'.
 set request.jwt.claim.sub = '10000000-0000-0000-0000-0000000000a2';

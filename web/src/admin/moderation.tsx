@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { ActionButton, Badge } from "./components";
-import { useApi, useLoad } from "./lib/apiContext";
+import { useApi, useLoad, useStaff } from "./lib/apiContext";
 import { date, label } from "./lib/format";
 import type { ModerationEvent } from "./lib/types";
 
@@ -66,6 +66,7 @@ export function ModerationPanel({ userId, studioId, status, statusUntil, studioS
   onChanged: () => Promise<void>;
 }) {
   const api = useApi();
+  const owner = useStaff().rank === "owner";
   const history = useLoad(() => api.moderationHistory({ userId, studioId: studioId ?? undefined }), [userId, studioId]);
   const [reason, setReason] = useState("");
   const [days, setDays] = useState<number | null>(7);
@@ -115,7 +116,13 @@ export function ModerationPanel({ userId, studioId, status, statusUntil, studioS
         </ActionButton>
       </div>
 
-      <h3>History</h3>
+      <div className="row between">
+        <h3>History</h3>
+        {owner && (history.data ?? []).some(clearable) && (
+          <ActionButton kind="danger" confirm="Clear this person's warning and restriction history? Open reports stay. A running suspension or ban isn't lifted – use Lift now for that."
+            onClick={async () => { await api.clearModerationHistory(userId); await history.reload(); }}>Clear history</ActionButton>
+        )}
+      </div>
       {history.error && <div className="error-text small">{history.error}</div>}
       {(history.data ?? []).length === 0 && !history.loading && <div className="muted small">No warnings, suspensions or reports.</div>}
       <ul className="timeline">
@@ -126,12 +133,20 @@ export function ModerationPanel({ userId, studioId, status, statusUntil, studioS
             {e.ends_at && <span className="muted small"> · until {date(e.ends_at, true)}</span>}
             {e.kind === "warning" && <span className="muted small"> · {e.acknowledged_at ? "seen" : "not seen yet"}</span>}
             {e.actor_email && <div className="muted small">by {e.actor_email}</div>}
+            {owner && clearable(e) && (
+              <button className="ghost small" onClick={async () => {
+                try { await api.clearModerationHistory(userId, e.id); await history.reload(); } catch (err) { alert((err as Error).message); }
+              }}>Remove</button>
+            )}
           </li>
         ))}
       </ul>
     </div>
   );
 }
+
+/** Open reports stay until they're handled; everything else can be cleared by an owner. */
+const clearable = (e: ModerationEvent) => e.kind !== "report" || !/→ open\b/.test(e.details ?? "");
 
 function tone(kind: ModerationEvent["kind"]): string {
   switch (kind) {

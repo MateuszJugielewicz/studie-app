@@ -31,6 +31,8 @@ export interface AdminApi {
   moderateUser(userId: string, action: "suspend" | "ban" | "lift", days: number | null, reason: string): Promise<void>;
   moderateStudio(studioId: string, action: "suspend" | "lift", days: number | null, reason: string): Promise<void>;
   moderationHistory(filter: { userId?: string; studioId?: string }): Promise<ModerationEvent[]>;
+  /** Owners only: clears all of a person's history (or one entry). Open reports stay. */
+  clearModerationHistory(userId: string, entryId?: string): Promise<number>;
 
   studios(): Promise<Studio[]>;
   studioEvents(studioId: string): Promise<StudioEvent[]>;

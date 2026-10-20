@@ -116,6 +116,10 @@ export class SupabaseAdminApi implements AdminApi {
     unwrap(await this.client.rpc("admin_moderate_studio", { p_studio_id: studioId, p_action: action, p_days: days, p_reason: reason || null }));
   }
 
+  async clearModerationHistory(userId: string, entryId?: string): Promise<number> {
+    return unwrap(await this.client.rpc("admin_clear_moderation_history", { p_user_id: userId, p_entry_id: entryId ?? null }));
+  }
+
   async moderationHistory(filter: { userId?: string; studioId?: string }): Promise<ModerationEvent[]> {
     let query = this.client.from("admin_moderation_history").select("*");
     if (filter.userId && filter.studioId) query = query.or(`user_id.eq.${filter.userId},studio_id.eq.${filter.studioId}`);
