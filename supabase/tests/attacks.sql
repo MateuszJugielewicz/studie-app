@@ -664,6 +664,61 @@ exception when others then perform pg_temp.result('guests cannot browse artists'
 end $$;
 reset role;
 
+-- Verification applications: applicants apply, only staff (support and up) decide.
+set role authenticated;
+set request.jwt.claims = '{}';
+set request.jwt.claim.sub = '10000000-0000-0000-0000-0000000000a2';
+create temp table vr_artist as select * from request_verification('I release music on Spotify and play live in Athens.', array['https://open.spotify.com/artist/x']);
+grant all on vr_artist to authenticated, anon;
+select pg_temp.result('artist can apply for verification', (select status = 'pending' and kind = 'artist' from vr_artist));
+do $$ begin
+  perform request_verification('Second application while one is pending.');
+  perform pg_temp.result('one pending application at a time', false);
+exception when others then perform pg_temp.result('one pending application at a time', true);
+end $$;
+do $$ begin
+  perform admin_review_verification((select id from vr_artist), true, null);
+  perform pg_temp.result('applicant cannot approve themselves', false);
+exception when others then perform pg_temp.result('applicant cannot approve themselves', true);
+end $$;
+do $$ begin
+  insert into verification_requests (user_id, kind, status, message) values (auth.uid(), 'artist', 'approved', 'forged');
+  perform pg_temp.result('cannot write applications directly', false);
+exception when others then perform pg_temp.result('cannot write applications directly', true);
+end $$;
+set request.jwt.claim.sub = '10000000-0000-0000-0000-00000000000a';
+select pg_temp.result('others cannot see an application', (select count(*) = 0 from verification_requests where id = (select id from vr_artist)));
+reset role;
+update studios set is_verified = false where id = '20000000-0000-0000-0000-000000000001';
+set role authenticated;
+set request.jwt.claim.sub = '10000000-0000-0000-0000-00000000000b';
+create temp table vr_studio as select * from request_verification('We are a professional studio in Psyri since 2015.');
+grant all on vr_studio to authenticated, anon;
+select pg_temp.result('studio can apply for verification', (select status = 'pending' and kind = 'studio' and studio_id is not null from vr_studio));
+reset role;
+update profiles set admin_rank = 'support' where email = 'support1@x.io';
+set role authenticated;
+set request.jwt.claim.sub = '10000000-0000-0000-0000-0000000000c2';
+set request.jwt.claims = '{"aal":"aal2"}';
+select pg_temp.result('support sees applications', (select count(*) >= 2 from admin_verification_requests where status = 'pending'));
+select admin_review_verification((select id from vr_artist), true, 'Spotify profile checked.');
+select pg_temp.result('support can grant verification', (select is_verified from artist_profiles where id = '10000000-0000-0000-0000-0000000000a2'));
+do $$ begin
+  perform admin_review_verification((select id from vr_studio), false, null);
+  perform pg_temp.result('denying needs a note', false);
+exception when others then perform pg_temp.result('denying needs a note', true);
+end $$;
+select admin_review_verification((select id from vr_studio), false, 'Please add your website or social media.');
+select pg_temp.result('denied studio stays unverified', (select not is_verified from studios where id = '20000000-0000-0000-0000-000000000001'));
+do $$ begin
+  update studios set is_verified = true where id = '20000000-0000-0000-0000-000000000001';
+  perform pg_temp.result('support still cannot edit studios directly', false);
+exception when others then perform pg_temp.result('support still cannot edit studios directly', true);
+end $$;
+set request.jwt.claims = '{}';
+reset role;
+select pg_temp.result('applicants are told the decision', (select count(*) = 2 from notifications where title in ('You''re verified', 'Verification not granted')));
+
 -- Guests (signed out)
 set role anon;
 set request.jwt.claim.sub = '';

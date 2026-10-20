@@ -58,6 +58,21 @@ data class ArtistSearchResult(
     val isPromoted: Boolean? = null,
 )
 
+/** An application for the verified badge (artist profile or studio), reviewed by the EasySesh team. */
+@Serializable
+data class VerificationRequest(
+    val id: String,
+    val userId: String,
+    val studioId: String? = null,
+    val kind: String,
+    val status: String,
+    val message: String = "",
+    val links: List<String> = emptyList(),
+    val staffNote: String? = null,
+    val reviewedAt: PgInstant? = null,
+    val createdAt: PgInstant,
+)
+
 /** An artist in the studios' "Find artists" list (`discover_artists`). */
 @Serializable
 data class DiscoveredArtist(

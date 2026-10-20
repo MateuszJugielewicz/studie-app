@@ -187,17 +187,7 @@ fun ArtistProfileView() {
                     }
                 }
 
-                if (!profile.isVerified) {
-                    GlassCard(padding = 14.dp) {
-                        Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.Top) {
-                            IconTile("checkmark.seal.fill", 36.dp, listOf(Theme.colors.blue, Theme.cyan))
-                            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                                T("Get verified", style = Type.subheadline.bold)
-                                T("Verified artists get a badge. Link your Spotify or Instagram and our team will verify you.", style = Type.caption, color = Theme.secondary)
-                            }
-                        }
-                    }
-                }
+                if (!profile.isVerified) VerificationCard("artist")
 
                 if (pendingStudioLinks > 0) {
                     GlassCard(padding = 14.dp, onClick = { navigator.push { ArtistPublicProfileView(profile.id, profile) } }) {
@@ -579,6 +569,90 @@ fun BlockedAccountsView() {
                     LinkButton("Unblock", style = Type.subheadline.bold) { unblock(user) }
                 }
             }
+        }
+    }
+    ErrorAlert(error) { error = null }
+}
+
+// MARK: Verification
+
+/**
+ * "Get verified": apply for the verified badge (artist profile or studio), see the status, apply
+ * again after a denial. The EasySesh team reviews applications in the admin panel.
+ */
+@Composable
+fun VerificationCard(kind: String) {
+    val app = LocalAppState.current
+    var requests by remember { mutableStateOf<List<com.easysesh.app.model.VerificationRequest>>(emptyList()) }
+    var applying by remember { mutableStateOf(false) }
+    var error by remember { mutableStateOf<String?>(null) }
+    var reload by remember { mutableStateOf(0) }
+    LaunchedEffect(reload) { runCatching { app.backend.verificationRequests() }.onSuccess { requests = it } }
+    val latest = requests.firstOrNull { it.kind == kind && it.status != "cancelled" }
+    val pending = latest?.status == "pending"
+    val denied = latest?.status == "denied"
+
+    GlassCard(padding = 14.dp) {
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.Top) {
+                IconTile(if (pending) "clock.fill" else "checkmark.seal.fill", 36.dp, listOf(Theme.colors.blue, Theme.cyan))
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    T(if (pending) "Verification requested" else "Get verified", style = Type.subheadline.bold)
+                    T(when {
+                        pending -> "The EasySesh team is reviewing your application. You'll get a notification when it's decided."
+                        kind == "studio" -> "Verified studios get a badge on their page. Tell us about your studio and add links so we can confirm it's you."
+                        else -> "Verified artists get a badge. Link your Spotify or Instagram and our team will verify you."
+                    }, style = Type.caption, color = Theme.secondary)
+                    if (denied && latest?.staffNote != null) Txt(tr("Last application:") + " " + latest.staffNote, style = Type.caption)
+                }
+            }
+            if (pending && latest != null) {
+                SecondaryButton("Cancel application", Modifier.fillMaxWidth()) {
+                    app.scope.launch {
+                        try { app.backend.cancelVerificationRequest(latest.id); reload++ } catch (e: Exception) { error = e.userMessage }
+                    }
+                }
+            } else {
+                PrimaryButton(if (denied) "Apply again" else "Apply for verification", Modifier.fillMaxWidth()) { applying = true }
+            }
+        }
+    }
+    if (applying) Sheet({ applying = false }) { ApplyVerificationSheet(kind) { reload++ } }
+    ErrorAlert(error) { error = null }
+}
+
+@Composable
+private fun ApplyVerificationSheet(kind: String, onSent: () -> Unit) {
+    val app = LocalAppState.current
+    val dismiss = LocalDismiss.current
+    var message by remember { mutableStateOf("") }
+    var links by remember { mutableStateOf(listOf("")) }
+    var isSending by remember { mutableStateOf(false) }
+    var error by remember { mutableStateOf<String?>(null) }
+    val valid = message.trim().length >= 10
+
+    NavScreen("Apply for verification", leading = { ToolbarButton("Cancel") { dismiss() } }, actions = {
+        ToolbarButton(if (isSending) "Sending…" else "Send", enabled = valid && !isSending, bold = true) {
+            isSending = true
+            app.scope.launch {
+                try {
+                    app.backend.requestVerification(message.trim(), links.map { it.trim() }.filter { it.isNotEmpty() })
+                    onSent()
+                    dismiss()
+                } catch (e: Exception) { error = e.userMessage } finally { isSending = false }
+            }
+        }
+    }) {
+        FormSection(if (kind == "studio") "About your studio" else "About you", footer = "At least 10 characters. Tell us who you are and why you should be verified.") {
+            FormTextField(if (kind == "studio") "e.g. We're a recording studio in Athens since 2015, with 300 sessions a year." else "e.g. I release music on Spotify and play live in Athens.",
+                message, { message = it.take(2000) }, minLines = 4, maxLines = 10)
+        }
+        FormSection("Links", footer = "Spotify, Instagram, YouTube, your website… so we can confirm it's you.") {
+            links.forEachIndexed { index, link ->
+                FormTextField("https://", link, { value -> links = links.mapIndexed { i, l -> if (i == index) value.take(300) else l } },
+                    keyboard = androidx.compose.ui.text.input.KeyboardType.Uri, capitalization = androidx.compose.ui.text.input.KeyboardCapitalization.None)
+            }
+            if (links.size < 6) FormButton("Add link", symbol = "plus") { links = links + "" }
         }
     }
     ErrorAlert(error) { error = null }

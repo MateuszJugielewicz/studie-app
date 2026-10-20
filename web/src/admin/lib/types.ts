@@ -354,3 +354,24 @@ export interface PaymentDomainsResult {
   live: boolean;
   domains: { domain: string; apple_pay: string; google_pay: string; link: string; paypal: string; error: string | null }[];
 }
+
+/** An artist's or studio's application for the verified badge (admin_verification_requests). */
+export interface VerificationRequest {
+  id: string;
+  user_id: string;
+  studio_id: string | null;
+  kind: "artist" | "studio";
+  status: "pending" | "approved" | "denied" | "cancelled";
+  message: string;
+  links: string[];
+  staff_note: string | null;
+  reviewed_by_email: string | null;
+  reviewed_at: string | null;
+  created_at: string;
+  email: string;
+  display_name: string | null;
+  photo_url: string | null;
+  artist_city: string | null;
+  studio_city: string | null;
+  booking_count: number;
+}

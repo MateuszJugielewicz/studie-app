@@ -180,6 +180,10 @@ protocol Backend: AnyObject {
     /// Orders a promotion (pending until paid in the app or activated by EasySesh).
     func requestPromotion(_ package: PromotionPackage) async throws -> StudioPromotion
     func cancelPromotionRequest(id: UUID) async throws
+    /// The signed-in user's applications for the verified badge, newest first.
+    func verificationRequests() async throws -> [VerificationRequest]
+    func requestVerification(message: String, links: [String]) async throws -> VerificationRequest
+    func cancelVerificationRequest(id: UUID) async throws
     /// Card payment for a pending promotion (needs Stripe).
     func preparePromotionPayment(promotionId: UUID) async throws -> PaymentIntentInfo
     func confirmPromotionPayment(promotionId: UUID) async throws

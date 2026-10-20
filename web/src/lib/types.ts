@@ -366,3 +366,10 @@ export interface SiteBanner {
   id: string; kind: "info" | "warning" | "outage" | "success"; audience: "everyone" | "guests" | "artist" | "studio_owner";
   title: string; body: string; link_url: string | null; link_label: string | null; ends_at: string | null; dismissible: boolean;
 }
+
+/** An application for the verified badge (artist profile or studio). */
+export interface VerificationRequest {
+  id: string; user_id: string; studio_id?: string | null; kind: "artist" | "studio";
+  status: "pending" | "approved" | "denied" | "cancelled"; message: string; links: string[];
+  staff_note?: string | null; reviewed_at?: string | null; created_at: string;
+}

@@ -8,7 +8,7 @@ import { endViewAs, takeViewAsTokens, viewAs, viewOnlyFetch } from "./viewAs";
 import type {
   AppNotification, ArtistProfile, ArtistReview, ArtistSearchResult, BlockState, BlockedSlot, BlockedUser, Booking, ChangelogEntry,
   ChatMessage, Conversation, FeeInvoice, FeeLedgerEntry, Interval, ModerationWarning, PaymentIntentInfo, PaymentTransaction, Payout,
-  DiscoveredArtist, PayoutAccount, ReportReason, ReportTarget, Review, Studio, StudioArtistLink, StudioPromotion, SupportCategory, SupportMessage,
+  DiscoveredArtist, PayoutAccount, VerificationRequest, ReportReason, ReportTarget, Review, Studio, StudioArtistLink, StudioPromotion, SupportCategory, SupportMessage,
   SupportTicket, UserAccount, UserRole, UserSettings, PriceBreakdown, PromoCheck, PromoCode, SiteBanner, StudioOffer, ModerationRecord, AccountChangeNotice,
 } from "./types";
 
@@ -451,6 +451,11 @@ export class Api {
   async promotions(studioId: string): Promise<StudioPromotion[]> {
     return unwrap(await this.client.from("studio_promotions").select("*").eq("studio_id", studioId).order("created_at", { ascending: false }));
   }
+  async verificationRequests(userId: string): Promise<VerificationRequest[]> {
+    return unwrap(await this.client.from("verification_requests").select("*").eq("user_id", userId).order("created_at", { ascending: false }).limit(10));
+  }
+  requestVerification = (message: string, links: string[]) => this.rpc<VerificationRequest>("request_verification", { p_message: message, p_links: links });
+  cancelVerificationRequest = (id: string) => this.rpc<void>("cancel_verification_request", { p_request_id: id });
   async artistPromotions(artistId: string): Promise<StudioPromotion[]> {
     return unwrap(await this.client.from("studio_promotions").select("*").eq("artist_id", artistId).order("created_at", { ascending: false }));
   }

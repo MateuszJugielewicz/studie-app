@@ -679,6 +679,16 @@ class Backend(context: Context) {
 
     // MARK: Promotions
 
+    /** The signed-in user's applications for the verified badge, newest first. */
+    suspend fun verificationRequests(): List<VerificationRequest> = mapped {
+        client.from("verification_requests").select { filter { eq("user_id", userId()) }; order("created_at", Order.DESCENDING); limit(10) }.decodeList()
+    }
+
+    suspend fun requestVerification(message: String, links: List<String>): VerificationRequest =
+        rpc("request_verification") { put("p_message", message); put("p_links", kotlinx.serialization.json.JsonArray(links.map { kotlinx.serialization.json.JsonPrimitive(it) })) }
+
+    suspend fun cancelVerificationRequest(id: String) = rpcVoid("cancel_verification_request") { put("p_request_id", id) }
+
     suspend fun promotions(studioId: String): List<StudioPromotion> = mapped {
         client.from("studio_promotions").select { filter { eq("studio_id", studioId) }; order("created_at", Order.DESCENDING) }.decodeList()
     }

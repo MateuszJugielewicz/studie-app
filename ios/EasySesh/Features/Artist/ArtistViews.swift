@@ -214,20 +214,7 @@ struct ArtistProfileView: View {
         }
     }
 
-    private var verificationCard: some View {
-        HStack(alignment: .top, spacing: 12) {
-            IconTile(symbol: "checkmark.seal.fill", size: 36, colors: [Color.blue, Theme.cyan])
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Get verified").font(.subheadline.weight(.bold))
-                Text("Verified artists get a badge. Link your Spotify or Instagram and our team will verify you.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .glassCard(padding: 14)
-    }
+    private var verificationCard: some View { VerificationCard(kind: "artist") }
 
     private func tile<Destination: View>(_ title: LocalizedStringKey, _ subtitle: LocalizedStringKey, _ symbol: String, _ colors: [Color], @ViewBuilder destination: @escaping () -> Destination) -> some View {
         NavigationLink(destination: destination) {
@@ -696,6 +683,128 @@ struct BlockedAccountsView: View {
             do {
                 try await app.backend.unblockUser(id: user.userId)
                 withAnimation { blocked.removeAll { $0.userId == user.userId } }
+            } catch { self.error = error.userMessage }
+        }
+    }
+}
+
+// MARK: - Verification
+
+/// "Get verified": apply for the verified badge (artist profile or studio), see the status, apply
+/// again after a denial. The EasySesh team reviews applications in the admin panel.
+struct VerificationCard: View {
+    @Environment(AppState.self) private var app
+    let kind: String
+    @State private var requests: [VerificationRequest] = []
+    @State private var applying = false
+    @State private var error: String?
+
+    private var latest: VerificationRequest? { requests.first { $0.kind == kind && $0.status != .cancelled } }
+
+    var body: some View {
+        let pending = latest?.status == .pending
+        let denied = latest?.status == .denied
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(alignment: .top, spacing: 12) {
+                IconTile(symbol: pending ? "clock.fill" : "checkmark.seal.fill", size: 36, colors: [Color.blue, Theme.cyan])
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(pending ? LocalizedStringKey("Verification requested") : LocalizedStringKey("Get verified")).font(.subheadline.weight(.bold))
+                    Text(LocalizedStringKey(pending ? "The EasySesh team is reviewing your application. You'll get a notification when it's decided."
+                         : kind == "studio" ? "Verified studios get a badge on their page. Tell us about your studio and add links so we can confirm it's you."
+                         : "Verified artists get a badge. Link your Spotify or Instagram and our team will verify you."))
+                        .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                    if denied, let note = latest?.staffNote {
+                        (Text("Last application:").bold() + Text(" " + note)).font(.caption)
+                    }
+                }
+            }
+            if pending, let latest {
+                Button("Cancel application") {
+                    Task {
+                        do { try await app.backend.cancelVerificationRequest(id: latest.id); await load() } catch { self.error = error.userMessage }
+                    }
+                }
+                .buttonStyle(.secondary)
+            } else {
+                Button(denied ? LocalizedStringKey("Apply again") : LocalizedStringKey("Apply for verification")) { applying = true }
+                    .buttonStyle(.primary)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .glassCard(padding: 14)
+        .task { await load() }
+        .sheet(isPresented: $applying) {
+            NavigationStack { ApplyVerificationSheet(kind: kind) { Task { await load() } } }
+        }
+        .errorAlert($error)
+    }
+
+    private func load() async {
+        requests = (try? await app.backend.verificationRequests()) ?? requests
+    }
+}
+
+private struct ApplyVerificationSheet: View {
+    @Environment(AppState.self) private var app
+    @Environment(\.dismiss) private var dismiss
+    let kind: String
+    var onSent: () -> Void
+    @State private var message = ""
+    @State private var links: [String] = [""]
+    @State private var isSending = false
+    @State private var error: String?
+
+    private var isValid: Bool { message.trimmingCharacters(in: .whitespacesAndNewlines).count >= 10 }
+
+    var body: some View {
+        Form {
+            Section {
+                TextField(LocalizedStringKey(kind == "studio" ? "e.g. We're a recording studio in Athens since 2015, with 300 sessions a year." : "e.g. I release music on Spotify and play live in Athens."),
+                          text: $message, axis: .vertical)
+                    .lineLimit(4...10)
+            } header: {
+                Text(LocalizedStringKey(kind == "studio" ? "About your studio" : "About you"))
+            } footer: {
+                Text("At least 10 characters. Tell us who you are and why you should be verified.")
+            }
+            Section {
+                ForEach(links.indices, id: \.self) { index in
+                    TextField("https://", text: $links[index])
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                        .keyboardType(.URL)
+                }
+                if links.count < 6 {
+                    Button("Add link", systemImage: "plus") { links.append("") }
+                }
+            } header: {
+                Text("Links")
+            } footer: {
+                Text("Spotify, Instagram, YouTube, your website… so we can confirm it's you.")
+            }
+        }
+        .easyseshGrouped()
+        .navigationTitle("Apply for verification")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
+            ToolbarItem(placement: .confirmationAction) {
+                Button(isSending ? LocalizedStringKey("Sending…") : LocalizedStringKey("Send")) { send() }
+                    .disabled(!isValid || isSending)
+            }
+        }
+        .errorAlert($error)
+    }
+
+    private func send() {
+        isSending = true
+        Task {
+            defer { isSending = false }
+            do {
+                let cleaned = links.map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
+                _ = try await app.backend.requestVerification(message: message.trimmingCharacters(in: .whitespacesAndNewlines), links: cleaned)
+                onSent()
+                dismiss()
             } catch { self.error = error.userMessage }
         }
     }

@@ -23,6 +23,7 @@ import {
 import { BookingRow } from "./Bookings";
 import { SignOutButton } from "./Profile";
 import { PayoutPage, PromotionPage, ArtistLinkPage } from "./StudioExtras";
+import { VerificationCard } from "./Verification";
 
 export default function StudioOwner() {
   const app = useApp();
@@ -440,6 +441,7 @@ function StudioSettings() {
           <span style={{ width: 0.5, height: 30, background: "var(--stroke)" }} />
           {stat(Money.format(studio.price_from, studio.currency), "From / h")}
         </div>
+        {studio.status === "approved" && <VerificationCard kind="studio" verified={!!studio.is_verified} />}
         <div className="grid-2">
           <TileLink to="/studio/edit" title="Edit profile" subtitle="Photos, gear, rooms" icon={Pencil} colors={Tiles.signal} />
           <TileLink to="/studio/edit/pricing" title="Prices" subtitle="Sessions & add-ons" icon={Tag} colors={Tiles.violet} />

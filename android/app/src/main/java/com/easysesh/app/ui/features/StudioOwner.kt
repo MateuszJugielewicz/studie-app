@@ -742,6 +742,7 @@ fun StudioSettingsView() {
                         QuickStat(Money.format(studio.priceFrom, studio.currency), "From / h")
                     }
                 }
+                if (studio.status == StudioStatus.Approved && !studio.isVerified) VerificationCard("studio")
                 ProfileTileGrid(listOf(
                     ProfileTile("Edit profile", "Photos, gear, rooms", "pencil", TilePalette.signal) { StudioEditorView(studio, isApplication = false) },
                     ProfileTile("Prices", "Sessions & add-ons", "tag.fill", TilePalette.violet) { StudioSectionEditor("Prices & services") { s, set -> StudioPricingEditor(s, set) } },

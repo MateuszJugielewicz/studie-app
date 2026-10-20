@@ -54,6 +54,21 @@ struct ArtistSearchResult: Codable, Identifiable, Hashable {
     var isPromoted: Bool? = nil
 }
 
+/// An application for the verified badge (artist profile or studio), reviewed by the EasySesh team.
+struct VerificationRequest: Codable, Identifiable, Hashable {
+    enum Status: String, Codable, Hashable { case pending, approved, denied, cancelled }
+    let id: UUID
+    var userId: UUID
+    var studioId: UUID?
+    var kind: String
+    var status: Status
+    var message: String
+    var links: [String]
+    var staffNote: String?
+    var reviewedAt: Date?
+    var createdAt: Date
+}
+
 /// An artist in the studios' "Find artists" list (`discover_artists`).
 struct DiscoveredArtist: Codable, Identifiable, Hashable {
     let id: UUID

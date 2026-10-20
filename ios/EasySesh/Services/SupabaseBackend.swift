@@ -629,6 +629,22 @@ final class SupabaseBackend: Backend {
         try await rpcVoid("cancel_promotion_request", ["p_promotion_id": .string(id.uuidString)])
     }
 
+    func verificationRequests() async throws -> [VerificationRequest] {
+        guard let userId = client.auth.currentUser?.id else { return [] }
+        return try await mapped {
+            try await client.from("verification_requests").select().eq("user_id", value: userId.uuidString)
+                .order("created_at", ascending: false).limit(10).execute().value
+        }
+    }
+
+    func requestVerification(message: String, links: [String]) async throws -> VerificationRequest {
+        try await rpc("request_verification", ["p_message": .string(message), "p_links": .array(links.map { .string($0) })])
+    }
+
+    func cancelVerificationRequest(id: UUID) async throws {
+        try await rpcVoid("cancel_verification_request", ["p_request_id": .string(id.uuidString)])
+    }
+
     func preparePromotionPayment(promotionId: UUID) async throws -> PaymentIntentInfo {
         struct Response: Decodable {
             let clientSecret: String

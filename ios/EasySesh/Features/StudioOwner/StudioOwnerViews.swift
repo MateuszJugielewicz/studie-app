@@ -828,6 +828,7 @@ struct StudioSettingsView: View {
                 if let studio = app.ownedStudio {
                     cover(studio)
                     quickStats(studio)
+                    if studio.status == .approved && !studio.isVerified { VerificationCard(kind: "studio") }
                     LazyVGrid(columns: columns, spacing: 12) {
                         tile("Edit profile", "Photos, gear, rooms", "pencil", TilePalette.signal) { StudioEditorView(studio: studio, isApplication: false) }
                         tile("Prices", "Sessions & add-ons", "tag.fill", TilePalette.violet) {

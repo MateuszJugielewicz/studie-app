@@ -945,6 +945,34 @@ final class MockBackend: Backend {
         return promotion
     }
 
+    private var verificationRequestsById: [UUID: VerificationRequest] = [:]
+
+    func verificationRequests() async throws -> [VerificationRequest] {
+        let user = try requireUser()
+        return verificationRequestsById.values.filter { $0.userId == user.id }.sorted { $0.createdAt > $1.createdAt }
+    }
+
+    func requestVerification(message: String, links: [String]) async throws -> VerificationRequest {
+        let user = try requireUser()
+        guard message.trimmingCharacters(in: .whitespacesAndNewlines).count >= 10 else {
+            throw BackendError.validation("Tell us a bit about yourself (at least 10 characters).")
+        }
+        let kind = user.role == .studioOwner ? "studio" : "artist"
+        guard !verificationRequestsById.values.contains(where: { $0.userId == user.id && $0.kind == kind && $0.status == .pending }) else {
+            throw BackendError.validation("Your application is already waiting for review.")
+        }
+        let request = VerificationRequest(id: UUID(), userId: user.id, studioId: studios.values.first { $0.ownerId == user.id }?.id, kind: kind,
+                                          status: .pending, message: message, links: links, staffNote: nil, reviewedAt: nil, createdAt: .now)
+        verificationRequestsById[request.id] = request
+        return request
+    }
+
+    func cancelVerificationRequest(id: UUID) async throws {
+        let user = try requireUser()
+        guard verificationRequestsById[id]?.userId == user.id, verificationRequestsById[id]?.status == .pending else { return }
+        verificationRequestsById[id]?.status = .cancelled
+    }
+
     func cancelPromotionRequest(id: UUID) async throws {
         guard let promotion = promotionsById[id] else { throw BackendError.notFound }
         _ = try requireOwner(of: promotion.studioId)

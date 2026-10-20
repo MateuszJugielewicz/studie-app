@@ -3187,6 +3187,65 @@
         }
       }
     },
+    "About your studio": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Om dit studie"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Über dein Studio"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Για το στούντιό σου"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sobre tu estudio"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "À propos de ton studio"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sul tuo studio"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Over je studio"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O twoim studiu"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Om din studio"
+          }
+        }
+      }
+    },
     "Abusive or harassing": {
       "extractionState": "manual",
       "localizations": {
@@ -4717,6 +4776,65 @@
           "stringUnit": {
             "state": "translated",
             "value": "Lägg först till tillval i dina priser."
+          }
+        }
+      }
+    },
+    "Add link": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tilføj link"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Link hinzufügen"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Προσθήκη συνδέσμου"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Añadir enlace"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajouter un lien"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aggiungi link"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Link toevoegen"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dodaj link"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lägg till länk"
           }
         }
       }
@@ -6845,6 +6963,65 @@
         }
       }
     },
+    "Application sent.": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ansøgning sendt."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bewerbung gesendet."
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Η αίτηση στάλθηκε."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solicitud enviada."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Demande envoyée."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Richiesta inviata."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aanvraag verzonden."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wniosek wysłany."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ansökan skickad."
+          }
+        }
+      }
+    },
     "Applies to": {
       "extractionState": "manual",
       "localizations": {
@@ -6959,6 +7136,124 @@
           "stringUnit": {
             "state": "translated",
             "value": "Använd"
+          }
+        }
+      }
+    },
+    "Apply again": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ansøg igen"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erneut bewerben"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Κάνε ξανά αίτηση"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Volver a solicitar"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refaire une demande"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Richiedi di nuovo"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opnieuw aanvragen"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Złóż ponownie"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ansök igen"
+          }
+        }
+      }
+    },
+    "Apply for verification": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ansøg om verificering"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verifizierung beantragen"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Αίτηση για επαλήθευση"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solicitar verificación"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Demander la vérification"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Richiedi la verifica"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verificatie aanvragen"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Złóż wniosek o weryfikację"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ansök om verifiering"
           }
         }
       }
@@ -8257,6 +8552,65 @@
           "stringUnit": {
             "state": "translated",
             "value": "Minst %lld tecken med stora och små bokstäver och en siffra."
+          }
+        }
+      }
+    },
+    "At least 10 characters. Tell us who you are and why you should be verified.": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mindst 10 tegn. Fortæl os, hvem du er, og hvorfor du bør verificeres."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mindestens 10 Zeichen. Erzähl uns, wer du bist und warum du verifiziert werden solltest."
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Τουλάχιστον 10 χαρακτήρες. Πες μας ποιος είσαι και γιατί πρέπει να επαληθευτείς."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Al menos 10 caracteres. Cuéntanos quién eres y por qué deberías ser verificado."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Au moins 10 caractères. Dis-nous qui tu es et pourquoi tu devrais être vérifié."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Almeno 10 caratteri. Dicci chi sei e perché dovresti essere verificato."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Minstens 10 tekens. Vertel ons wie je bent en waarom je geverifieerd moet worden."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Co najmniej 10 znaków. Powiedz nam, kim jesteś i dlaczego powinieneś zostać zweryfikowany."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Minst 10 tecken. Berätta vem du är och varför du ska verifieras."
           }
         }
       }
@@ -11620,6 +11974,65 @@
           "stringUnit": {
             "state": "translated",
             "value": "Avbryt"
+          }
+        }
+      }
+    },
+    "Cancel application": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annuller ansøgning"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bewerbung zurückziehen"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ακύρωση αίτησης"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancelar solicitud"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annuler la demande"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annulla richiesta"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aanvraag annuleren"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anuluj wniosek"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avbryt ansökan"
           }
         }
       }
@@ -28907,6 +29320,65 @@
           "stringUnit": {
             "state": "translated",
             "value": "Språk, utseende, lagring"
+          }
+        }
+      }
+    },
+    "Last application:": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seneste ansøgning:"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Letzte Bewerbung:"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Τελευταία αίτηση:"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Última solicitud:"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dernière demande :"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ultima richiesta:"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Laatste aanvraag:"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ostatni wniosek:"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Senaste ansökan:"
           }
         }
       }
@@ -49030,6 +49502,65 @@
         }
       }
     },
+    "Send application": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Send ansøgning"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bewerbung senden"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Αποστολή αίτησης"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enviar solicitud"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Envoyer la demande"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invia richiesta"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aanvraag versturen"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wyślij wniosek"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skicka ansökan"
+          }
+        }
+      }
+    },
     "Send dispute": {
       "extractionState": "manual",
       "localizations": {
@@ -52035,6 +52566,65 @@
           "stringUnit": {
             "state": "translated",
             "value": "Spam"
+          }
+        }
+      }
+    },
+    "Spotify, Instagram, YouTube, your website… so we can confirm it's you.": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spotify, Instagram, YouTube, din hjemmeside… så vi kan bekræfte, at det er dig."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spotify, Instagram, YouTube, deine Website… damit wir prüfen können, dass du es bist."
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spotify, Instagram, YouTube, η ιστοσελίδα σου… για να επιβεβαιώσουμε ότι είσαι εσύ."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spotify, Instagram, YouTube, tu web… para que podamos confirmar que eres tú."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spotify, Instagram, YouTube, ton site… pour que nous puissions confirmer que c'est bien toi."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spotify, Instagram, YouTube, il tuo sito… così possiamo confermare che sei tu."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spotify, Instagram, YouTube, je website… zodat we kunnen bevestigen dat jij het bent."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spotify, Instagram, YouTube, twoja strona… abyśmy mogli potwierdzić, że to ty."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spotify, Instagram, YouTube, din webbplats… så att vi kan bekräfta att det är du."
           }
         }
       }
@@ -55516,6 +56106,65 @@
           "stringUnit": {
             "state": "translated",
             "value": "Den tiden är inte längre ledig. Välj en annan."
+          }
+        }
+      }
+    },
+    "The EasySesh team is reviewing your application. You'll get a notification when it's decided.": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "EasySesh-teamet gennemgår din ansøgning. Du får en notifikation, når den er afgjort."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das EasySesh-Team prüft deine Bewerbung. Du bekommst eine Benachrichtigung, sobald entschieden ist."
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Η ομάδα του EasySesh εξετάζει την αίτησή σου. Θα λάβεις ειδοποίηση όταν αποφασιστεί."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El equipo de EasySesh está revisando tu solicitud. Recibirás una notificación cuando se decida."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L'équipe EasySesh examine ta demande. Tu recevras une notification dès qu'elle sera traitée."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il team di EasySesh sta esaminando la tua richiesta. Riceverai una notifica quando sarà decisa."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Het EasySesh-team bekijkt je aanvraag. Je krijgt een melding zodra er een besluit is."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zespół EasySesh sprawdza twój wniosek. Dostaniesz powiadomienie, gdy zapadnie decyzja."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "EasySesh-teamet granskar din ansökan. Du får en avisering när den är avgjord."
           }
         }
       }
@@ -59886,6 +60535,65 @@
         }
       }
     },
+    "Verification requested": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verificering anmodet"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verifizierung beantragt"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ζητήθηκε επαλήθευση"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verificación solicitada"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vérification demandée"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verifica richiesta"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verificatie aangevraagd"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wniosek o weryfikację wysłany"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verifiering begärd"
+          }
+        }
+      }
+    },
     "Verified": {
       "extractionState": "manual",
       "localizations": {
@@ -60059,6 +60767,65 @@
           "stringUnit": {
             "state": "translated",
             "value": "Endast verifierade artister"
+          }
+        }
+      }
+    },
+    "Verified studios get a badge on their page. Tell us about your studio and add links so we can confirm it's you.": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verificerede studier får et mærke på deres side. Fortæl os om dit studie og tilføj links, så vi kan bekræfte, at det er dig."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verifizierte Studios bekommen ein Abzeichen auf ihrer Seite. Erzähl uns von deinem Studio und füge Links hinzu, damit wir prüfen können, dass du es bist."
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Τα επαληθευμένα στούντιο έχουν σήμα στη σελίδα τους. Πες μας για το στούντιό σου και πρόσθεσε συνδέσμους για να επιβεβαιώσουμε ότι είσαι εσύ."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los estudios verificados tienen una insignia en su página. Cuéntanos sobre tu estudio y añade enlaces para que podamos confirmar que eres tú."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les studios vérifiés ont un badge sur leur page. Parle-nous de ton studio et ajoute des liens pour que nous puissions confirmer que c'est bien toi."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gli studi verificati hanno un badge sulla loro pagina. Raccontaci del tuo studio e aggiungi link così possiamo confermare che sei tu."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geverifieerde studio's krijgen een badge op hun pagina. Vertel ons over je studio en voeg links toe zodat we kunnen bevestigen dat jij het bent."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zweryfikowane studia mają odznakę na swojej stronie. Opowiedz nam o studiu i dodaj linki, abyśmy mogli potwierdzić, że to ty."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verifierade studior får en bricka på sin sida. Berätta om din studio och lägg till länkar så att vi kan bekräfta att det är du."
           }
         }
       }
@@ -67084,6 +67851,65 @@
         }
       }
     },
+    "e.g. I release music on Spotify and play live in Athens.": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "fx Jeg udgiver musik på Spotify og spiller live i Athen."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "z. B. Ich veröffentliche Musik auf Spotify und spiele live in Athen."
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "π.χ. Κυκλοφορώ μουσική στο Spotify και παίζω live στην Αθήνα."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "p. ej. Publico música en Spotify y toco en directo en Atenas."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ex. Je sors de la musique sur Spotify et je joue en live à Athènes."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "es. Pubblico musica su Spotify e suono dal vivo ad Atene."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "bijv. Ik breng muziek uit op Spotify en speel live in Athene."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "np. Wydaję muzykę na Spotify i gram koncerty w Atenach."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "t.ex. Jag släpper musik på Spotify och spelar live i Aten."
+          }
+        }
+      }
+    },
     "e.g. Neumann U87 Ai": {
       "extractionState": "manual",
       "localizations": {
@@ -67257,6 +68083,65 @@
           "stringUnit": {
             "state": "translated",
             "value": "t.ex. U87, SM7B, Neve"
+          }
+        }
+      }
+    },
+    "e.g. We're a recording studio in Athens since 2015, with 300 sessions a year.": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "fx Vi er et indspilningsstudie i Athen siden 2015 med 300 sessioner om året."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "z. B. Wir sind seit 2015 ein Aufnahmestudio in Athen mit 300 Sessions im Jahr."
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "π.χ. Είμαστε στούντιο ηχογράφησης στην Αθήνα από το 2015, με 300 συνεδρίες τον χρόνο."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "p. ej. Somos un estudio de grabación en Atenas desde 2015, con 300 sesiones al año."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ex. Nous sommes un studio d'enregistrement à Athènes depuis 2015, avec 300 sessions par an."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "es. Siamo uno studio di registrazione ad Atene dal 2015, con 300 sessioni all'anno."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "bijv. We zijn sinds 2015 een opnamestudio in Athene, met 300 sessies per jaar."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "np. Jesteśmy studiem nagraniowym w Atenach od 2015 roku, 300 sesji rocznie."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "t.ex. Vi är en inspelningsstudio i Aten sedan 2015 med 300 sessioner om året."
           }
         }
       }

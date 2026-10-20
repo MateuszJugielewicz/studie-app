@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, Route, Routes, useNavigate } from "react-router-dom";
 import {
-  AudioWaveform, BadgeCheck, Building2, Camera, CalendarDays, Check, ChevronRight, CircleUserRound, FileText, Globe, History, Link2, MapPin, Music2,
+  AudioWaveform, Building2, Camera, CalendarDays, Check, ChevronRight, CircleUserRound, FileText, Globe, History, Link2, MapPin, Music2,
   Megaphone, Pencil, PlayCircle, SlidersHorizontal, UserRound, CircleHelp, Instagram, Youtube, Contact, type LucideIcon,
 } from "lucide-react";
 import { api, userMessage } from "../lib/api";
@@ -13,6 +13,7 @@ import { GENRES, SOCIAL_PLATFORMS, PLATFORM_COLORS, platformTitle, type ArtistPr
 import { C, Chip, IconTile, LargeHead, PageHead, PulseDot, Spinner, StatCard, TileLink, Tiles, ToolButton, useToast } from "../components/ui";
 import { ArtistHero, SocialLinks } from "./ArtistPublic";
 import { ArtistPromotionPage } from "./StudioExtras";
+import { VerificationCard } from "./Verification";
 
 const PLATFORM_ICONS: Record<SocialPlatform, LucideIcon> = {
   spotify: Music2, apple_music: Music2, instagram: Instagram, tiktok: PlayCircle, youtube: Youtube, soundcloud: AudioWaveform, website: Globe,
@@ -59,12 +60,7 @@ function ArtistProfilePage() {
               <StatCard title="Studios" value={String(new Set(completed.map((b) => b.studio_id)).size)} icon={Building2} colors={Tiles.violet} />
             </div>
             <SocialLinks profile={profile} />
-            {!profile.is_verified && (
-              <div className="card row top" style={{ padding: 14 }}>
-                <IconTile icon={BadgeCheck} colors={Tiles.blue} />
-                <div><div className="subhead bold">{t("Get verified")}</div><div className="caption secondary">{t("Verified artists get a badge. Link your Spotify or Instagram and our team will verify you.")}</div></div>
-              </div>
-            )}
+            <VerificationCard kind="artist" verified={!!profile.is_verified} />
             {pendingLinks > 0 && (
               <Link to={`/artists/${profile.id}`} className="card row pressable" style={{ padding: 14 }}>
                 <IconTile icon={Link2} colors={Tiles.violet} />
