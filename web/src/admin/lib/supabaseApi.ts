@@ -207,14 +207,23 @@ export class SupabaseAdminApi implements AdminApi {
   }
 
   async saveCampaign(campaign: Partial<EmailCampaign> & { name: string }): Promise<string> {
-    const { id, name, from_local, subject, body, footer, note } = campaign;
-    const row = { name, from_local, subject, body, footer, note };
+    const { id, name, from_local, subject, body, footer, note, template } = campaign;
+    const row = { name, from_local, subject, body, footer, note, ...(id ? {} : { template: template ?? null }) };
     if (id) {
       unwrap(await this.client.from("email_campaigns").update(row).eq("id", id));
       return id;
     }
     const { data: user } = await this.client.auth.getUser();
     return unwrap<{ id: string }>(await this.client.from("email_campaigns").insert({ ...row, created_by: user.user?.id }).select("id").single()).id;
+  }
+
+  async campaignAudience(template: string): Promise<NewCampaignRecipient[]> {
+    const rows = unwrap<{ email: string; name: string; city: string; website: string }[]>(await this.client.rpc("campaign_audience", { p_template: template }));
+    return (rows ?? []).map((r) => ({ ...r, source: template }));
+  }
+
+  async reviewCampaign(campaignId: string, approve: boolean) {
+    unwrap(await this.client.rpc("review_email_campaign", { p_campaign_id: campaignId, p_approve: approve }));
   }
 
   async deleteCampaign(id: string) {

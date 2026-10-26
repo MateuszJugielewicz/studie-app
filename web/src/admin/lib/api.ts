@@ -72,6 +72,10 @@ export interface AdminApi {
   /** Owners only: email campaigns (one email per recipient, sent in batches from the panel). */
   campaigns(): Promise<EmailCampaign[]>;
   saveCampaign(campaign: Partial<EmailCampaign> & { name: string }): Promise<string>;
+  /** Users who match a template's rules (see campaignTemplates.ts), ready to add to a campaign. */
+  campaignAudience(template: string): Promise<NewCampaignRecipient[]>;
+  /** Any admin: approve the campaign as it is now (or withdraw the approval). */
+  reviewCampaign(campaignId: string, approve: boolean): Promise<void>;
   deleteCampaign(id: string): Promise<void>;
   campaignRecipients(campaignId: string): Promise<CampaignRecipient[]>;
   addCampaignRecipients(campaignId: string, recipients: NewCampaignRecipient[]): Promise<number>;

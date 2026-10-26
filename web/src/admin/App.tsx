@@ -78,7 +78,7 @@ const nav: { to: string; title: string; icon: string; min?: StaffRank }[] = [
   { to: "/banners", title: "Banners", icon: "banners", min: "admin" as StaffRank },
   { to: "/auto-flags", title: "Auto-flags", icon: "moderation", min: "admin" as StaffRank },
   { to: "/email", title: "Email", icon: "email" },
-  { to: "/campaigns", title: "Campaigns", icon: "campaigns", min: "owner" as StaffRank },
+  { to: "/campaigns", title: "Campaigns", icon: "campaigns", min: "admin" as StaffRank },
   { to: "/team", title: "Team", icon: "team", min: "owner" as StaffRank },
   { to: "/audit", title: "Audit log", icon: "audit", min: "owner" as StaffRank },
 ];
@@ -207,7 +207,7 @@ function Dashboard({ api }: { api: AdminApi }) {
             <Route path="/email" element={<EmailPage />} />
             {allowed("admin") && <Route path="/banners" element={<BannersPage />} />}
             {allowed("admin") && <Route path="/auto-flags" element={<FlagRulesPage />} />}
-            {allowed("owner") && <Route path="/campaigns" element={<CampaignsPage />} />}
+            {allowed("admin") && <Route path="/campaigns" element={<CampaignsPage />} />}
             {allowed("owner") && <Route path="/team" element={<TeamPage />} />}
             {allowed("owner") && <Route path="/audit" element={<AuditPage />} />}
             <Route path="*" element={<Navigate to="/" />} />

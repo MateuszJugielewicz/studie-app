@@ -2,6 +2,7 @@
 // email (never a shared To/CC), with {{name}}, {{city}} and {{website}} filled in.
 //   { campaign_id, mode: "test" }            → one test email to the owner's own address
 //   { campaign_id, mode: "batch", limit: n } → the next n pending recipients (max 50 per call)
+// Batches only go out once an admin has approved the campaign (edits clear the approval).
 // Addresses on email_suppressions are skipped. A daily cap protects the Resend quota, which the
 // booking emails share (CAMPAIGN_DAILY_LIMIT, default 80 emails per 24 hours from the admin panel).
 import { handler, HttpError, json, requireString } from "../_shared/http.ts";
@@ -15,8 +16,10 @@ const DEFAULT_FOOTER = "Sent by EasySesh – easysesh.live";
 
 type Recipient = { id: string; email: string; name: string; city: string; website: string };
 
+// {{name}}, or {{name|there}} with a fallback for when the value is empty.
 const fill = (template: string, r: Pick<Recipient, "name" | "city" | "website">) =>
-  template.replace(/\{\{\s*(name|city|website)\s*\}\}/gi, (_, key: string) => r[key.toLowerCase() as "name" | "city" | "website"] ?? "");
+  template.replace(/\{\{\s*(name|city|website)\s*(?:\|([^}]*))?\}\}/gi, (_, key: string, fallback?: string) =>
+    r[key.toLowerCase() as "name" | "city" | "website"]?.trim() || (fallback ?? "").trim());
 
 Deno.serve(handler(async (req, body) => {
   const staff = await requireStaff(req, "owner");
@@ -38,6 +41,8 @@ Deno.serve(handler(async (req, body) => {
     if (id === null) throw new HttpError(502, "The test email couldn't be sent. Check the Resend key and domain.");
     return json({ sent: 1, to: staff.email });
   }
+
+  if (!campaign.reviewed_at) throw new HttpError(409, "An admin has to review and approve this campaign before it can be sent.");
 
   // Daily cap across the admin panel (single emails and campaigns).
   const since = new Date(Date.now() - 86_400_000).toISOString();

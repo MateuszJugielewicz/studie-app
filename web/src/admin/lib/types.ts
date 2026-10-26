@@ -345,6 +345,7 @@ export interface AuditEntry {
 export interface EmailCampaign {
   id: string; name: string; from_local: string; subject: string; body: string; footer: string; note: string;
   status: "draft" | "sending" | "done"; created_at: string; updated_at: string;
+  template: string | null; reviewed_at: string | null; reviewed_by_email: string | null;
   pending_count: number; sent_count: number; failed_count: number; skipped_count: number;
 }
 export interface CampaignRecipient {
