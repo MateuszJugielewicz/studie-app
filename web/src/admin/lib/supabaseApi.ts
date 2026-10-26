@@ -348,6 +348,10 @@ export class SupabaseAdminApi implements AdminApi {
     return unwrap(await this.client.from("admin_credit_balances").select("*").order("last_activity", { ascending: false }).limit(1000));
   }
 
+  async creditBalance(userId: string): Promise<number> {
+    return unwrap(await this.client.rpc("promotion_credit_balance", { p_user_id: userId }));
+  }
+
   async adjustCredits(userId: string, amount: number, note: string): Promise<number> {
     return unwrap(await this.client.rpc("admin_adjust_credits", { p_user_id: userId, p_amount: amount, p_note: note || null }));
   }

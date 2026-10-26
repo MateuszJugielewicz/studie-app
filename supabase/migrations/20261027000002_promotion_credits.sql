@@ -162,3 +162,6 @@ select p.id, p.studio_id, p.package, p.days, p.amount, p.currency, p.status, p.s
 from public.studio_promotions p
 left join public.studios s on s.id = p.studio_id
 left join public.artist_profiles a on a.id = p.artist_id;
+
+-- Only the functions above write credits.
+revoke insert, update, delete, truncate on public.promotion_credit_ledger, public.credit_purchases from authenticated;

@@ -71,6 +71,47 @@ export default function PromotionsPage() {
   );
 }
 
+/** Its own page in the menu, so it's easy to find. */
+export function CreditsPage() {
+  return (
+    <>
+      <header className="page-header"><h1>Credits</h1></header>
+      <CreditsPanel />
+    </>
+  );
+}
+
+/** One person's credits, in their user details: balance plus add / remove. */
+export function UserCredits({ userId }: { userId: string }) {
+  const api = useApi();
+  const balance = useLoad(() => api.creditBalance(userId), [userId]);
+  const [amount, setAmount] = useState("");
+  const [note, setNote] = useState("");
+  const credits = Number(amount);
+  const validAmount = Number.isInteger(credits) && credits > 0 && credits <= 10000;
+  async function adjust(sign: 1 | -1) {
+    await api.adjustCredits(userId, sign * credits, note.trim());
+    setAmount("");
+    setNote("");
+    await balance.reload();
+  }
+  return (
+    <div className="card">
+      <div className="row gap wrap">
+        <strong>Promotion credits:</strong>
+        <span>{balance.data ?? "…"} credits (€{balance.data ?? 0})</span>
+        <span className="muted small">1 credit = €1 · 1 week = 19, 2 weeks = 35, 1 month = 59</span>
+      </div>
+      <div className="row gap wrap">
+        <input inputMode="numeric" placeholder="Credits" style={{ width: 110 }} value={amount} onChange={(e) => setAmount(e.target.value.replace(/[^0-9]/g, ""))} />
+        <input placeholder="Note (optional)" style={{ width: 220 }} value={note} onChange={(e) => setNote(e.target.value)} />
+        <ActionButton disabled={!validAmount} onClick={() => adjust(1)}>{validAmount ? `Add ${credits} credits` : "Add credits"}</ActionButton>
+        <ActionButton kind="danger" disabled={!validAmount} confirm="Remove these credits?" onClick={() => adjust(-1)}>Remove</ActionButton>
+      </div>
+    </div>
+  );
+}
+
 /** Promotion credits: 1 credit = €1. Give credits to a studio owner or artist (they're notified), or remove them. */
 function CreditsPanel() {
   const api = useApi();

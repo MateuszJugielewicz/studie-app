@@ -53,6 +53,7 @@ export interface AdminApi {
   endArtistPromotion(artistId: string): Promise<void>;
   /** Promotion credits (1 credit = €1): everyone with a balance or history. */
   creditBalances(): Promise<CreditBalance[]>;
+  creditBalance(userId: string): Promise<number>;
   /** Adds credits (negative removes them); returns the new balance. */
   adjustCredits(userId: string, amount: number, note: string): Promise<number>;
 

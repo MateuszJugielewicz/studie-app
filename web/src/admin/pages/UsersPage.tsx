@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { UserCredits } from "./PromotionsPage";
 import { ActionButton, Badge, Modal, PageState, Search, Tabs, ViewAsButton, EmailButton } from "../components";
 import { ModerationPanel } from "../moderation";
 import { rankAtLeast, useApi, useLoad, useStaff } from "../lib/apiContext";
@@ -129,6 +130,8 @@ function UserModal({ user, onClose, onChanged }: { user: AdminUser; onClose: () 
           <ActionButton kind="danger" confirm="End this artist's promotion now?" onClick={async () => { await api.endArtistPromotion(user.id); await onChanged(); }}>End promotion</ActionButton>
         </div>
       )}
+
+      {(user.role === "artist" || user.role === "studio_owner") && <UserCredits userId={user.id} />}
 
       {resetResult && (
         <div className="card notice">

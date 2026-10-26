@@ -18,7 +18,7 @@ import BookingsPage from "./pages/BookingsPage";
 import PaymentsPage from "./pages/PaymentsPage";
 import ModerationPage from "./pages/ModerationPage";
 import SupportPage from "./pages/SupportPage";
-import PromotionsPage from "./pages/PromotionsPage";
+import PromotionsPage, { CreditsPage } from "./pages/PromotionsPage";
 import PromoCodesPage from "./pages/PromoCodesPage";
 import ChangelogPage from "./pages/ChangelogPage";
 import VerificationPage from "./pages/VerificationPage";
@@ -33,6 +33,7 @@ const icons: Record<string, string> = {
   payments: "M2 7h20v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2zM2 11h20M6 16h4",
   moderation: "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z",
   promotions: "M3 11l18-5v12L3 14v-3zM11.6 16.8a3 3 0 1 1-5.8-1.6",
+  credits: "M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8M12 18V6",
   team: "M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M19 8l2 2 4-4",
   audit: "M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11",
   campaigns: "M22 2L11 13M22 2l-7 20-4-9-9-4z",
@@ -69,6 +70,7 @@ const nav: { to: string; title: string; icon: string; min?: StaffRank }[] = [
   { to: "/bookings", title: "Bookings", icon: "bookings" },
   { to: "/payments", title: "Payments", icon: "payments" },
   { to: "/promotions", title: "Promotions", icon: "promotions" },
+  { to: "/credits", title: "Credits", icon: "credits" },
   { to: "/promo-codes", title: "Promo codes", icon: "codes" },
   { to: "/moderation", title: "Moderation", icon: "moderation" },
   { to: "/verification", title: "Verification", icon: "verification" },
@@ -202,6 +204,7 @@ function Dashboard({ api }: { api: AdminApi }) {
             <Route path="/stories" element={<StoriesPage />} />
             <Route path="/support" element={<SupportPage />} />
             <Route path="/promotions" element={<PromotionsPage />} />
+            <Route path="/credits" element={<CreditsPage />} />
             <Route path="/promo-codes" element={<PromoCodesPage />} />
             <Route path="/changelog" element={<ChangelogPage />} />
             <Route path="/email" element={<EmailPage />} />
