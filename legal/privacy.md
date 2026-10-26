@@ -1,9 +1,8 @@
-<!-- DRAFT – must be reviewed by a qualified lawyer / DPO before launch. Replace every [PLACEHOLDER]. -->
 # Privacy Policy
 
 Version 2026-09-26
 
-[COMPANY NAME], [ADDRESS], company no. [CVR/VAT NO.], is the **data controller** for personal data processed in EasySesh. Contact: easysesh@easysesh.live.
+Mateusz Jugielewicz, Panagi Tsaldari 16-18, Athens, Greece, is the **data controller** for personal data processed in EasySesh. Contact: easysesh@easysesh.live.
 
 ## What we collect
 - **Account data:** email, password (stored hashed by our authentication provider), role (artist/studio), sign-in method (email, Apple, Google).
@@ -17,6 +16,8 @@ Version 2026-09-26
 - **Ratings:** ratings studios give artists and artists give studios, and any disputes about them.
 - **Moderation records:** warnings, suspensions and bans, with the reason and period.
 - **Consent records:** which version of these documents you accepted, and when.
+- **Stories:** photos and videos you post as a story (shown for 24 hours), who viewed and liked them, and replies sent to you.
+- **Verification requests:** the message and links you send when you apply for a verified badge, and our decision.
 
 ## Why we use it (legal basis, GDPR art. 6)
 - To provide the service: accounts, bookings, payments, messaging and support. Legal basis: **contract** (art. 6(1)(b)).
@@ -27,14 +28,14 @@ Version 2026-09-26
 
 ## Who we share it with
 - **The other party to your booking.** Studios see the artist’s name, profile and booking details; artists see the studio’s public listing (including its address) and booking details.
-- **Processors acting for us:** Supabase (database, authentication, storage; EU region [REGION]), Stripe (payments and payouts), Apple (Sign in with Apple, push notifications), Google (Google sign-in), and our email provider [PROVIDER].
+- **Processors acting for us:** Supabase (database, authentication, storage; EU region Ireland), Stripe (payments and payouts), Apple (Sign in with Apple, push notifications), Google (Google sign-in), and our email provider Resend.
 - **Authorities**, where the law requires it.
 
 We do not sell personal data. Where data is transferred outside the EU/EEA, we rely on the EU Commission's adequacy decisions (such as the EU–US Data Privacy Framework) or standard contractual clauses.
 
 ## How long we keep it
 - **Account and profile data:** while your account exists. It is deleted or anonymised when you delete your account.
-- **Booking, payment and invoice records:** 5 years from the end of the financial year, as required by bookkeeping law ([e.g. Danish Bookkeeping Act §10 / Greek law 4308/2014]).
+- **Booking, payment and invoice records:** 5 years from the end of the financial year, as required by bookkeeping law (Greek law 4308/2014).
 - **Messages:** while the account exists. They are anonymised on deletion, but kept where needed for an open dispute.
 - **Reports and moderation records:** up to 2 years.
 
@@ -44,7 +45,7 @@ You have the right to access your data, correct it, have it erased, restrict its
 - **Delete your account:** Settings → Delete account.
 - For anything else, email easysesh@easysesh.live. We reply within one month.
 
-You can complain to your data protection authority, e.g. Datatilsynet (Denmark, www.datatilsynet.dk) or the Hellenic Data Protection Authority (www.dpa.gr).
+You can complain to the Hellenic Data Protection Authority (www.dpa.gr), or to the data protection authority where you live, e.g. Datatilsynet in Denmark (www.datatilsynet.dk).
 
 ## Security
 Data is encrypted in transit (TLS) and at rest. Access is restricted by role and enforced by the database (row-level security). Administrator accounts require two-factor authentication. Card data is handled only by Stripe, which is PCI-DSS certified.

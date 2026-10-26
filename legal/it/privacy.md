@@ -2,7 +2,7 @@
 
 Versione 2026-09-26
 
-[COMPANY NAME], [ADDRESS], n. di registro [CVR/VAT NO.], è il **titolare del trattamento** dei dati personali trattati in EasySesh. Contatto: easysesh@easysesh.live.
+Mateusz Jugielewicz, Panagi Tsaldari 16-18, Atene, Grecia, è il **titolare del trattamento** dei dati personali trattati in EasySesh. Contatto: easysesh@easysesh.live.
 
 ## Cosa raccogliamo
 - **Dati dell'account:** email, password (conservata cifrata dal fornitore di autenticazione), ruolo (artista/studio), metodo di accesso (email, Apple, Google).
@@ -16,6 +16,8 @@ Versione 2026-09-26
 - **Valutazioni:** quelle date dagli studi agli artisti e dagli artisti agli studi, ed eventuali contestazioni.
 - **Dati di moderazione:** avvisi, sospensioni e ban, con motivo e durata.
 - **Registri del consenso:** quale versione di questi documenti hai accettato e quando.
+- **Storie:** foto e video che pubblichi come storia (visibili per 24 ore), chi li ha visti e ha messo mi piace, e le risposte che ricevi.
+- **Richieste di verifica:** il messaggio e i link che invii per richiedere il badge di verifica, e la nostra decisione.
 
 ## Perché li usiamo (base giuridica, art. 6 GDPR)
 - Fornire il servizio: account, prenotazioni, pagamenti, messaggi e assistenza. Base: **contratto** (art. 6.1.b).
@@ -26,14 +28,14 @@ Versione 2026-09-26
 
 ## Con chi li condividiamo
 - **L'altra parte della prenotazione.** Gli studi vedono nome, profilo e dati di prenotazione dell'artista; gli artisti vedono l'annuncio pubblico dello studio (indirizzo incluso) e i dati di prenotazione.
-- **Responsabili del trattamento per nostro conto:** Supabase (database, autenticazione, archiviazione; regione UE [REGION]), Stripe (pagamenti e liquidazioni), Apple (Accedi con Apple, notifiche push), Google (accesso Google) e il nostro fornitore email [PROVIDER].
+- **Responsabili del trattamento per nostro conto:** Supabase (database, autenticazione, archiviazione; regione UE Irlanda), Stripe (pagamenti e liquidazioni), Apple (Accedi con Apple, notifiche push), Google (accesso Google) e il nostro fornitore email Resend.
 - **Autorità**, quando la legge lo richiede.
 
 Non vendiamo dati personali. Per i trasferimenti fuori da UE/SEE ci basiamo sulle decisioni di adeguatezza della Commissione europea (come l'EU–US Data Privacy Framework) o sulle clausole contrattuali tipo.
 
 ## Per quanto tempo li conserviamo
 - **Dati dell'account e del profilo:** finché esiste l'account. Vengono cancellati o anonimizzati quando elimini l'account.
-- **Dati di prenotazioni, pagamenti e fatture:** 5 anni dalla fine dell'esercizio, come richiesto dalla normativa contabile ([es. legge danese sulla contabilità § 10 / legge greca 4308/2014]).
+- **Dati di prenotazioni, pagamenti e fatture:** 5 anni dalla fine dell'esercizio, come richiesto dalla normativa contabile (legge greca 4308/2014).
 - **Messaggi:** finché esiste l'account. Vengono anonimizzati alla cancellazione, ma conservati se necessari per una controversia aperta.
 - **Segnalazioni e dati di moderazione:** fino a 2 anni.
 
@@ -43,7 +45,7 @@ Hai diritto di accesso, rettifica, cancellazione, limitazione, opposizione e por
 - **Eliminare l'account:** Impostazioni → Elimina account.
 - Per tutto il resto scrivi a easysesh@easysesh.live. Rispondiamo entro un mese.
 
-Puoi presentare reclamo all'autorità di protezione dei dati, ad es. il Garante (www.garanteprivacy.it), il Datatilsynet (Danimarca, www.datatilsynet.dk) o l'autorità greca (www.dpa.gr).
+Puoi presentare reclamo all'autorità greca per la protezione dei dati (www.dpa.gr) o all'autorità del tuo paese, ad es. il Garante (www.garanteprivacy.it).
 
 ## Sicurezza
 I dati sono cifrati in transito (TLS) e a riposo. L'accesso è limitato per ruolo e imposto dal database (row-level security). Gli account amministratore richiedono l'autenticazione a due fattori. I dati delle carte sono gestiti solo da Stripe, certificato PCI-DSS.

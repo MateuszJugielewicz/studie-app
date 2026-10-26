@@ -2,7 +2,7 @@
 
 Version 2026-09-26
 
-[COMPANY NAME], [ADDRESS], Handelsregister-/USt-Nr. [CVR/VAT NO.], ist **Verantwortlicher** für die in EasySesh verarbeiteten personenbezogenen Daten. Kontakt: easysesh@easysesh.live.
+Mateusz Jugielewicz, Panagi Tsaldari 16-18, Athen, Griechenland, ist **Verantwortlicher** für die in EasySesh verarbeiteten personenbezogenen Daten. Kontakt: easysesh@easysesh.live.
 
 ## Welche Daten wir erheben
 - **Kontodaten:** E-Mail, Passwort (verschlüsselt bei unserem Authentifizierungsanbieter gespeichert), Rolle (Artist/Studio), Anmeldemethode (E-Mail, Apple, Google).
@@ -16,6 +16,8 @@ Version 2026-09-26
 - **Bewertungen:** Bewertungen, die Studios Artists und Artists Studios geben, sowie Einsprüche dazu.
 - **Moderationsdaten:** Verwarnungen, Sperren und Banns mit Grund und Zeitraum.
 - **Einwilligungsnachweise:** welche Version dieser Dokumente du wann akzeptiert hast.
+- **Stories:** Fotos und Videos, die du als Story postest (24 Stunden sichtbar), wer sie angesehen und geliked hat, und Antworten an dich.
+- **Verifizierungsanfragen:** die Nachricht und Links, die du bei einer Anfrage für ein Verifizierungsabzeichen sendest, und unsere Entscheidung.
 
 ## Wofür wir sie nutzen (Rechtsgrundlage, Art. 6 DSGVO)
 - Zur Erbringung des Dienstes: Konten, Buchungen, Zahlungen, Nachrichten und Support. Rechtsgrundlage: **Vertrag** (Art. 6 Abs. 1 lit. b).
@@ -26,14 +28,14 @@ Version 2026-09-26
 
 ## An wen wir sie weitergeben
 - **Die andere Partei deiner Buchung.** Studios sehen Name, Profil und Buchungsdaten des Artists; Artists sehen das öffentliche Inserat des Studios (einschließlich Adresse) und die Buchungsdaten.
-- **Auftragsverarbeiter:** Supabase (Datenbank, Authentifizierung, Speicher; EU-Region [REGION]), Stripe (Zahlungen und Auszahlungen), Apple (Mit Apple anmelden, Push-Mitteilungen), Google (Google-Anmeldung) und unser E-Mail-Anbieter [PROVIDER].
+- **Auftragsverarbeiter:** Supabase (Datenbank, Authentifizierung, Speicher; EU-Region Irland), Stripe (Zahlungen und Auszahlungen), Apple (Mit Apple anmelden, Push-Mitteilungen), Google (Google-Anmeldung) und unser E-Mail-Anbieter Resend.
 - **Behörden**, soweit gesetzlich vorgeschrieben.
 
 Wir verkaufen keine personenbezogenen Daten. Bei Übermittlungen außerhalb der EU/des EWR stützen wir uns auf Angemessenheitsbeschlüsse der EU-Kommission (z. B. EU-US Data Privacy Framework) oder Standardvertragsklauseln.
 
 ## Wie lange wir sie speichern
 - **Konto- und Profildaten:** solange dein Konto besteht. Beim Löschen deines Kontos werden sie gelöscht oder anonymisiert.
-- **Buchungs-, Zahlungs- und Rechnungsdaten:** 5 Jahre ab Ende des Geschäftsjahres, wie es das Buchführungsrecht verlangt ([z. B. dänisches Buchführungsgesetz § 10 / griechisches Gesetz 4308/2014]).
+- **Buchungs-, Zahlungs- und Rechnungsdaten:** 5 Jahre ab Ende des Geschäftsjahres, wie es das Buchführungsrecht verlangt (griechisches Gesetz 4308/2014).
 - **Nachrichten:** solange das Konto besteht. Beim Löschen werden sie anonymisiert, aber aufbewahrt, soweit für einen offenen Streitfall nötig.
 - **Meldungen und Moderationsdaten:** bis zu 2 Jahre.
 
@@ -43,7 +45,7 @@ Du hast das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung der Vera
 - **Dein Konto löschen:** Einstellungen → Konto löschen.
 - Für alles andere schreibe an easysesh@easysesh.live. Wir antworten innerhalb eines Monats.
 
-Du kannst dich bei deiner Datenschutzbehörde beschweren, z. B. Datatilsynet (Dänemark, www.datatilsynet.dk) oder der griechischen Datenschutzbehörde (www.dpa.gr).
+Du kannst dich bei der griechischen Datenschutzbehörde (www.dpa.gr) beschweren oder bei der Datenschutzbehörde in deinem Land.
 
 ## Sicherheit
 Daten werden bei der Übertragung (TLS) und im Ruhezustand verschlüsselt. Der Zugriff ist nach Rollen beschränkt und wird von der Datenbank durchgesetzt (Row-Level-Security). Administratorkonten erfordern Zwei-Faktor-Authentifizierung. Kartendaten verarbeitet nur Stripe, das nach PCI-DSS zertifiziert ist.

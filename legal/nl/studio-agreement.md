@@ -1,6 +1,6 @@
 # Studio-overeenkomst
 
-Versie 2026-09-26 · Tussen [COMPANY NAME] ("EasySesh") en het bedrijf dat een studio aanbiedt ("Studio"). Deze overeenkomst geldt naast de Algemene voorwaarden.
+Versie 2026-09-26 · Tussen Mateusz Jugielewicz, Panagi Tsaldari 16-18, Athene, Griekenland ("EasySesh") en het bedrijf dat een studio aanbiedt ("Studio"). Deze overeenkomst geldt naast de Algemene voorwaarden.
 
 ## 1. Aanmelding en goedkeuring
 - De Studio meldt zich aan met juiste en volledige gegevens: foto's van de echte ruimtes, adres, prijzen, apparatuur en openingstijden.

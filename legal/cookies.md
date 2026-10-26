@@ -1,19 +1,21 @@
-<!-- DRAFT – review before launch. -->
 # Cookie Policy
 
 Version 2026-09-26
 
-## The EasySesh app
-The iOS app does not use cookies or advertising identifiers, and it does not track you across other apps or websites. It stores the following on your device:
-- **Login session:** kept in the iOS Keychain so you stay signed in. This is strictly necessary.
-- **App preferences:** such as notification settings. Strictly necessary.
-- **Cached images:** to make the app faster. Deleted by iOS when space is needed.
+EasySesh does not use advertising or analytics cookies, and does not track you across other apps or websites.
 
-## The EasySesh admin dashboard
-The admin website stores only the admin's login session in the browser's local storage. This is strictly necessary for signing in, so no consent banner is required.
+## The website (easysesh.live)
+The website stores only what it needs to work, in your browser's local storage:
+- **Login session**, so you stay signed in. Strictly necessary.
+- **Your language and display choices**, so the site looks the way you set it.
 
-## Our public website
-If easysesh.app uses analytics or marketing cookies, we will ask for your consent first through a cookie banner, and this policy will list each cookie, its purpose, provider and lifetime. Today we use **no non-essential cookies**.
+These are needed for the service you asked for, so no consent banner is required. If we ever add analytics or marketing cookies, we will ask for your consent first and list them here.
+
+## The apps (iPhone and Android)
+The apps don't use cookies or advertising identifiers. They store your login session, your app preferences and cached images on your device, so you stay signed in and the app loads faster.
+
+## Maps
+On the website and in the Android app, maps are loaded from OpenStreetMap, whose servers receive your IP address when the map images load (https://osmfoundation.org/wiki/Privacy_Policy). The iPhone app uses Apple Maps.
 
 ## Payments
 Stripe may set strictly necessary cookies during payment to prevent fraud. See https://stripe.com/cookie-settings.

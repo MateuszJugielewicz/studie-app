@@ -1,6 +1,6 @@
 # Conditions générales
 
-Version 2026-09-26 · Exploité par [COMPANY NAME], [ADDRESS], n° d'entreprise [CVR/VAT NO.] (« EasySesh », « nous »).
+Version 2026-09-26 · Exploité par Mateusz Jugielewicz, Panagi Tsaldari 16-18, Athènes, Grèce (« EasySesh », « nous »).
 
 ## 1. Ce qu'est EasySesh
 EasySesh est une place de marché en ligne qui met en relation des musiciens (« Artistes ») et des studios d'enregistrement (« Studios »). EasySesh n'est pas partie au contrat de session entre un Artiste et un Studio. Le Studio fournit la session et en est responsable. EasySesh fournit la plateforme, la gestion des paiements et le service client.
@@ -22,7 +22,7 @@ Les studios postulent en créant une annonce. EasySesh examine chaque candidatur
 - L'Artiste peut **s'enregistrer** dans l'app à son arrivée, et le Studio peut confirmer l'arrivée. EasySesh recommande l'enregistrement. Les studios peuvent le désactiver ; EasySesh ne peut alors pas promettre de remboursement en cas de problème pendant la session.
 
 ## 5. Paiements
-- Les paiements par carte et Apple Pay sont traités par notre prestataire de paiement, Stripe. EasySesh ne stocke jamais les numéros de carte complets.
+- Les paiements par carte, Apple Pay, Google Pay et les autres moyens de paiement en ligne proposés au paiement sont traités par notre prestataire de paiement, Stripe. EasySesh ne stocke jamais les numéros de carte complets.
 - EasySesh encaisse les paiements par carte pour le compte du Studio en tant qu'agent d'encaissement limité. En payant EasySesh, tu t'acquittes de ton obligation de paiement envers le Studio.
 - Si le Studio l'autorise, l'Artiste peut choisir de **payer en espèces au studio**. L'Artiste paie alors directement le Studio et EasySesh ne gère pas cet argent. **Si tu paies en espèces, nous ne pouvons pas garantir de remboursement, car EasySesh ne gère pas l'argent liquide ; nous examinerons toutefois le cas et essaierons d'aider.**
 - EasySesh facture des **frais de plateforme de 10 %** du prix de chaque réservation (ou un autre taux convenu avec le Studio), payés par le Studio. Pour les paiements par carte, ils sont déduits du versement au Studio, effectué uniquement après la session. Pour les paiements en espèces, le Studio les doit à EasySesh (voir l'Accord studio).
@@ -63,7 +63,7 @@ Tu peux supprimer ton compte à tout moment dans Réglages. Nous pouvons fermer 
 Nous pouvons mettre à jour ces conditions. En cas de modification importante, nous t'en informons dans l'app et te demandons de lire et d'accepter la nouvelle version avant de continuer à utiliser EasySesh.
 
 ## 15. Droit applicable
-Ces conditions sont régies par le droit de [COUNTRY]. Les tribunaux de [CITY] sont compétents, sans limiter le droit d'un consommateur d'agir dans son pays.
+Ces conditions sont régies par le droit grec. Les tribunaux d'Athènes sont compétents, sans limiter le droit d'un consommateur d'agir dans son pays.
 
 ## Contact
-[COMPANY NAME] · [ADDRESS] · support@easysesh.live
+EasySesh · Mateusz Jugielewicz · Panagi Tsaldari 16-18, Athènes, Grèce · support@easysesh.live

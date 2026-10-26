@@ -1,6 +1,6 @@
 # Studioavtal
 
-Version 2026-09-26 · Mellan [COMPANY NAME] (”EasySesh”) och företaget som lägger upp en studio (”Studion”). Avtalet gäller utöver de allmänna villkoren.
+Version 2026-09-26 · Mellan Mateusz Jugielewicz, Panagi Tsaldari 16-18, Aten, Grekland (”EasySesh”) och företaget som lägger upp en studio (”Studion”). Avtalet gäller utöver de allmänna villkoren.
 
 ## 1. Ansökan och godkännande
 - Studion ansöker med korrekta och fullständiga uppgifter: bilder av de faktiska lokalerna, adress, priser, utrustning och öppettider.

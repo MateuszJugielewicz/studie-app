@@ -2,19 +2,22 @@
 
 Versión 2026-09-26
 
-## La app EasySesh
-La app para iOS no usa cookies ni identificadores publicitarios y no te rastrea en otras apps o webs. Guarda en tu dispositivo:
-- **Sesión:** en el llavero de iOS, para que sigas conectado. Estrictamente necesario.
-- **Preferencias de la app:** como los ajustes de notificaciones. Estrictamente necesario.
-- **Imágenes en caché:** para que la app sea más rápida. iOS las borra cuando necesita espacio.
+EasySesh no usa cookies publicitarias ni de analítica y no te rastrea en otras apps o sitios web.
 
-## El panel de administración de EasySesh
-La web de administración solo guarda la sesión del administrador en el almacenamiento local del navegador. Es estrictamente necesario para iniciar sesión, por lo que no se requiere banner de consentimiento.
+## El sitio web (easysesh.live)
+El sitio guarda en el almacenamiento local de tu navegador solo lo que necesita para funcionar:
+- **Sesión de inicio**, para que sigas conectado. Estrictamente necesaria.
+- **Tu idioma y tus opciones de visualización**, para que el sitio se vea como lo configuraste.
 
-## Nuestra web pública
-Si easysesh.app usa cookies analíticas o de marketing, primero te pediremos el consentimiento mediante un banner, y esta política indicará cada cookie, su finalidad, proveedor y duración. Hoy **no usamos cookies no esenciales**.
+Son necesarias para el servicio que pediste, así que no hace falta un banner de cookies. Si algún día añadimos cookies de analítica o marketing, primero te pediremos el consentimiento y las enumeraremos aquí.
+
+## Las apps (iPhone y Android)
+Las apps no usan cookies ni identificadores publicitarios. Guardan en tu dispositivo tu sesión, tus preferencias e imágenes en caché, para que sigas conectado y la app cargue más rápido.
+
+## Mapas
+En el sitio web y en la app de Android, los mapas se cargan desde OpenStreetMap, cuyos servidores reciben tu dirección IP al cargar las imágenes del mapa (https://osmfoundation.org/wiki/Privacy_Policy). La app de iPhone usa Mapas de Apple.
 
 ## Pagos
-Stripe puede instalar cookies estrictamente necesarias durante el pago para evitar el fraude. Consulta https://stripe.com/cookie-settings.
+Stripe puede instalar cookies estrictamente necesarias durante el pago para evitar fraudes. Consulta https://stripe.com/cookie-settings.
 
 Preguntas: easysesh@easysesh.live

@@ -1,4 +1,3 @@
-<!-- DRAFT – review before launch. -->
 # Refund & Cancellation Policy
 
 Version 2026-09-26
@@ -10,7 +9,7 @@ Each studio chooses one of three cancellation policies. The policy is shown on t
 - **Moderate:** full refund up to 72 hours before the session, and 50% up to 24 hours before. No refund after that.
 - **Strict:** 50% refund up to 7 days before the session. No refund after that.
 
-Refunds go back to the card or Apple Pay you paid with, and usually arrive within 5–10 business days.
+Refunds go back to the payment method you paid with, and usually arrive within 5–10 business days.
 
 ## If the studio cancels or declines
 The artist always gets a **full refund**. For requests the studio declines, the card hold is released and nothing is charged. Studios that cancel often may be suspended.

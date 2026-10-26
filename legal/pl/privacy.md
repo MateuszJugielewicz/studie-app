@@ -2,7 +2,7 @@
 
 Wersja 2026-09-26
 
-[COMPANY NAME], [ADDRESS], nr rejestrowy [CVR/VAT NO.], jest **administratorem** danych osobowych przetwarzanych w EasySesh. Kontakt: easysesh@easysesh.live.
+Mateusz Jugielewicz, Panagi Tsaldari 16-18, Ateny, Grecja, jest **administratorem** danych osobowych przetwarzanych w EasySesh. Kontakt: easysesh@easysesh.live.
 
 ## Jakie dane zbieramy
 - **Dane konta:** e-mail, hasło (przechowywane w postaci zaszyfrowanej przez dostawcę uwierzytelniania), rola (artysta/studio), metoda logowania (e-mail, Apple, Google).
@@ -16,6 +16,8 @@ Wersja 2026-09-26
 - **Oceny:** oceny wystawiane artystom przez studia i studiom przez artystów oraz ewentualne sprzeciwy.
 - **Dane moderacji:** ostrzeżenia, zawieszenia i blokady wraz z powodem i okresem.
 - **Rejestr zgód:** którą wersję tych dokumentów i kiedy zaakceptowałeś.
+- **Relacje (stories):** zdjęcia i filmy publikowane jako relacja (widoczne przez 24 godziny), kto je obejrzał i polubił oraz odpowiedzi do Ciebie.
+- **Wnioski o weryfikację:** wiadomość i linki wysłane we wniosku o odznakę weryfikacji oraz nasza decyzja.
 
 ## W jakim celu (podstawa prawna, art. 6 RODO)
 - Świadczenie usługi: konta, rezerwacje, płatności, wiadomości i wsparcie. Podstawa: **umowa** (art. 6 ust. 1 lit. b).
@@ -26,14 +28,14 @@ Wersja 2026-09-26
 
 ## Komu je przekazujemy
 - **Drugiej stronie rezerwacji.** Studia widzą imię, profil i dane rezerwacji artysty; artyści widzą publiczne ogłoszenie studia (w tym adres) i dane rezerwacji.
-- **Podmiotom przetwarzającym w naszym imieniu:** Supabase (baza danych, uwierzytelnianie, przechowywanie; region UE [REGION]), Stripe (płatności i wypłaty), Apple (Zaloguj się przez Apple, powiadomienia push), Google (logowanie Google) oraz nasz dostawca e-mail [PROVIDER].
+- **Podmiotom przetwarzającym w naszym imieniu:** Supabase (baza danych, uwierzytelnianie, przechowywanie; region UE Irlandia), Stripe (płatności i wypłaty), Apple (Zaloguj się przez Apple, powiadomienia push), Google (logowanie Google) oraz nasz dostawca e-mail Resend.
 - **Organom władzy**, gdy wymaga tego prawo.
 
 Nie sprzedajemy danych osobowych. Przy przekazywaniu danych poza UE/EOG opieramy się na decyzjach Komisji Europejskiej stwierdzających odpowiedni stopień ochrony (np. EU–US Data Privacy Framework) lub standardowych klauzulach umownych.
 
 ## Jak długo je przechowujemy
 - **Dane konta i profilu:** dopóki istnieje konto. Po usunięciu konta są usuwane lub anonimizowane.
-- **Dane rezerwacji, płatności i faktur:** 5 lat od końca roku obrotowego, zgodnie z prawem rachunkowym ([np. duńska ustawa o rachunkowości § 10 / grecka ustawa 4308/2014]).
+- **Dane rezerwacji, płatności i faktur:** 5 lat od końca roku obrotowego, zgodnie z prawem rachunkowym (grecka ustawa 4308/2014).
 - **Wiadomości:** dopóki istnieje konto. Po usunięciu są anonimizowane, ale przechowywane, gdy jest to potrzebne do otwartego sporu.
 - **Zgłoszenia i dane moderacji:** do 2 lat.
 
@@ -43,7 +45,7 @@ Masz prawo dostępu do danych, ich sprostowania, usunięcia, ograniczenia przetw
 - **Usunąć konto:** Ustawienia → Usuń konto.
 - W innych sprawach napisz na easysesh@easysesh.live. Odpowiadamy w ciągu miesiąca.
 
-Możesz złożyć skargę do organu ochrony danych, np. Datatilsynet (Dania, www.datatilsynet.dk), greckiego urzędu ochrony danych (www.dpa.gr) lub Prezesa UODO (www.uodo.gov.pl).
+Możesz złożyć skargę do greckiego organu ochrony danych (www.dpa.gr) lub do organu ochrony danych w swoim kraju, np. Prezesa UODO (www.uodo.gov.pl).
 
 ## Bezpieczeństwo
 Dane są szyfrowane podczas przesyłania (TLS) i przechowywania. Dostęp jest ograniczony według ról i egzekwowany przez bazę danych (row-level security). Konta administratorów wymagają uwierzytelniania dwuskładnikowego. Danymi kart zajmuje się wyłącznie Stripe, posiadający certyfikat PCI-DSS.

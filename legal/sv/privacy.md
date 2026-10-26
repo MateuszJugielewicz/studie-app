@@ -2,7 +2,7 @@
 
 Version 2026-09-26
 
-[COMPANY NAME], [ADDRESS], org.nr [CVR/VAT NO.], är **personuppgiftsansvarig** för de personuppgifter som behandlas i EasySesh. Kontakt: easysesh@easysesh.live.
+Mateusz Jugielewicz, Panagi Tsaldari 16-18, Aten, Grekland, är **personuppgiftsansvarig** för de personuppgifter som behandlas i EasySesh. Kontakt: easysesh@easysesh.live.
 
 ## Vad vi samlar in
 - **Kontouppgifter:** e-post, lösenord (lagras krypterat hos vår inloggningsleverantör), roll (artist/studio), inloggningsmetod (e-post, Apple, Google).
@@ -16,6 +16,8 @@ Version 2026-09-26
 - **Betyg:** betyg som studior ger artister och artister ger studior, och eventuella invändningar.
 - **Modereringsuppgifter:** varningar, avstängningar och porteringar med anledning och period.
 - **Samtyckesregister:** vilken version av dessa dokument du godkände och när.
+- **Stories:** foton och videor du lägger upp som story (syns i 24 timmar), vem som har sett och gillat dem och svar till dig.
+- **Verifieringsansökningar:** meddelandet och länkarna du skickar när du ansöker om en verifieringsmärkning, och vårt beslut.
 
 ## Varför vi använder dem (rättslig grund, GDPR art. 6)
 - För att tillhandahålla tjänsten: konton, bokningar, betalningar, meddelanden och support. Grund: **avtal** (art. 6.1 b).
@@ -26,14 +28,14 @@ Version 2026-09-26
 
 ## Vem vi delar dem med
 - **Motparten i din bokning.** Studior ser artistens namn, profil och bokningsuppgifter; artister ser studions offentliga annons (inklusive adress) och bokningsuppgifter.
-- **Personuppgiftsbiträden:** Supabase (databas, inloggning, lagring; EU-region [REGION]), Stripe (betalningar och utbetalningar), Apple (Logga in med Apple, pushaviseringar), Google (Google-inloggning) och vår e-postleverantör [PROVIDER].
+- **Personuppgiftsbiträden:** Supabase (databas, inloggning, lagring; EU-region Irland), Stripe (betalningar och utbetalningar), Apple (Logga in med Apple, pushaviseringar), Google (Google-inloggning) och vår e-postleverantör Resend.
 - **Myndigheter**, när lagen kräver det.
 
 Vi säljer inte personuppgifter. När uppgifter överförs utanför EU/EES förlitar vi oss på EU-kommissionens beslut om adekvat skyddsnivå (t.ex. EU–US Data Privacy Framework) eller standardavtalsklausuler.
 
 ## Hur länge vi sparar dem
 - **Konto- och profiluppgifter:** så länge ditt konto finns. De raderas eller anonymiseras när du raderar kontot.
-- **Boknings-, betalnings- och fakturauppgifter:** 5 år från räkenskapsårets slut, enligt bokföringslagen ([t.ex. dansk bokföringslag § 10 / grekisk lag 4308/2014]).
+- **Boknings-, betalnings- och fakturauppgifter:** 5 år från räkenskapsårets slut, enligt bokföringslagen (grekisk lag 4308/2014).
 - **Meddelanden:** så länge kontot finns. De anonymiseras vid radering men sparas om de behövs för en pågående tvist.
 - **Anmälningar och modereringsuppgifter:** upp till 2 år.
 
@@ -43,7 +45,7 @@ Du har rätt till tillgång, rättelse, radering, begränsning av behandling, in
 - **Radera ditt konto:** Inställningar → Radera konto.
 - För allt annat, mejla easysesh@easysesh.live. Vi svarar inom en månad.
 
-Du kan klaga hos din dataskyddsmyndighet, t.ex. IMY (www.imy.se), Datatilsynet (Danmark, www.datatilsynet.dk) eller den grekiska myndigheten (www.dpa.gr).
+Du kan klaga hos den grekiska dataskyddsmyndigheten (www.dpa.gr) eller hos dataskyddsmyndigheten där du bor, t.ex. IMY (www.imy.se).
 
 ## Säkerhet
 Uppgifter krypteras vid överföring (TLS) och i lagring. Åtkomsten begränsas per roll och upprätthålls av databasen (row-level security). Administratörskonton kräver tvåfaktorsautentisering. Kortuppgifter hanteras bara av Stripe, som är PCI-DSS-certifierat.

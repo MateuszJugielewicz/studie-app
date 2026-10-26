@@ -2,19 +2,22 @@
 
 Version 2026-09-26
 
-## Die EasySesh-App
-Die iOS-App verwendet keine Cookies oder Werbe-IDs und verfolgt dich nicht über andere Apps oder Websites hinweg. Sie speichert Folgendes auf deinem Gerät:
-- **Anmeldesitzung:** im iOS-Schlüsselbund, damit du angemeldet bleibst. Unbedingt erforderlich.
-- **App-Einstellungen:** z. B. Mitteilungseinstellungen. Unbedingt erforderlich.
-- **Zwischengespeicherte Bilder:** damit die App schneller ist. Werden von iOS gelöscht, wenn Platz benötigt wird.
+EasySesh verwendet keine Werbe- oder Analyse-Cookies und verfolgt dich nicht über andere Apps oder Websites hinweg.
 
-## Das EasySesh-Admin-Dashboard
-Die Admin-Website speichert nur die Anmeldesitzung des Administrators im lokalen Speicher des Browsers. Das ist für die Anmeldung unbedingt erforderlich, daher ist kein Einwilligungsbanner nötig.
+## Die Website (easysesh.live)
+Die Website speichert nur, was sie zum Funktionieren braucht, im lokalen Speicher deines Browsers:
+- **Login-Sitzung**, damit du angemeldet bleibst. Unbedingt erforderlich.
+- **Deine Sprache und Anzeigeeinstellungen**, damit die Seite so aussieht, wie du es eingestellt hast.
 
-## Unsere öffentliche Website
-Falls easysesh.app Analyse- oder Marketing-Cookies verwendet, fragen wir zuerst über ein Cookie-Banner nach deiner Einwilligung, und diese Richtlinie listet jedes Cookie mit Zweck, Anbieter und Laufzeit auf. Derzeit verwenden wir **keine nicht notwendigen Cookies**.
+Sie sind für den von dir gewünschten Dienst erforderlich, daher ist kein Cookie-Banner nötig. Falls wir jemals Analyse- oder Marketing-Cookies einsetzen, fragen wir zuerst nach deiner Einwilligung und listen sie hier auf.
+
+## Die Apps (iPhone und Android)
+Die Apps verwenden keine Cookies oder Werbe-IDs. Sie speichern deine Login-Sitzung, deine Einstellungen und zwischengespeicherte Bilder auf deinem Gerät, damit du angemeldet bleibst und die App schneller lädt.
+
+## Karten
+Auf der Website und in der Android-App werden Karten von OpenStreetMap geladen; deren Server erhalten beim Laden der Kartenbilder deine IP-Adresse (https://osmfoundation.org/wiki/Privacy_Policy). Die iPhone-App verwendet Apple Karten.
 
 ## Zahlungen
-Stripe kann bei der Zahlung unbedingt erforderliche Cookies setzen, um Betrug zu verhindern. Siehe https://stripe.com/cookie-settings.
+Stripe kann während der Zahlung unbedingt erforderliche Cookies setzen, um Betrug zu verhindern. Siehe https://stripe.com/cookie-settings.
 
 Fragen: easysesh@easysesh.live

@@ -9,7 +9,7 @@ Varje studio väljer en av tre avbokningspolicyer. Policyn visas i studions prof
 - **Måttlig:** full återbetalning fram till 72 timmar före sessionen och 50 % fram till 24 timmar före. Därefter ingen återbetalning.
 - **Strikt:** 50 % återbetalning fram till 7 dagar före sessionen. Därefter ingen återbetalning.
 
-Återbetalningar går tillbaka till kortet eller Apple Pay du betalade med och kommer oftast inom 5–10 arbetsdagar.
+Återbetalningar går tillbaka till betalningssättet du betalade med och kommer oftast inom 5–10 arbetsdagar.
 
 ## Om studion avbokar eller avböjer
 Artisten får alltid **full återbetalning**. För förfrågningar som studion avböjer släpps reservationen på kortet och inget debiteras. Studior som ofta avbokar kan stängas av.

@@ -2,19 +2,22 @@
 
 Version 2026-09-26
 
-## EasySesh-appen
-iOS-appen använder inga cookies eller reklam-ID:n och spårar dig inte i andra appar eller på andra webbplatser. Den sparar följande på din enhet:
-- **Inloggningssession:** i iOS-nyckelringen så att du förblir inloggad. Strikt nödvändigt.
-- **Appinställningar:** t.ex. aviseringsinställningar. Strikt nödvändigt.
-- **Cachade bilder:** för att göra appen snabbare. Raderas av iOS när utrymme behövs.
+EasySesh använder inte cookies för annonser eller statistik och spårar dig inte i andra appar eller på andra webbplatser.
 
-## EasySesh adminpanel
-Adminwebbplatsen sparar bara administratörens inloggningssession i webbläsarens lokala lagring. Det är strikt nödvändigt för inloggning, så ingen samtyckesbanner krävs.
+## Webbplatsen (easysesh.live)
+Webbplatsen sparar bara det den behöver för att fungera, i webbläsarens lokala lagring:
+- **Inloggningssession**, så att du förblir inloggad. Strikt nödvändig.
+- **Ditt språk och dina visningsval**, så att sidan ser ut som du har valt.
 
-## Vår offentliga webbplats
-Om easysesh.app använder analys- eller marknadsföringscookies ber vi först om ditt samtycke via en cookiebanner, och denna policy listar varje cookie, dess syfte, leverantör och livslängd. I dag använder vi **inga icke-nödvändiga cookies**.
+De behövs för tjänsten du har bett om, så ingen cookiebanner krävs. Om vi någon gång lägger till cookies för statistik eller marknadsföring ber vi först om ditt samtycke och listar dem här.
+
+## Apparna (iPhone och Android)
+Apparna använder inte cookies eller annons-id:n. De sparar din inloggningssession, dina inställningar och cachade bilder på din enhet, så att du förblir inloggad och appen laddar snabbare.
+
+## Kartor
+På webbplatsen och i Android-appen hämtas kartor från OpenStreetMap, vars servrar tar emot din IP-adress när kartbilderna laddas (https://osmfoundation.org/wiki/Privacy_Policy). iPhone-appen använder Apple Kartor.
 
 ## Betalningar
-Stripe kan sätta strikt nödvändiga cookies vid betalning för att förhindra bedrägerier. Se https://stripe.com/cookie-settings.
+Stripe kan sätta strikt nödvändiga cookies under betalningen för att förhindra bedrägerier. Se https://stripe.com/cookie-settings.
 
 Frågor: easysesh@easysesh.live

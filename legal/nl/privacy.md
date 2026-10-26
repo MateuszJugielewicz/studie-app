@@ -2,7 +2,7 @@
 
 Versie 2026-09-26
 
-[COMPANY NAME], [ADDRESS], KvK-/btw-nr. [CVR/VAT NO.], is **verwerkingsverantwoordelijke** voor de persoonsgegevens die in EasySesh worden verwerkt. Contact: easysesh@easysesh.live.
+Mateusz Jugielewicz, Panagi Tsaldari 16-18, Athene, Griekenland, is **verwerkingsverantwoordelijke** voor de persoonsgegevens die in EasySesh worden verwerkt. Contact: easysesh@easysesh.live.
 
 ## Wat we verzamelen
 - **Accountgegevens:** e-mail, wachtwoord (versleuteld opgeslagen bij onze authenticatieprovider), rol (artiest/studio), inlogmethode (e-mail, Apple, Google).
@@ -16,6 +16,8 @@ Versie 2026-09-26
 - **Beoordelingen:** beoordelingen die studio's aan artiesten en artiesten aan studio's geven, en eventuele bezwaren.
 - **Moderatiegegevens:** waarschuwingen, schorsingen en verbanningen, met reden en periode.
 - **Toestemmingsregistratie:** welke versie van deze documenten je wanneer hebt geaccepteerd.
+- **Stories:** foto's en video's die je als story plaatst (24 uur zichtbaar), wie ze heeft bekeken en geliket, en reacties aan jou.
+- **Verificatieaanvragen:** het bericht en de links die je stuurt als je een verificatiebadge aanvraagt, en onze beslissing.
 
 ## Waarom we ze gebruiken (grondslag, art. 6 AVG)
 - Om de dienst te leveren: accounts, boekingen, betalingen, berichten en support. Grondslag: **overeenkomst** (art. 6 lid 1 onder b).
@@ -26,14 +28,14 @@ Versie 2026-09-26
 
 ## Met wie we ze delen
 - **De andere partij van je boeking.** Studio's zien de naam, het profiel en de boekingsgegevens van de artiest; artiesten zien de openbare vermelding van de studio (inclusief adres) en de boekingsgegevens.
-- **Verwerkers die voor ons werken:** Supabase (database, authenticatie, opslag; EU-regio [REGION]), Stripe (betalingen en uitbetalingen), Apple (Inloggen met Apple, pushmeldingen), Google (inloggen met Google) en onze e-mailprovider [PROVIDER].
+- **Verwerkers die voor ons werken:** Supabase (database, authenticatie, opslag; EU-regio Ierland), Stripe (betalingen en uitbetalingen), Apple (Inloggen met Apple, pushmeldingen), Google (inloggen met Google) en onze e-mailprovider Resend.
 - **Autoriteiten**, als de wet dat vereist.
 
 We verkopen geen persoonsgegevens. Bij doorgifte buiten de EU/EER baseren we ons op adequaatheidsbesluiten van de Europese Commissie (zoals het EU–US Data Privacy Framework) of op modelcontractbepalingen.
 
 ## Hoe lang we ze bewaren
 - **Account- en profielgegevens:** zolang je account bestaat. Ze worden verwijderd of geanonimiseerd als je je account verwijdert.
-- **Boekings-, betaal- en factuurgegevens:** 5 jaar na afloop van het boekjaar, zoals de boekhoudwetgeving vereist ([bijv. Deense boekhoudwet § 10 / Griekse wet 4308/2014]).
+- **Boekings-, betaal- en factuurgegevens:** 5 jaar na afloop van het boekjaar, zoals de boekhoudwetgeving vereist (Griekse wet 4308/2014).
 - **Berichten:** zolang het account bestaat. Ze worden bij verwijdering geanonimiseerd, maar bewaard als ze nodig zijn voor een lopend geschil.
 - **Meldingen en moderatiegegevens:** tot 2 jaar.
 
@@ -43,7 +45,7 @@ Je hebt recht op inzage, correctie, verwijdering, beperking van de verwerking, b
 - **Je account verwijderen:** Instellingen → Account verwijderen.
 - Voor al het andere mail je naar easysesh@easysesh.live. We antwoorden binnen een maand.
 
-Je kunt een klacht indienen bij je toezichthouder, bijv. de Autoriteit Persoonsgegevens (www.autoriteitpersoonsgegevens.nl), Datatilsynet (Denemarken, www.datatilsynet.dk) of de Griekse toezichthouder (www.dpa.gr).
+Je kunt een klacht indienen bij de Griekse toezichthouder (www.dpa.gr) of bij de toezichthouder in je eigen land, bijv. de Autoriteit Persoonsgegevens (www.autoriteitpersoonsgegevens.nl).
 
 ## Beveiliging
 Gegevens worden versleuteld tijdens verzending (TLS) en bij opslag. Toegang is beperkt per rol en wordt afgedwongen door de database (row-level security). Beheerdersaccounts vereisen tweestapsverificatie. Kaartgegevens worden alleen verwerkt door Stripe, dat PCI-DSS-gecertificeerd is.

@@ -1,6 +1,6 @@
 # Regulamin
 
-Wersja 2026-09-26 · Operator: [COMPANY NAME], [ADDRESS], nr rejestrowy [CVR/VAT NO.] („EasySesh”, „my”).
+Wersja 2026-09-26 · Operator: Mateusz Jugielewicz, Panagi Tsaldari 16-18, Ateny, Grecja („EasySesh”, „my”).
 
 ## 1. Czym jest EasySesh
 EasySesh to internetowa platforma łącząca muzyków („Artystów”) ze studiami nagraniowymi („Studiami”). EasySesh nie jest stroną umowy o sesję między Artystą a Studiem. Studio świadczy sesję i za nią odpowiada. EasySesh zapewnia platformę, obsługę płatności i wsparcie klienta.
@@ -22,7 +22,7 @@ Studia składają wniosek, tworząc ogłoszenie studia. EasySesh sprawdza każdy
 - Artysta może **zameldować się** w aplikacji po przybyciu, a Studio może potwierdzić przybycie. EasySesh zaleca zameldowanie. Studia mogą wyłączyć zameldowanie; wtedy EasySesh nie może obiecać zwrotu, jeśli coś pójdzie nie tak z sesją.
 
 ## 5. Płatności
-- Płatności kartą i Apple Pay obsługuje nasz dostawca płatności Stripe. EasySesh nigdy nie przechowuje pełnych numerów kart.
+- Płatności kartą, Apple Pay, Google Pay i innymi metodami płatności online dostępnymi przy kasie obsługuje nasz dostawca płatności Stripe. EasySesh nigdy nie przechowuje pełnych numerów kart.
 - EasySesh pobiera płatności kartą w imieniu Studia jako ograniczony agent inkasujący. Płacąc EasySesh, wypełniasz swoje zobowiązanie płatnicze wobec Studia.
 - Jeśli Studio na to pozwala, Artysta może wybrać **płatność gotówką w studiu**. Artysta płaci wtedy bezpośrednio Studiu, a EasySesh nie obsługuje tych pieniędzy. **Przy płatności gotówką nie możemy zagwarantować zwrotu, ponieważ EasySesh nie obsługuje gotówki; mimo to przyjrzymy się sprawie i spróbujemy pomóc.**
 - EasySesh pobiera **opłatę platformy w wysokości 10%** ceny każdej rezerwacji (lub inną stawkę uzgodnioną ze Studiem), płaconą przez Studio. Przy płatności kartą jest ona potrącana z wypłaty dla Studia, która następuje dopiero po zakończeniu sesji. Przy płatności gotówką Studio jest winne ją EasySesh (zob. Umowa studia).
@@ -63,7 +63,7 @@ Możesz w każdej chwili usunąć konto w Ustawieniach. Możemy zamykać konta n
 Możemy aktualizować ten Regulamin. Przy istotnych zmianach poinformujemy Cię w aplikacji i poprosimy o przeczytanie i zaakceptowanie nowej wersji, zanim dalej będziesz korzystać z EasySesh.
 
 ## 15. Prawo właściwe
-Regulamin podlega prawu [COUNTRY]. Sądem właściwym jest sąd w [CITY], bez ograniczenia prawa konsumenta do wniesienia sprawy w swoim kraju.
+Regulamin podlega prawu greckiemu. Sądem właściwym jest sąd w Atenach, bez ograniczenia prawa konsumenta do wniesienia sprawy w swoim kraju.
 
 ## Kontakt
-[COMPANY NAME] · [ADDRESS] · support@easysesh.live
+EasySesh · Mateusz Jugielewicz · Panagi Tsaldari 16-18, Ateny, Grecja · support@easysesh.live

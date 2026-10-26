@@ -4,10 +4,10 @@ Things only the owner can do. Details and steps are in `docs/APP_STORE_RELEASE.m
 (iOS), `android/README.md` (Android) and `web/README.md` (website).
 
 ## Legal / company
-- [ ] Company name, address, CVR/VAT number, governing-law country
-      and city. They replace the `[PLACEHOLDER]`s in `legal/*.md` (all 10 languages). Send them to
-      Claude to fill in everywhere.
-- [ ] Email provider and Supabase region for the privacy policy (`[PROVIDER]`, `[REGION]`).
+- [x] Operator details in `legal/*.md` (all 10 languages): Mateusz Jugielewicz, Panagi Tsaldari 16-18,
+      Athens, Greece; Greek law, courts of Athens. Add a Greek tax number (ΑΦΜ) or company number there
+      if one is registered later.
+- [x] Email provider (Resend) and Supabase region (Ireland) in the privacy policy.
 - [ ] Have a lawyer review the terms and privacy policy (they are marked as drafts).
 - [ ] A support email you actually read: `EASYSESH_SUPPORT_EMAIL` (iOS `ios/Config/App.xcconfig`),
       `supportEmail` (Android `android/local.properties`) and the Supabase secret `SUPPORT_EMAIL`.

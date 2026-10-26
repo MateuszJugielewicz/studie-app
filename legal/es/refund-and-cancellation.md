@@ -9,7 +9,7 @@ Cada estudio elige una de tres políticas de cancelación. Se muestra en el perf
 - **Moderada:** reembolso completo hasta 72 horas antes de la sesión y del 50 % hasta 24 horas antes. Después, sin reembolso.
 - **Estricta:** reembolso del 50 % hasta 7 días antes de la sesión. Después, sin reembolso.
 
-Los reembolsos vuelven a la tarjeta o Apple Pay con que pagaste y suelen llegar en 5–10 días laborables.
+Los reembolsos vuelven al método de pago con que pagaste y suelen llegar en 5–10 días laborables.
 
 ## Si el estudio cancela o rechaza
 El artista siempre recibe el **reembolso completo**. En las solicitudes que el estudio rechaza, se libera la retención de la tarjeta y no se cobra nada. Los estudios que cancelan a menudo pueden ser suspendidos.

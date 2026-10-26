@@ -9,7 +9,7 @@ Hvert studie vælger en af tre afbestillingspolitikker. Politikken vises på stu
 - **Moderat:** fuld refundering op til 72 timer før sessionen og 50 % op til 24 timer før. Derefter ingen refundering.
 - **Streng:** 50 % refundering op til 7 dage før sessionen. Derefter ingen refundering.
 
-Refunderinger går tilbage til det kort eller den Apple Pay, du betalte med, og kommer normalt inden for 5–10 hverdage.
+Refunderinger går tilbage til den betalingsmetode, du betalte med, og kommer normalt inden for 5–10 hverdage.
 
 ## Hvis studiet aflyser eller afviser
 Kunstneren får altid **fuld refundering**. Ved forespørgsler, som studiet afviser, frigives reservationen på kortet, og der trækkes intet. Studier, der ofte aflyser, kan blive suspenderet.

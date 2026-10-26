@@ -1,20 +1,23 @@
-# Polityka plików cookie
+# Polityka cookies
 
 Wersja 2026-09-26
 
-## Aplikacja EasySesh
-Aplikacja na iOS nie używa plików cookie ani identyfikatorów reklamowych i nie śledzi Cię w innych aplikacjach ani witrynach. Na urządzeniu przechowuje:
-- **Sesję logowania:** w pęku kluczy iOS, abyś pozostał zalogowany. Jest to niezbędne.
-- **Ustawienia aplikacji:** np. ustawienia powiadomień. Niezbędne.
-- **Zapisane w pamięci podręcznej obrazy:** aby aplikacja działała szybciej. iOS usuwa je, gdy potrzebne jest miejsce.
+EasySesh nie używa plików cookies reklamowych ani analitycznych i nie śledzi Cię w innych aplikacjach ani na innych stronach.
 
-## Panel administratora EasySesh
-Witryna administratora przechowuje tylko sesję logowania administratora w lokalnej pamięci przeglądarki. Jest to niezbędne do logowania, więc baner zgody nie jest wymagany.
+## Strona internetowa (easysesh.live)
+Strona zapisuje w pamięci lokalnej przeglądarki tylko to, czego potrzebuje do działania:
+- **Sesję logowania**, abyś pozostał(a) zalogowany(a). Niezbędne.
+- **Twój język i ustawienia wyświetlania**, aby strona wyglądała tak, jak ją ustawiłeś/ustawiłaś.
 
-## Nasza publiczna witryna
-Jeśli easysesh.app będzie używać analitycznych lub marketingowych plików cookie, najpierw poprosimy o zgodę przez baner, a ta polityka wymieni każdy plik cookie, jego cel, dostawcę i czas przechowywania. Obecnie **nie używamy żadnych zbędnych plików cookie**.
+Są one niezbędne do świadczenia usługi, o którą prosisz, dlatego baner cookies nie jest wymagany. Jeśli kiedyś dodamy cookies analityczne lub marketingowe, najpierw poprosimy o zgodę i wymienimy je tutaj.
+
+## Aplikacje (iPhone i Android)
+Aplikacje nie używają cookies ani identyfikatorów reklamowych. Zapisują na urządzeniu sesję logowania, ustawienia i obrazy w pamięci podręcznej, abyś pozostał(a) zalogowany(a), a aplikacja działała szybciej.
+
+## Mapy
+Na stronie i w aplikacji na Androida mapy są pobierane z OpenStreetMap, którego serwery otrzymują Twój adres IP podczas ładowania map (https://osmfoundation.org/wiki/Privacy_Policy). Aplikacja na iPhone'a korzysta z Map Apple.
 
 ## Płatności
-Stripe może podczas płatności ustawiać niezbędne pliki cookie, aby zapobiegać oszustwom. Zob. https://stripe.com/cookie-settings.
+Stripe może podczas płatności ustawiać niezbędne cookies, aby zapobiegać oszustwom. Zob. https://stripe.com/cookie-settings.
 
 Pytania: easysesh@easysesh.live

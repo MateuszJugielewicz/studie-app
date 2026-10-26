@@ -1,6 +1,6 @@
 # Accordo per gli studi
 
-Versione 2026-09-26 · Tra [COMPANY NAME] («EasySesh») e l'impresa che pubblica uno studio («Studio»). L'accordo si aggiunge ai Termini e condizioni.
+Versione 2026-09-26 · Tra Mateusz Jugielewicz, Panagi Tsaldari 16-18, Atene, Grecia («EasySesh») e l'impresa che pubblica uno studio («Studio»). L'accordo si aggiunge ai Termini e condizioni.
 
 ## 1. Candidatura e approvazione
 - Lo Studio si candida con informazioni corrette e complete: foto delle sale reali, indirizzo, prezzi, attrezzatura e orari.

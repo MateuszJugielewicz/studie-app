@@ -9,7 +9,7 @@ Jedes Studio wählt eine von drei Stornierungsrichtlinien. Sie wird im Studio-Pr
 - **Moderat:** volle Erstattung bis 72 Stunden vor der Session und 50 % bis 24 Stunden vorher. Danach keine Erstattung.
 - **Streng:** 50 % Erstattung bis 7 Tage vor der Session. Danach keine Erstattung.
 
-Erstattungen gehen auf die Karte oder Apple Pay zurück, mit der du bezahlt hast, und kommen meist innerhalb von 5–10 Werktagen an.
+Erstattungen gehen auf die Zahlungsart zurück, mit der du bezahlt hast, und kommen meist innerhalb von 5–10 Werktagen an.
 
 ## Wenn das Studio absagt oder ablehnt
 Der Artist erhält immer die **volle Erstattung**. Bei abgelehnten Anfragen wird die Reservierung auf der Karte freigegeben und nichts belastet. Studios, die häufig absagen, können gesperrt werden.

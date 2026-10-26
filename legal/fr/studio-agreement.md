@@ -1,6 +1,6 @@
 # Accord studio
 
-Version 2026-09-26 · Entre [COMPANY NAME] (« EasySesh ») et l'entreprise qui publie un studio (« Studio »). Cet accord s'ajoute aux Conditions générales.
+Version 2026-09-26 · Entre Mateusz Jugielewicz, Panagi Tsaldari 16-18, Athènes, Grèce (« EasySesh ») et l'entreprise qui publie un studio (« Studio »). Cet accord s'ajoute aux Conditions générales.
 
 ## 1. Candidature et validation
 - Le Studio postule avec des informations exactes et complètes : photos des vraies pièces, adresse, prix, matériel et horaires.

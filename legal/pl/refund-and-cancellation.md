@@ -9,7 +9,7 @@ Każde studio wybiera jedną z trzech polityk anulowania. Jest ona widoczna na p
 - **Umiarkowana:** pełny zwrot do 72 godzin przed sesją i 50% do 24 godzin przed. Później brak zwrotu.
 - **Surowa:** 50% zwrotu do 7 dni przed sesją. Później brak zwrotu.
 
-Zwroty trafiają na kartę lub Apple Pay użyte do płatności i zwykle docierają w ciągu 5–10 dni roboczych.
+Zwroty trafiają na metodę płatności użytą do zapłaty i zwykle docierają w ciągu 5–10 dni roboczych.
 
 ## Gdy studio odwołuje lub odrzuca
 Artysta zawsze otrzymuje **pełny zwrot**. Przy prośbach odrzuconych przez studio blokada na karcie zostaje zwolniona i nic nie jest pobierane. Studia, które często odwołują, mogą zostać zawieszone.

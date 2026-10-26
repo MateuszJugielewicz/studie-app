@@ -1,6 +1,6 @@
 # Acuerdo de estudio
 
-Versión 2026-09-26 · Entre [COMPANY NAME] («EasySesh») y la empresa que publica un estudio («Estudio»). Este acuerdo se suma a los Términos y condiciones.
+Versión 2026-09-26 · Entre Mateusz Jugielewicz, Panagi Tsaldari 16-18, Atenas, Grecia («EasySesh») y la empresa que publica un estudio («Estudio»). Este acuerdo se suma a los Términos y condiciones.
 
 ## 1. Solicitud y aprobación
 - El Estudio solicita el alta con información correcta y completa: fotos de las salas reales, dirección, precios, equipo y horario.

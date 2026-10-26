@@ -2,17 +2,20 @@
 
 Version 2026-09-26
 
-## L'app EasySesh
-L'app iOS n'utilise ni cookies ni identifiants publicitaires et ne te suit pas sur d'autres apps ou sites. Elle stocke sur ton appareil :
-- **Session de connexion :** dans le trousseau iOS, pour que tu restes connecté. Strictement nécessaire.
-- **Préférences de l'app :** par ex. réglages des notifications. Strictement nécessaire.
-- **Images en cache :** pour rendre l'app plus rapide. Supprimées par iOS si de l'espace est nécessaire.
+EasySesh n'utilise pas de cookies publicitaires ou de mesure d'audience et ne te suit pas sur d'autres applications ou sites.
 
-## Le tableau de bord admin d'EasySesh
-Le site admin ne stocke que la session de connexion de l'administrateur dans le stockage local du navigateur. C'est strictement nécessaire pour se connecter, aucun bandeau de consentement n'est donc requis.
+## Le site (easysesh.live)
+Le site enregistre uniquement ce dont il a besoin pour fonctionner, dans le stockage local de ton navigateur :
+- **Session de connexion**, pour que tu restes connecté(e). Strictement nécessaire.
+- **Ta langue et tes choix d'affichage**, pour que le site s'affiche comme tu l'as réglé.
 
-## Notre site public
-Si easysesh.app utilise des cookies d'analyse ou marketing, nous te demanderons d'abord ton consentement via un bandeau, et cette politique listera chaque cookie, sa finalité, son fournisseur et sa durée. Aujourd'hui, nous n'utilisons **aucun cookie non essentiel**.
+Ils sont nécessaires au service que tu as demandé, aucune bannière de consentement n'est donc requise. Si nous ajoutons un jour des cookies de mesure d'audience ou marketing, nous te demanderons d'abord ton consentement et nous les listerons ici.
+
+## Les applications (iPhone et Android)
+Les applications n'utilisent ni cookies ni identifiants publicitaires. Elles enregistrent sur ton appareil ta session de connexion, tes préférences et des images en cache, pour que tu restes connecté(e) et que l'app se charge plus vite.
+
+## Cartes
+Sur le site et dans l'app Android, les cartes sont chargées depuis OpenStreetMap, dont les serveurs reçoivent ton adresse IP lors du chargement des cartes (https://osmfoundation.org/wiki/Privacy_Policy). L'app iPhone utilise Plans d'Apple.
 
 ## Paiements
 Stripe peut déposer des cookies strictement nécessaires pendant le paiement pour prévenir la fraude. Voir https://stripe.com/cookie-settings.

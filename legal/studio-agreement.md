@@ -1,7 +1,6 @@
-<!-- DRAFT – must be reviewed by a qualified lawyer before launch. -->
 # Studio Agreement
 
-Version 2026-09-26 · Between [COMPANY NAME] ("EasySesh") and the business listing a studio ("Studio"). This agreement comes in addition to the Terms & Conditions.
+Version 2026-09-26 · Between Mateusz Jugielewicz, Panagi Tsaldari 16-18, Athens, Greece ("EasySesh") and the business listing a studio ("Studio"). This agreement comes in addition to the Terms & Conditions.
 
 ## 1. Application and approval
 - The Studio applies with correct and complete information: photos of the actual rooms, its address, prices, equipment and opening hours.

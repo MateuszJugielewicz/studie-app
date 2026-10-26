@@ -1,6 +1,6 @@
 # Studio-Vereinbarung
 
-Version 2026-09-26 · Zwischen [COMPANY NAME] („EasySesh“) und dem Unternehmen, das ein Studio einstellt („Studio“). Diese Vereinbarung gilt zusätzlich zu den Allgemeinen Geschäftsbedingungen.
+Version 2026-09-26 · Zwischen Mateusz Jugielewicz, Panagi Tsaldari 16-18, Athen, Griechenland („EasySesh“) und dem Unternehmen, das ein Studio einstellt („Studio“). Diese Vereinbarung gilt zusätzlich zu den Allgemeinen Geschäftsbedingungen.
 
 ## 1. Bewerbung und Freigabe
 - Das Studio bewirbt sich mit korrekten und vollständigen Angaben: Fotos der tatsächlichen Räume, Adresse, Preise, Equipment und Öffnungszeiten.

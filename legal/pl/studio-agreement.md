@@ -1,6 +1,6 @@
 # Umowa studia
 
-Wersja 2026-09-26 · Między [COMPANY NAME] („EasySesh”) a firmą wystawiającą studio („Studio”). Umowa obowiązuje dodatkowo do Regulaminu.
+Wersja 2026-09-26 · Między Mateusz Jugielewicz, Panagi Tsaldari 16-18, Ateny, Grecja („EasySesh”) a firmą wystawiającą studio („Studio”). Umowa obowiązuje dodatkowo do Regulaminu.
 
 ## 1. Wniosek i zatwierdzenie
 - Studio składa wniosek z prawdziwymi i kompletnymi informacjami: zdjęciami rzeczywistych pomieszczeń, adresem, cenami, sprzętem i godzinami otwarcia.

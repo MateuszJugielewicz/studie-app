@@ -2,7 +2,7 @@
 
 Version 2026-09-26
 
-[COMPANY NAME], [ADDRESS], n° d'entreprise [CVR/VAT NO.], est **responsable du traitement** des données personnelles traitées dans EasySesh. Contact : easysesh@easysesh.live.
+Mateusz Jugielewicz, Panagi Tsaldari 16-18, Athènes, Grèce, est **responsable du traitement** des données personnelles traitées dans EasySesh. Contact : easysesh@easysesh.live.
 
 ## Ce que nous collectons
 - **Données de compte :** e-mail, mot de passe (stocké chiffré par notre prestataire d'authentification), rôle (artiste/studio), méthode de connexion (e-mail, Apple, Google).
@@ -16,6 +16,8 @@ Version 2026-09-26
 - **Notes :** notes données par les studios aux artistes et par les artistes aux studios, et les contestations éventuelles.
 - **Données de modération :** avertissements, suspensions et bannissements, avec motif et durée.
 - **Preuves de consentement :** quelle version de ces documents tu as acceptée, et quand.
+- **Stories :** photos et vidéos que tu publies en story (visibles 24 heures), qui les a vues et aimées, et les réponses qui te sont envoyées.
+- **Demandes de vérification :** le message et les liens que tu envoies pour demander un badge vérifié, et notre décision.
 
 ## Pourquoi nous les utilisons (base légale, art. 6 RGPD)
 - Fournir le service : comptes, réservations, paiements, messages et assistance. Base : **contrat** (art. 6(1)(b)).
@@ -26,14 +28,14 @@ Version 2026-09-26
 
 ## Avec qui nous les partageons
 - **L'autre partie de ta réservation.** Les studios voient le nom, le profil et les détails de réservation de l'artiste ; les artistes voient l'annonce publique du studio (adresse comprise) et les détails de réservation.
-- **Sous-traitants agissant pour nous :** Supabase (base de données, authentification, stockage ; région UE [REGION]), Stripe (paiements et versements), Apple (Se connecter avec Apple, notifications push), Google (connexion Google) et notre prestataire e-mail [PROVIDER].
+- **Sous-traitants agissant pour nous :** Supabase (base de données, authentification, stockage ; région UE Irlande), Stripe (paiements et versements), Apple (Se connecter avec Apple, notifications push), Google (connexion Google) et notre prestataire e-mail Resend.
 - **Autorités**, lorsque la loi l'exige.
 
 Nous ne vendons pas de données personnelles. Pour les transferts hors UE/EEE, nous nous appuyons sur les décisions d'adéquation de la Commission européenne (comme le EU–US Data Privacy Framework) ou sur des clauses contractuelles types.
 
 ## Durée de conservation
 - **Données de compte et de profil :** tant que ton compte existe. Elles sont supprimées ou anonymisées à la suppression du compte.
-- **Données de réservation, paiement et facturation :** 5 ans à compter de la fin de l'exercice, comme l'exige le droit comptable ([ex. loi danoise sur la comptabilité § 10 / loi grecque 4308/2014]).
+- **Données de réservation, paiement et facturation :** 5 ans à compter de la fin de l'exercice, comme l'exige le droit comptable (loi grecque 4308/2014).
 - **Messages :** tant que le compte existe. Ils sont anonymisés à la suppression, mais conservés si nécessaire pour un litige en cours.
 - **Signalements et données de modération :** jusqu'à 2 ans.
 
@@ -43,7 +45,7 @@ Tu as le droit d'accéder à tes données, de les rectifier, de les effacer, d'e
 - **Supprimer ton compte :** Réglages → Supprimer le compte.
 - Pour tout le reste, écris à easysesh@easysesh.live. Nous répondons sous un mois.
 
-Tu peux porter plainte auprès de ton autorité de protection des données, par ex. la CNIL (www.cnil.fr), le Datatilsynet (Danemark, www.datatilsynet.dk) ou l'autorité grecque (www.dpa.gr).
+Tu peux porter plainte auprès de l'autorité grecque de protection des données (www.dpa.gr) ou de l'autorité de ton pays, par ex. la CNIL (www.cnil.fr).
 
 ## Sécurité
 Les données sont chiffrées en transit (TLS) et au repos. L'accès est limité par rôle et appliqué par la base de données (row-level security). Les comptes administrateurs exigent une authentification à deux facteurs. Les données de carte sont traitées uniquement par Stripe, certifié PCI-DSS.

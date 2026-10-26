@@ -1,6 +1,6 @@
 # Algemene voorwaarden
 
-Versie 2026-09-26 · Beheerd door [COMPANY NAME], [ADDRESS], KvK-/btw-nr. [CVR/VAT NO.] ("EasySesh", "wij").
+Versie 2026-09-26 · Beheerd door Mateusz Jugielewicz, Panagi Tsaldari 16-18, Athene, Griekenland ("EasySesh", "wij").
 
 ## 1. Wat EasySesh is
 EasySesh is een online marktplaats die muzikanten ("Artiesten") verbindt met opnamestudio's ("Studio's"). EasySesh is geen partij bij de overeenkomst over de sessie tussen een Artiest en een Studio. De Studio levert de sessie en is daarvoor verantwoordelijk. EasySesh levert het platform, de betalingsafhandeling en de klantenservice.
@@ -22,7 +22,7 @@ Studio's melden zich aan door een studiovermelding te maken. EasySesh beoordeelt
 - De Artiest kan bij aankomst in de app **inchecken**, en de Studio kan de aankomst bevestigen. EasySesh raadt inchecken aan. Studio's kunnen inchecken uitzetten; EasySesh kan dan geen terugbetaling beloven als er iets misgaat met de sessie.
 
 ## 5. Betalingen
-- Betalingen met kaart en Apple Pay worden verwerkt door onze betaalprovider Stripe. EasySesh slaat nooit volledige kaartnummers op.
+- Betalingen met kaart, Apple Pay, Google Pay en de andere online betaalmethoden die bij het afrekenen worden aangeboden, worden verwerkt door onze betaalprovider Stripe. EasySesh slaat nooit volledige kaartnummers op.
 - EasySesh int kaartbetalingen namens de Studio als beperkte incassogemachtigde. Als je EasySesh betaalt, is je betalingsverplichting jegens de Studio voldaan.
 - Als een Studio het toestaat, kan de Artiest ervoor kiezen **contant te betalen in de studio**. De Artiest betaalt dan rechtstreeks aan de Studio en EasySesh beheert het geld niet. **Als je contant betaalt, kunnen we geen terugbetaling garanderen, omdat EasySesh het contante geld niet beheert; we bekijken de zaak wel en proberen te helpen.**
 - EasySesh rekent **platformkosten van 10%** van de prijs van elke boeking (of een ander met de Studio afgesproken tarief), te betalen door de Studio. Bij kaartbetalingen worden ze afgetrokken van de uitbetaling aan de Studio, die pas na afloop van de sessie plaatsvindt. Bij contante betalingen is de Studio ze verschuldigd aan EasySesh (zie de Studio-overeenkomst).
@@ -63,7 +63,7 @@ Je kunt je account op elk moment verwijderen in Instellingen. We kunnen accounts
 We kunnen deze voorwaarden bijwerken. Bij een belangrijke wijziging laten we het je in de app weten en vragen we je de nieuwe versie te lezen en te accepteren voordat je EasySesh verder gebruikt.
 
 ## 15. Toepasselijk recht
-Op deze voorwaarden is het recht van [COUNTRY] van toepassing. De rechter in [CITY] is bevoegd, zonder het recht van een consument te beperken om in zijn eigen land te procederen.
+Op deze voorwaarden is het Griekse recht van toepassing. De rechter in Athene is bevoegd, zonder het recht van een consument te beperken om in zijn eigen land te procederen.
 
 ## Contact
-[COMPANY NAME] · [ADDRESS] · support@easysesh.live
+EasySesh · Mateusz Jugielewicz · Panagi Tsaldari 16-18, Athene, Griekenland · support@easysesh.live

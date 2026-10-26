@@ -9,7 +9,7 @@ Elke studio kiest een van drie annuleringsbeleiden. Het beleid staat op het stud
 - **Gemiddeld:** volledige terugbetaling tot 72 uur voor de sessie en 50% tot 24 uur ervoor. Daarna geen terugbetaling.
 - **Strikt:** 50% terugbetaling tot 7 dagen voor de sessie. Daarna geen terugbetaling.
 
-Terugbetalingen gaan terug naar de kaart of Apple Pay waarmee je betaalde en komen meestal binnen 5–10 werkdagen aan.
+Terugbetalingen gaan terug naar de betaalmethode waarmee je betaalde en komen meestal binnen 5–10 werkdagen aan.
 
 ## Als de studio annuleert of weigert
 De artiest krijgt altijd een **volledige terugbetaling**. Bij aanvragen die de studio weigert, wordt de reservering op de kaart vrijgegeven en wordt niets afgeschreven. Studio's die vaak annuleren, kunnen worden geschorst.

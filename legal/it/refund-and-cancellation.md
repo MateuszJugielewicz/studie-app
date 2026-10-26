@@ -9,7 +9,7 @@ Ogni studio sceglie una di tre politiche di cancellazione, mostrata nel profilo 
 - **Moderata:** rimborso completo fino a 72 ore prima della sessione e del 50% fino a 24 ore prima. Poi nessun rimborso.
 - **Rigida:** rimborso del 50% fino a 7 giorni prima della sessione. Poi nessun rimborso.
 
-I rimborsi tornano sulla carta o sull'Apple Pay usati e di solito arrivano in 5–10 giorni lavorativi.
+I rimborsi tornano sul metodo di pagamento usato e di solito arrivano in 5–10 giorni lavorativi.
 
 ## Se lo studio annulla o rifiuta
 L'artista riceve sempre il **rimborso completo**. Per le richieste rifiutate dallo studio, il blocco sulla carta viene rilasciato e nulla viene addebitato. Gli studi che annullano spesso possono essere sospesi.

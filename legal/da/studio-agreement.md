@@ -1,6 +1,6 @@
 # Studieaftale
 
-Version 2026-09-26 · Mellem [COMPANY NAME] ("EasySesh") og den virksomhed, der opretter et studie ("Studiet"). Denne aftale gælder i tillæg til Vilkår og betingelser.
+Version 2026-09-26 · Mellem Mateusz Jugielewicz, Panagi Tsaldari 16-18, Athen, Grækenland ("EasySesh") og den virksomhed, der opretter et studie ("Studiet"). Denne aftale gælder i tillæg til Vilkår og betingelser.
 
 ## 1. Ansøgning og godkendelse
 - Studiet ansøger med korrekte og fuldstændige oplysninger: fotos af de faktiske lokaler, adresse, priser, udstyr og åbningstider.

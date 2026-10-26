@@ -126,7 +126,7 @@ Gør en konto til admin i Supabase → SQL Editor: `update profiles set role = '
 | Payment provider | Stripe (PCI-DSS); kortdata rører aldrig EasySeshs servere |
 | Sikker login | Adgangskode ≥ 10 tegn med store/små bogstaver og tal, e-mailbekræftelse, rate limits, token-rotation, Keychain på iOS. **Admins skal bruge 2-faktor (TOTP)** – håndhæves i databasen (`is_admin()` kræver `aal2`), i edge functions og i admin-dashboardet |
 
-Dokumenterne vises i appen (Indstillinger → Legal) og er **udkast med pladsholdere** (`[COMPANY NAME]` osv.). De skal gennemgås af en advokat før lancering.
+Dokumenterne vises i appen (Indstillinger → Legal) og er udfyldt med EasySeshs oplysninger (drives af Mateusz Jugielewicz, Athen, Grækenland). Få dem gerne gennemgået af en advokat før lancering.
 
 ### Rollebaserede rettigheder
 

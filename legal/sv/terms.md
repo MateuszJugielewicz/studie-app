@@ -1,6 +1,6 @@
 # Allmänna villkor
 
-Version 2026-09-26 · Drivs av [COMPANY NAME], [ADDRESS], org.nr [CVR/VAT NO.] (”EasySesh”, ”vi”).
+Version 2026-09-26 · Drivs av Mateusz Jugielewicz, Panagi Tsaldari 16-18, Aten, Grekland (”EasySesh”, ”vi”).
 
 ## 1. Vad EasySesh är
 EasySesh är en onlinemarknadsplats som kopplar ihop musiker (”Artister”) med inspelningsstudior (”Studior”). EasySesh är inte part i avtalet om sessionen mellan en Artist och en Studio. Studion tillhandahåller sessionen och ansvarar för den. EasySesh tillhandahåller plattformen, betalningshanteringen och kundsupporten.
@@ -22,7 +22,7 @@ Studior ansöker genom att skapa en studioannons. EasySesh granskar varje ansök
 - Artisten kan **checka in** i appen vid ankomst, och Studion kan bekräfta ankomsten. EasySesh rekommenderar incheckning. Studior kan stänga av incheckning; EasySesh kan då inte lova återbetalning om något går fel med sessionen.
 
 ## 5. Betalningar
-- Betalningar med kort och Apple Pay hanteras av vår betalleverantör Stripe. EasySesh sparar aldrig fullständiga kortnummer.
+- Betalningar med kort, Apple Pay, Google Pay och de andra onlinebetalningssätt som visas i kassan hanteras av vår betalleverantör Stripe. EasySesh sparar aldrig fullständiga kortnummer.
 - EasySesh tar emot kortbetalningar för Studions räkning som begränsat betalningsombud. När du betalar EasySesh är din betalningsskyldighet mot Studion uppfylld.
 - Om en Studio tillåter det kan Artisten välja att **betala kontant i studion**. Artisten betalar då Studion direkt och EasySesh hanterar inte pengarna. **När du betalar kontant kan vi inte garantera återbetalning, eftersom EasySesh inte hanterar kontanterna; vi tittar ändå på ärendet och försöker hjälpa till.**
 - EasySesh tar ut en **plattformsavgift på 10 %** av priset för varje bokning (eller en annan sats som avtalats med Studion), som betalas av Studion. Vid kortbetalning dras den från utbetalningen till Studion, som görs först när sessionen är genomförd. Vid kontantbetalning är Studion skyldig EasySesh avgiften (se studioavtalet).
@@ -63,7 +63,7 @@ Du kan när som helst radera ditt konto i Inställningar. Vi kan stänga konton 
 Vi kan uppdatera dessa villkor. Vid väsentliga ändringar meddelar vi dig i appen och ber dig läsa och godkänna den nya versionen innan du fortsätter använda EasySesh.
 
 ## 15. Tillämplig lag
-Dessa villkor regleras av lagen i [COUNTRY]. Domstolen i [CITY] är behörig, utan att det begränsar en konsuments rätt att väcka talan i sitt hemland.
+Dessa villkor regleras av grekisk lag. Domstolen i Aten är behörig, utan att det begränsar en konsuments rätt att väcka talan i sitt hemland.
 
 ## Kontakt
-[COMPANY NAME] · [ADDRESS] · support@easysesh.live
+EasySesh · Mateusz Jugielewicz · Panagi Tsaldari 16-18, Aten, Grekland · support@easysesh.live

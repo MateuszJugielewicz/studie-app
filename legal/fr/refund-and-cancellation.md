@@ -9,7 +9,7 @@ Chaque studio choisit l'une des trois politiques d'annulation. Elle est affiché
 - **Modérée :** remboursement intégral jusqu'à 72 heures avant la session, et 50 % jusqu'à 24 heures avant. Aucun remboursement ensuite.
 - **Stricte :** remboursement de 50 % jusqu'à 7 jours avant la session. Aucun remboursement ensuite.
 
-Les remboursements reviennent sur la carte ou l'Apple Pay utilisés et arrivent généralement sous 5 à 10 jours ouvrés.
+Les remboursements reviennent sur le moyen de paiement utilisé et arrivent généralement sous 5 à 10 jours ouvrés.
 
 ## Si le studio annule ou refuse
 L'artiste est toujours **intégralement remboursé**. Pour les demandes refusées par le studio, la réservation sur la carte est libérée et rien n'est débité. Les studios qui annulent souvent peuvent être suspendus.

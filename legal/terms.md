@@ -1,7 +1,6 @@
-<!-- DRAFT – must be reviewed by a qualified lawyer before launch. Replace every [PLACEHOLDER]. -->
 # Terms & Conditions
 
-Version 2026-09-26 · Operated by [COMPANY NAME], [ADDRESS], company no. [CVR/VAT NO.] ("EasySesh", "we").
+Version 2026-09-26 · Operated by Mateusz Jugielewicz, Panagi Tsaldari 16-18, Athens, Greece ("EasySesh", "we").
 
 ## 1. What EasySesh is
 EasySesh is an online marketplace that connects music artists ("Artists") with recording studios ("Studios"). EasySesh is not a party to the session agreement between an Artist and a Studio. The Studio provides the session and is responsible for it. EasySesh provides the platform, payment handling and customer support.
@@ -23,7 +22,7 @@ Studios apply by creating a studio listing. EasySesh reviews every application a
 - The Artist can **check in** in the app on arrival, and the Studio can confirm the arrival. EasySesh recommends checking in. Studios may turn check-in off; EasySesh then cannot promise a refund if something goes wrong with the session.
 
 ## 5. Payments
-- Card and Apple Pay payments are processed by our payment provider, Stripe. EasySesh never stores full card numbers.
+- Card payments, Apple Pay, Google Pay and the other online payment methods offered at checkout are processed by our payment provider, Stripe. EasySesh never stores full card numbers.
 - EasySesh collects card payments on behalf of the Studio as a limited payment collection agent. When you pay EasySesh, your payment obligation to the Studio is fulfilled.
 - Where a Studio allows it, the Artist may choose to **pay cash at the studio**. The Artist then pays the Studio directly, and EasySesh does not handle the money. **When you pay cash we cannot guarantee a refund, as EasySesh does not handle the cash; we will, however, look into the case and try to help.**
 - EasySesh charges a **platform fee of 10%** of the price of every booking (or a different rate agreed with the Studio), paid by the Studio. For card payments it is deducted from the Studio's payout, which is only made after the session is completed. For cash payments the Studio owes it to EasySesh (see the Studio Agreement).
@@ -64,7 +63,7 @@ You can delete your account at any time in Settings. We may close accounts that 
 We may update these terms. If a change is material, we tell you in the app and ask you to read and accept the new version before you continue using EasySesh.
 
 ## 15. Governing law
-These terms are governed by the laws of [COUNTRY]. The courts of [CITY] have jurisdiction, without limiting a consumer's right to sue in their home country.
+These terms are governed by Greek law. The courts of Athens have jurisdiction, without limiting a consumer's right to sue in their home country.
 
 ## Contact
-[COMPANY NAME] · [ADDRESS] · support@easysesh.live
+EasySesh · Mateusz Jugielewicz · Panagi Tsaldari 16-18, Athens, Greece · support@easysesh.live

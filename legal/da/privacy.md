@@ -2,7 +2,7 @@
 
 Version 2026-09-26
 
-[COMPANY NAME], [ADDRESS], CVR-nr. [CVR/VAT NO.], er **dataansvarlig** for de personoplysninger, der behandles i EasySesh. Kontakt: easysesh@easysesh.live.
+Mateusz Jugielewicz, Panagi Tsaldari 16-18, Athen, Grækenland, er **dataansvarlig** for de personoplysninger, der behandles i EasySesh. Kontakt: easysesh@easysesh.live.
 
 ## Hvad vi indsamler
 - **Kontooplysninger:** e-mail, adgangskode (gemt krypteret hos vores godkendelsesudbyder), rolle (kunstner/studie), loginmetode (e-mail, Apple, Google).
@@ -16,6 +16,8 @@ Version 2026-09-26
 - **Bedømmelser:** bedømmelser, som studier giver kunstnere og kunstnere giver studier, og eventuelle klager over dem.
 - **Moderationsoplysninger:** advarsler, suspensioner og udelukkelser med årsag og periode.
 - **Samtykkeregistreringer:** hvilken version af disse dokumenter du har accepteret, og hvornår.
+- **Stories:** fotos og videoer, du lægger op som story (vises i 24 timer), hvem der har set og liket dem, og svar til dig.
+- **Anmodninger om verificering:** beskeden og de links, du sender, når du søger om et verificeret mærke, og vores afgørelse.
 
 ## Hvorfor vi bruger dem (retsgrundlag, GDPR art. 6)
 - For at levere tjenesten: konti, bookinger, betalinger, beskeder og support. Retsgrundlag: **kontrakt** (art. 6, stk. 1, litra b).
@@ -26,14 +28,14 @@ Version 2026-09-26
 
 ## Hvem vi deler dem med
 - **Den anden part i din booking.** Studier ser kunstnerens navn, profil og bookingoplysninger; kunstnere ser studiets offentlige profil (herunder adresse) og bookingoplysninger.
-- **Databehandlere, der arbejder for os:** Supabase (database, godkendelse, lagring; EU-region [REGION]), Stripe (betalinger og udbetalinger), Apple (Log ind med Apple, pushnotifikationer), Google (Google-login) og vores e-mailudbyder [PROVIDER].
+- **Databehandlere, der arbejder for os:** Supabase (database, godkendelse, lagring; EU-region Irland), Stripe (betalinger og udbetalinger), Apple (Log ind med Apple, pushnotifikationer), Google (Google-login) og vores e-mailudbyder Resend.
 - **Myndigheder**, hvor loven kræver det.
 
 Vi sælger ikke personoplysninger. Hvor data overføres uden for EU/EØS, bruger vi EU-Kommissionens tilstrækkelighedsafgørelser (fx EU–US Data Privacy Framework) eller standardkontraktbestemmelser.
 
 ## Hvor længe vi gemmer dem
 - **Konto- og profiloplysninger:** så længe din konto findes. De slettes eller anonymiseres, når du sletter din konto.
-- **Booking-, betalings- og fakturaoplysninger:** 5 år fra udgangen af regnskabsåret, som bogføringsloven kræver ([fx bogføringsloven § 10 / græsk lov 4308/2014]).
+- **Booking-, betalings- og fakturaoplysninger:** 5 år fra udgangen af regnskabsåret, som bogføringsloven kræver (græsk lov 4308/2014).
 - **Beskeder:** så længe kontoen findes. De anonymiseres ved sletning, men gemmes, hvor det er nødvendigt for en åben tvist.
 - **Indberetninger og moderationsoplysninger:** op til 2 år.
 
@@ -43,7 +45,7 @@ Du har ret til indsigt i dine data, berigtigelse, sletning, begrænsning af beha
 - **Slette din konto:** Indstillinger → Slet konto.
 - For alt andet: skriv til easysesh@easysesh.live. Vi svarer inden for en måned.
 
-Du kan klage til din databeskyttelsesmyndighed, fx Datatilsynet (Danmark, www.datatilsynet.dk) eller den græske databeskyttelsesmyndighed (www.dpa.gr).
+Du kan klage til den græske databeskyttelsesmyndighed (www.dpa.gr) eller til databeskyttelsesmyndigheden, hvor du bor, fx Datatilsynet (Danmark, www.datatilsynet.dk).
 
 ## Sikkerhed
 Data krypteres under overførsel (TLS) og ved opbevaring. Adgang er begrænset efter rolle og håndhæves af databasen (row-level security). Administratorkonti kræver totrinsgodkendelse. Kortdata håndteres kun af Stripe, som er PCI-DSS-certificeret.

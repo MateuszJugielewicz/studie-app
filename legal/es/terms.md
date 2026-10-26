@@ -1,6 +1,6 @@
 # Términos y condiciones
 
-Versión 2026-09-26 · Gestionado por [COMPANY NAME], [ADDRESS], n.º de empresa [CVR/VAT NO.] («EasySesh», «nosotros»).
+Versión 2026-09-26 · Gestionado por Mateusz Jugielewicz, Panagi Tsaldari 16-18, Atenas, Grecia («EasySesh», «nosotros»).
 
 ## 1. Qué es EasySesh
 EasySesh es un mercado en línea que conecta a músicos («Artistas») con estudios de grabación («Estudios»). EasySesh no es parte del acuerdo de sesión entre un Artista y un Estudio. El Estudio presta la sesión y es responsable de ella. EasySesh ofrece la plataforma, la gestión de pagos y la atención al cliente.
@@ -22,7 +22,7 @@ Los estudios solicitan su alta creando un anuncio. EasySesh revisa cada solicitu
 - El Artista puede **hacer check-in** en la app al llegar, y el Estudio puede confirmar la llegada. EasySesh recomienda hacer check-in. Los estudios pueden desactivarlo; en ese caso EasySesh no puede prometer un reembolso si algo sale mal en la sesión.
 
 ## 5. Pagos
-- Los pagos con tarjeta y Apple Pay los procesa nuestro proveedor de pagos, Stripe. EasySesh nunca guarda números de tarjeta completos.
+- Los pagos con tarjeta, Apple Pay, Google Pay y los demás métodos de pago online que se ofrecen al pagar los procesa nuestro proveedor de pagos, Stripe. EasySesh nunca guarda números de tarjeta completos.
 - EasySesh cobra los pagos con tarjeta en nombre del Estudio como agente de cobro limitado. Al pagar a EasySesh, cumples tu obligación de pago con el Estudio.
 - Si el Estudio lo permite, el Artista puede elegir **pagar en efectivo en el estudio**. El Artista paga entonces directamente al Estudio y EasySesh no gestiona ese dinero. **Si pagas en efectivo no podemos garantizar un reembolso, ya que EasySesh no gestiona el efectivo; aun así, revisaremos el caso e intentaremos ayudar.**
 - EasySesh cobra una **tarifa de plataforma del 10 %** del precio de cada reserva (u otro porcentaje acordado con el Estudio), que paga el Estudio. En los pagos con tarjeta se descuenta del pago al Estudio, que solo se realiza tras completarse la sesión. En los pagos en efectivo, el Estudio se la debe a EasySesh (ver el Acuerdo de estudio).
@@ -63,7 +63,7 @@ Puedes eliminar tu cuenta en cualquier momento en Ajustes. Podemos cerrar cuenta
 Podemos actualizar estos términos. Si un cambio es importante, te lo comunicaremos en la app y te pediremos que leas y aceptes la nueva versión antes de seguir usando EasySesh.
 
 ## 15. Ley aplicable
-Estos términos se rigen por la ley de [COUNTRY]. Son competentes los tribunales de [CITY], sin limitar el derecho del consumidor a demandar en su país.
+Estos términos se rigen por la ley griega. Son competentes los tribunales de Atenas, sin limitar el derecho del consumidor a demandar en su país.
 
 ## Contacto
-[COMPANY NAME] · [ADDRESS] · support@easysesh.live
+EasySesh · Mateusz Jugielewicz · Panagi Tsaldari 16-18, Atenas, Grecia · support@easysesh.live

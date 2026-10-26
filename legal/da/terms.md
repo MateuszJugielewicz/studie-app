@@ -1,6 +1,6 @@
 # Vilkår og betingelser
 
-Version 2026-09-26 · Drives af [COMPANY NAME], [ADDRESS], CVR-nr. [CVR/VAT NO.] ("EasySesh", "vi").
+Version 2026-09-26 · Drives af Mateusz Jugielewicz, Panagi Tsaldari 16-18, Athen, Grækenland ("EasySesh", "vi").
 
 ## 1. Hvad EasySesh er
 EasySesh er en online markedsplads, der forbinder musikere ("Kunstnere") med optagestudier ("Studier"). EasySesh er ikke part i aftalen om sessionen mellem en Kunstner og et Studie. Studiet leverer sessionen og er ansvarligt for den. EasySesh leverer platformen, betalingshåndteringen og kundesupporten.
@@ -22,7 +22,7 @@ Studier ansøger ved at oprette en studieprofil. EasySesh gennemgår hver ansøg
 - Kunstneren kan **tjekke ind** i appen ved ankomst, og Studiet kan bekræfte ankomsten. EasySesh anbefaler at tjekke ind. Studier kan slå tjek ind fra; EasySesh kan så ikke love en refundering, hvis noget går galt med sessionen.
 
 ## 5. Betalinger
-- Betalinger med kort og Apple Pay behandles af vores betalingsudbyder, Stripe. EasySesh gemmer aldrig fulde kortnumre.
+- Betalinger med kort, Apple Pay, Google Pay og de andre onlinebetalingsmetoder, der vises ved betaling, behandles af vores betalingsudbyder, Stripe. EasySesh gemmer aldrig fulde kortnumre.
 - EasySesh opkræver kortbetalinger på vegne af Studiet som begrænset betalingsagent. Når du betaler EasySesh, er din betalingsforpligtelse over for Studiet opfyldt.
 - Hvis et Studie tillader det, kan Kunstneren vælge at **betale kontant i studiet**. Kunstneren betaler så Studiet direkte, og EasySesh håndterer ikke pengene. **Når du betaler kontant, kan vi ikke garantere en refundering, da EasySesh ikke håndterer kontanterne; vi vil dog se på sagen og forsøge at hjælpe.**
 - EasySesh opkræver et **platformgebyr på 10 %** af prisen for hver booking (eller en anden sats aftalt med Studiet), som betales af Studiet. Ved kortbetaling trækkes det fra Studiets udbetaling, som først sker, når sessionen er gennemført. Ved kontantbetaling skylder Studiet EasySesh gebyret (se Studieaftalen).
@@ -63,7 +63,7 @@ Du kan til enhver tid slette din konto under Indstillinger. Vi kan lukke konti, 
 Vi kan opdatere disse vilkår. Hvis en ændring er væsentlig, fortæller vi det i appen og beder dig læse og acceptere den nye version, før du fortsætter med at bruge EasySesh.
 
 ## 15. Lovvalg
-Disse vilkår er underlagt lovgivningen i [COUNTRY]. Retten i [CITY] er værneting, uden at det begrænser en forbrugers ret til at anlægge sag i sit hjemland.
+Disse vilkår er underlagt græsk lovgivning. Retten i Athen er værneting, uden at det begrænser en forbrugers ret til at anlægge sag i sit hjemland.
 
 ## Kontakt
-[COMPANY NAME] · [ADDRESS] · support@easysesh.live
+EasySesh · Mateusz Jugielewicz · Panagi Tsaldari 16-18, Athen, Grækenland · support@easysesh.live
