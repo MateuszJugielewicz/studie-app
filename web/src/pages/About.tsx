@@ -5,8 +5,8 @@ import { CONTACT } from "../lib/config";
 import { Footer } from "./Footer";
 
 const FOUNDERS = [
-  { name: "Mateusz Jugielewicz", photo: "/team/mateusz-jugielewicz.jpg" },
-  { name: "Sebastian Bartosik", photo: "/team/sebastian-bartosik.jpg" },
+  { name: "Mateusz Jugielewicz", role: "Founder & owner", photo: "/team/mateusz-jugielewicz.jpg" },
+  { name: "Sebastian Bartosik", role: "Co-founder", photo: "/team/sebastian-bartosik.jpg" },
 ];
 
 /** Who runs EasySesh. */
@@ -20,7 +20,7 @@ export default function About() {
             <div className="stack-lg" style={{ maxWidth: 760, gap: 20 }}>
               <div className="eyebrow">{t("About us")}</div>
               <h1 className="title-xl" style={{ fontSize: "clamp(38px, 5.4vw, 60px)" }}>{t("The people behind EasySesh")}</h1>
-              <p className="lead">{t("EasySesh is built by two founders living in Greece. We want booking studio time to be as easy as making music: real prices, real free times, and booking and payment in one place.")}</p>
+              <p className="lead">{t("EasySesh was founded by Mateusz Jugielewicz, who runs it together with co-founder Sebastian Bartosik. We both live in Greece.")}</p>
             </div>
           </div>
         </section>
@@ -32,7 +32,7 @@ export default function About() {
                 <img src={f.photo} alt={f.name} width={800} height={1000} loading="lazy" />
                 <figcaption>
                   <div className="title-m">{f.name}</div>
-                  <div className="secondary">{t("Co-founder")}</div>
+                  <div className="secondary">{t(f.role)}</div>
                   <div className="row footnote secondary" style={{ gap: 6, marginTop: 6 }}><MapPin size={14} />{t("Lives in Greece")}</div>
                 </figcaption>
               </figure>
@@ -43,12 +43,13 @@ export default function About() {
         <section className="section-pad band">
           <div className="container split">
             <div className="stack">
-              <div className="eyebrow">{t("Why we built EasySesh")}</div>
-              <h2 className="title-l">{t("Booking a studio shouldn't take a week of messages.")}</h2>
+              <div className="eyebrow">{t("How it started")}</div>
+              <h2 className="title-l">{t("Finding a studio shouldn't be the hard part.")}</h2>
             </div>
             <div className="stack" style={{ gap: 16 }}>
-              <p className="lead" style={{ color: "var(--text)" }}>{t("Artists should be able to see what a studio costs and when it's free, and book it in minutes.")}</p>
-              <p className="lead">{t("Studios should get bookings that are paid, a calendar that stays up to date, and payouts that arrive on their own, without chasing anyone.")}</p>
+              <p className="lead" style={{ color: "var(--text)" }}>{t("The idea came from Mateusz's own experience: finding a studio that would actually let you in was harder than it should be. You message a few places, wait for answers, and still don't know what a session costs or when they're free.")}</p>
+              <p className="lead">{t("There are already plenty of platforms, but that's part of the problem. Studios are spread across different sites and apps, and it's hard to know which one to use, let alone which studio is right for you.")}</p>
+              <p className="lead">{t("EasySesh is our answer: one place built only for studio time, with real prices, real free times and bookings that are confirmed and paid, not left waiting in someone's inbox.")}</p>
               <div className="row wrap" style={{ gap: 12, marginTop: 8 }}>
                 <Link to="/studios" className="btn primary">{t("Find a studio")}</Link>
                 <Link to="/signup?role=studio" className="btn secondary">{t("List your studio")}</Link>

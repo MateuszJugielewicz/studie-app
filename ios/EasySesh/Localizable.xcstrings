@@ -8497,65 +8497,6 @@
         }
       }
     },
-    "Artists should be able to see what a studio costs and when it's free, and book it in minutes.": {
-      "extractionState": "manual",
-      "localizations": {
-        "da": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Artister skal kunne se, hvad et studie koster, og hvornår det er ledigt, og booke det på få minutter."
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Künstler sollen sehen können, was ein Studio kostet und wann es frei ist, und es in Minuten buchen."
-          }
-        },
-        "el": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Οι καλλιτέχνες πρέπει να βλέπουν πόσο κοστίζει ένα στούντιο και πότε είναι ελεύθερο, και να το κλείνουν σε λίγα λεπτά."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Los artistas deberían poder ver cuánto cuesta un estudio y cuándo está libre, y reservarlo en minutos."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Les artistes doivent pouvoir voir combien coûte un studio et quand il est libre, et le réserver en quelques minutes."
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Gli artisti devono poter vedere quanto costa uno studio e quando è libero, e prenotarlo in pochi minuti."
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Artiesten moeten kunnen zien wat een studio kost en wanneer die vrij is, en hem in een paar minuten boeken."
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Artyści powinni widzieć, ile kosztuje studio i kiedy jest wolne, i rezerwować je w kilka minut."
-          }
-        },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Artister ska kunna se vad en studio kostar och när den är ledig, och boka den på några minuter."
-          }
-        }
-      }
-    },
     "Artists who booked you appear here. Search to find others by name or city.": {
       "extractionState": "manual",
       "localizations": {
@@ -11030,65 +10971,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Bokning"
-          }
-        }
-      }
-    },
-    "Booking a studio shouldn't take a week of messages.": {
-      "extractionState": "manual",
-      "localizations": {
-        "da": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Det burde ikke tage en uge med beskeder at booke et studie."
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ein Studio zu buchen sollte keine Woche voller Nachrichten dauern."
-          }
-        },
-        "el": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Η κράτηση ενός στούντιο δεν πρέπει να θέλει μια εβδομάδα μηνύματα."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Reservar un estudio no debería llevar una semana de mensajes."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Réserver un studio ne devrait pas prendre une semaine de messages."
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Prenotare uno studio non dovrebbe richiedere una settimana di messaggi."
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Een studio boeken zou geen week aan berichten moeten kosten."
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Rezerwacja studia nie powinna zajmować tygodnia wiadomości."
-          }
-        },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Att boka en studio ska inte kräva en vecka av meddelanden."
           }
         }
       }
@@ -21654,61 +21536,61 @@
         }
       }
     },
-    "EasySesh is built by two founders living in Greece. We want booking studio time to be as easy as making music: real prices, real free times, and booking and payment in one place.": {
+    "EasySesh is our answer: one place built only for studio time, with real prices, real free times and bookings that are confirmed and paid, not left waiting in someone's inbox.": {
       "extractionState": "manual",
       "localizations": {
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "EasySesh er bygget af to stiftere, der bor i Grækenland. Vi vil gøre det lige så nemt at booke studietid som at lave musik: rigtige priser, rigtige ledige tider, og booking og betaling ét sted."
+            "value": "EasySesh er vores svar: ét sted, der kun er bygget til studietid, med rigtige priser, rigtige ledige tider og bookinger, der er bekræftet og betalt – ikke strandet i nogens indbakke."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "EasySesh wird von zwei Gründern gebaut, die in Griechenland leben. Wir wollen, dass Studiozeit buchen so einfach ist wie Musik machen: echte Preise, echte freie Zeiten, Buchung und Bezahlung an einem Ort."
+            "value": "EasySesh ist unsere Antwort: ein Ort nur für Studiozeit, mit echten Preisen, echten freien Zeiten und Buchungen, die bestätigt und bezahlt sind – statt in irgendeinem Posteingang zu warten."
           }
         },
         "el": {
           "stringUnit": {
             "state": "translated",
-            "value": "Το EasySesh το φτιάχνουν δύο ιδρυτές που ζουν στην Ελλάδα. Θέλουμε η κράτηση χρόνου σε στούντιο να είναι τόσο εύκολη όσο το να φτιάχνεις μουσική: πραγματικές τιμές, πραγματικές ελεύθερες ώρες, και κράτηση και πληρωμή σε ένα μέρος."
+            "value": "Το EasySesh είναι η απάντησή μας: ένα μέρος φτιαγμένο μόνο για χρόνο σε στούντιο, με πραγματικές τιμές, πραγματικές ελεύθερες ώρες και κρατήσεις που είναι επιβεβαιωμένες και πληρωμένες, όχι ξεχασμένες στα εισερχόμενα κάποιου."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "EasySesh lo crean dos fundadores que viven en Grecia. Queremos que reservar tiempo de estudio sea tan fácil como hacer música: precios reales, horarios libres reales, y reserva y pago en un solo lugar."
+            "value": "EasySesh es nuestra respuesta: un solo lugar pensado solo para tiempo de estudio, con precios reales, horarios libres reales y reservas confirmadas y pagadas, no olvidadas en la bandeja de entrada de alguien."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "EasySesh est créé par deux fondateurs qui vivent en Grèce. Nous voulons que réserver du temps en studio soit aussi simple que faire de la musique : de vrais prix, de vrais créneaux libres, et la réservation et le paiement au même endroit."
+            "value": "EasySesh, c'est notre réponse : un seul endroit pensé uniquement pour le temps en studio, avec de vrais prix, de vrais créneaux libres et des réservations confirmées et payées, au lieu d'attendre dans la boîte mail de quelqu'un."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "EasySesh è creato da due fondatori che vivono in Grecia. Vogliamo che prenotare tempo in studio sia facile come fare musica: prezzi reali, orari liberi reali, e prenotazione e pagamento in un unico posto."
+            "value": "EasySesh è la nostra risposta: un unico posto pensato solo per il tempo in studio, con prezzi reali, orari liberi reali e prenotazioni confermate e pagate, non dimenticate nella casella di posta di qualcuno."
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "EasySesh wordt gebouwd door twee oprichters die in Griekenland wonen. We willen dat studiotijd boeken net zo makkelijk is als muziek maken: echte prijzen, echte vrije tijden, en boeken en betalen op één plek."
+            "value": "EasySesh is ons antwoord: één plek die alleen voor studiotijd is gemaakt, met echte prijzen, echte vrije tijden en boekingen die bevestigd en betaald zijn, in plaats van te blijven liggen in iemands inbox."
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "EasySesh tworzy dwóch założycieli mieszkających w Grecji. Chcemy, by rezerwacja czasu w studiu była tak prosta jak tworzenie muzyki: prawdziwe ceny, prawdziwe wolne terminy, a rezerwacja i płatność w jednym miejscu."
+            "value": "EasySesh to nasza odpowiedź: jedno miejsce stworzone wyłącznie do rezerwacji czasu w studiu, z prawdziwymi cenami, prawdziwymi wolnymi terminami i rezerwacjami, które są potwierdzone i opłacone, a nie czekają w czyjejś skrzynce."
           }
         },
         "sv": {
           "stringUnit": {
             "state": "translated",
-            "value": "EasySesh byggs av två grundare som bor i Grekland. Vi vill att det ska vara lika enkelt att boka studiotid som att göra musik: riktiga priser, riktiga lediga tider, och bokning och betalning på ett ställe."
+            "value": "EasySesh är vårt svar: ett ställe byggt bara för studiotid, med riktiga priser, riktiga lediga tider och bokningar som är bekräftade och betalda – inte bortglömda i någons inkorg."
           }
         }
       }
@@ -22122,6 +22004,65 @@
           "stringUnit": {
             "state": "translated",
             "value": "EasySesh-teamet"
+          }
+        }
+      }
+    },
+    "EasySesh was founded by Mateusz Jugielewicz, who runs it together with co-founder Sebastian Bartosik. We both live in Greece.": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "EasySesh er stiftet af Mateusz Jugielewicz, som driver det sammen med medstifter Sebastian Bartosik. Vi bor begge i Grækenland."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "EasySesh wurde von Mateusz Jugielewicz gegründet, der es zusammen mit Mitgründer Sebastian Bartosik führt. Wir leben beide in Griechenland."
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Το EasySesh ίδρυσε ο Mateusz Jugielewicz, ο οποίος το διευθύνει μαζί με τον συνιδρυτή Sebastian Bartosik. Ζούμε και οι δύο στην Ελλάδα."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "EasySesh lo fundó Mateusz Jugielewicz, que lo dirige junto con su cofundador Sebastian Bartosik. Los dos vivimos en Grecia."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "EasySesh a été fondé par Mateusz Jugielewicz, qui le dirige avec son cofondateur Sebastian Bartosik. Nous vivons tous les deux en Grèce."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "EasySesh è stato fondato da Mateusz Jugielewicz, che lo gestisce insieme al cofondatore Sebastian Bartosik. Viviamo entrambi in Grecia."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "EasySesh is opgericht door Mateusz Jugielewicz, die het samen met medeoprichter Sebastian Bartosik runt. We wonen allebei in Griekenland."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "EasySesh założył Mateusz Jugielewicz, który prowadzi go razem ze współzałożycielem Sebastianem Bartosikiem. Obaj mieszkamy w Grecji."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "EasySesh grundades av Mateusz Jugielewicz, som driver det tillsammans med medgrundaren Sebastian Bartosik. Vi bor båda i Grekland."
           }
         }
       }
@@ -25135,6 +25076,65 @@
         }
       }
     },
+    "Finding a studio shouldn't be the hard part.": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Det burde ikke være det svære at finde et studie."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ein Studio zu finden sollte nicht der schwierige Teil sein."
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Το να βρεις στούντιο δεν πρέπει να είναι το δύσκολο κομμάτι."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Encontrar un estudio no debería ser lo difícil."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trouver un studio ne devrait pas être le plus difficile."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trovare uno studio non dovrebbe essere la parte difficile."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Een studio vinden zou niet het moeilijke deel moeten zijn."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Znalezienie studia nie powinno być najtrudniejsze."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Att hitta en studio ska inte vara det svåra."
+          }
+        }
+      }
+    },
     "Finding…": {
       "extractionState": "manual",
       "localizations": {
@@ -25780,6 +25780,65 @@
           "stringUnit": {
             "state": "translated",
             "value": "Glömt lösenordet?"
+          }
+        }
+      }
+    },
+    "Founder & owner": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stifter og ejer"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gründer und Inhaber"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ιδρυτής και ιδιοκτήτης"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fundador y propietario"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fondateur et propriétaire"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fondatore e titolare"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oprichter en eigenaar"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Założyciel i właściciel"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grundare och ägare"
           }
         }
       }
@@ -27845,6 +27904,65 @@
           "stringUnit": {
             "state": "translated",
             "value": "Hur vill du betala?"
+          }
+        }
+      }
+    },
+    "How it started": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sådan startede det"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wie alles anfing"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Πώς ξεκίνησε"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cómo empezó"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comment tout a commencé"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Come è iniziato"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hoe het begon"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jak to się zaczęło"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Så började det"
           }
         }
       }
@@ -56523,65 +56641,6 @@
         }
       }
     },
-    "Studios should get bookings that are paid, a calendar that stays up to date, and payouts that arrive on their own, without chasing anyone.": {
-      "extractionState": "manual",
-      "localizations": {
-        "da": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Studier skal have bookinger, der er betalt, en kalender, der er opdateret, og udbetalinger, der kommer af sig selv, uden at jagte nogen."
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Studios sollen bezahlte Buchungen bekommen, einen Kalender, der aktuell bleibt, und Auszahlungen, die von selbst kommen, ohne jemandem hinterherzulaufen."
-          }
-        },
-        "el": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Τα στούντιο πρέπει να παίρνουν κρατήσεις που έχουν πληρωθεί, ένα ημερολόγιο πάντα ενημερωμένο και πληρωμές που έρχονται μόνες τους, χωρίς να κυνηγούν κανέναν."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Los estudios deberían recibir reservas pagadas, un calendario siempre al día y pagos que llegan solos, sin perseguir a nadie."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Les studios doivent recevoir des réservations payées, un calendrier toujours à jour et des versements qui arrivent tout seuls, sans courir après personne."
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Gli studi devono ricevere prenotazioni pagate, un calendario sempre aggiornato e pagamenti che arrivano da soli, senza rincorrere nessuno."
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Studio's moeten boekingen krijgen die betaald zijn, een agenda die up-to-date blijft en uitbetalingen die vanzelf komen, zonder iemand achterna te zitten."
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Studia powinny dostawać opłacone rezerwacje, aktualny kalendarz i wypłaty, które przychodzą same, bez ścigania kogokolwiek."
-          }
-        },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Studior ska få bokningar som är betalda, en kalender som är uppdaterad och utbetalningar som kommer av sig själva, utan att jaga någon."
-          }
-        }
-      }
-    },
     "Subject": {
       "extractionState": "manual",
       "localizations": {
@@ -59060,6 +59119,65 @@
         }
       }
     },
+    "The idea came from Mateusz's own experience: finding a studio that would actually let you in was harder than it should be. You message a few places, wait for answers, and still don't know what a session costs or when they're free.": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Idéen kom fra Mateusz' egen erfaring: Det var sværere, end det burde være, at finde et studie, der faktisk ville lukke én ind. Man skriver til et par steder, venter på svar og ved stadig ikke, hvad en session koster, eller hvornår de har tid."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Idee kam aus Mateusz' eigener Erfahrung: Ein Studio zu finden, das einen tatsächlich reinlässt, war schwerer, als es sein sollte. Man schreibt ein paar Studios an, wartet auf Antworten und weiß trotzdem nicht, was eine Session kostet oder wann sie frei sind."
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Η ιδέα προήλθε από την εμπειρία του ίδιου του Mateusz: το να βρεις στούντιο που θα σε δεχτεί πραγματικά ήταν πιο δύσκολο απ' όσο θα έπρεπε. Στέλνεις μήνυμα σε μερικά μέρη, περιμένεις απάντηση και ακόμα δεν ξέρεις πόσο κοστίζει μια session ή πότε είναι ελεύθεροι."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La idea surgió de la propia experiencia de Mateusz: encontrar un estudio que de verdad te deje entrar era más difícil de lo que debería. Escribes a varios sitios, esperas respuesta y sigues sin saber cuánto cuesta una sesión ni cuándo tienen hueco."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L'idée vient de l'expérience de Mateusz : trouver un studio qui veuille bien t'accueillir était plus difficile que ça ne devrait l'être. Tu écris à quelques endroits, tu attends des réponses, et tu ne sais toujours pas combien coûte une session ni quand ils sont libres."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L'idea è nata dall'esperienza di Mateusz: trovare uno studio disposto a farti entrare era più difficile del dovuto. Scrivi a qualche studio, aspetti una risposta e ancora non sai quanto costa una sessione o quando sono liberi."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Het idee kwam uit Mateusz' eigen ervaring: een studio vinden die je echt binnenlaat, was lastiger dan het zou moeten zijn. Je stuurt een paar studio's een bericht, wacht op antwoord en weet nog steeds niet wat een sessie kost of wanneer ze vrij zijn."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pomysł wziął się z własnego doświadczenia Mateusza: znalezienie studia, które faktycznie cię przyjmie, było trudniejsze, niż powinno. Piszesz do kilku miejsc, czekasz na odpowiedź i dalej nie wiesz, ile kosztuje sesja ani kiedy mają wolne terminy."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Idén kom från Mateusz egen erfarenhet: det var svårare än det borde vara att hitta en studio som faktiskt ville ta emot en. Man skriver till några ställen, väntar på svar och vet ändå inte vad en session kostar eller när de har tid."
+          }
+        }
+      }
+    },
     "The passwords don't match.": {
       "extractionState": "manual",
       "localizations": {
@@ -59351,6 +59469,65 @@
           "stringUnit": {
             "state": "translated",
             "value": "Studion är stängd den dagen."
+          }
+        }
+      }
+    },
+    "There are already plenty of platforms, but that's part of the problem. Studios are spread across different sites and apps, and it's hard to know which one to use, let alone which studio is right for you.": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der findes allerede mange platforme, men det er en del af problemet. Studierne er spredt ud over forskellige sider og apps, og det er svært at vide, hvilken man skal bruge – endsige hvilket studie der passer til en."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Es gibt schon viele Plattformen, aber genau das ist Teil des Problems. Studios sind über verschiedene Seiten und Apps verteilt, und es ist schwer zu wissen, welche man nutzen soll – geschweige denn, welches Studio zu einem passt."
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Υπάρχουν ήδη πολλές πλατφόρμες, αλλά αυτό είναι μέρος του προβλήματος. Τα στούντιο είναι σκόρπια σε διαφορετικούς ιστότοπους και εφαρμογές, και είναι δύσκολο να ξέρεις ποια να χρησιμοποιήσεις, πόσο μάλλον ποιο στούντιο σου ταιριάζει."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ya hay muchas plataformas, pero eso es parte del problema. Los estudios están repartidos entre distintas webs y apps, y cuesta saber cuál usar, y más aún qué estudio es el adecuado para ti."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il existe déjà beaucoup de plateformes, mais c'est justement une partie du problème. Les studios sont éparpillés sur différents sites et apps, et il est difficile de savoir lequel utiliser, et encore plus quel studio te correspond."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le piattaforme non mancano, ma è proprio questo parte del problema. Gli studi sono sparsi tra siti e app diversi, ed è difficile capire quale usare, figuriamoci quale studio fa per te."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Er zijn al genoeg platforms, maar dat is juist een deel van het probleem. Studio's staan verspreid over verschillende sites en apps, en het is lastig te weten welke je moet gebruiken, laat staan welke studio bij je past."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Platform jest już sporo, ale to część problemu. Studia są rozrzucone po różnych stronach i aplikacjach, więc trudno wiedzieć, z której korzystać, a co dopiero, które studio jest dla ciebie."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Det finns redan många plattformar, men det är en del av problemet. Studiorna är utspridda på olika sajter och appar, och det är svårt att veta vilken man ska använda – än mindre vilken studio som passar en."
           }
         }
       }
@@ -66549,65 +66726,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Varför är betyget orättvist?"
-          }
-        }
-      }
-    },
-    "Why we built EasySesh": {
-      "extractionState": "manual",
-      "localizations": {
-        "da": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Hvorfor vi byggede EasySesh"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Warum wir EasySesh gebaut haben"
-          }
-        },
-        "el": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Γιατί φτιάξαμε το EasySesh"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Por qué creamos EasySesh"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pourquoi nous avons créé EasySesh"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Perché abbiamo creato EasySesh"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Waarom we EasySesh hebben gebouwd"
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Dlaczego stworzyliśmy EasySesh"
-          }
-        },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Varför vi byggde EasySesh"
           }
         }
       }
