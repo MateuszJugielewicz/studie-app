@@ -581,3 +581,10 @@ html, body { max-width: 100%; }
   .hero-search > svg { margin-left: 10px; }
   .hero-search .btn { width: 100%; }
 }
+
+/* About: founders */
+.team-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 420px)); gap: 32px; }
+@media (max-width: 640px) { .team-grid { grid-template-columns: minmax(0, 420px); gap: 40px; } }
+.founder { margin: 0; display: flex; flex-direction: column; gap: 16px; }
+.founder img { width: 100%; height: auto; aspect-ratio: 4 / 5; object-fit: cover; border-radius: 18px; border: 1px solid var(--stroke); background: var(--bg-2); }
+.founder figcaption { display: flex; flex-direction: column; gap: 2px; }

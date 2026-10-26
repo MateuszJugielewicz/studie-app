@@ -27,6 +27,7 @@ const StudioOwner = lazy(() => import("./pages/StudioOwner"));
 const StudioEditor = lazy(() => import("./pages/StudioEditor"));
 const VerifyEmail = lazy(() => import("./pages/VerifyEmail"));
 const FindArtists = lazy(() => import("./pages/FindArtists"));
+const About = lazy(() => import("./pages/About"));
 
 interface Tab { to: string; title: string; icon: LucideIcon; badge?: number; match?: string[] }
 
@@ -164,6 +165,7 @@ export default function App() {
             <Route path="/studios/:id" element={<StudioDetail />} />
             <Route path="/studios/:id/reviews" element={<Reviews />} />
             <Route path="/artists/:id" element={<ArtistPublic />} />
+            <Route path="/about" element={<About />} />
             <Route path="/legal" element={<Legal />} />
             <Route path="/legal/:doc" element={<Legal />} />
             <Route path="/book/:studioId" element={<RequireAuth role="artist"><BookingFlow /></RequireAuth>} />
