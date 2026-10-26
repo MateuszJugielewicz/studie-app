@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { ActionButton, Badge, PageState } from "../components";
 import { useApi, useLoad, useStaff } from "../lib/apiContext";
-import { CAMPAIGN_TEMPLATES } from "../lib/campaignTemplates";
+import { CAMPAIGN_LANGUAGES, CAMPAIGN_TEMPLATES, type CampaignLanguage } from "../lib/campaignTemplates";
 import { date } from "../lib/format";
 import type { CampaignRecipient, EmailCampaign, NewCampaignRecipient } from "../lib/types";
 
@@ -36,6 +36,7 @@ export default function CampaignsPage() {
   const owner = me.rank === "owner";
   const campaigns = useLoad(() => api.campaigns());
   const [templateMessage, setTemplateMessage] = useState<string | null>(null);
+  const [language, setLanguage] = useState<CampaignLanguage>("da");
   const [selected, setSelected] = useState<string | null>(null);
   useEffect(() => {
     if (!selected && campaigns.data?.length) setSelected(campaigns.data[0].id);
@@ -56,6 +57,11 @@ export default function CampaignsPage() {
       {owner && (
         <details className="card" style={{ marginBottom: 16 }}>
           <summary className="strong" style={{ cursor: "pointer" }}>Start from a template</summary>
+          <label className="row gap small" style={{ margin: "8px 0" }}>Language
+            <select value={language} onChange={(e) => setLanguage(e.target.value as CampaignLanguage)} style={{ maxWidth: 160 }}>
+              {CAMPAIGN_LANGUAGES.map((l) => <option key={l.id} value={l.id}>{l.title}</option>)}
+            </select>
+          </label>
           <p className="muted small">Creates a draft with the matching users already on the list. Only active accounts that haven't turned off emails or asked not to be contacted are included.</p>
           <div className="card flush">
             <table>
@@ -63,12 +69,14 @@ export default function CampaignsPage() {
               <tbody>
                 {CAMPAIGN_TEMPLATES.map((tpl) => (
                   <tr key={tpl.id}>
-                    <td className="strong">{tpl.title}<div className="muted small">{tpl.subject}</div></td>
+                    <td className="strong">{tpl.title}<div className="muted small">{tpl.text[language].subject}</div></td>
                     <td className="small">{tpl.audience}</td>
                     <td className="actions">
                       <ActionButton kind="secondary" onClick={async () => {
                         const people = await api.campaignAudience(tpl.id);
-                        const id = await api.saveCampaign({ name: `${tpl.title} – ${new Date().toLocaleDateString("en-GB")}`, from_local: tpl.from, subject: tpl.subject, body: tpl.body, footer: tpl.footer, note: `Template: ${tpl.title}. ${tpl.audience}`, template: tpl.id });
+                        const text = tpl.text[language];
+                        const languageTitle = CAMPAIGN_LANGUAGES.find((l) => l.id === language)!.title;
+                        const id = await api.saveCampaign({ name: `${tpl.title} (${languageTitle}) – ${new Date().toLocaleDateString("en-GB")}`, from_local: tpl.from, ...text, note: `Template: ${tpl.title}. ${tpl.audience}`, template: tpl.id });
                         const added = people.length ? await api.addCampaignRecipients(id, people) : 0;
                         setTemplateMessage(`Draft created with ${added} ${added === 1 ? "person" : "people"}. Review it below.`);
                         await campaigns.reload();
@@ -122,6 +130,7 @@ function CampaignEditor({ campaign, owner, onChanged, onDeleted }: { campaign: E
   const pending = list.filter((r) => r.status === "pending").length;
   const sample = list.find((r) => r.id === previewId) ?? list[0] ?? { name: "Studio", city: "København", website: "" };
   const set = (patch: Partial<EmailCampaign>) => setDraft({ ...draft, ...patch });
+  const template = CAMPAIGN_TEMPLATES.find((t) => t.id === campaign.template);
 
   const reloadAll = async () => { await recipients.reload(); await onChanged(); };
 
@@ -134,6 +143,20 @@ function CampaignEditor({ campaign, owner, onChanged, onDeleted }: { campaign: E
           <label>From
             <div className="row gap"><input value={draft.from_local} onChange={(e) => set({ from_local: e.target.value.toLowerCase().replace(/@.*$/, "") })} style={{ maxWidth: 180 }} /><span className="muted">@easysesh.live (replies arrive there)</span></div>
           </label>
+          {template && (
+            <div className="row gap wrap small" style={{ marginBottom: 10 }}>
+              <span className="muted">Template text:</span>
+              {CAMPAIGN_LANGUAGES.map((l) => {
+                const text = template.text[l.id];
+                const current = text.subject === draft.subject && text.body === draft.body && text.footer === draft.footer;
+                return (
+                  <button key={l.id} type="button" className={current ? "primary" : "secondary"} disabled={current}
+                    onClick={() => set(text)}>{current ? `${l.title} ✓` : `Use ${l.title}`}</button>
+                );
+              })}
+              <span className="muted">Switching replaces the subject, message and small print; save to keep it.</span>
+            </div>
+          )}
           <label>Subject<input value={draft.subject} onChange={(e) => set({ subject: e.target.value })} /></label>
           <label>Message<textarea rows={16} value={draft.body} onChange={(e) => set({ body: e.target.value })} placeholder={"Hej {{name}},\n\n…"} /></label>
           <label>Small print under the email<textarea rows={3} value={draft.footer} onChange={(e) => set({ footer: e.target.value })} placeholder="Why they got this email and how to say no thanks." /></label>
