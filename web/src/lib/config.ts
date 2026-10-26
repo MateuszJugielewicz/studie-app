@@ -25,6 +25,8 @@ export const PlatformConfig = {
    * setup; set this to true at launch and every studio without payouts is asked to set them up.
    */
   PAYMENTS_LIVE: false,
+  /** Sign in with Apple isn't set up in Supabase yet; set to true to show the button again. */
+  APPLE_SIGN_IN: false,
 };
 
 /** Bump together with the apps when a legal document changes materially. */

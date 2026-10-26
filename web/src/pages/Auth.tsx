@@ -5,6 +5,7 @@ import { api, userMessage } from "../lib/api";
 import { passwordProblem, passwordStrength } from "../lib/core";
 import { t } from "../lib/i18n";
 import { useApp } from "../lib/state";
+import { PlatformConfig } from "../lib/config";
 import { IconTile, Loading, Logo, Sheet, Tiles, useToast } from "../components/ui";
 import { GoogleButton } from "../components/GoogleButton";
 import { LEGAL, LegalDocumentBody, requiredDocuments, type LegalDocument } from "./Legal";
@@ -128,7 +129,7 @@ function AuthForm({ initial }: { initial: "signin" | "signup" }) {
         )}
 
         <div className="stack" style={{ gap: 10 }}>
-          <button type="button" className="btn dark block" onClick={() => oauth("apple")}><Apple size={20} fill="currentColor" />{t(signUp ? "Sign up with Apple" : "Sign in with Apple")}</button>
+          {PlatformConfig.APPLE_SIGN_IN && <button type="button" className="btn dark block" onClick={() => oauth("apple")}><Apple size={20} fill="currentColor" />{t(signUp ? "Sign up with Apple" : "Sign in with Apple")}</button>}
           <GoogleButton key={role} signUp={signUp} onCredential={googleToken}
             fallback={<button type="button" className="btn secondary block" onClick={() => oauth("google")}><GoogleG />{t("Continue with Google")}</button>} />
         </div>
