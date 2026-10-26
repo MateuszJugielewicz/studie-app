@@ -348,7 +348,9 @@ export function promotionPrice(pkg: string, currency: string): number {
   const row = table[currency.toUpperCase()] ?? [1900, 3500, 5900];
   return row[PROMOTION_PACKAGES.indexOf(pkg as typeof PROMOTION_PACKAGES[number])] ?? 0;
 }
-export interface StudioPromotion { id: string; studio_id?: string | null; artist_id?: string | null; package: string; days: number; amount: number; currency: string; status: PromotionStatus; starts_at?: string | null; ends_at?: string | null; created_at: string }
+export interface StudioPromotion { id: string; studio_id?: string | null; artist_id?: string | null; package: string; days: number; amount: number; currency: string; status: PromotionStatus; starts_at?: string | null; ends_at?: string | null; created_at: string; credits_used?: number }
+/** One line of the promotion-credit account: positive adds credits, negative spends them. */
+export interface CreditLedgerEntry { id: string; amount: number; kind: "grant" | "purchase" | "spend" | "refund" | "adjust"; note: string | null; promotion_id: string | null; created_at: string }
 export interface StudioArtistLink { studio_id: string; artist_id: string; status: string; created_at: string }
 
 export type BlockState = "none" | "by_me" | "by_them";

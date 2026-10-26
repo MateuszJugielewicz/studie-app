@@ -37,6 +37,14 @@ Deno.serve(async (req) => {
           }
           break;
         }
+        if (intent.metadata?.kind === "credits") {
+          // Promotion credits bought on the website → add them (only once, however often this arrives).
+          if (event.type === "payment_intent.succeeded" && intent.metadata.purchase_id) {
+            const { error } = await admin.rpc("complete_credit_purchase", { p_purchase_id: intent.metadata.purchase_id });
+            if (error) throw new Error(error.message);
+          }
+          break;
+        }
         await applyPaymentIntent(intent);
         break;
       }

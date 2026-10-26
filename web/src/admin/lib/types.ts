@@ -291,6 +291,21 @@ export interface Promotion {
   note: string | null;
   created_at: string;
   promoted_until: string | null;
+  /** Paid with promotion credits (1 credit = €1); 0 when paid by card or given. */
+  credits_used: number;
+}
+
+/** Someone's promotion-credit account (1 credit = €1). */
+export interface CreditBalance {
+  user_id: string;
+  email: string;
+  role: UserRole;
+  name: string;
+  balance: number;
+  granted: number | null;
+  bought: number | null;
+  spent: number | null;
+  last_activity: string;
 }
 
 export interface RatingDispute {

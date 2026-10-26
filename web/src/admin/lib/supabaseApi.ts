@@ -3,7 +3,7 @@ import type { AdminApi, StudioDecision } from "./api";
 import { fetchWithReason } from "./reason";
 import type {
   AdminStory, PaymentDomainsResult, VerificationRequest,
-  FeeBalance, FeeInvoice, MfaState, ChangelogEntry, ModerationEvent, Promotion, PromoCode, RatingDispute, StudioOffer, TermsStatus,
+  FeeBalance, FeeInvoice, MfaState, ChangelogEntry, ModerationEvent, Promotion, CreditBalance, PromoCode, RatingDispute, StudioOffer, TermsStatus,
   AuditEntry, CampaignRecipient, EmailCampaign, FlagRule, NewCampaignRecipient, SentEmail, SiteBanner, StaffMember, StaffRank,
   AccountStatus, AdminUser, Booking, BookingStatus, DashboardStats, Dispute, Payout, Report, ReportStatus,
   ReportTargetDetails, Review, Studio, StudioEvent, SupportMessage, SupportStatus, SupportTicket, Transaction,
@@ -342,6 +342,14 @@ export class SupabaseAdminApi implements AdminApi {
 
   async cancelPromotion(promotionId: string) {
     unwrap(await this.client.rpc("admin_cancel_promotion", { p_promotion_id: promotionId }));
+  }
+
+  async creditBalances(): Promise<CreditBalance[]> {
+    return unwrap(await this.client.from("admin_credit_balances").select("*").order("last_activity", { ascending: false }).limit(1000));
+  }
+
+  async adjustCredits(userId: string, amount: number, note: string): Promise<number> {
+    return unwrap(await this.client.rpc("admin_adjust_credits", { p_user_id: userId, p_amount: amount, p_note: note || null }));
   }
 
   async grantPromotion(studioId: string, days: number, note?: string) {

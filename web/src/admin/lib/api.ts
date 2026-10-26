@@ -1,6 +1,6 @@
 import type {
   AdminStory, PaymentDomainsResult, VerificationRequest,
-  FeeBalance, FeeInvoice, MfaState, ChangelogEntry, ModerationEvent, Promotion, PromoCode, RatingDispute, StudioOffer, TermsStatus,
+  FeeBalance, FeeInvoice, MfaState, ChangelogEntry, ModerationEvent, Promotion, CreditBalance, PromoCode, RatingDispute, StudioOffer, TermsStatus,
   AuditEntry, CampaignRecipient, EmailCampaign, FlagRule, NewCampaignRecipient, SentEmail, SiteBanner, StaffMember, StaffRank,
   AccountStatus, AdminUser, Booking, BookingStatus, DashboardStats, Dispute, Payout, Report, ReportStatus,
   ReportTargetDetails, Review, Studio, StudioEvent, SupportMessage, SupportStatus, SupportTicket, Transaction,
@@ -51,6 +51,10 @@ export interface AdminApi {
   endPromotion(studioId: string): Promise<void>;
   grantArtistPromotion(artistId: string, days: number, note?: string): Promise<void>;
   endArtistPromotion(artistId: string): Promise<void>;
+  /** Promotion credits (1 credit = €1): everyone with a balance or history. */
+  creditBalances(): Promise<CreditBalance[]>;
+  /** Adds credits (negative removes them); returns the new balance. */
+  adjustCredits(userId: string, amount: number, note: string): Promise<number>;
 
   /** The signed-in staff member and their rank (owner > admin > support). */
   currentStaff(): Promise<{ id: string; email: string; rank: StaffRank }>;

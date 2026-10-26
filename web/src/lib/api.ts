@@ -8,7 +8,7 @@ import { endViewAs, takeViewAsTokens, viewAs, viewOnlyFetch } from "./viewAs";
 import type {
   AppNotification, ArtistProfile, ArtistReview, ArtistSearchResult, BlockState, BlockedSlot, BlockedUser, Booking, ChangelogEntry,
   ChatMessage, Conversation, FeeInvoice, FeeLedgerEntry, Interval, ModerationWarning, PaymentIntentInfo, PaymentTransaction, Payout,
-  DiscoveredArtist, PayoutAccount, StudioBusiness, Story, StoryActivity, StoryAuthor, VerificationRequest, ReportReason, ReportTarget, Review, Studio, StudioArtistLink, StudioPromotion, SupportCategory, SupportMessage,
+  DiscoveredArtist, PayoutAccount, StudioBusiness, Story, StoryActivity, StoryAuthor, VerificationRequest, ReportReason, ReportTarget, Review, Studio, StudioArtistLink, StudioPromotion, CreditLedgerEntry, SupportCategory, SupportMessage,
   SupportTicket, UserAccount, UserRole, UserSettings, PriceBreakdown, PromoCheck, PromoCode, SiteBanner, StudioOffer, ModerationRecord, AccountChangeNotice,
 } from "./types";
 
@@ -498,6 +498,23 @@ export class Api {
   cancelPromotionRequest = (promotionId: string) => this.rpc<void>("cancel_promotion_request", { p_promotion_id: promotionId });
   promotionPayment = (promotionId: string) => this.invoke<{ client_secret: string; amount: number; currency: string }>("promotion-payment", { promotion_id: promotionId });
   confirmPromotion = (promotionId: string) => this.invoke<{ status: string }>("promotion-payment", { promotion_id: promotionId, confirm: true });
+
+  // MARK: Promotion credits (1 credit = €1)
+
+  creditBalance = () => this.rpc<number>("promotion_credit_balance", {});
+  async creditHistory(): Promise<CreditLedgerEntry[]> {
+    const id = await this.userId();
+    return unwrap(await this.client.from("promotion_credit_ledger").select("id, amount, kind, note, promotion_id, created_at").eq("user_id", id).order("created_at", { ascending: false }).limit(50));
+  }
+  /** Card purchases that were started but never confirmed (e.g. the tab closed after paying). */
+  async pendingCreditPurchases(): Promise<{ id: string }[]> {
+    const id = await this.userId();
+    return unwrap(await this.client.from("credit_purchases").select("id").eq("user_id", id).eq("status", "pending").not("payment_intent_id", "is", null).gte("created_at", new Date(Date.now() - 7 * 86400_000).toISOString()));
+  }
+  buyCredits = (credits: number) => this.invoke<{ purchase_id: string; client_secret: string; amount: number; currency: string }>("credits-payment", { credits });
+  confirmCreditPurchase = (purchaseId: string) => this.invoke<{ status: string; balance: number }>("credits-payment", { purchase_id: purchaseId, confirm: true });
+  /** Pays an ordered promotion (requestPromotion) with credits and starts it. */
+  payPromotionWithCredits = (promotionId: string) => this.rpc<StudioPromotion>("pay_promotion_with_credits", { p_promotion_id: promotionId });
   /** The artist profiles a studio shows (a studio can have several owners); pending ones only for its owner. */
   async studioArtistLinks(studioId: string): Promise<StudioArtistLink[]> {
     return unwrap(await this.client.from("studio_artist_links").select("*").eq("studio_id", studioId).order("created_at"));

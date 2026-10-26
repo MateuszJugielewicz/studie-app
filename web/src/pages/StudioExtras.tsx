@@ -1,13 +1,13 @@
 // Studio payout details (bank + Stripe identity check), promotions (studio and artist) and the artist-profile link.
 import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowRight, ArrowUpToLine, BadgeCheck, Info, Landmark, LockKeyhole, Megaphone, IdCard, Search, ShieldCheck, TriangleAlert, UserCheck, UserRound, Link2 } from "lucide-react";
+import { ArrowRight, ArrowUpToLine, BadgeCheck, Coins, Info, Landmark, LockKeyhole, Megaphone, IdCard, Search, ShieldCheck, TriangleAlert, UserCheck, UserRound, Link2 } from "lucide-react";
 import { api, userMessage } from "../lib/api";
 import { config, PlatformConfig } from "../lib/config";
 import { Dates, Money, Studios } from "../lib/core";
 import { format, t } from "../lib/i18n";
 import { useApp } from "../lib/state";
-import { PROMOTION_PACKAGE_TITLE, PROMOTION_PACKAGES, PROMOTION_STATUS_TITLE, promotionPrice, type ArtistProfile, type ArtistSearchResult, type PayoutAccount, type StudioArtistLink, type StudioPromotion } from "../lib/types";
+import { PROMOTION_PACKAGE_TITLE, PROMOTION_PACKAGES, PROMOTION_STATUS_TITLE, promotionPrice, type ArtistProfile, type CreditLedgerEntry, type ArtistSearchResult, type PayoutAccount, type StudioArtistLink, type StudioPromotion } from "../lib/types";
 import { AdminBadge, Avatar, C, Empty, GlowHead, IconTile, Item, ItemLabel, Loading, PageHead, PromotedTag, PulseDot, Section, Spinner, StatusPill, Tiles, VerifiedBadge, useToast } from "../components/ui";
 import { Elements, PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js";
 import { getStripe, stripeAppearance } from "./BookingFlow";
@@ -187,9 +187,35 @@ function PromotionScreen({ load, currency, promotedUntil, onChanged, pitch, acti
   const [pkg, setPkg] = useState<string>("two_weeks");
   const [checkout, setCheckout] = useState<{ promotion: StudioPromotion; clientSecret: string } | null>(null);
   const [working, setWorking] = useState(false);
+  const [balance, setBalance] = useState<number | null>(null);
+  const [ledger, setLedger] = useState<CreditLedgerEntry[]>([]);
+  const [buyingCredits, setBuyingCredits] = useState(false);
+  const reloadCredits = useCallback(async () => {
+    const [b, l] = await Promise.all([api.creditBalance().catch(() => null), api.creditHistory().catch(() => [])]);
+    setBalance(b);
+    setLedger(l);
+  }, []);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const reload = useCallback(() => load().then(setPromotions).catch((e) => toast(userMessage(e))), [toast]);
+  const reload = useCallback(() => { reloadCredits(); return load().then(setPromotions).catch((e) => toast(userMessage(e))); }, [toast, reloadCredits]);
   useEffect(() => { reload(); }, [reload]);
+  // A card purchase of credits whose confirmation never arrived (tab closed after paying) is finished here.
+  useEffect(() => {
+    api.pendingCreditPurchases()
+      .then((list) => Promise.allSettled(list.map((p) => api.confirmCreditPurchase(p.id))))
+      .then((results) => { if (results.some((r) => r.status === "fulfilled")) reloadCredits(); })
+      .catch(() => undefined);
+  }, [reloadCredits]);
+
+  // Back from a credit purchase that redirected (e.g. bank apps).
+  const returnedCredits = params.get("credits");
+  useEffect(() => {
+    if (!returnedCredits) return;
+    api.confirmCreditPurchase(returnedCredits)
+      .then(() => { toast(t("Payment received – your credits have been added.")); reloadCredits(); })
+      .catch((e) => toast(userMessage(e)))
+      .finally(() => setParams({}, { replace: true }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [returnedCredits]);
 
   // Back from a payment method that redirects (e.g. bank apps): finish it here.
   const returned = params.get("promotion");
@@ -206,6 +232,25 @@ function PromotionScreen({ load, currency, promotedUntil, onChanged, pitch, acti
   const history = promotions.filter((p) => p.status !== "pending" && p.status !== "active");
   const end = active?.ends_at ?? promotedUntil;
   const cardAvailable = !!config.stripePublishableKey;
+  const creditCost = promotionPrice(pkg, "EUR") / 100;
+  const canUseCredits = balance !== null && balance >= creditCost;
+
+  async function payWithCredits() {
+    setWorking(true);
+    try {
+      const promotion = await api.requestPromotion(pkg);
+      try {
+        await api.payPromotionWithCredits(promotion.id);
+      } catch (e) {
+        await api.cancelPromotionRequest(promotion.id).catch(() => undefined);
+        throw e;
+      }
+      toast(format("%lld credits used – your promotion has started.", creditCost));
+      await onChanged();
+      reload();
+    } catch (e) { toast(userMessage(e)); }
+    setWorking(false);
+  }
 
   async function buy() {
     setWorking(true);
@@ -243,6 +288,9 @@ function PromotionScreen({ load, currency, promotedUntil, onChanged, pitch, acti
           </div>
         ) : <div className="card row subhead secondary" style={{ gap: 8 }}><Info size={16} />{t(inactiveTitle)}</div>}
 
+        <CreditsCard balance={balance} buying={buyingCredits} onBuy={() => setBuyingCredits((v) => !v)} cardAvailable={cardAvailable}
+          returnPath={returnPath} onBought={() => { setBuyingCredits(false); reloadCredits(); }} />
+
         <GlowHead title={active ? "Extend your promotion" : "Buy a promotion"} />
         {checkout ? (
           <Elements stripe={getStripe()} options={{ clientSecret: checkout.clientSecret, appearance: stripeAppearance() }}>
@@ -253,13 +301,24 @@ function PromotionScreen({ load, currency, promotedUntil, onChanged, pitch, acti
             {PROMOTION_PACKAGES.map((p) => (
               <button key={p} className={`card tight row pressable${pkg === p ? " selected" : ""}`} style={pkg === p ? { outline: "2px solid var(--primary)" } : undefined} onClick={() => setPkg(p)}>
                 <div className="grow" style={{ textAlign: "left" }}><div className="headline">{t(PROMOTION_PACKAGE_TITLE[p])}</div></div>
-                <span className="headline">{Money.format(promotionPrice(p, currency), currency)}</span>
+                <div style={{ textAlign: "right" }}>
+                  <div className="headline">{Money.format(promotionPrice(p, currency), currency)}</div>
+                  <div className="caption secondary">{format("or %lld credits", promotionPrice(p, "EUR") / 100)}</div>
+                </div>
               </button>
             ))}
             {active && <div className="caption secondary">{t("A new promotion starts when the current one ends.")}</div>}
             {needsName && <div className="caption" style={{ color: "var(--warning)" }}>{t("Finish your artist profile first.")}</div>}
-            <button className="btn primary block" disabled={working || !cardAvailable || needsName} onClick={buy}>
-              {working ? <Spinner /> : format("Pay %@", Money.format(promotionPrice(pkg, currency), currency))}
+            {canUseCredits && (
+              <button className="btn primary block" disabled={working || needsName} onClick={payWithCredits}>
+                {working ? <Spinner /> : <><Coins size={16} />{format("Use %lld credits", creditCost)}</>}
+              </button>
+            )}
+            {!canUseCredits && balance !== null && balance > 0 && (
+              <div className="caption secondary">{format("You have %lld credits – this one needs %lld.", balance, creditCost)}</div>
+            )}
+            <button className={`btn ${canUseCredits ? "" : "primary "}block`} disabled={working || !cardAvailable || needsName} onClick={buy}>
+              {working && !canUseCredits ? <Spinner /> : format("Pay %@", Money.format(promotionPrice(pkg, currency), currency))}
             </button>
             <div className="row caption secondary" style={{ gap: 6 }}><LockKeyhole size={13} />{t(cardAvailable ? "Card, Apple Pay or Google Pay – securely processed by Stripe." : "Card payments aren't available yet. Contact EasySesh support to be promoted.")}</div>
           </div>
@@ -269,12 +328,115 @@ function PromotionScreen({ load, currency, promotedUntil, onChanged, pitch, acti
         {history.map((p) => (
           <div key={p.id} className="card tight row">
             <div className="grow"><div className="subhead semibold">{t(PROMOTION_PACKAGE_TITLE[p.package] ?? "Promotion")}</div><div className="caption secondary">{Dates.abbreviated(p.created_at)}</div></div>
-            <span className="subhead">{Money.format(p.amount, p.currency)}</span>
+            <span className="subhead">{p.credits_used ? format("%lld credits", p.credits_used) : Money.format(p.amount, p.currency)}</span>
             <StatusPill text={PROMOTION_STATUS_TITLE[p.status]} color={p.status === "expired" ? C.secondary : C.red} />
+          </div>
+        ))}
+
+        {ledger.length > 0 && <GlowHead title="Credit history" count={ledger.length} />}
+        {ledger.map((l) => (
+          <div key={l.id} className="card tight row">
+            <div className="grow">
+              <div className="subhead semibold">{t(CREDIT_KIND_TITLE[l.kind])}</div>
+              <div className="caption secondary">{Dates.abbreviated(l.created_at)}{l.note && l.kind !== "spend" && l.kind !== "purchase" ? ` · ${l.note}` : ""}</div>
+            </div>
+            <span className="subhead semibold" style={{ color: l.amount > 0 ? "var(--positive)" : undefined }}>{l.amount > 0 ? `+${l.amount}` : l.amount}</span>
           </div>
         ))}
       </div>
     </main>
+  );
+}
+
+const CREDIT_KIND_TITLE: Record<CreditLedgerEntry["kind"], string> = {
+  grant: "Credits from EasySesh", purchase: "Credits bought", spend: "Promotion paid with credits", refund: "Credits refunded", adjust: "Credits adjusted by EasySesh",
+};
+const CREDIT_PACKS = [10, 25, 50, 100];
+
+/** Promotion credits: 1 credit = €1. Given by EasySesh or bought here, and spent on promotions. */
+function CreditsCard({ balance, buying, onBuy, cardAvailable, returnPath, onBought }: {
+  balance: number | null; buying: boolean; onBuy: () => void; cardAvailable: boolean; returnPath: string; onBought: () => void;
+}) {
+  const toast = useToast();
+  const [amount, setAmount] = useState(25);
+  const [custom, setCustom] = useState("");
+  const [checkout, setCheckout] = useState<{ purchaseId: string; clientSecret: string; credits: number } | null>(null);
+  const [starting, setStarting] = useState(false);
+  const credits = custom ? Math.floor(Number(custom)) : amount;
+  const validAmount = Number.isInteger(credits) && credits >= 5 && credits <= 1000;
+
+  async function start() {
+    setStarting(true);
+    try {
+      const r = await api.buyCredits(credits);
+      setCheckout({ purchaseId: r.purchase_id, clientSecret: r.client_secret, credits });
+    } catch (e) { toast(userMessage(e)); }
+    setStarting(false);
+  }
+
+  return (
+    <div className="card stack" style={{ gap: 12 }}>
+      <div className="row">
+        <IconTile icon={Coins} size={44} colors={Tiles.warm} />
+        <div className="grow">
+          <div className="caption semibold secondary">{t("Promotion credits")}</div>
+          <div style={{ fontSize: 26, fontWeight: 800, lineHeight: 1.1 }}>{balance === null ? "–" : format("%lld credits", balance)}</div>
+        </div>
+        {!checkout && <button className="btn small" onClick={onBuy}>{t(buying ? "Close" : "Buy credits")}</button>}
+      </div>
+      <div className="caption secondary">{t("1 credit = €1. Use credits to pay for promotions instead of a card. Credits come from EasySesh (for example as a gift) or can be bought here, and they don't expire.")}</div>
+      {buying && (checkout ? (
+        <Elements stripe={getStripe()} options={{ clientSecret: checkout.clientSecret, appearance: stripeAppearance() }}>
+          <CreditPaymentForm checkout={checkout} returnPath={returnPath} onPaid={() => { setCheckout(null); onBought(); }} onCancel={() => setCheckout(null)} />
+        </Elements>
+      ) : (
+        <div className="stack" style={{ gap: 10 }}>
+          <div className="row" style={{ gap: 8, flexWrap: "wrap" }}>
+            {CREDIT_PACKS.map((n) => (
+              <button key={n} className={`btn small${!custom && amount === n ? " primary" : ""}`} onClick={() => { setAmount(n); setCustom(""); }}>{format("%lld credits", n)}</button>
+            ))}
+          </div>
+          <label className="field"><Coins size={16} /><input inputMode="numeric" placeholder={t("Other amount (5–1000)")} value={custom} onChange={(e) => setCustom(e.target.value.replace(/[^0-9]/g, ""))} /></label>
+          <button className="btn primary block" disabled={starting || !cardAvailable || !validAmount} onClick={start}>
+            {starting ? <Spinner /> : validAmount ? format("Buy %lld credits for %@", credits, Money.format(credits * 100, "EUR")) : t("Buy credits")}
+          </button>
+          <div className="row caption secondary" style={{ gap: 6 }}><LockKeyhole size={13} />{t(cardAvailable ? "Card, Apple Pay or Google Pay – securely processed by Stripe." : "Card payments aren't available yet. Contact EasySesh support to be promoted.")}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function CreditPaymentForm({ checkout, returnPath, onPaid, onCancel }: {
+  checkout: { purchaseId: string; credits: number }; returnPath: string; onPaid: () => void; onCancel: () => void;
+}) {
+  const stripe = useStripe();
+  const elements = useElements();
+  const toast = useToast();
+  const [paying, setPaying] = useState(false);
+  const price = Money.format(checkout.credits * 100, "EUR");
+  async function submit() {
+    if (!stripe || !elements) return;
+    setPaying(true);
+    const { error } = await stripe.confirmPayment({
+      elements, redirect: "if_required",
+      confirmParams: { return_url: `${window.location.origin}${returnPath}?credits=${checkout.purchaseId}` },
+    });
+    if (error) { toast(format("Payment failed: %@", error.message ?? "")); setPaying(false); return; }
+    try {
+      await api.confirmCreditPurchase(checkout.purchaseId);
+      toast(t("Payment received – your credits have been added."));
+      onPaid();
+    } catch (e) { toast(userMessage(e)); }
+    setPaying(false);
+  }
+  return (
+    <div className="stack">
+      <div className="row"><div className="grow headline">{format("%lld credits", checkout.credits)}</div><span className="headline">{price}</span></div>
+      <PaymentElement options={{ layout: "tabs" }} />
+      <button className="btn primary block" disabled={!stripe || paying} onClick={submit}>{paying ? <Spinner /> : format("Pay %@", price)}</button>
+      <button className="btn block" disabled={paying} onClick={onCancel}>{t("Cancel")}</button>
+    </div>
   );
 }
 
