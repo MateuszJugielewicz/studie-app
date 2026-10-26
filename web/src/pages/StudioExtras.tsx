@@ -1,6 +1,6 @@
 // Studio payout details (bank + Stripe identity check), promotions (studio and artist) and the artist-profile link.
 import { useCallback, useEffect, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowRight, ArrowUpToLine, BadgeCheck, Info, Landmark, LockKeyhole, Megaphone, IdCard, Search, ShieldCheck, TriangleAlert, UserCheck, UserRound, Link2 } from "lucide-react";
 import { api, userMessage } from "../lib/api";
 import { config, PlatformConfig } from "../lib/config";
@@ -34,6 +34,7 @@ const CURRENCY: Record<string, string> = { DK: "dkk", SE: "sek", NO: "nok", GB: 
 
 export function PayoutPage({ studioId, prepare }: { studioId?: string; prepare?: () => Promise<void> }) {
   const app = useApp();
+  const navigate = useNavigate();
   const toast = useToast();
   const [params] = useSearchParams();
   const id = studioId ?? app.ownedStudio!.id;
@@ -90,6 +91,13 @@ export function PayoutPage({ studioId, prepare }: { studioId?: string; prepare?:
     <main className="page narrow">
       <PageHead title="Payout details" />
       <div className="stack-lg">
+        {!PlatformConfig.PAYMENTS_LIVE && !account?.payouts_enabled && (
+          <div className="card stack" style={{ gap: 10, borderColor: "color-mix(in srgb, var(--primary) 35%, var(--stroke))", background: "color-mix(in srgb, var(--primary) 6%, var(--card))" }}>
+            <div className="headline">{t("You can skip this for now")}</div>
+            <div className="subhead secondary">{t("Card payments and payouts aren't live yet, so you don't need to set this up to apply or to be approved. When they go live, we'll email you and ask you to add your bank account and confirm your identity before you can receive payouts.")}</div>
+            {prepare && <div><button className="btn secondary small" onClick={() => navigate("/studio/edit")}>{t("Skip for now")}</button></div>}
+          </div>
+        )}
         <Section footer={format("You're paid only after a session is completed: payouts are sent %lld days after each completed session, minus EasySesh's %lld%% platform fee. Platform fees for cash bookings are deducted from the same payouts.",
           PlatformConfig.PAYOUT_DELAY_DAYS, app.ownedStudio ? Studios.feePercent(app.ownedStudio) : PlatformConfig.PLATFORM_FEE_PERCENT)} translate={false}>
           <Item>

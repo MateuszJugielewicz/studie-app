@@ -67,6 +67,8 @@ export interface AdminApi {
   /** Admin rank: deletes an account or a studio (upcoming bookings cancelled and refunded, person emailed). */
   deleteAccount(userId: string): Promise<{ soft: boolean; cancelled: number }>;
   deleteStudio(studioId: string): Promise<{ removed: boolean; cancelled: number }>;
+  /** The CVR / VAT number from the studio's application ("" when none was given). */
+  studioCvr(studioId: string): Promise<string>;
   sendEmail(email: { from: string; to: string; subject: string; body: string }): Promise<void>;
   sentEmails(): Promise<SentEmail[]>;
   /** Owners only: email campaigns (one email per recipient, sent in batches from the panel). */

@@ -193,6 +193,11 @@ export class SupabaseAdminApi implements AdminApi {
     return data;
   }
 
+  async studioCvr(studioId: string): Promise<string> {
+    const row = unwrap<{ cvr: string } | null>(await this.client.from("studio_business_details").select("cvr").eq("studio_id", studioId).maybeSingle());
+    return row?.cvr ?? "";
+  }
+
   async sendEmail(email: { from: string; to: string; subject: string; body: string }) {
     const { error } = await this.client.functions.invoke("admin-send-email", { body: email });
     if (error) throw new Error(await functionError(error));

@@ -8,7 +8,7 @@ import { endViewAs, takeViewAsTokens, viewAs, viewOnlyFetch } from "./viewAs";
 import type {
   AppNotification, ArtistProfile, ArtistReview, ArtistSearchResult, BlockState, BlockedSlot, BlockedUser, Booking, ChangelogEntry,
   ChatMessage, Conversation, FeeInvoice, FeeLedgerEntry, Interval, ModerationWarning, PaymentIntentInfo, PaymentTransaction, Payout,
-  DiscoveredArtist, PayoutAccount, Story, StoryActivity, StoryAuthor, VerificationRequest, ReportReason, ReportTarget, Review, Studio, StudioArtistLink, StudioPromotion, SupportCategory, SupportMessage,
+  DiscoveredArtist, PayoutAccount, StudioBusiness, Story, StoryActivity, StoryAuthor, VerificationRequest, ReportReason, ReportTarget, Review, Studio, StudioArtistLink, StudioPromotion, SupportCategory, SupportMessage,
   SupportTicket, UserAccount, UserRole, UserSettings, PriceBreakdown, PromoCheck, PromoCode, SiteBanner, StudioOffer, ModerationRecord, AccountChangeNotice,
 } from "./types";
 
@@ -258,6 +258,14 @@ export class Api {
 
   submitStudioForReview = (id: string) => this.rpc<Studio>("submit_studio_for_review", { p_studio_id: id });
   setStudioActive = (id: string, active: boolean) => this.rpc<Studio>("set_studio_active", { p_studio_id: id, p_active: active });
+
+  async studioBusiness(studioId: string): Promise<StudioBusiness | null> {
+    return unwrap(await this.client.from("studio_business_details").select("studio_id, cvr").eq("studio_id", studioId).maybeSingle());
+  }
+
+  async saveStudioBusiness(studioId: string, cvr: string): Promise<void> {
+    unwrap(await this.client.from("studio_business_details").upsert({ studio_id: studioId, cvr: cvr.trim(), updated_at: new Date().toISOString() }));
+  }
 
   async payoutAccount(studioId: string): Promise<PayoutAccount | null> {
     return unwrap(await this.client.from("studio_payout_accounts").select("*").eq("studio_id", studioId).maybeSingle());

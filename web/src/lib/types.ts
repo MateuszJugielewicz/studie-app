@@ -272,6 +272,8 @@ export interface FeeLedgerEntry { id: string; studio_id: string; booking_id?: st
 export interface FeeInvoice { id: string; studio_id: string; amount: number; currency: string; status: string; hosted_invoice_url?: string | null; due_at?: string | null; created_at: string }
 
 export interface BlockedSlot { id: string; studio_id: string; starts_at: string; ends_at: string; reason: string }
+/** Private business details from the studio application (only the owner and the EasySesh team see them). */
+export interface StudioBusiness { studio_id: string; cvr: string }
 export interface PayoutAccount { studio_id: string; account_holder: string; iban_last4: string; stripe_account_id?: string | null; payouts_enabled: boolean }
 
 export type ConversationRequestStatus = "accepted" | "pending" | "declined";

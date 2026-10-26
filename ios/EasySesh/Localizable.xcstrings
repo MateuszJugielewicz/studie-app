@@ -11919,6 +11919,65 @@
         }
       }
     },
+    "Business": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Virksomhed"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unternehmen"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Επιχείρηση"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Empresa"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entreprise"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Attività"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bedrijf"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Firma"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Företag"
+          }
+        }
+      }
+    },
     "Buy a promotion": {
       "extractionState": "manual",
       "localizations": {
@@ -11974,6 +12033,65 @@
           "stringUnit": {
             "state": "translated",
             "value": "Köp marknadsföring"
+          }
+        }
+      }
+    },
+    "CVR / VAT number": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CVR-nummer"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "USt-IdNr. / Firmennummer"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ΑΦΜ / αριθμός επιχείρησης"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "NIF / CIF"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "N° de TVA / SIRET"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Partita IVA"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "KvK- / btw-nummer"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "NIP / numer firmy"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Org.nr / momsnummer"
           }
         }
       }
@@ -12977,6 +13095,124 @@
           "stringUnit": {
             "state": "translated",
             "value": "Kort eller Google Pay – hanteras säkert av Stripe."
+          }
+        }
+      }
+    },
+    "Card payments and payouts aren't live yet, so you don't need to set this up to apply or to be approved. When they go live, we'll email you and ask you to add your bank account and confirm your identity before you can receive payouts.": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kortbetalinger og udbetalinger er ikke live endnu, så du behøver ikke sætte det op for at ansøge eller blive godkendt. Når de går live, sender vi dig en mail og beder dig tilføje din bankkonto og bekræfte din identitet, før du kan modtage udbetalinger."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kartenzahlungen und Auszahlungen sind noch nicht live, daher musst du das für die Bewerbung oder Freigabe nicht einrichten. Sobald sie live sind, schreiben wir dir eine E-Mail und bitten dich, dein Bankkonto hinzuzufügen und deine Identität zu bestätigen, bevor du Auszahlungen erhalten kannst."
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Οι πληρωμές με κάρτα και οι εκκαθαρίσεις δεν είναι ακόμη ενεργές, οπότε δεν χρειάζεται να τις ρυθμίσεις για να κάνεις αίτηση ή να εγκριθείς. Όταν ενεργοποιηθούν, θα σου στείλουμε email και θα σου ζητήσουμε να προσθέσεις τον τραπεζικό σου λογαριασμό και να επιβεβαιώσεις την ταυτότητά σου πριν λάβεις πληρωμές."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los pagos con tarjeta y las liquidaciones aún no están activos, así que no necesitas configurarlos para solicitar o ser aprobado. Cuando se activen, te escribiremos para pedirte que añadas tu cuenta bancaria y confirmes tu identidad antes de recibir pagos."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les paiements par carte et les versements ne sont pas encore actifs, tu n'as donc pas besoin de les configurer pour postuler ou être validé. Quand ils seront actifs, nous t'enverrons un e-mail pour te demander d'ajouter ton compte bancaire et de confirmer ton identité avant de recevoir des versements."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I pagamenti con carta e le liquidazioni non sono ancora attivi, quindi non devi configurarli per candidarti o essere approvato. Quando saranno attivi ti scriveremo per chiederti di aggiungere il conto bancario e confermare la tua identità prima di ricevere i pagamenti."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kaartbetalingen en uitbetalingen zijn nog niet live, dus je hoeft dit niet in te stellen om je aan te melden of goedgekeurd te worden. Zodra ze live zijn, mailen we je en vragen we je je bankrekening toe te voegen en je identiteit te bevestigen voordat je uitbetalingen ontvangt."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Płatności kartą i wypłaty nie działają jeszcze na żywo, więc nie musisz tego ustawiać, aby złożyć wniosek lub zostać zatwierdzonym. Gdy ruszą, wyślemy Ci e-mail z prośbą o dodanie konta bankowego i potwierdzenie tożsamości, zanim otrzymasz wypłaty."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kortbetalningar och utbetalningar är inte igång än, så du behöver inte ställa in det för att ansöka eller bli godkänd. När de är igång mejlar vi dig och ber dig lägga till ditt bankkonto och bekräfta din identitet innan du kan få utbetalningar."
+          }
+        }
+      }
+    },
+    "Card payments are live. Add your bank account and confirm your identity so you can receive your money.": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kortbetalinger er live. Tilføj din bankkonto og bekræft din identitet, så du kan modtage dine penge."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kartenzahlungen sind live. Füge dein Bankkonto hinzu und bestätige deine Identität, damit du dein Geld erhältst."
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Οι πληρωμές με κάρτα είναι ενεργές. Πρόσθεσε τον τραπεζικό σου λογαριασμό και επιβεβαίωσε την ταυτότητά σου για να λαμβάνεις τα χρήματά σου."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los pagos con tarjeta ya están activos. Añade tu cuenta bancaria y confirma tu identidad para recibir tu dinero."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les paiements par carte sont actifs. Ajoute ton compte bancaire et confirme ton identité pour recevoir ton argent."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I pagamenti con carta sono attivi. Aggiungi il conto bancario e conferma la tua identità per ricevere i tuoi soldi."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kaartbetalingen zijn live. Voeg je bankrekening toe en bevestig je identiteit om je geld te ontvangen."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Płatności kartą działają. Dodaj konto bankowe i potwierdź tożsamość, aby otrzymywać pieniądze."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kortbetalningar är igång. Lägg till ditt bankkonto och bekräfta din identitet så att du kan få dina pengar."
           }
         }
       }
@@ -38587,6 +38823,65 @@
         }
       }
     },
+    "Optional. Only EasySesh sees it – it helps us verify your studio.": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Valgfrit. Kun EasySesh kan se det – det hjælper os med at verificere jeres studie."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Optional. Nur EasySesh sieht sie – sie hilft uns, dein Studio zu verifizieren."
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Προαιρετικό. Το βλέπει μόνο το EasySesh – μας βοηθά να επαληθεύσουμε το στούντιό σου."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opcional. Solo lo ve EasySesh: nos ayuda a verificar tu estudio."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Facultatif. Seul EasySesh le voit – cela nous aide à vérifier ton studio."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Facoltativo. Lo vede solo EasySesh: ci aiuta a verificare il tuo studio."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Optioneel. Alleen EasySesh ziet het – het helpt ons je studio te verifiëren."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opcjonalnie. Widzi go tylko EasySesh – pomaga nam zweryfikować Twoje studio."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Valfritt. Bara EasySesh ser det – det hjälper oss att verifiera din studio."
+          }
+        }
+      }
+    },
     "Or with email": {
       "extractionState": "manual",
       "localizations": {
@@ -52570,6 +52865,65 @@
         }
       }
     },
+    "Set up payouts": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opsæt udbetalinger"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auszahlungen einrichten"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ρύθμιση εκκαθαρίσεων"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configurar los pagos"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configurer les versements"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configura i pagamenti"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uitbetalingen instellen"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skonfiguruj wypłaty"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ställ in utbetalningar"
+          }
+        }
+      }
+    },
     "Set up your artist profile": {
       "extractionState": "manual",
       "localizations": {
@@ -54041,6 +54395,65 @@
           "stringUnit": {
             "state": "translated",
             "value": "Hoppa över"
+          }
+        }
+      }
+    },
+    "Skip for now": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spring over indtil videre"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vorerst überspringen"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Παράλειψη προς το παρόν"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saltar por ahora"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Passer pour l'instant"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salta per ora"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nu overslaan"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pomiń na razie"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hoppa över tills vidare"
           }
         }
       }
@@ -67906,6 +68319,65 @@
           "stringUnit": {
             "state": "translated",
             "value": "Du kan betygsätta artisten när sessionen är genomförd."
+          }
+        }
+      }
+    },
+    "You can skip this for now": {
+      "extractionState": "manual",
+      "localizations": {
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Du kan springe det over indtil videre"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das kannst du vorerst überspringen"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Μπορείς να το παραλείψεις προς το παρόν"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Puedes saltarte esto por ahora"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu peux passer cette étape pour l'instant"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Per ora puoi saltare questo passaggio"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Je kunt dit voorlopig overslaan"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Na razie możesz to pominąć"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Du kan hoppa över det här tills vidare"
           }
         }
       }

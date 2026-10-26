@@ -96,6 +96,7 @@ function StudioModal({ studio, onClose, onChanged }: { studio: Studio; onClose: 
   const [newTag, setNewTag] = useState("");
   const [promoDays, setPromoDays] = useState(7);
   const [ownerEmail, setOwnerEmail] = useState<string | null>(null);
+  const { data: cvr } = useLoad(() => api.studioCvr(studio.id), [studio.id]);
   const staff = useStaff();
   useEffect(() => { api.accountEmail(studio.owner_id).then(setOwnerEmail).catch(() => setOwnerEmail(null)); }, [api, studio.owner_id]);
   const feeValue = fee.trim() === "" ? null : Number(fee);
@@ -181,6 +182,7 @@ function StudioModal({ studio, onClose, onChanged }: { studio: Studio; onClose: 
       <div className="details">
         <Detail title="Address">{studio.address.street}, {studio.address.postal_code} {studio.address.city} ({studio.address.area}), {studio.address.country}<br /><span className="muted small">{studio.latitude.toFixed(4)}, {studio.longitude.toFixed(4)}</span></Detail>
         <Detail title="Contact">{studio.contact.email}<br />{studio.contact.phone}<br />{studio.contact.website}</Detail>
+        <Detail title="CVR / VAT number">{cvr ? <span className="mono">{cvr}</span> : <span className="muted">Not given</span>}</Detail>
         <Detail title="Prices">
           {studio.session_types.map((t) => <div key={t.id}>{t.name}: {money(t.hourly_rate, studio.currency)}/h (min {t.minimum_hours}h){t.includes_engineer ? " · engineer" : ""}</div>)}
           {studio.add_ons.map((a) => <div key={a.id} className="muted">{a.name}: {money(a.price, studio.currency)} {label(a.unit)}</div>)}

@@ -18,6 +18,11 @@ export const PlatformConfig = {
   PLATFORM_FEE_PERCENT: 10,
   PAYOUT_DELAY_DAYS: 2,
   MAX_SESSION_HOURS: 12,
+  /**
+   * Card payments and payouts (Stripe) aren't live yet. Until they are, studios can skip the payout
+   * setup; set this to true at launch and every studio without payouts is asked to set them up.
+   */
+  PAYMENTS_LIVE: false,
 };
 
 /** Bump together with the apps when a legal document changes materially. */

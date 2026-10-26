@@ -25,6 +25,7 @@ import { SignOutButton } from "./Profile";
 import { PayoutPage, PromotionPage, ArtistLinkPage } from "./StudioExtras";
 import { VerificationCard } from "./Verification";
 import { StoryBar } from "../components/Stories";
+import { PlatformConfig } from "../lib/config";
 
 export default function StudioOwner() {
   const app = useApp();
@@ -93,6 +94,23 @@ function ApplicationStatus({ studio }: { studio: Studio }) {
   );
 }
 
+/** Once payments are live, studios without payouts are asked to set them up (until then it can wait). */
+function PayoutReminder({ studio }: { studio: Studio }) {
+  const [missing, setMissing] = useState(false);
+  useEffect(() => {
+    if (!PlatformConfig.PAYMENTS_LIVE) return;
+    api.payoutAccount(studio.id).then((a) => setMissing(!a?.payouts_enabled)).catch(() => undefined);
+  }, [studio.id]);
+  if (!missing) return null;
+  return (
+    <Link to="/studio/payouts" className="card row pressable" style={{ borderColor: "color-mix(in srgb, var(--warning) 45%, var(--stroke))" }}>
+      <IconTile icon={Landmark} colors={Tiles.warm} />
+      <span className="grow"><div className="subhead bold">{t("Set up payouts")}</div><div className="footnote secondary">{t("Card payments are live. Add your bank account and confirm your identity so you can receive your money.")}</div></span>
+      <ChevronRight size={18} className="tertiary" />
+    </Link>
+  );
+}
+
 function Step({ title, done, active, last }: { title: string; done?: boolean; active?: boolean; last?: boolean }) {
   const Icon = done ? Check : active ? Hourglass : CircleDot;
   return (
@@ -151,6 +169,7 @@ function Dashboard() {
           {studio.status === "suspended" && (
             <div className="card row"><IconTile icon={OctagonAlert} colors={Tiles.danger} /><span className="subhead">{t("Your studio is suspended and hidden from artists. Contact support.")}</span></div>
           )}
+          <PayoutReminder studio={studio} />
           <StoryBar />
           <LiveToggle studio={studio} />
           <div className="neon-card stack" style={{ gap: 14 }}>

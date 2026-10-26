@@ -9,6 +9,7 @@ import { formatMinutes, Money, OPENING_DISPLAY_ORDER, studioProblems, Studios, u
 import { compressImage } from "../lib/image";
 import { format, t } from "../lib/i18n";
 import { geocode } from "../lib/location";
+import { PlatformConfig } from "../lib/config";
 import { useApp } from "../lib/state";
 import {
   ADD_ON_KINDS, CANCELLATION, EQUIPMENT_CATEGORIES, FACILITIES, GENRES, PRICE_UNITS, type CancellationPolicy, type EquipmentCategory, type OpeningHours, type Studio,
@@ -26,6 +27,10 @@ const store = {
   subscribe(l: () => void) { listeners.add(l); return () => { listeners.delete(l); }; },
 };
 const newId = () => uuid().toLowerCase();
+
+// The private business details (CVR) are stored separately from the public listing; an edit is kept
+// here until the listing is saved, so a new application can add it before the studio exists.
+let business: { studioId: string; cvr: string; saved: string } | null = null;
 
 function useDraft(): [Studio, (s: Studio) => void] {
   const app = useApp();
@@ -64,6 +69,10 @@ function useSave() {
     setSaving(true);
     try {
       const saved = await api.saveStudio(studio);
+      if (business && business.studioId === studio.id && business.cvr.trim() !== business.saved) {
+        await api.saveStudioBusiness(saved.id, business.cvr);
+        business = { ...business, saved: business.cvr.trim() };
+      }
       setStudio(saved);
       app.setOwnedStudio(saved);
       setSaving(false);
@@ -116,7 +125,12 @@ function EditorHome() {
           {link("hours", "Opening hours", Clock, !studio.opening_hours.every((h) => h.is_closed))}
           {link("features", "Facilities, gear & genres", SlidersVertical, studio.genres.length > 0 && studio.facilities.length > 0)}
           {link("policy", "Booking settings & rules", Bolt, true)}
-          {link("payouts", "Payout details", Landmark, true)}
+          {PlatformConfig.PAYMENTS_LIVE ? link("payouts", "Payout details", Landmark, true) : (
+            <Item to="/studio/edit/payouts">
+              <Landmark size={20} color="var(--accent)" /><span className="label">{t("Payout details")}</span>
+              <span className="pill" style={{ background: "var(--fill-strong)", color: "var(--text-2)" }}>{t("Later")}</span>
+            </Item>
+          )}
         </Section>
         {isApplication && problems.length > 0 && (
           <Section header="Still missing">{problems.map((p) => <Item key={p}><Notice icon={CircleAlert} color="var(--warning)">{t(p)}</Notice></Item>)}</Section>
@@ -223,12 +237,32 @@ function Location() {
         {(studio.latitude !== 0 || studio.longitude !== 0) && <div style={{ padding: 0 }}><StudioMap key={`${studio.latitude},${studio.longitude}`} height={200} center={studio} interactive={false} pins={[{ id: studio.id, point: studio, label: studio.name || t("Studio") }]} /></div>}
         {message && <Item><span className="footnote secondary">{t(message)}</span></Item>}
       </Section>
+      <BusinessSection studioId={studio.id} />
       <Section header="Contact">
         <InputItem type="tel" placeholder="Phone" autoComplete="tel" value={studio.contact.phone} onChange={(phone) => set({ ...studio, contact: { ...studio.contact, phone } })} />
         <InputItem type="email" placeholder="Email" autoComplete="email" value={studio.contact.email} onChange={(email) => set({ ...studio, contact: { ...studio.contact, email } })} />
         <InputItem type="url" placeholder="Website" value={studio.contact.website} onChange={(website) => set({ ...studio, contact: { ...studio.contact, website } })} />
       </Section>
     </SectionPage>
+  );
+}
+
+/** CVR / VAT number: optional, and only seen by the studio and the EasySesh team. */
+function BusinessSection({ studioId }: { studioId: string }) {
+  const app = useApp();
+  const [cvr, setCvr] = useState(business?.studioId === studioId ? business.cvr : "");
+  useEffect(() => {
+    if (business?.studioId === studioId) return;
+    business = { studioId, cvr: "", saved: "" };
+    if (app.ownedStudio?.id !== studioId) return; // a new application has nothing stored yet
+    api.studioBusiness(studioId).then((b) => {
+      if (b && business?.studioId === studioId && !business.cvr) { business = { studioId, cvr: b.cvr, saved: b.cvr }; setCvr(b.cvr); }
+    }).catch(() => undefined);
+  }, [studioId]); // eslint-disable-line react-hooks/exhaustive-deps
+  return (
+    <Section header="Business" footer="Optional. Only EasySesh sees it – it helps us verify your studio.">
+      <InputItem placeholder="CVR / VAT number" value={cvr} autoComplete="off" onChange={(v) => { setCvr(v); business = { ...(business ?? { studioId, saved: "" }), studioId, cvr: v }; }} />
+    </Section>
   );
 }
 
