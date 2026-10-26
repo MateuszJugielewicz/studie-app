@@ -6,6 +6,7 @@ import { passwordProblem, passwordStrength } from "../lib/core";
 import { t } from "../lib/i18n";
 import { useApp } from "../lib/state";
 import { IconTile, Loading, Logo, Sheet, Tiles, useToast } from "../components/ui";
+import { GoogleButton } from "../components/GoogleButton";
 import { LEGAL, LegalDocumentBody, requiredDocuments, type LegalDocument } from "./Legal";
 import type { UserRole } from "../lib/types";
 
@@ -91,6 +92,15 @@ function AuthForm({ initial }: { initial: "signin" | "signup" }) {
     try { await api.startOAuth(provider, role); } catch (e) { toast(userMessage(e)); }
   }
 
+  async function googleToken(idToken: string, rawNonce: string) {
+    setWorking(true);
+    try {
+      const account = await api.signInWithGoogleToken(idToken, rawNonce, role);
+      if (account) await app.didAuthenticate(account);
+    } catch (e) { toast(userMessage(e)); }
+    setWorking(false);
+  }
+
   async function forgot() {
     try { await api.sendPasswordReset(email.trim()); toast(t("Check your inbox for a reset link."), "info"); } catch (e) { toast(userMessage(e)); }
   }
@@ -119,7 +129,8 @@ function AuthForm({ initial }: { initial: "signin" | "signup" }) {
 
         <div className="stack" style={{ gap: 10 }}>
           <button type="button" className="btn dark block" onClick={() => oauth("apple")}><Apple size={20} fill="currentColor" />{t(signUp ? "Sign up with Apple" : "Sign in with Apple")}</button>
-          <button type="button" className="btn secondary block" onClick={() => oauth("google")}><GoogleG />{t("Continue with Google")}</button>
+          <GoogleButton key={role} signUp={signUp} onCredential={googleToken}
+            fallback={<button type="button" className="btn secondary block" onClick={() => oauth("google")}><GoogleG />{t("Continue with Google")}</button>} />
         </div>
 
         <div className="row" style={{ gap: 12 }}>

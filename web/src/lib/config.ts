@@ -4,6 +4,8 @@ export const config = {
   supabaseAnonKey: import.meta.env.VITE_SUPABASE_ANON_KEY || __SHARED_CONFIG__.supabaseAnonKey,
   stripePublishableKey: import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || __SHARED_CONFIG__.stripePublishableKey,
   supportEmail: import.meta.env.VITE_SUPPORT_EMAIL || __SHARED_CONFIG__.supportEmail,
+  /** Google OAuth web client (Google Cloud → Credentials). Its secret lives only in Supabase. */
+  googleClientId: import.meta.env.VITE_GOOGLE_CLIENT_ID || "579827968857-6ageejk9t18cji1qgo5eooi35eu5di1i.apps.googleusercontent.com",
 };
 
 /** Public contact addresses (support also comes from the shared app config). */

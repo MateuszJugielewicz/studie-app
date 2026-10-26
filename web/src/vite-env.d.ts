@@ -7,4 +7,5 @@ interface ImportMetaEnv {
   readonly VITE_SUPABASE_ANON_KEY?: string;
   readonly VITE_STRIPE_PUBLISHABLE_KEY?: string;
   readonly VITE_SUPPORT_EMAIL?: string;
+  readonly VITE_GOOGLE_CLIENT_ID?: string;
 }

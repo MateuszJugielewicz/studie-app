@@ -171,6 +171,18 @@ export class Api {
     if (error) throw mapMessage(error.message);
   }
 
+  /**
+   * Google's own button on easysesh.live (Google Identity Services) hands us an ID token, so Google's
+   * window says easysesh.live instead of the Supabase address. The raw nonce must match the hashed
+   * one given to Google.
+   */
+  async signInWithGoogleToken(idToken: string, rawNonce: string, role: UserRole): Promise<UserAccount | null> {
+    try { localStorage.setItem("easysesh.oauthRole", role); } catch { /* ignore */ }
+    const { error } = await this.client.auth.signInWithIdToken({ provider: "google", token: idToken, nonce: rawNonce });
+    if (error) throw mapMessage(error.message);
+    return this.finishSocialSignIn();
+  }
+
   /** Social sign-up creates an artist by default; brand-new accounts may switch to studio owner once. */
   async finishSocialSignIn(): Promise<UserAccount | null> {
     let role: string | null = null;
