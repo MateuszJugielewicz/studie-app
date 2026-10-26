@@ -1,7 +1,7 @@
 import type {
   AdminStory, PaymentDomainsResult, VerificationRequest,
   FeeBalance, FeeInvoice, MfaState, ChangelogEntry, ModerationEvent, Promotion, PromoCode, RatingDispute, StudioOffer, TermsStatus,
-  AuditEntry, FlagRule, SentEmail, SiteBanner, StaffMember, StaffRank,
+  AuditEntry, CampaignRecipient, EmailCampaign, FlagRule, NewCampaignRecipient, SentEmail, SiteBanner, StaffMember, StaffRank,
   AccountStatus, AdminUser, Booking, BookingStatus, DashboardStats, Dispute, Payout, Report, ReportStatus,
   ReportTargetDetails, Review, Studio, StudioEvent, SupportMessage, SupportStatus, SupportTicket, Transaction,
 } from "./types";
@@ -69,6 +69,16 @@ export interface AdminApi {
   deleteStudio(studioId: string): Promise<{ removed: boolean; cancelled: number }>;
   sendEmail(email: { from: string; to: string; subject: string; body: string }): Promise<void>;
   sentEmails(): Promise<SentEmail[]>;
+  /** Owners only: email campaigns (one email per recipient, sent in batches from the panel). */
+  campaigns(): Promise<EmailCampaign[]>;
+  saveCampaign(campaign: Partial<EmailCampaign> & { name: string }): Promise<string>;
+  deleteCampaign(id: string): Promise<void>;
+  campaignRecipients(campaignId: string): Promise<CampaignRecipient[]>;
+  addCampaignRecipients(campaignId: string, recipients: NewCampaignRecipient[]): Promise<number>;
+  removeCampaignRecipient(id: string): Promise<void>;
+  /** Never email this address from a campaign again (and skip it where it's still pending). */
+  doNotContact(email: string, reason: string): Promise<void>;
+  sendCampaign(campaignId: string, mode: "test" | "batch", limit?: number): Promise<{ sent: number; failed?: number; skipped?: number; left?: number; to?: string }>;
   /** Word lists for automatic report flags. */
   flagRules(): Promise<FlagRule[]>;
   verificationRequests(): Promise<VerificationRequest[]>;

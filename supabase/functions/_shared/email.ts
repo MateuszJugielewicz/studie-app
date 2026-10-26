@@ -66,7 +66,7 @@ async function sendWithId(to: string | string[], subject: string, html: string, 
 }
 
 /** The EasySesh email layout: logo, a card with title, text, optional detail rows and a button. */
-function render(o: { title: string; body: string; rows?: [string, string][]; button?: string; link?: string; footer: string; after?: string; replyTo?: string }) {
+function render(o: { title: string; body: string; rows?: [string, string][]; button?: string; link?: string; footer: string; after?: string; replyTo?: string; questions?: boolean }) {
   const rows = o.rows ?? [];
   const table = rows.map(([k, v]) =>
     `<tr><td style="padding:6px 0;color:#6f6c66;width:110px;vertical-align:top">${escape(k)}</td><td style="padding:6px 0;color:#1c1b19">${escape(v)}</td></tr>`).join("");
@@ -83,9 +83,9 @@ function render(o: { title: string; body: string; rows?: [string, string][]; but
     ${o.button && o.link ? `<a href="${escape(o.link)}" style="display:inline-block;background:#d9431e;color:#fff;text-decoration:none;font-weight:600;padding:11px 18px;border-radius:10px">${escape(o.button)}</a>` : ""}
     ${o.after ? `<p style="margin:16px 0 0;font-size:13px;color:#6f6c66;line-height:1.5;word-break:break-all">${escape(o.after)}</p>` : ""}
   </div>
-  <p style="font-size:12px;color:#8a877f;line-height:1.5;margin:16px 4px 0">${escape(o.footer)} Questions? Reply to this email or write to ${escape(o.replyTo ?? REPLY_TO)}.</p>
+  <p style="font-size:12px;color:#8a877f;line-height:1.5;margin:16px 4px 0;white-space:pre-line">${escape(o.footer)}${o.questions === false ? "" : ` Questions? Reply to this email or write to ${escape(o.replyTo ?? REPLY_TO)}.`}</p>
 </div></body></html>`;
-  const text = [o.title, "", o.body, "", ...rows.map(([k, v]) => `${k}: ${v}`), ...(o.button && o.link ? ["", `${o.button}: ${o.link}`] : []), ...(o.after ? ["", o.after] : []), "", `Questions? ${o.replyTo ?? REPLY_TO}`].join("\n");
+  const text = [o.title, "", o.body, "", ...rows.map(([k, v]) => `${k}: ${v}`), ...(o.button && o.link ? ["", `${o.button}: ${o.link}`] : []), ...(o.after ? ["", o.after] : []), "", o.questions === false ? o.footer : `Questions? ${o.replyTo ?? REPLY_TO}`].join("\n");
   return { html, text };
 }
 
@@ -176,4 +176,10 @@ export async function sendStaffEmail(fromAddress: string, to: string[], subject:
   const name = fromAddress.startsWith("support@") ? "EasySesh Support" : "EasySesh";
   const { html, text } = render({ title: subject, body, footer: "This email was sent by the EasySesh team.", replyTo: fromAddress });
   return sendWithId(to, subject, html, text, `${name} <${fromAddress}>`, fromAddress);
+}
+
+/** One campaign email to one recipient, in the EasySesh design. The footer is the campaign's own (its language). */
+export async function sendCampaignEmail(fromAddress: string, to: string, subject: string, body: string, footer: string): Promise<string | null> {
+  const { html, text } = render({ title: subject, body, footer, questions: false, replyTo: fromAddress });
+  return sendWithId([to], subject, html, text, `EasySesh <${fromAddress}>`, fromAddress);
 }

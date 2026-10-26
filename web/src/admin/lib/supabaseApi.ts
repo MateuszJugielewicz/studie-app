@@ -4,7 +4,7 @@ import { fetchWithReason } from "./reason";
 import type {
   AdminStory, PaymentDomainsResult, VerificationRequest,
   FeeBalance, FeeInvoice, MfaState, ChangelogEntry, ModerationEvent, Promotion, PromoCode, RatingDispute, StudioOffer, TermsStatus,
-  AuditEntry, FlagRule, SentEmail, SiteBanner, StaffMember, StaffRank,
+  AuditEntry, CampaignRecipient, EmailCampaign, FlagRule, NewCampaignRecipient, SentEmail, SiteBanner, StaffMember, StaffRank,
   AccountStatus, AdminUser, Booking, BookingStatus, DashboardStats, Dispute, Payout, Report, ReportStatus,
   ReportTargetDetails, Review, Studio, StudioEvent, SupportMessage, SupportStatus, SupportTicket, Transaction,
 } from "./types";
@@ -200,6 +200,57 @@ export class SupabaseAdminApi implements AdminApi {
 
   async sentEmails(): Promise<SentEmail[]> {
     return unwrap(await this.client.from("admin_emails").select("*").order("created_at", { ascending: false }).limit(200));
+  }
+
+  async campaigns(): Promise<EmailCampaign[]> {
+    return unwrap(await this.client.from("admin_email_campaigns").select("*").order("created_at", { ascending: false }));
+  }
+
+  async saveCampaign(campaign: Partial<EmailCampaign> & { name: string }): Promise<string> {
+    const { id, name, from_local, subject, body, footer, note } = campaign;
+    const row = { name, from_local, subject, body, footer, note };
+    if (id) {
+      unwrap(await this.client.from("email_campaigns").update(row).eq("id", id));
+      return id;
+    }
+    const { data: user } = await this.client.auth.getUser();
+    return unwrap<{ id: string }>(await this.client.from("email_campaigns").insert({ ...row, created_by: user.user?.id }).select("id").single()).id;
+  }
+
+  async deleteCampaign(id: string) {
+    unwrap(await this.client.from("email_campaigns").delete().eq("id", id));
+  }
+
+  async campaignRecipients(campaignId: string): Promise<CampaignRecipient[]> {
+    return unwrap(await this.client.from("email_campaign_recipients").select("*").eq("campaign_id", campaignId).order("created_at").limit(5000));
+  }
+
+  async addCampaignRecipients(campaignId: string, recipients: NewCampaignRecipient[]): Promise<number> {
+    const existing = new Set((await this.campaignRecipients(campaignId)).map((r) => r.email.toLowerCase()));
+    const fresh = recipients.filter((r) => {
+      const key = r.email.toLowerCase();
+      if (existing.has(key)) return false;
+      existing.add(key);
+      return true;
+    });
+    if (fresh.length) unwrap(await this.client.from("email_campaign_recipients").insert(fresh.map((r) => ({ ...r, email: r.email.trim().toLowerCase(), campaign_id: campaignId }))));
+    return fresh.length;
+  }
+
+  async removeCampaignRecipient(id: string) {
+    unwrap(await this.client.from("email_campaign_recipients").delete().eq("id", id));
+  }
+
+  async doNotContact(email: string, reason: string) {
+    const address = email.trim().toLowerCase();
+    unwrap(await this.client.from("email_suppressions").upsert({ email: address, reason }));
+    unwrap(await this.client.from("email_campaign_recipients").update({ status: "skipped", error: "Asked not to be contacted" }).eq("status", "pending").eq("email", address));
+  }
+
+  async sendCampaign(campaignId: string, mode: "test" | "batch", limit?: number) {
+    const { data, error } = await this.client.functions.invoke("admin-campaign-send", { body: { campaign_id: campaignId, mode, limit } });
+    if (error) throw new Error(await functionError(error));
+    return data;
   }
 
   async stories(): Promise<AdminStory[]> {

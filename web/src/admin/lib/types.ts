@@ -342,6 +342,16 @@ export interface AuditEntry {
   target_table: string | null; target_id: string | null; affected_user: string | null; reason: string | null;
   details: Record<string, unknown>; created_at: string;
 }
+export interface EmailCampaign {
+  id: string; name: string; from_local: string; subject: string; body: string; footer: string; note: string;
+  status: "draft" | "sending" | "done"; created_at: string; updated_at: string;
+  pending_count: number; sent_count: number; failed_count: number; skipped_count: number;
+}
+export interface CampaignRecipient {
+  id: string; campaign_id: string; email: string; name: string; city: string; website: string; source: string;
+  status: "pending" | "sent" | "failed" | "skipped"; error: string | null; sent_at: string | null; created_at: string;
+}
+export type NewCampaignRecipient = Pick<CampaignRecipient, "email" | "name" | "city" | "website" | "source">;
 export interface SentEmail { id: string; sender_email: string | null; from_address: string; to_addresses: string[]; subject: string; body: string; created_at: string }
 export interface SiteBanner {
   id: string; kind: "info" | "warning" | "outage" | "success"; audience: "everyone" | "guests" | "artist" | "studio_owner";

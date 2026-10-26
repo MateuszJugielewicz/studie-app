@@ -6,6 +6,7 @@ import { ReasonDialog } from "./ReasonDialog";
 import TeamPage from "./pages/TeamPage";
 import AuditPage from "./pages/AuditPage";
 import EmailPage from "./pages/EmailPage";
+import CampaignsPage from "./pages/CampaignsPage";
 import BannersPage from "./pages/BannersPage";
 import FlagRulesPage from "./pages/FlagRulesPage";
 import { websiteUrl } from "../lib/hosts";
@@ -34,6 +35,7 @@ const icons: Record<string, string> = {
   promotions: "M3 11l18-5v12L3 14v-3zM11.6 16.8a3 3 0 1 1-5.8-1.6",
   team: "M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M19 8l2 2 4-4",
   audit: "M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11",
+  campaigns: "M22 2L11 13M22 2l-7 20-4-9-9-4z",
   email: "M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zM22 6l-10 7L2 6",
   banners: "M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1zM4 22v-7",
   codes: "M20.6 13.4l-7.2 7.2a2 2 0 0 1-2.8 0L2 12V2h10l8.6 8.6a2 2 0 0 1 0 2.8zM7 7h.01",
@@ -76,6 +78,7 @@ const nav: { to: string; title: string; icon: string; min?: StaffRank }[] = [
   { to: "/banners", title: "Banners", icon: "banners", min: "admin" as StaffRank },
   { to: "/auto-flags", title: "Auto-flags", icon: "moderation", min: "admin" as StaffRank },
   { to: "/email", title: "Email", icon: "email" },
+  { to: "/campaigns", title: "Campaigns", icon: "campaigns", min: "owner" as StaffRank },
   { to: "/team", title: "Team", icon: "team", min: "owner" as StaffRank },
   { to: "/audit", title: "Audit log", icon: "audit", min: "owner" as StaffRank },
 ];
@@ -204,6 +207,7 @@ function Dashboard({ api }: { api: AdminApi }) {
             <Route path="/email" element={<EmailPage />} />
             {allowed("admin") && <Route path="/banners" element={<BannersPage />} />}
             {allowed("admin") && <Route path="/auto-flags" element={<FlagRulesPage />} />}
+            {allowed("owner") && <Route path="/campaigns" element={<CampaignsPage />} />}
             {allowed("owner") && <Route path="/team" element={<TeamPage />} />}
             {allowed("owner") && <Route path="/audit" element={<AuditPage />} />}
             <Route path="*" element={<Navigate to="/" />} />
