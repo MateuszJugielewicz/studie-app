@@ -206,7 +206,7 @@ export function ReportSheet({ open, onClose, target, targetId }: { open: boolean
             const on = reason === key;
             const Icon = REASON_ICONS[key];
             return (
-              <button key={key} className="card tight row" style={{ textAlign: "left", borderRadius: 18, border: on ? "1.5px solid var(--magenta)" : undefined }} onClick={() => setReason(key)}>
+              <button key={key} className="card tight row" style={{ textAlign: "left", borderRadius: 18, border: on ? "1.5px solid var(--primary)" : undefined }} onClick={() => setReason(key)}>
                 <IconTile icon={Icon} size={34} colors={on ? Tiles.signal : Tiles.muted} />
                 <span className="grow"><div className="subhead semibold">{t(title)}</div><div className="caption secondary">{t(hint)}</div></span>
                 {on ? <CheckCircle2 color="var(--accent)" /> : <Circle className="tertiary" />}

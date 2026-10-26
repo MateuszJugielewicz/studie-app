@@ -71,9 +71,9 @@ export default function FindArtists() {
           {filters.query && <button onClick={() => setFilters({ ...filters, query: "" })} aria-label={t("Clear")}><XCircle size={18} /></button>}
         </label>
         <div className="row wrap" style={{ gap: 8 }}>
-          <button className={`chip ${count ? "on" : ""}`} onClick={() => setShowFilters(true)}><SlidersHorizontal size={15} color={count ? "#fff" : "var(--magenta)"} />{count ? format("Filters · %lld", count) : t("Filters")}</button>
+          <button className={`chip ${count ? "on" : ""}`} onClick={() => setShowFilters(true)}><SlidersHorizontal size={15} />{count ? format("Filters · %lld", count) : t("Filters")}</button>
           <div style={{ position: "relative" }}>
-            <button className="chip" onClick={() => setSortOpen(!sortOpen)}><ArrowUpDown size={15} color="var(--magenta)" />{t(SORTS.find(([k]) => k === sort)![1])}</button>
+            <button className="chip" onClick={() => setSortOpen(!sortOpen)}><ArrowUpDown size={15} />{t(SORTS.find(([k]) => k === sort)![1])}</button>
             {sortOpen && (
               <div className="card tight" style={{ position: "absolute", top: 44, left: 0, zIndex: 10, minWidth: 200, padding: 6 }}>
                 {SORTS.map(([key, title]) => (
@@ -85,7 +85,7 @@ export default function FindArtists() {
             )}
           </div>
           <span className="grow" />
-          <span className="chip footnote bold" style={{ cursor: "default" }}><span style={{ width: 7, height: 7, borderRadius: 4, background: "var(--neon)", boxShadow: "0 0 6px var(--magenta)" }} />{format("%lld artists", results.length)}</span>
+          <span className="chip footnote bold" style={{ cursor: "default" }}><span style={{ width: 7, height: 7, borderRadius: 4, background: "var(--primary)" }} />{format("%lld artists", results.length)}</span>
         </div>
         {promoted > 0 && <div className="caption secondary">{t("Promoted artists are shown first.")}</div>}
         {error && <div className="card danger">{error}</div>}
@@ -107,7 +107,7 @@ export default function FindArtists() {
 
 export function ArtistCard({ artist: a, onOpen, onMessage }: { artist: DiscoveredArtist; onOpen: () => void; onMessage: () => void }) {
   return (
-    <div className="card stack" style={{ gap: 12, border: a.is_promoted ? "1.5px solid var(--magenta)" : undefined, position: "relative" }}>
+    <div className="card stack" style={{ gap: 12, border: a.is_promoted ? "1.5px solid var(--primary)" : undefined, position: "relative" }}>
       {a.is_promoted && <span style={{ position: "absolute", top: 12, right: 12 }}><PromotedTag /></span>}
       <button className="row pressable" style={{ textAlign: "left", gap: 12 }} onClick={onOpen}>
         <Avatar url={a.avatar_url} name={a.artist_name} size={60} ring={a.is_promoted} />

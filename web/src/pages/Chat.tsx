@@ -107,8 +107,8 @@ function ConversationList({ activeId }: { activeId?: string }) {
 function ConversationRow({ conversation: c, role, active }: { conversation: Conversation; role: UserRole; active?: boolean }) {
   const unread = unreadFor(c, role);
   return (
-    <div className="card tight row" style={{ gap: 12, border: active ? "1.5px solid var(--magenta)" : undefined }}>
-      <span style={{ padding: 2.5, borderRadius: "50%", background: unread > 0 ? "var(--neon)" : "var(--fill)", display: "inline-flex", flexShrink: 0 }}>
+    <div className="card tight row" style={{ gap: 12, border: active ? "1.5px solid var(--primary)" : undefined }}>
+      <span style={{ padding: 2.5, borderRadius: "50%", background: unread > 0 ? "var(--primary)" : "var(--fill)", display: "inline-flex", flexShrink: 0 }}>
         {role === "artist" ? <Photo url={c.studio_photo_url} style={{ width: 52, height: 52, borderRadius: "50%" }} /> : <Avatar url={c.artist_avatar_url} name={c.artist_name} size={52} />}
       </span>
       <div className="grow" style={{ display: "flex", flexDirection: "column", gap: 4 }}>
@@ -121,7 +121,7 @@ function ConversationRow({ conversation: c, role, active }: { conversation: Conv
             : status(c) === "declined" && role === "studio_owner" ? <Tag text="Declined" icon={Hand} />
             : c.booking_id ? <CalendarDays size={13} color="var(--accent)" /> : null}
           <span className="grow subhead clamp-1" style={{ color: unread > 0 ? "var(--text)" : "var(--text-2)" }}>{c.last_message_preview || t("New conversation")}</span>
-          {unread > 0 && <span className="caption bold" style={{ background: "var(--neon)", color: "#fff", borderRadius: 999, padding: "2px 7px" }}>{unread}</span>}
+          {unread > 0 && <span className="caption bold" style={{ background: "var(--primary)", color: "var(--on-primary)", borderRadius: 999, padding: "2px 7px" }}>{unread}</span>}
         </div>
       </div>
     </div>

@@ -120,7 +120,6 @@ export function ArtistHero({ profile, children }: { profile: ArtistProfile; chil
   return (
     <div className="card big stack center" style={{ alignItems: "center", gap: 12 }}>
       <div style={{ position: "relative" }}>
-        <div style={{ position: "absolute", inset: -10, borderRadius: "50%", background: "var(--neon)", filter: "blur(18px)", opacity: 0.5 }} />
         <span style={{ position: "relative" }}><Avatar url={profile.avatar_url} name={profile.artist_name || "?"} size={104} ring /></span>
         {children}
       </div>

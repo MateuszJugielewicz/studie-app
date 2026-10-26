@@ -243,7 +243,7 @@ function PromotionScreen({ load, currency, promotedUntil, onChanged, pitch, acti
         ) : (
           <div className="stack">
             {PROMOTION_PACKAGES.map((p) => (
-              <button key={p} className={`card tight row pressable${pkg === p ? " selected" : ""}`} style={pkg === p ? { outline: "2px solid var(--magenta)" } : undefined} onClick={() => setPkg(p)}>
+              <button key={p} className={`card tight row pressable${pkg === p ? " selected" : ""}`} style={pkg === p ? { outline: "2px solid var(--primary)" } : undefined} onClick={() => setPkg(p)}>
                 <div className="grow" style={{ textAlign: "left" }}><div className="headline">{t(PROMOTION_PACKAGE_TITLE[p])}</div></div>
                 <span className="headline">{Money.format(promotionPrice(p, currency), currency)}</span>
               </button>

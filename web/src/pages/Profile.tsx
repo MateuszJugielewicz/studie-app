@@ -52,7 +52,7 @@ function ArtistProfilePage() {
         {profile && (
           <>
             <ArtistHero profile={profile}>
-              <button onClick={() => navigate("/profile/edit")} aria-label={t("Change photo")} style={{ position: "absolute", right: 0, bottom: 0, width: 32, height: 32, borderRadius: 16, background: "var(--neon)", color: "#fff", border: "2px solid rgba(255,255,255,0.8)", display: "flex", alignItems: "center", justifyContent: "center" }}><Camera size={14} /></button>
+              <button onClick={() => navigate("/profile/edit")} aria-label={t("Change photo")} style={{ position: "absolute", right: 0, bottom: 0, width: 32, height: 32, borderRadius: 16, background: "var(--primary)", color: "var(--on-primary)", border: "2px solid rgba(255,255,255,0.8)", display: "flex", alignItems: "center", justifyContent: "center" }}><Camera size={14} /></button>
             </ArtistHero>
             <div className="grid-3">
               <StatCard title="Sessions" value={String(completed.length)} icon={AudioWaveform} colors={Tiles.signal} />
@@ -151,12 +151,11 @@ function ArtistProfileEditor({ initial, onboarding, onDone }: { initial: ArtistP
         )}
         <div className="stack center" style={{ alignItems: "center", gap: 10 }}>
           <button onClick={() => fileInput.current?.click()} aria-label={t("Change photo")} style={{ position: "relative" }}>
-            <div style={{ position: "absolute", inset: -10, borderRadius: "50%", background: "var(--neon)", filter: "blur(20px)", opacity: 0.5 }} />
             <span style={{ position: "relative", display: "inline-flex" }}>
               <span className="ring"><span className="avatar" style={{ width: 116, height: 116, fontSize: 40 }}>{profile.avatar_url ? <img src={profile.avatar_url} alt="" /> : (profile.artist_name[0] ?? "?").toUpperCase()}</span></span>
               {uploading && <span style={{ position: "absolute", inset: 4, borderRadius: "50%", background: "rgba(0,0,0,0.45)", display: "flex", alignItems: "center", justifyContent: "center" }}><Spinner /></span>}
             </span>
-            <span style={{ position: "absolute", right: 0, bottom: 0, width: 36, height: 36, borderRadius: 18, background: "var(--neon)", color: "#fff", border: "2px solid rgba(255,255,255,0.85)", display: "flex", alignItems: "center", justifyContent: "center" }}><Camera size={15} /></span>
+            <span style={{ position: "absolute", right: 0, bottom: 0, width: 36, height: 36, borderRadius: 18, background: "var(--primary)", color: "var(--on-primary)", border: "2px solid rgba(255,255,255,0.85)", display: "flex", alignItems: "center", justifyContent: "center" }}><Camera size={15} /></span>
           </button>
           <input ref={fileInput} type="file" accept="image/*" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) upload(f); e.target.value = ""; }} />
           <div className="headline" style={{ color: profile.artist_name ? undefined : "var(--text-2)" }}>{profile.artist_name || t("Add a photo")}</div>

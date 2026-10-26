@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { OffersList } from "./BookingFlow";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
-  CalendarDays, ChevronLeft, ChevronRight, CircleCheck, CreditCard, Flag, Globe, Hand, HandMetal, Map as MapIcon, MapPin, MessageCircle,
-  Navigation, PlayCircle, UserRound, Users, Zap,
+  CalendarDays, ChevronLeft, ChevronRight, CircleCheck, CreditCard, Flag, Globe, Grid2x2, Hand, HandMetal, Map as MapIcon, MapPin, MessageCircle,
+  Navigation, PlayCircle, UserRound, Users, X, Zap,
 } from "lucide-react";
 import { api, userMessage } from "../lib/api";
 import {
@@ -79,7 +80,7 @@ export default function StudioDetail() {
   const website = resolveLink({ platform: "website", url: studio.contact.website });
 
   const bookingCard = (
-    <div className="card big stack" style={{ gap: 12 }}>
+    <div className="card big stack" style={{ gap: 14, boxShadow: "var(--shadow-sm)" }}>
       <div>
         <div className="title-m">{format("From %@/h", Money.format(studio.price_from, studio.currency))}</div>
         <div className="caption secondary">{t(studio.booking_policy.instant_book ? "Instant confirmation" : "Studio confirms within 24h")}</div>
@@ -87,42 +88,42 @@ export default function StudioDetail() {
       {!app.account ? (
         <button className="btn primary block" onClick={book}>{t("Sign up to book")}</button>
       ) : isArtist ? (
-        <div className="row"><button className="icon-btn" style={{ width: 52, height: 52 }} onClick={message} aria-label={t("Message")}><MessageCircle size={20} /></button><button className="btn primary grow" onClick={book}>{t("Book")}</button></div>
+        <div className="stack" style={{ gap: 8 }}><button className="btn primary block large" onClick={book}>{t("Book")}</button><button className="btn secondary block" onClick={message}><MessageCircle size={18} />{t("Message")}</button></div>
       ) : isOwner ? <Link to="/studio/listing" className="btn secondary block">{t("Edit profile")}</Link> : null}
     </div>
   );
 
   return (
-    <main className="page wide with-cta" style={{ paddingTop: 0 }}>
-      <div className="bleed" style={{ position: "relative" }}>
-        <Gallery urls={studio.photo_urls} />
-        <button className="icon-btn" style={{ position: "absolute", top: 14, left: "calc(var(--gutter) + 6px)", zIndex: 2 }} onClick={() => (window.history.length > 1 ? navigate(-1) : navigate("/studios"))} aria-label={t("Back")}><ChevronLeft size={22} /></button>
+    <main className="page wide with-cta">
+      <button className="link-btn row" style={{ gap: 4, color: "var(--text-2)", marginBottom: 12, marginLeft: -4 }} onClick={() => (window.history.length > 1 ? navigate(-1) : navigate("/studios"))}><ChevronLeft size={18} />{t("Back")}</button>
+      <div className="stack" style={{ gap: 10, marginBottom: 20 }}>
+        <div className="row wrap" style={{ gap: 8 }}><h1 className="title-l">{studio.name}</h1>{studio.is_verified && <VerifiedBadge />}{studio.has_admin_badge && <AdminBadge />}{Studios.isPromoted(studio) && <PromotedTag />}</div>
+        <div className="row wrap subhead" style={{ gap: 6, columnGap: 14 }}>
+          <RatingLabel rating={studio.rating_average} count={studio.review_count} />
+          <span className="row" style={{ gap: 4 }}><MapPin size={15} color="var(--accent)" />{Studios.publicArea(studio)}</span>
+          {location.point && (studio.latitude || studio.longitude) ? <span className="secondary">{formatDistance(distanceMeters(location.point, studio))}</span> : null}
+          {studio.booking_policy.instant_book && <span className="row" style={{ gap: 4 }}><Zap size={15} color="var(--accent)" />{t("Instant book")}</span>}
+        </div>
       </div>
-      <div className="two-col" style={{ marginTop: 24 }}>
-        <div className="stack-lg">
-          <div className="stack" style={{ gap: 8 }}>
-            {Studios.isPromoted(studio) && <div><PromotedTag /></div>}
-            <div className="row" style={{ gap: 6 }}><h1 className="title-l">{studio.name}</h1>{studio.is_verified && <VerifiedBadge />}{studio.has_admin_badge && <AdminBadge />}</div>
+      <div className="hide-mobile"><Mosaic urls={studio.photo_urls} /></div>
+      <div className="only-mobile bleed"><Gallery urls={studio.photo_urls} /></div>
+      <div className="two-col" style={{ marginTop: 32 }}>
+        <div className="stack-lg" style={{ gap: 32 }}>
+          <div className="stack" style={{ gap: 12 }}>
             {!!studio.admin_tags?.length && <div className="chips">{studio.admin_tags.map((tag) => <SpecialTag key={tag} title={tag} />)}</div>}
             {linkedArtists.length > 0 && (
               <div className="row wrap" style={{ gap: 8 }}>
                 {linkedArtists.map((artist) => (
-                  <Link key={artist.id} to={`/artists/${artist.id}`} className="card tight row pressable" style={{ maxWidth: 360, borderRadius: 18 }}>
+                  <Link key={artist.id} to={`/artists/${artist.id}`} className="card tight row pressable" style={{ maxWidth: 360 }}>
                     <Avatar url={artist.avatar_url} name={artist.artist_name} size={34} ring />
-                    <span className="grow"><div className="caption2 bold secondary">{t("Run by").toUpperCase()}</div><div className="subhead bold row" style={{ gap: 4 }}>{artist.artist_name}{artist.has_admin_badge && <AdminBadge compact />}</div></span>
+                    <span className="grow"><div className="caption semibold secondary">{t("Run by")}</div><div className="subhead bold row" style={{ gap: 4 }}>{artist.artist_name}{artist.has_admin_badge && <AdminBadge compact />}</div></span>
                     <ChevronRight size={16} className="tertiary" />
                   </Link>
                 ))}
               </div>
             )}
-            {studio.tagline && <div className="secondary">{studio.tagline}</div>}
-            <div className="row wrap" style={{ gap: 14 }}>
-              <RatingLabel rating={studio.rating_average} count={studio.review_count} />
-              <span className="row subhead" style={{ gap: 4 }}><MapPin size={15} color="var(--accent)" />{Studios.publicArea(studio)}</span>
-              {location.point && (studio.latitude || studio.longitude) ? <span className="subhead secondary">{formatDistance(distanceMeters(location.point, studio))}</span> : null}
-            </div>
-            <div className="chips" style={{ marginTop: 4 }}>
-              {studio.booking_policy.instant_book && <Chip title="Instant book" icon={Zap} />}
+            {studio.tagline && <p className="lead" style={{ color: "var(--text)" }}>{studio.tagline}</p>}
+            <div className="chips">
               <Chip title={format("Up to %lld people", studio.capacity)} icon={Users} translate={false} />
               <Chip title={format("%lld sessions booked", studio.booking_count)} icon={CalendarDays} translate={false} />
             </div>
@@ -133,7 +134,7 @@ export default function StudioDetail() {
               <GlowHead title="Next available" />
               <div className="row" style={{ overflowX: "auto", gap: 8, paddingBottom: 4 }}>
                 {slots.slice(0, 8).map((slot, i) => (
-                  <button key={slot.start.toISOString()} onClick={book} className={i === 0 ? "" : "card flat"} style={{ flexShrink: 0, padding: "10px 16px", borderRadius: 16, textAlign: "center", ...(i === 0 ? { background: "var(--neon)", color: "#fff", boxShadow: "0 0 14px color-mix(in srgb, var(--magenta) 40%, transparent)" } : {}) }}>
+                  <button key={slot.start.toISOString()} onClick={book} className="card pressable" style={{ flexShrink: 0, padding: "10px 16px", borderRadius: 10, textAlign: "center", ...(i === 0 ? { borderColor: "var(--primary)", boxShadow: "inset 0 0 0 1px var(--primary)" } : {}) }}>
                     <div className="caption semibold" style={{ opacity: 0.8 }}>{new Intl.DateTimeFormat(undefined, { weekday: "short", day: "numeric", timeZone: zone }).format(slot.start)}</div>
                     <div className="subhead heavy">{Dates.time(slot.start, zone)}</div>
                   </button>
@@ -146,16 +147,18 @@ export default function StudioDetail() {
 
           <section className="stack" style={{ gap: 10 }}>
             <GlowHead title="Prices" />
-            {studio.session_types.map((type) => (
-              <div key={type.id} className="card row top">
-                <div className="grow">
-                  <div className="row semibold" style={{ gap: 6 }}>{type.name}{type.includes_engineer && <UserRound size={16} color="var(--accent)" />}</div>
-                  {type.details && <div className="footnote secondary">{type.details}</div>}
-                  <div className="caption secondary">{format("Min. %lldh", type.minimum_hours)}</div>
+            <div className="price-table">
+              {studio.session_types.map((type) => (
+                <div key={type.id}>
+                  <div className="grow">
+                    <div className="row semibold" style={{ gap: 6 }}>{type.name}{type.includes_engineer && <UserRound size={16} color="var(--accent)" />}</div>
+                    {type.details && <div className="footnote secondary">{type.details}</div>}
+                    <div className="caption secondary">{format("Min. %lldh", type.minimum_hours)}</div>
+                  </div>
+                  <div className="bold tabular">{Money.format(type.hourly_rate, studio.currency)}/h</div>
                 </div>
-                <div className="bold">{Money.format(type.hourly_rate, studio.currency)}/h</div>
-              </div>
-            ))}
+              ))}
+            </div>
             {studio.add_ons.length > 0 && (
               <>
                 <div className="headline" style={{ marginTop: 4 }}>{t("Add-ons")}</div>
@@ -234,8 +237,8 @@ export default function StudioDetail() {
         <aside className="sticky hide-mobile">{bookingCard}</aside>
       </div>
       {(isArtist || !app.account) && (
-        <div className="only-mobile" style={{ position: "fixed", left: 12, right: 12, bottom: `calc(${app.account ? 88 : 12}px + env(safe-area-inset-bottom))`, zIndex: 25 }}>
-          <div className="card row" style={{ padding: 12, borderRadius: 24 }}>
+        <div className="only-mobile" style={{ position: "fixed", left: 12, right: 12, bottom: `calc(${app.account ? 72 : 12}px + env(safe-area-inset-bottom))`, zIndex: 25 }}>
+          <div className="card row" style={{ padding: 12, boxShadow: "var(--shadow)" }}>
             <div className="grow"><div className="headline">{format("From %@/h", Money.format(studio.price_from, studio.currency))}</div><div className="caption secondary">{t(studio.booking_policy.instant_book ? "Instant confirmation" : "Studio confirms within 24h")}</div></div>
             {app.account && <button className="icon-btn" onClick={message} aria-label={t("Message")}><MessageCircle size={18} /></button>}
             <button className="btn primary small" style={{ height: 44 }} onClick={book}>{t(app.account ? "Book" : "Sign up to book")}</button>
@@ -250,18 +253,59 @@ export default function StudioDetail() {
   );
 }
 
+/** Desktop photo grid: one large photo and up to four small ones; any photo opens the full-screen viewer. */
+function Mosaic({ urls }: { urls: string[] }) {
+  const [open, setOpen] = useState<number | null>(null);
+  const shown = urls.slice(0, 5);
+  if (!shown.length) return <div className="mosaic count-1"><Photo url={null} /></div>;
+  return (
+    <>
+      <div className={`mosaic count-${shown.length}`}>
+        {shown.map((url, i) => <button key={i} className="photo" onClick={() => setOpen(i)} aria-label={format("Photo %lld of %lld", i + 1, urls.length)}><Photo url={url} style={{ width: "100%", height: "100%" }} /></button>)}
+        {urls.length > 1 && <button className="btn secondary small all" onClick={() => setOpen(0)}><Grid2x2 size={15} />{t("Show all photos")}</button>}
+      </div>
+      {open != null && <Lightbox urls={urls} start={open} onClose={() => setOpen(null)} />}
+    </>
+  );
+}
+
+function Lightbox({ urls, start, onClose }: { urls: string[]; start: number; onClose: () => void }) {
+  const [index, setIndex] = useState(start);
+  const step = (d: number) => setIndex((i) => (i + d + urls.length) % urls.length);
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); else if (e.key === "ArrowLeft") step(-1); else if (e.key === "ArrowRight") step(1); };
+    document.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    return () => { document.removeEventListener("keydown", onKey); document.body.style.overflow = ""; };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  return createPortal(
+    <div className="lightbox" role="dialog" aria-modal="true" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <img src={urls[index]} alt="" />
+      <button className="icon-btn" style={{ top: 20, right: 20 }} onClick={onClose} aria-label={t("Close")} autoFocus><X size={20} /></button>
+      {urls.length > 1 && (
+        <>
+          <button className="icon-btn" style={{ left: 20, top: "50%", transform: "translateY(-50%)" }} onClick={() => step(-1)} aria-label={t("Previous")}><ChevronLeft size={22} /></button>
+          <button className="icon-btn" style={{ right: 20, top: "50%", transform: "translateY(-50%)" }} onClick={() => step(1)} aria-label={t("Next")}><ChevronRight size={22} /></button>
+          <span className="footnote tabular" style={{ position: "absolute", bottom: 20, color: "#fff", opacity: 0.8 }}>{index + 1} / {urls.length}</span>
+        </>
+      )}
+    </div>,
+    document.body,
+  );
+}
+
 export function Gallery({ urls }: { urls: string[] }) {
   const [index, setIndex] = useState(0);
   const pages = urls.length ? urls : [null];
   return (
-    <div style={{ position: "relative", height: "min(52vh, 460px)", overflow: "hidden" }}>
+    <div style={{ position: "relative", height: "min(42vh, 360px)", overflow: "hidden" }}>
       <div style={{ display: "flex", height: "100%", transform: `translateX(-${index * 100}%)`, transition: "transform 0.35s ease" }}>
         {pages.map((url, i) => <Photo key={i} url={url} style={{ flex: "0 0 100%", height: "100%" }} />)}
       </div>
       {pages.length > 1 && (
         <>
-          <button className="icon-btn" style={{ position: "absolute", top: "50%", left: 34, transform: "translateY(-50%)" }} onClick={() => setIndex((index - 1 + pages.length) % pages.length)} aria-label={t("Previous")}><ChevronLeft size={20} /></button>
-          <button className="icon-btn" style={{ position: "absolute", top: "50%", right: 34, transform: "translateY(-50%)" }} onClick={() => setIndex((index + 1) % pages.length)} aria-label={t("Next")}><ChevronRight size={20} /></button>
+          <button className="icon-btn" style={{ position: "absolute", top: "50%", left: 12, transform: "translateY(-50%)" }} onClick={() => setIndex((index - 1 + pages.length) % pages.length)} aria-label={t("Previous")}><ChevronLeft size={20} /></button>
+          <button className="icon-btn" style={{ position: "absolute", top: "50%", right: 12, transform: "translateY(-50%)" }} onClick={() => setIndex((index + 1) % pages.length)} aria-label={t("Next")}><ChevronRight size={20} /></button>
           <div className="row" style={{ position: "absolute", bottom: 12, left: 0, right: 0, justifyContent: "center", gap: 6 }}>
             {pages.map((_, i) => <button key={i} onClick={() => setIndex(i)} style={{ width: 7, height: 7, borderRadius: 4, background: i === index ? "#fff" : "rgba(255,255,255,0.45)" }} aria-label={String(i + 1)} />)}
           </div>

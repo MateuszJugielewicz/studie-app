@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect, type ReactNode } from "react";
 import { BrowserRouter, Link, Navigate, NavLink, Route, Routes, useLocation } from "react-router-dom";
-import { Bell, Building2, CalendarDays, LayoutGrid, LogIn, MessagesSquare, Mic2, SearchCheck, UserRound, type LucideIcon } from "lucide-react";
+import { Bell, Building2, CalendarDays, LayoutGrid, MessagesSquare, Mic2, SearchCheck, UserRound, type LucideIcon } from "lucide-react";
 import { useApp } from "./lib/state";
 import { t } from "./lib/i18n";
 import { Avatar, Loading, Logo } from "./components/ui";
@@ -65,35 +65,41 @@ function Shell({ children }: { children: ReactNode }) {
   const app = useApp();
   const tabs = useTabs();
   const { pathname } = useLocation();
-  const animated = pathname === "/" || pathname.startsWith("/signin") || pathname.startsWith("/signup");
   useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
   const name = app.artistProfile?.artist_name || app.ownedStudio?.name || app.account?.email || "";
   return (
     <>
-      <div className={`aurora ${animated ? "animated" : ""}`}><span /><i /></div>
       <div className="app">
         <header className="topbar">
-          <Link to="/" aria-label="EasySesh"><Logo size={24} /></Link>
-          <nav>
-            {tabs.length > 1 && tabs.map((tab) => (
-              <NavLink key={tab.to} to={tab.to} className={() => (isActive(tab, pathname) ? "active" : "")}>
-                <tab.icon size={17} />{t(tab.title)}{!!tab.badge && <span className="badge-count">{tab.badge > 99 ? "99+" : tab.badge}</span>}
-              </NavLink>
-            ))}
-          </nav>
-          <div className="row" style={{ gap: 8, marginLeft: "auto" }}>
-            {app.account ? (
-              app.account.role !== "admin" && (
-                <Link to={app.account.role === "studio_owner" ? "/settings" : "/profile"} aria-label={t("Profile")}>
-                  <Avatar url={app.artistProfile?.avatar_url ?? app.ownedStudio?.photo_urls[0]} name={name} size={34} />
-                </Link>
-              )
-            ) : (
-              <>
-                <Link to="/signin" className="btn secondary small hide-mobile"><LogIn size={16} />{t("Sign in")}</Link>
-                <Link to="/signup" className="btn primary small">{t("Sign up")}</Link>
-              </>
-            )}
+          <div className="inner">
+            <Link to="/" aria-label="EasySesh"><Logo size={24} /></Link>
+            <nav aria-label={t("Menu")}>
+              {tabs.length > 1 && tabs.map((tab) => (
+                <NavLink key={tab.to} to={tab.to} className={() => (isActive(tab, pathname) ? "active" : "")}>
+                  <tab.icon size={16} />{t(tab.title)}{!!tab.badge && <span className="badge-count">{tab.badge > 99 ? "99+" : tab.badge}</span>}
+                </NavLink>
+              ))}
+              {!app.account && (
+                <>
+                  <NavLink to="/studios" className={() => (pathname.startsWith("/studios") ? "active" : "")}>{t("Find a studio")}</NavLink>
+                  <Link to="/signup?role=studio">{t("List your studio")}</Link>
+                </>
+              )}
+            </nav>
+            <div className="row" style={{ gap: 8, marginLeft: "auto" }}>
+              {app.account ? (
+                app.account.role !== "admin" && (
+                  <Link to={app.account.role === "studio_owner" ? "/settings" : "/profile"} aria-label={t("Profile")}>
+                    <Avatar url={app.artistProfile?.avatar_url ?? app.ownedStudio?.photo_urls[0]} name={name} size={34} />
+                  </Link>
+                )
+              ) : (
+                <>
+                  <Link to="/signin" className="btn quiet small hide-mobile">{t("Sign in")}</Link>
+                  <Link to="/signup" className="btn primary small">{t("Sign up")}</Link>
+                </>
+              )}
+            </div>
           </div>
         </header>
         <ViewAsBar />
@@ -183,9 +189,8 @@ export default function App() {
 function Splash() {
   return (
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 22 }}>
-      <div className="aurora animated"><span /><i /></div>
-      <div style={{ position: "relative" }}><Logo size={46} /></div>
-      <div className="meter" style={{ height: 26, width: 60, position: "relative" }}>{[0.45, 0.8, 1, 0.65, 0.9, 0.5, 0.75].map((h, i) => <span key={i} style={{ height: `${h * 100}%`, animationDelay: `${i * 60}ms` }} />)}</div>
+      <Logo size={40} />
+      <div className="meter" style={{ height: 22, width: 52 }}>{[0.45, 0.8, 1, 0.65, 0.9, 0.5, 0.75].map((h, i) => <span key={i} style={{ height: `${h * 100}%`, animationDelay: `${i * 60}ms` }} />)}</div>
     </div>
   );
 }
@@ -203,7 +208,8 @@ function AdminRedirect() {
 function NotFound() {
   return (
     <main className="page narrow">
-      <div className="card empty" style={{ marginTop: 40 }}>
+      <div className="empty" style={{ marginTop: 64 }}>
+        <div className="title-l">404</div>
         <div className="title-m">{t("We couldn't find that.")}</div>
         <Link to="/" className="btn primary" style={{ marginTop: 12 }}>{t("Continue")}</Link>
       </div>

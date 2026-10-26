@@ -98,8 +98,8 @@ function Step({ title, done, active, last }: { title: string; done?: boolean; ac
   return (
     <div className="row top" style={{ gap: 14 }}>
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-        <span style={{ width: 30, height: 30, borderRadius: 15, display: "flex", alignItems: "center", justifyContent: "center", background: done ? "var(--neon)" : "var(--fill)", color: done ? "#fff" : active ? "var(--warning)" : "var(--text-2)", boxShadow: done ? "0 0 10px color-mix(in srgb, var(--magenta) 40%, transparent)" : undefined }}><Icon size={14} strokeWidth={3} /></span>
-        {!last && <span style={{ width: 2, height: 26, background: done ? "var(--neon)" : "var(--fill)" }} />}
+        <span style={{ width: 30, height: 30, borderRadius: 15, display: "flex", alignItems: "center", justifyContent: "center", background: done ? "var(--primary)" : "var(--fill)", color: done ? "var(--on-primary)" : active ? "var(--warning)" : "var(--text-2)", boxShadow: done ? "0 0 10px color-mix(in srgb, var(--magenta) 40%, transparent)" : undefined }}><Icon size={14} strokeWidth={3} /></span>
+        {!last && <span style={{ width: 2, height: 26, background: done ? "var(--primary)" : "var(--fill)" }} />}
       </div>
       <span className="subhead" style={{ paddingTop: 5, fontWeight: done || active ? 700 : 400, color: done || active ? undefined : "var(--text-2)" }}>{t(title)}</span>
     </div>
@@ -282,7 +282,7 @@ function StudioCalendar() {
           {dayBookings.length === 0 && dayBlocks.length === 0 && <Empty icon={Sparkles} title="Nothing booked" message={window_ ? "This day is wide open for sessions." : "The studio is closed this day."} />}
           {dayBookings.map((b) => (
             <button key={b.id} className="card tight row pressable" style={{ textAlign: "left", alignItems: "stretch" }} onClick={() => navigate(`/sessions/${b.id}`)}>
-              <span style={{ width: 4, borderRadius: 4, background: "var(--neon)" }} /><span className="grow"><BookingRow booking={b} perspective="studio_owner" /></span>
+              <span style={{ width: 3, borderRadius: 3, background: "var(--primary)" }} /><span className="grow"><BookingRow booking={b} perspective="studio_owner" /></span>
             </button>
           ))}
           {dayBlocks.map((s) => (

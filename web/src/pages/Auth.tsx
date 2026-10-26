@@ -140,7 +140,7 @@ function AuthForm({ initial }: { initial: "signin" | "signup" }) {
         {signUp && (
           <div className="stack" style={{ gap: 10 }}>
             <button type="button" className="row top" style={{ textAlign: "left" }} onClick={() => setAccepted(!accepted)}>
-              <span style={{ width: 24, height: 24, borderRadius: 12, flexShrink: 0, display: "inline-flex", alignItems: "center", justifyContent: "center", background: accepted ? "var(--neon)" : "transparent", border: accepted ? 0 : "1.5px solid var(--text-3)" }}>
+              <span style={{ width: 24, height: 24, borderRadius: 12, flexShrink: 0, display: "inline-flex", alignItems: "center", justifyContent: "center", background: accepted ? "var(--primary)" : "transparent", border: accepted ? 0 : "1.5px solid var(--text-3)" }}>
                 {accepted && <Check size={14} color="#fff" strokeWidth={3} />}
               </span>
               <span className="footnote">{t(role === "studio_owner" ? "I accept the Terms, the Studio Agreement and the Privacy Policy" : "I accept the Terms and the Privacy Policy")}</span>
@@ -157,7 +157,7 @@ function AuthForm({ initial }: { initial: "signin" | "signup" }) {
 
         <div className="row subhead" style={{ justifyContent: "center", gap: 4 }}>
           <span className="secondary">{t(signUp ? "Already have an account?" : "New to EasySesh?")}</span>
-          <Link to={`${signUp ? "/signin" : "/signup"}${params.toString() ? `?${params}` : ""}`} className="bold gradient-text">{t(signUp ? "Sign in" : "Create account")}</Link>
+          <Link to={`${signUp ? "/signin" : "/signup"}${params.toString() ? `?${params}` : ""}`} className="bold accent">{t(signUp ? "Sign in" : "Create account")}</Link>
         </div>
       </form>
       <Sheet open={!!legal} onClose={() => setLegal(null)} title={legal?.title} closeLabel="Done">
@@ -169,10 +169,10 @@ function AuthForm({ initial }: { initial: "signin" | "signup" }) {
 
 function RoleCard({ title, subtitle, icon, colors, on, onClick }: { title: string; subtitle: string; icon: typeof Mic; colors: string[]; on: boolean; onClick: () => void }) {
   return (
-    <button type="button" onClick={onClick} className="card pressable" style={{ textAlign: "left", padding: 14, borderRadius: 20, border: on ? "2px solid var(--magenta)" : undefined, boxShadow: on ? "0 0 18px color-mix(in srgb, var(--magenta) 30%, transparent)" : undefined }}>
+    <button type="button" onClick={onClick} className="card pressable" style={{ textAlign: "left", padding: 14, border: on ? "2px solid var(--primary)" : undefined, boxShadow: on ? "0 0 0 3px color-mix(in srgb, var(--primary) 15%, transparent)" : undefined }}>
       <div className="row spread">
         <IconTile icon={icon} size={38} colors={on ? colors : Tiles.muted} />
-        {on ? <CheckCircle2 size={22} color="var(--magenta)" /> : <Circle size={22} className="tertiary" />}
+        {on ? <CheckCircle2 size={22} color="var(--primary)" /> : <Circle size={22} className="tertiary" />}
       </div>
       <div className="subhead heavy" style={{ marginTop: 12 }}>{t(title)}</div>
       <div className="caption secondary">{t(subtitle)}</div>
@@ -186,7 +186,7 @@ function StrengthMeter({ password }: { password: string }) {
   const problem = passwordProblem(password);
   return (
     <div className="stack" style={{ gap: 6, padding: "0 4px" }}>
-      <div className="row" style={{ gap: 6 }}>{[0, 1, 2, 3].map((i) => <span key={i} style={{ flex: 1, height: 5, borderRadius: 3, background: i < score ? "var(--neon)" : "var(--fill)" }} />)}</div>
+      <div className="row" style={{ gap: 6 }}>{[0, 1, 2, 3].map((i) => <span key={i} style={{ flex: 1, height: 5, borderRadius: 3, background: i < score ? "var(--primary)" : "var(--fill)" }} />)}</div>
       <div className="row spread caption"><span className="bold">{t(label)}</span>{problem && <span className="warning" style={{ textAlign: "right" }}>{problem}</span>}</div>
     </div>
   );

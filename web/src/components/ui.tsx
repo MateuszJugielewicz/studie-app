@@ -33,8 +33,8 @@ export function Logo({ size = 26 }: { size?: number }) {
 
 export function IconTile({ icon: Icon, size = 36, colors = Tiles.signal, radius }: { icon: LucideIcon; size?: number; colors?: string[]; radius?: number }) {
   return (
-    <span className="tile" style={{ width: size, height: size, borderRadius: radius ?? size * 0.28, background: `linear-gradient(135deg, ${colors[0]}, ${colors[1]})` }}>
-      <Icon size={size * 0.5} strokeWidth={2.2} />
+    <span className="tile" style={{ width: size, height: size, borderRadius: radius ?? Math.min(12, size * 0.26), background: `color-mix(in srgb, ${colors[0]} 13%, transparent)`, color: colors[0] }}>
+      <Icon size={size * 0.5} strokeWidth={2} />
     </span>
   );
 }
@@ -284,7 +284,7 @@ export function InfoRow({ icon: Icon, title, value, translate = true }: { icon: 
 
 // MARK: Page chrome
 
-/** Pushed-screen header: back button, centred title, toolbar actions (iOS inline navigation title). */
+/** Page header: back button, title, toolbar actions. */
 export function PageHead({ title, back = true, backTo, leading, actions, translate = true }: { title?: string; back?: boolean; backTo?: string; leading?: ReactNode; actions?: ReactNode; translate?: boolean }) {
   const navigate = useNavigate();
   return (
@@ -302,7 +302,7 @@ export function PageHead({ title, back = true, backTo, leading, actions, transla
   );
 }
 
-/** Tab root header: large title with an eyebrow (iOS EasySeshScreen). */
+/** Top-level page header: large title with an eyebrow. */
 export function LargeHead({ title, eyebrow, actions, translate = true }: { title: string; eyebrow?: string; actions?: ReactNode; translate?: boolean }) {
   return (
     <div className="large-head">

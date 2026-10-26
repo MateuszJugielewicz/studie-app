@@ -84,7 +84,7 @@ export default function Inbox() {
         {isLinkRequest(n) && <div className="row caption semibold accent" style={{ gap: 4, marginTop: 4 }}><Hand size={13} />{t("Tap to connect or decline")}</div>}
       </div>
       <button className="msg-action" style={{ opacity: 0.7 }} onClick={(e) => { e.stopPropagation(); remove(n); }} aria-label={t("Delete")}><Trash2 size={16} /></button>
-      {!n.is_read && <span style={{ position: "absolute", top: 8, right: 8, width: 9, height: 9, borderRadius: 5, background: "var(--neon)", boxShadow: "0 0 6px var(--magenta)" }} />}
+      {!n.is_read && <span style={{ position: "absolute", top: 8, right: 8, width: 9, height: 9, borderRadius: 5, background: "var(--primary)" }} />}
     </div>
   );
 

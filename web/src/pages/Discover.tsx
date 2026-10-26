@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowUpDown, Check, List, Map as MapIcon, Search, SlidersHorizontal, XCircle, Zap, AudioLines } from "lucide-react";
 import { api } from "../lib/api";
 import {
@@ -18,14 +18,15 @@ import {
 import { StudioMap } from "../components/StudioMap";
 import { StoryBar } from "../components/Stories";
 
-// Filters survive going to a studio and back (like the app's tab keeping its state).
-let saved: { filters: SearchFilters; sort: StudioSort; map: boolean } = { filters: EMPTY_FILTERS, sort: "nearest", map: false };
+// Filters survive going to a studio and back. The map starts open on wide screens, where it sits beside the list.
+let saved: { filters: SearchFilters; sort: StudioSort; map: boolean } = { filters: EMPTY_FILTERS, sort: "nearest", map: typeof window !== "undefined" && window.innerWidth > 1100 };
 
 export default function Discover() {
   const app = useApp();
   const navigate = useNavigate();
   const location = useLocation();
-  const [filters, setFilters] = useState(saved.filters);
+  const [params] = useSearchParams();
+  const [filters, setFilters] = useState(() => (params.get("q") != null ? { ...saved.filters, query: params.get("q") ?? "" } : saved.filters));
   const [sort, setSort] = useState(saved.sort);
   const [showMap, setShowMap] = useState(saved.map);
   const [showFilters, setShowFilters] = useState(false);
@@ -58,57 +59,56 @@ export default function Discover() {
       ? format("No studios within %lld km yet – %lld elsewhere. Search a city or country to find them.", Math.round(radius), results.length)
       : format("%lld studios within %lld km", nearby.length, Math.round(radius)) + (cheapest ? " · " + format("from %@/h", Money.format(cheapest.studio.price_from, cheapest.studio.currency)) : "");
 
-  const controls = (
-    <div className="row wrap" style={{ gap: 8 }}>
-      <button className={`chip ${count ? "on" : ""}`} onClick={() => setShowFilters(true)}><SlidersHorizontal size={15} color={count ? "#fff" : "var(--magenta)"} />{count ? format("Filters · %lld", count) : t("Filters")}</button>
-      <div style={{ position: "relative" }}>
-        <button className="chip" onClick={() => setSortOpen(!sortOpen)}><ArrowUpDown size={15} color="var(--magenta)" />{t(SORTS.find(([k]) => k === sort)![1])}</button>
-        {sortOpen && (
-          <div className="card tight" style={{ position: "absolute", top: 44, left: 0, zIndex: 10, minWidth: 200, padding: 6 }}>
-            {SORTS.map(([key, title]) => (
-              <button key={key} className="item" style={{ minHeight: 40, borderRadius: 10 }} onClick={() => { setSort(key); setSortOpen(false); }}>
-                <span className="label">{t(title)}</span>{key === sort && <Check size={16} color="var(--accent)" />}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-      <span className="grow" />
-      <span className="chip footnote bold" style={{ cursor: "default" }}><span style={{ width: 7, height: 7, borderRadius: 4, background: "var(--neon)", boxShadow: "0 0 6px var(--magenta)" }} />{format("%lld studios", results.length)}</span>
-    </div>
-  );
+  const pins = results.filter((r) => r.studio.latitude || r.studio.longitude).map((r) => ({ id: r.studio.id, point: r.studio, label: Money.format(r.studio.price_from, r.studio.currency) }));
 
   return (
     <main className="page wide">
-      <LargeHead title="Find a studio" eyebrow={location.city ?? greeting()} actions={
-        <button className="icon-btn" onClick={() => setShowMap(!showMap)} aria-label={t(showMap ? "Show list" : "Show map")}>{showMap ? <List size={18} /> : <MapIcon size={18} />}</button>
-      } />
-      <div className="stack">
-        <StoryBar />
-        <label className="field">
+      <LargeHead title="Find a studio" eyebrow={location.city ?? greeting()} />
+      <StoryBar />
+      <div className="toolbar">
+        <label className="field grow" style={{ minWidth: 240, maxWidth: 520 }}>
           <Search size={18} />
           <input type="search" placeholder={t("Studio, area or city")} value={filters.query} onChange={(e) => setFilters({ ...filters, query: e.target.value })} />
           {filters.query && <button onClick={() => setFilters({ ...filters, query: "" })} aria-label={t("Clear")}><XCircle size={18} /></button>}
         </label>
-        {controls}
-        {!showMap && (
-          <div style={{ padding: "4px 0" }}>
-            <div className="eyebrow">{t(searching ? "Results" : "Near you")}</div>
-            <div className="title-l" style={{ fontSize: 30 }}>{searching ? format("%lld studios", results.length) : location.city ?? t("Your area")}</div>
-            <div className="subhead secondary">{summary}</div>
+        <button className={`chip ${count ? "on" : ""}`} onClick={() => setShowFilters(true)}><SlidersHorizontal size={15} />{count ? format("Filters · %lld", count) : t("Filters")}</button>
+        <div style={{ position: "relative" }}>
+          <button className="chip" onClick={() => setSortOpen(!sortOpen)} aria-expanded={sortOpen}><ArrowUpDown size={15} />{t(SORTS.find(([k]) => k === sort)![1])}</button>
+          {sortOpen && (
+            <div className="menu">
+              {SORTS.map(([key, title]) => (
+                <button key={key} className="item" onClick={() => { setSort(key); setSortOpen(false); }}>
+                  <span className="label">{t(title)}</span>{key === sort && <Check size={16} color="var(--primary)" />}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+        <span className="grow" />
+        <button className="chip" onClick={() => setShowMap(!showMap)}>{showMap ? <List size={15} /> : <MapIcon size={15} />}{showMap ? <><span className="hide-mobile">{t("Hide map")}</span><span className="only-mobile">{t("Show list")}</span></> : t("Show map")}</button>
+      </div>
+      <div className={`discover-layout ${showMap ? "with-map" : ""}`}>
+        <div className="discover-list stack" style={{ gap: 20 }}>
+          <div className="row spread wrap" style={{ gap: 8 }}>
+            <div>
+              <h2 className="title-m">{searching ? format("%lld studios", results.length) : location.city ?? t("Near you")}</h2>
+              <div className="subhead secondary">{summary}</div>
+            </div>
           </div>
-        )}
-        {error && <div className="card danger">{error}</div>}
-        {loading ? <Loading /> : results.length === 0 ? (
-          <Empty icon={AudioLines} title="No studios found" message="Try widening your filters or search area.">
-            {count > 0 && <button className="btn secondary small" onClick={() => setFilters({ ...EMPTY_FILTERS, query: filters.query })}>{t("Clear filters")}</button>}
-          </Empty>
-        ) : showMap ? (
-          <StudioMap height="calc(100vh - 300px)" center={origin} onSelect={(id) => navigate(`/studios/${id}`)}
-            pins={results.filter((r) => r.studio.latitude || r.studio.longitude).map((r) => ({ id: r.studio.id, point: r.studio, label: Money.format(r.studio.price_from, r.studio.currency) }))} />
-        ) : (
-          <div className="grid-cards" style={{ gap: 24 }}>
-            {results.map((r) => <StudioCard key={r.studio.id} result={r} metric={metric} onClick={() => navigate(`/studios/${r.studio.id}`)} />)}
+          {error && <div className="card danger">{error}</div>}
+          {loading ? <Loading /> : results.length === 0 ? (
+            <Empty icon={AudioLines} title="No studios found" message="Try widening your filters or search area.">
+              {count > 0 && <button className="btn secondary small" onClick={() => setFilters({ ...EMPTY_FILTERS, query: filters.query })}>{t("Clear filters")}</button>}
+            </Empty>
+          ) : (
+            <div className="grid-cards" style={{ rowGap: 32 }}>
+              {results.map((r) => <StudioCard key={r.studio.id} result={r} metric={metric} onClick={() => navigate(`/studios/${r.studio.id}`)} />)}
+            </div>
+          )}
+        </div>
+        {showMap && (
+          <div className="discover-map">
+            <StudioMap height="min(calc(100vh - 112px), 860px)" center={origin} onSelect={(id) => navigate(`/studios/${id}`)} pins={pins} />
           </div>
         )}
       </div>
@@ -122,10 +122,10 @@ export function StudioCard({ result, metric, onClick }: { result: StudioResult; 
   const s = result.studio;
   const promoted = Studios.isPromoted(s);
   return (
-    <button className="pressable" onClick={onClick} style={{ textAlign: "left", display: "flex", flexDirection: "column", gap: 10 }}>
-      <Photo url={s.photo_urls[0]} style={{ aspectRatio: "4 / 3", width: "100%", borderRadius: "var(--radius)", border: promoted ? "1.5px solid var(--magenta)" : "0.8px solid var(--stroke)" }}>
+    <button className="listing pressable" onClick={onClick}>
+      <Photo url={s.photo_urls[0]} style={promoted ? { outline: "2px solid var(--primary)", outlineOffset: -2 } : undefined}>
         {s.booking_policy.instant_book && (
-          <span className="tag" style={{ position: "absolute", top: 10, left: 10, background: "var(--card-glass)", backdropFilter: "blur(10px)", fontWeight: 600 }}><Zap size={13} color="var(--magenta)" fill="var(--magenta)" />{t("Instant book")}</span>
+          <span className="tag" style={{ position: "absolute", top: 10, left: 10, background: "var(--card)", color: "var(--text)", boxShadow: "var(--shadow-sm)" }}><Zap size={13} color="var(--accent)" fill="var(--accent)" />{t("Instant book")}</span>
         )}
         {promoted && <span style={{ position: "absolute", top: 10, right: 10 }}><PromotedTag /></span>}
       </Photo>
@@ -138,7 +138,7 @@ export function StudioCard({ result, metric, onClick }: { result: StudioResult; 
           <RatingLabel rating={s.rating_average} count={s.review_count} />
         </div>
         <div className="subhead secondary clamp-1">{[Studios.publicArea(s), result.distance != null ? formatDistance(result.distance, metric) : null].filter(Boolean).join(" · ")}</div>
-        <div className="subhead"><span className="semibold">{Money.format(s.price_from, s.currency)}</span> <span className="secondary">{t("/ hour")}</span></div>
+        <div className="subhead" style={{ marginTop: 2 }}><span className="semibold">{Money.format(s.price_from, s.currency)}</span> <span className="secondary">{t("/ hour")}</span></div>
         {!!s.admin_tags?.length && <div className="row" style={{ gap: 6, marginTop: 4 }}>{s.admin_tags.slice(0, 2).map((tag) => <SpecialTag key={tag} title={tag} />)}</div>}
       </div>
     </button>

@@ -11,33 +11,35 @@ export function Footer() {
   return (
     <footer className="footer">
       <div className="inner">
-        <div className="stack" style={{ gap: 8 }}>
-          <Logo size={20} />
+        <div className="stack" style={{ gap: 12, maxWidth: 320 }}>
+          <Logo size={22} />
           <span>{t("Book recording studios near you.")}</span>
-          <label className="row" style={{ gap: 6 }}>
-            <Globe size={16} />
-            <select value={app.language} onChange={(e) => app.changeLanguage(e.target.value)} style={{ background: "transparent", border: 0, color: "inherit", cursor: "pointer" }} aria-label={t("Language")}>
-              {LANGUAGES.map((l) => <option key={l.code} value={l.code}>{l.flag} {l.name}</option>)}
-            </select>
-          </label>
         </div>
-        <div className="stack" style={{ gap: 6 }}>
-          <span className="semibold" style={{ color: "var(--text)" }}>EasySesh</span>
+        <div className="stack" style={{ gap: 10 }}>
+          <h4>EasySesh</h4>
           <Link to="/studios">{t("Find a studio")}</Link>
           <Link to="/signup?role=studio">{t("List your studio")}</Link>
           <Link to="/signin">{t("Sign in")}</Link>
         </div>
-        <div className="stack" style={{ gap: 6 }}>
-          <span className="semibold" style={{ color: "var(--text)" }}>{t("Contact")}</span>
+        <div className="stack" style={{ gap: 10 }}>
+          <h4>{t("Contact")}</h4>
           <a href={`mailto:${CONTACT.support}`}>{CONTACT.support}</a>
           <a href={`mailto:${CONTACT.general}`}>{CONTACT.general}</a>
         </div>
-        <div className="stack" style={{ gap: 6 }}>
-          <span className="semibold" style={{ color: "var(--text)" }}>{t("Legal")}</span>
+        <div className="stack" style={{ gap: 10 }}>
+          <h4>{t("Legal")}</h4>
           {Object.entries(LEGAL).map(([key, doc]) => <Link key={key} to={`/legal/${key}`}>{t(doc.title)}</Link>)}
         </div>
       </div>
-      <div style={{ maxWidth: 1100, margin: "18px auto 0" }} className="caption tertiary">© {new Date().getFullYear()} EasySesh</div>
+      <div className="bottom">
+        <span className="footnote">© {new Date().getFullYear()} EasySesh</span>
+        <label className="row footnote" style={{ gap: 8 }}>
+          <Globe size={16} />
+          <select value={app.language} onChange={(e) => app.changeLanguage(e.target.value)} aria-label={t("Language")}>
+            {LANGUAGES.map((l) => <option key={l.code} value={l.code}>{l.flag} {l.name}</option>)}
+          </select>
+        </label>
+      </div>
     </footer>
   );
 }
