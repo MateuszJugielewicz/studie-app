@@ -9,6 +9,20 @@
     <link rel="apple-touch-icon" href="/icon.png" />
     <link rel="manifest" href="/manifest.webmanifest" />
     <title>EasySesh – book recording studios</title>
+    <script>
+      // A page kept from before a deploy points at code files that no longer exist (they come back as
+      // HTML and are refused): reload once to get the current version instead of showing a white page.
+      window.addEventListener("error", function (e) {
+        var el = e.target;
+        if (!el || el.tagName !== "SCRIPT" || !/\/assets\//.test(el.src || "")) return;
+        try {
+          var last = Number(sessionStorage.getItem("easysesh.reloadedForNewVersion") || 0);
+          if (Date.now() - last < 30000) return;
+          sessionStorage.setItem("easysesh.reloadedForNewVersion", String(Date.now()));
+        } catch (_) {}
+        location.reload();
+      }, true);
+    </script>
   </head>
   <body>
     <div id="root"></div>
