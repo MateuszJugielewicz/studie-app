@@ -9,8 +9,7 @@ import {
 import { api, userMessage } from "../lib/api";
 import {
   availableSlots, Dates, distanceMeters, formatDistance, hoursLabel, Money, OPENING_DISPLAY_ORDER, resolveLink, Studios, studioZone,
-  addDays, startOfDay, weekdayName, type TimeSlot,
-} from "../lib/core";
+  addDays, startOfDay, weekdayName, type TimeSlot, priceRuleSummary } from "../lib/core";
 import { format, t } from "../lib/i18n";
 import { useLocation, directionsUrl, mapsUrl } from "../lib/location";
 import { useApp } from "../lib/state";
@@ -149,13 +148,19 @@ export default function StudioDetail() {
             <GlowHead title="Prices" />
             <div className="price-table">
               {studio.session_types.map((type) => (
-                <div key={type.id}>
+                <div key={type.id} style={{ flexWrap: "wrap" }}>
                   <div className="grow">
                     <div className="row semibold" style={{ gap: 6 }}>{type.name}{type.includes_engineer && <UserRound size={16} color="var(--accent)" />}</div>
                     {type.details && <div className="footnote secondary">{type.details}</div>}
                     <div className="caption secondary">{format("Min. %lldh", type.minimum_hours)}</div>
                   </div>
                   <div className="bold tabular">{Money.format(type.hourly_rate, studio.currency)}/h</div>
+                  {(studio.price_rules ?? []).filter((r) => r.session_type_id === type.id && r.hourly_rate > 0 && r.weekdays.length).map((r) => (
+                    <div key={r.id} className="row spread footnote secondary" style={{ flexBasis: "100%", gap: 8 }}>
+                      <span>{r.label || t("Other times")} · {priceRuleSummary(r)}</span>
+                      <span className="tabular">{Money.format(r.hourly_rate, studio.currency)}/h</span>
+                    </div>
+                  ))}
                 </div>
               ))}
             </div>

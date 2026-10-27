@@ -279,6 +279,15 @@ export class Api {
     unwrap(await this.client.from("studio_business_details").upsert({ studio_id: studioId, cvr: cvr.trim(), updated_at: new Date().toISOString() }));
   }
 
+  /** Arrival info (private): sent automatically to the artist when a booking is confirmed. */
+  async studioArrivalInfo(studioId: string): Promise<{ body: string; send_for_cash: boolean } | null> {
+    return unwrap(await this.client.from("studio_arrival_info").select("body, send_for_cash").eq("studio_id", studioId).maybeSingle());
+  }
+
+  async saveStudioArrivalInfo(studioId: string, body: string, sendForCash: boolean): Promise<void> {
+    unwrap(await this.client.from("studio_arrival_info").upsert({ studio_id: studioId, body: body.trim(), send_for_cash: sendForCash, updated_at: new Date().toISOString() }));
+  }
+
   async payoutAccount(studioId: string): Promise<PayoutAccount | null> {
     return unwrap(await this.client.from("studio_payout_accounts").select("*").eq("studio_id", studioId).maybeSingle());
   }
@@ -327,9 +336,11 @@ export class Api {
   }
 
   /** The exact price the booking will get (studio offers and promo code included). */
-  quoteBooking(studioId: string, sessionTypeId: string, hours: number, addOns: Record<string, number>, promoCode?: string | null) {
+  quoteBooking(studioId: string, sessionTypeId: string, hours: number, addOns: Record<string, number>, promoCode?: string | null, startsAt?: Date | null) {
+    // With a start time, time-based prices (evening, weekend…) are included.
     return this.rpc<PriceBreakdown>("quote_booking", {
       p_studio_id: studioId, p_session_type_id: sessionTypeId, p_hours: hours, p_add_ons: addOnList(addOns), p_promo_code: promoCode || null,
+      ...(startsAt ? { p_starts_at: startsAt.toISOString() } : {}),
     });
   }
 

@@ -4,7 +4,7 @@ import { PlatformConfig } from "./config";
 import { format, locale, t } from "./i18n";
 import type {
   Booking, BookingStatus, CancellationPolicy, Interval, OpeningHours, Payout, PriceBreakdown, ServiceAddOn, SessionType,
-  SocialLink, Studio, UserRole, BookedAddOn, Genre, Facility, EquipmentCategory,
+  SocialLink, Studio, UserRole, BookedAddOn, Genre, Facility, EquipmentCategory, PriceRule, RateLine,
 } from "./types";
 import { genreTitle } from "./types";
 
@@ -143,6 +143,26 @@ export function weekdayName(weekday: number): string {
 }
 
 export const OPENING_DISPLAY_ORDER = [2, 3, 4, 5, 6, 7, 1];
+
+export function weekdayShort(weekday: number): string {
+  const date = new Date(Date.UTC(2026, 9, 17 + weekday));
+  return cap(new Intl.DateTimeFormat(locale(), { weekday: "short", timeZone: "UTC" }).format(date)).replace(/\.$/, "");
+}
+
+/** "Mon–Fri · 18:00–24:00" for a time-based price. */
+export function priceRuleSummary(rule: PriceRule): string {
+  const days = OPENING_DISPLAY_ORDER.filter((d) => rule.weekdays.includes(d));
+  // Consecutive days (Mon → Sun order) become ranges.
+  const runs: number[][] = [];
+  for (const d of days) {
+    const last = runs[runs.length - 1];
+    if (last && OPENING_DISPLAY_ORDER.indexOf(d) === OPENING_DISPLAY_ORDER.indexOf(last[last.length - 1]) + 1) last.push(d); else runs.push([d]);
+  }
+  const dayText = days.length === 7 ? t("Every day") : runs.map((r) => (r.length > 2 ? `${weekdayShort(r[0])}–${weekdayShort(r[r.length - 1])}` : r.map(weekdayShort).join(", "))).join(", ");
+  const time = (m: number) => (m >= 1440 ? "24:00" : formatMinutes(m));
+  const timeText = rule.from === 0 && rule.to >= 1440 ? t("All day") : `${time(rule.from)}–${time(rule.to)}`;
+  return `${dayText} · ${timeText}`;
+}
 export const STANDARD_WEEK: OpeningHours[] = [1, 2, 3, 4, 5, 6, 7].map((weekday) => ({ weekday, is_closed: false, opens_at: 600, closes_at: 1320 }));
 export const hoursLabel = (h: OpeningHours) => (h.is_closed ? t("Closed") : `${formatMinutes(h.opens_at)} – ${formatMinutes(h.closes_at)}`);
 
@@ -197,9 +217,45 @@ export function addOnAmount(addOn: ServiceAddOn, quantity: number, hours: number
   return addOn.price * quantity;
 }
 
-export function quote(studio: Studio, sessionType: SessionType, hours: number, selected: Record<string, number> = {}): PriceBreakdown {
+/** Weekday (1 = Sunday … 7 = Saturday) and minutes after midnight of `date` in `zone`. */
+function weekdayAndMinutes(date: Date, zone: string): { weekday: number; minutes: number } {
+  const parts = new Intl.DateTimeFormat("en-US", { timeZone: zone, weekday: "short", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).formatToParts(date);
+  const get = (type: string) => parts.find((p) => p.type === type)?.value ?? "";
+  const weekday = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].indexOf(get("weekday")) + 1;
+  return { weekday, minutes: Number(get("hour")) * 60 + Number(get("minute")) };
+}
+
+const ruleMatches = (rule: PriceRule, weekday: number, minutes: number) =>
+  rule.hourly_rate > 0 && rule.weekdays.includes(weekday) &&
+  (rule.from <= rule.to ? minutes >= rule.from && minutes < rule.to : minutes >= rule.from || minutes < rule.to);
+
+/**
+ * The session's price with time-based rates (same as the database's session_price): each hour uses the
+ * first rule matching when it starts, otherwise the session type's normal rate.
+ */
+export function sessionPrice(studio: Studio, sessionType: SessionType, hours: number, start?: Date | null): { amount: number; lines: RateLine[] } {
+  const rules = (studio.price_rules ?? []).filter((r) => r.session_type_id === sessionType.id);
+  const lines: RateLine[] = [];
+  let amount = 0;
+  for (let i = 0; i < hours; i++) {
+    let rule: PriceRule | undefined;
+    if (start && rules.length) {
+      const { weekday, minutes } = weekdayAndMinutes(new Date(start.getTime() + i * HOUR), studioZone(studio));
+      rule = rules.find((r) => ruleMatches(r, weekday, minutes));
+    }
+    const rate = rule?.hourly_rate ?? sessionType.hourly_rate;
+    const label = rule?.label.trim() || null;
+    amount += rate;
+    const line = lines.find((l) => l.label === label && l.hourly_rate === rate);
+    if (line) { line.hours += 1; line.amount += rate; } else lines.push({ label, hourly_rate: rate, hours: 1, amount: rate });
+  }
+  return { amount, lines };
+}
+
+export function quote(studio: Studio, sessionType: SessionType, hours: number, selected: Record<string, number> = {}, start?: Date | null): PriceBreakdown {
   const h = Math.max(hours, 1);
-  const sessionAmount = sessionType.hourly_rate * h;
+  const timed = sessionPrice(studio, sessionType, h, start);
+  const sessionAmount = timed.amount;
   let addOnsAmount = 0;
   for (const addOn of studio.add_ons) {
     const quantity = selected[addOn.id] ?? 0;
@@ -213,7 +269,7 @@ export function quote(studio: Studio, sessionType: SessionType, hours: number, s
   const dueNow = deposit > 0 ? deposit + serviceFee : total;
   const commission = Money.percent(subtotal, PlatformConfig.PLATFORM_FEE_PERCENT);
   return {
-    currency: studio.currency, hourly_rate: sessionType.hourly_rate, hours: h, session_amount: sessionAmount,
+    currency: studio.currency, hourly_rate: sessionType.hourly_rate, hours: h, session_amount: sessionAmount, rate_lines: timed.lines,
     add_ons_amount: addOnsAmount, subtotal, service_fee: serviceFee, total, deposit_amount: deposit, due_now: dueNow,
     due_later: total - dueNow, studio_commission: commission, studio_payout: subtotal - commission,
   };

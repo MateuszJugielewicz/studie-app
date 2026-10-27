@@ -28,6 +28,7 @@ const StudioEditor = lazy(() => import("./pages/StudioEditor"));
 const VerifyEmail = lazy(() => import("./pages/VerifyEmail"));
 const FindArtists = lazy(() => import("./pages/FindArtists"));
 const About = lazy(() => import("./pages/About"));
+const ForStudios = lazy(() => import("./pages/ForStudios"));
 
 interface Tab { to: string; title: string; icon: LucideIcon; badge?: number; match?: string[] }
 
@@ -83,7 +84,7 @@ function Shell({ children }: { children: ReactNode }) {
               {!app.account && (
                 <>
                   <NavLink to="/studios" className={() => (pathname.startsWith("/studios") ? "active" : "")}>{t("Find a studio")}</NavLink>
-                  <Link to="/signup?role=studio">{t("List your studio")}</Link>
+                  <NavLink to="/for-studios" className={() => (pathname.startsWith("/for-studios") ? "active" : "")}>{t("List your studio")}</NavLink>
                 </>
               )}
             </nav>
@@ -166,6 +167,7 @@ export default function App() {
             <Route path="/studios/:id/reviews" element={<Reviews />} />
             <Route path="/artists/:id" element={<ArtistPublic />} />
             <Route path="/about" element={<About />} />
+            <Route path="/for-studios" element={<ForStudios />} />
             <Route path="/legal" element={<Legal />} />
             <Route path="/legal/:doc" element={<Legal />} />
             <Route path="/book/:studioId" element={<RequireAuth role="artist"><BookingFlow /></RequireAuth>} />

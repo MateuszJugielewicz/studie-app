@@ -21,7 +21,7 @@ The Studio can buy a promotion for a fixed period. A promoted studio is marked "
 
 ## 3. Platform fee
 EasySesh charges a **platform fee of 10%** of the price of every booking made through EasySesh (session price including add-ons, excluding refunded amounts), unless a different rate (a special deal) was agreed when the Studio's application was approved. The rate that applies is shown in the Studio's earnings in the app.
-- **Card payments:** EasySesh collects the payment from the artist and pays the Studio the price minus the fee via Stripe Connect. Payouts are only made **after the session has been completed**, normally 2 days later.
+- **Card payments:** EasySesh collects the payment from the artist and pays the Studio the price minus the fee via Stripe Connect. Payouts are only made **after the session has been completed**, normally 2 days later. Card processing fees (Stripe) are paid by EasySesh out of its platform fee and are never deducted from the Studio's payout.
 - **Cash payments:** the artist pays the Studio directly. The fee becomes payable to EasySesh when the session is completed.
 - The Studio must mark cash as received in the app. If it doesn't, cash is treated as received 3 days after the session, unless the Studio has reported a no-show or problem.
 

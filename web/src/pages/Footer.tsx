@@ -21,7 +21,7 @@ export function Footer() {
         <div className="stack" style={{ gap: 10 }}>
           <h4>EasySesh</h4>
           <Link to="/studios">{t("Find a studio")}</Link>
-          <Link to="/signup?role=studio">{t("List your studio")}</Link>
+          <Link to="/for-studios">{t("List your studio")}</Link>
           <Link to="/about">{t("About us")}</Link>
           <Link to="/signin">{t("Sign in")}</Link>
         </div>

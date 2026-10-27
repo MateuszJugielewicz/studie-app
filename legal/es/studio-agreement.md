@@ -21,7 +21,7 @@ El Estudio puede comprar una promoción por un periodo fijo. Un estudio promocio
 
 ## 3. Tarifa de plataforma
 EasySesh cobra una **tarifa de plataforma del 10 %** del precio de cada reserva hecha a través de EasySesh (precio de la sesión con extras, sin importes reembolsados), salvo que se acordara otro porcentaje (acuerdo especial) al aprobar la solicitud del Estudio. El porcentaje aplicable se muestra en los ingresos del Estudio en la app.
-- **Pagos con tarjeta:** EasySesh cobra al artista y paga al Estudio el precio menos la tarifa mediante Stripe Connect. Los pagos solo se hacen **después de completarse la sesión**, normalmente 2 días más tarde.
+- **Pagos con tarjeta:** EasySesh cobra al artista y paga al Estudio el precio menos la tarifa mediante Stripe Connect. Los pagos solo se hacen **después de completarse la sesión**, normalmente 2 días más tarde. Las comisiones de pago con tarjeta (Stripe) las paga EasySesh con su tarifa de plataforma y nunca se descuentan del pago al Estudio.
 - **Pagos en efectivo:** el artista paga directamente al Estudio. La tarifa pasa a deberse a EasySesh cuando se completa la sesión.
 - El Estudio debe marcar el efectivo como recibido en la app. Si no lo hace, se considera recibido 3 días después de la sesión, salvo que el Estudio haya informado de una ausencia o un problema.
 

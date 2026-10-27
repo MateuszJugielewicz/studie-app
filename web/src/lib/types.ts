@@ -116,6 +116,14 @@ export const CANCELLATION: Record<CancellationPolicy, { title: string; summary: 
 export interface StudioAddress { street: string; postal_code: string; city: string; area: string; country: string }
 export interface StudioContact { phone: string; email: string; website: string }
 export interface SessionType { id: string; name: string; details: string; hourly_rate: number; minimum_hours: number; includes_engineer: boolean }
+/**
+ * A different hourly rate at certain times for one session type (e.g. "Evening", Mon–Fri 18–24).
+ * weekdays: 1 = Sunday … 7 = Saturday; from/to: minutes after midnight in the studio's time zone
+ * (to may be 1440; from > to wraps past midnight). Each booked hour uses the first matching rule.
+ */
+export interface PriceRule { id: string; session_type_id: string; label: string; weekdays: number[]; from: number; to: number; hourly_rate: number }
+/** One line of a session's price when hours have different rates. */
+export interface RateLine { label: string | null; hourly_rate: number; hours: number; amount: number }
 export type AddOnKind = "engineer" | "producer" | "mixing" | "mastering" | "other";
 export const ADD_ON_KINDS: [AddOnKind, string][] = [["engineer", "Engineer"], ["producer", "Producer"], ["mixing", "Mixing"], ["mastering", "Mastering"], ["other", "Extra"]];
 export type PriceUnit = "per_hour" | "per_session" | "per_track";
@@ -145,6 +153,8 @@ export const DEFAULT_POLICY: BookingPolicy = {
 
 export interface Studio {
   id: string;
+  /** Time-based hourly rates (see PriceRule). */
+  price_rules?: PriceRule[];
   owner_id: string;
   name: string;
   tagline: string;
@@ -205,6 +215,8 @@ export const PAYMENT_METHOD_TITLE: Record<PaymentMethod, string> = {
 export interface BookedAddOn { id: string; name: string; quantity: number; amount: number }
 export interface PriceBreakdown {
   currency: string; hourly_rate: number; hours: number; session_amount: number; add_ons_amount: number; subtotal: number;
+  /** Hours grouped by rate when the session has time-based prices. */
+  rate_lines?: RateLine[];
   service_fee: number; total: number; deposit_amount: number; due_now: number; due_later: number;
   studio_commission: number; studio_payout: number;
   /** Discounts (server-computed): studio offers and promo codes. An EasySesh code is a negative service_fee. */

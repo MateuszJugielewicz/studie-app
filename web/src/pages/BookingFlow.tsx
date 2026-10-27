@@ -38,16 +38,16 @@ interface Request { studio: Studio; sessionTypeId: string; start: Date; hours: n
  * The price the booking will actually get. Studio offers and promo codes are applied on the server,
  * so the local quote is shown first and replaced by the server's as soon as it arrives.
  */
-function useQuote(studio: Studio, sessionTypeId: string, hours: number, addOns: Record<string, number>, promoCode?: string | null) {
+function useQuote(studio: Studio, sessionTypeId: string, hours: number, addOns: Record<string, number>, promoCode?: string | null, start?: Date | null) {
   const sessionType = studio.session_types.find((s) => s.id === sessionTypeId);
-  const local = sessionType ? quote(studio, sessionType, hours, addOns) : null;
-  const key = JSON.stringify([sessionTypeId, hours, addOns, promoCode ?? null]);
+  const local = sessionType ? quote(studio, sessionType, hours, addOns, start) : null;
+  const key = JSON.stringify([sessionTypeId, hours, addOns, promoCode ?? null, start?.toISOString() ?? null]);
   const [server, setServer] = useState<{ key: string; price: PriceBreakdown } | null>(null);
   useEffect(() => {
     if (!sessionType) return;
     let current = true;
     const timer = window.setTimeout(() => {
-      api.quoteBooking(studio.id, sessionTypeId, hours, addOns, promoCode).then((price) => { if (current) setServer({ key, price }); }).catch(() => undefined);
+      api.quoteBooking(studio.id, sessionTypeId, hours, addOns, promoCode, start).then((price) => { if (current) setServer({ key, price }); }).catch(() => undefined);
     }, 200);
     return () => { current = false; window.clearTimeout(timer); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -110,7 +110,7 @@ function BookingDraft({ studio }: { studio: Studio }) {
   useEffect(() => { if (sessionType && hours < sessionType.minimum_hours) setHours(sessionType.minimum_hours); }, [sessionType, hours]);
   const slots = useMemo(() => availableSlots(studio, dayInstant, hours, busy), [studio, dayInstant, hours, busy]);
   useEffect(() => { setSlot((s) => (s && slots.some((x) => x.start.getTime() === s.start.getTime()) ? slots.find((x) => x.start.getTime() === s.start.getTime())! : null)); }, [slots]);
-  const price = useQuote(studio, sessionTypeId, hours, addOns);
+  const price = useQuote(studio, sessionTypeId, hours, addOns, null, slot?.start);
   const today = dayIn(new Date(), zone);
   const last = new Date(today.y, today.m - 1, today.d + studio.booking_policy.max_advance_days);
 
@@ -197,7 +197,9 @@ export function PriceBreakdownView({ price }: { price: PriceBreakdown }) {
   );
   return (
     <div className="stack" style={{ gap: 8, width: "100%" }}>
-      <div className="row spread secondary"><span>{Money.format(price.hourly_rate, price.currency)} × {price.hours} h</span><span>{Money.format(price.session_amount, price.currency)}</span></div>
+      {price.rate_lines && (price.rate_lines.length > 1 || price.rate_lines.some((l) => l.label)) ? price.rate_lines.map((l, i) => (
+        <div key={i} className="row spread secondary"><span>{l.label ? `${l.label} · ` : ""}{Money.format(l.hourly_rate, price.currency)} × {l.hours} h</span><span>{Money.format(l.amount, price.currency)}</span></div>
+      )) : <div className="row spread secondary"><span>{Money.format(price.hourly_rate, price.currency)} × {price.hours} h</span><span>{Money.format(price.session_amount, price.currency)}</span></div>}
       {price.add_ons_amount > 0 && row("Add-ons", price.add_ons_amount)}
       {(price.discounts ?? []).map((d, i) => (
         <div key={i} className="row spread" style={{ color: "var(--positive)" }}>
@@ -231,7 +233,7 @@ function Checkout({ request, onBack }: { request: Request; onBack: () => void })
   const [codeInput, setCodeInput] = useState("");
   const [promo, setPromo] = useState<PromoCheck | null>(null);
   const [checking, setChecking] = useState(false);
-  const price = useQuote(studio, request.sessionTypeId, request.hours, request.addOns, promo?.code)!;
+  const price = useQuote(studio, request.sessionTypeId, request.hours, request.addOns, promo?.code, request.start)!;
 
   async function applyCode() {
     const code = codeInput.trim();

@@ -21,7 +21,7 @@ Studiet kan købe en promovering for en fast periode. Et promoveret studie marke
 
 ## 3. Platformgebyr
 EasySesh opkræver et **platformgebyr på 10 %** af prisen for hver booking foretaget gennem EasySesh (sessionspris inkl. tilvalg, ekskl. refunderede beløb), medmindre en anden sats (en særaftale) blev aftalt, da Studiets ansøgning blev godkendt. Den gældende sats vises under Studiets indtjening i appen.
-- **Kortbetalinger:** EasySesh opkræver betalingen fra kunstneren og udbetaler prisen minus gebyret til Studiet via Stripe Connect. Udbetalinger sker først **efter at sessionen er gennemført**, normalt 2 dage senere.
+- **Kortbetalinger:** EasySesh opkræver betalingen fra kunstneren og udbetaler prisen minus gebyret til Studiet via Stripe Connect. Udbetalinger sker først **efter at sessionen er gennemført**, normalt 2 dage senere. Kortgebyrer (Stripe) betales af EasySesh via platformgebyret og trækkes aldrig fra Studiets udbetaling.
 - **Kontantbetalinger:** kunstneren betaler Studiet direkte. Gebyret forfalder til betaling til EasySesh, når sessionen er gennemført.
 - Studiet skal markere kontanter som modtaget i appen. Gør det ikke det, anses kontanterne for modtaget 3 dage efter sessionen, medmindre Studiet har anmeldt udeblivelse eller et problem.
 

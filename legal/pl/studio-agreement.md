@@ -21,7 +21,7 @@ Studio może wykupić promocję na określony czas. Promowane studio jest oznacz
 
 ## 3. Opłata platformy
 EasySesh pobiera **opłatę platformy w wysokości 10%** ceny każdej rezerwacji dokonanej przez EasySesh (cena sesji z dodatkami, bez zwróconych kwot), chyba że przy zatwierdzeniu wniosku Studia uzgodniono inną stawkę (warunki specjalne). Obowiązująca stawka jest widoczna w zarobkach Studia w aplikacji.
-- **Płatności kartą:** EasySesh pobiera płatność od artysty i wypłaca Studiu cenę pomniejszoną o opłatę przez Stripe Connect. Wypłaty następują dopiero **po zakończeniu sesji**, zwykle 2 dni później.
+- **Płatności kartą:** EasySesh pobiera płatność od artysty i wypłaca Studiu cenę pomniejszoną o opłatę przez Stripe Connect. Wypłaty następują dopiero **po zakończeniu sesji**, zwykle 2 dni później. Opłaty za płatności kartą (Stripe) pokrywa EasySesh z opłaty platformy i nigdy nie są potrącane z wypłaty Studia.
 - **Płatności gotówką:** artysta płaci bezpośrednio Studiu. Opłata staje się wymagalna wobec EasySesh po zakończeniu sesji.
 - Studio musi oznaczyć gotówkę jako otrzymaną w aplikacji. Jeśli tego nie zrobi, gotówka zostaje uznana za otrzymaną 3 dni po sesji, chyba że Studio zgłosiło nieobecność lub problem.
 

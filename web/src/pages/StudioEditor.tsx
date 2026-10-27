@@ -5,16 +5,16 @@ import {
   SlidersVertical, Trash2, UserPlus, X, ImageIcon,
 } from "lucide-react";
 import { api, userMessage } from "../lib/api";
-import { formatMinutes, Money, OPENING_DISPLAY_ORDER, studioProblems, Studios, uuid, weekdayName } from "../lib/core";
+import { formatMinutes, Money, OPENING_DISPLAY_ORDER, studioProblems, Studios, uuid, weekdayName, weekdayShort } from "../lib/core";
 import { compressImage } from "../lib/image";
 import { format, t } from "../lib/i18n";
 import { geocode } from "../lib/location";
 import { PlatformConfig } from "../lib/config";
 import { useApp } from "../lib/state";
 import {
-  ADD_ON_KINDS, CANCELLATION, EQUIPMENT_CATEGORIES, FACILITIES, GENRES, PRICE_UNITS, type CancellationPolicy, type EquipmentCategory, type OpeningHours, type Studio,
+  ADD_ON_KINDS, CANCELLATION, EQUIPMENT_CATEGORIES, FACILITIES, GENRES, PRICE_UNITS, type CancellationPolicy, type EquipmentCategory, type OpeningHours, type PriceRule, type Studio,
 } from "../lib/types";
-import { ChipPicker, InputItem, Item, Notice, PageHead, Section, Segmented, SelectItem, Spinner, Stepper, ToggleItem, ToolButton, useToast } from "../components/ui";
+import { Chip, ChipPicker, InputItem, Item, Notice, PageHead, Section, Segmented, SelectItem, Spinner, Stepper, ToggleItem, ToolButton, useToast } from "../components/ui";
 import { StudioMap } from "../components/StudioMap";
 import { PayoutPage } from "./StudioExtras";
 
@@ -31,6 +31,8 @@ const newId = () => uuid().toLowerCase();
 // The private business details (CVR) are stored separately from the public listing; an edit is kept
 // here until the listing is saved, so a new application can add it before the studio exists.
 let business: { studioId: string; cvr: string; saved: string } | null = null;
+/** Arrival info being edited (its own private table, saved together with the listing). */
+let arrival: { studioId: string; body: string; sendForCash: boolean; saved: string } | null = null;
 
 function useDraft(): [Studio, (s: Studio) => void] {
   const app = useApp();
@@ -72,6 +74,10 @@ function useSave() {
       if (business && business.studioId === studio.id && business.cvr.trim() !== business.saved) {
         await api.saveStudioBusiness(saved.id, business.cvr);
         business = { ...business, saved: business.cvr.trim() };
+      }
+      if (arrival && arrival.studioId === studio.id && `${arrival.body.trim()}|${arrival.sendForCash}` !== arrival.saved) {
+        await api.saveStudioArrivalInfo(saved.id, arrival.body, arrival.sendForCash);
+        arrival = { ...arrival, saved: `${arrival.body.trim()}|${arrival.sendForCash}` };
       }
       setStudio(saved);
       app.setOwnedStudio(saved);
@@ -238,7 +244,7 @@ function Location() {
         {message && <Item><span className="footnote secondary">{t(message)}</span></Item>}
       </Section>
       <BusinessSection studioId={studio.id} />
-      <Section header="Contact">
+      <Section header="Contact" footer="Your phone number isn't shown to artists – only EasySesh uses it, e.g. if we need to reach you about a booking. Artists write to you in Messages.">
         <InputItem type="tel" placeholder="Phone" autoComplete="tel" value={studio.contact.phone} onChange={(phone) => set({ ...studio, contact: { ...studio.contact, phone } })} />
         <InputItem type="email" placeholder="Email" autoComplete="email" value={studio.contact.email} onChange={(email) => set({ ...studio, contact: { ...studio.contact, email } })} />
         <InputItem type="url" placeholder="Website" value={studio.contact.website} onChange={(website) => set({ ...studio, contact: { ...studio.contact, website } })} />
@@ -266,6 +272,40 @@ function BusinessSection({ studioId }: { studioId: string }) {
   );
 }
 
+/** Practical info sent automatically to the artist as a message when a booking is confirmed. */
+function ArrivalInfoSection({ studioId, acceptsCash }: { studioId: string; acceptsCash: boolean }) {
+  const app = useApp();
+  const [body, setBody] = useState(arrival?.studioId === studioId ? arrival.body : "");
+  const [sendForCash, setSendForCash] = useState(arrival?.studioId === studioId ? arrival.sendForCash : true);
+  useEffect(() => {
+    if (arrival?.studioId === studioId) return;
+    arrival = { studioId, body: "", sendForCash: true, saved: "|true" };
+    if (app.ownedStudio?.id !== studioId) return; // a new application has nothing stored yet
+    api.studioArrivalInfo(studioId).then((a) => {
+      if (a && arrival?.studioId === studioId && !arrival.body) {
+        arrival = { studioId, body: a.body, sendForCash: a.send_for_cash, saved: `${a.body}|${a.send_for_cash}` };
+        setBody(a.body); setSendForCash(a.send_for_cash);
+      }
+    }).catch(() => undefined);
+  }, [studioId]); // eslint-disable-line react-hooks/exhaustive-deps
+  const remember = (next: Partial<{ body: string; sendForCash: boolean }>) => {
+    arrival = { ...(arrival ?? { studioId, body: "", sendForCash: true, saved: "|true" }), studioId, ...next };
+  };
+  return (
+    <>
+      <Section header="Arrival info" footer="Sent automatically as a message from you when a booking is confirmed (card bookings once they're paid). Only artists who have booked see it – e.g. door or key-box code, directions, parking, what to bring.">
+        <InputItem multiline rows={5} placeholder="Welcome! The key-box code is … Parking is in the courtyard. Ring the bell at …" value={body}
+          onChange={(v) => { setBody(v); remember({ body: v }); }} />
+      </Section>
+      {acceptsCash && (
+        <Section footer="Turn off to only send it to bookings paid by card (e.g. if it contains a door code).">
+          <ToggleItem title="Also send for cash bookings" checked={sendForCash} onChange={(v) => { setSendForCash(v); remember({ sendForCash: v }); }} />
+        </Section>
+      )}
+    </>
+  );
+}
+
 function MoneyInput({ title, amount, currency, onChange }: { title: string; amount: number; currency: string; onChange: (n: number) => void }) {
   const [text, setText] = useState(Money.editable(amount));
   return (
@@ -274,6 +314,52 @@ function MoneyInput({ title, amount, currency, onChange }: { title: string; amou
       <input type="text" inputMode="decimal" value={text} placeholder="0" style={{ width: 90, flex: "0 0 auto", textAlign: "right" }} onChange={(e) => { setText(e.target.value); const p = Money.parse(e.target.value); if (p != null) onChange(p); }} />
       <span className="secondary">{currency}</span>
     </Item>
+  );
+}
+
+const RULE_TIMES: [number, string][] = Array.from({ length: 49 }, (_, i) => [i * 30, i === 48 ? "24:00" : formatMinutes(i * 30)]);
+
+/** Different hourly rates at certain times for one session type (evenings, weekends…). */
+function PriceRules({ typeId }: { typeId: string }) {
+  const [studio, set] = useDraft();
+  const all = studio.price_rules ?? [];
+  const rules = all.filter((r) => r.session_type_id === typeId);
+  const type = studio.session_types.find((x) => x.id === typeId);
+  const update = (id: string, patch: Partial<PriceRule>) => set({ ...studio, price_rules: all.map((r) => (r.id === id ? { ...r, ...patch } : r)) });
+  const add = () => set({ ...studio, price_rules: [...all, {
+    id: newId(), session_type_id: typeId, label: t("Evening"), weekdays: [2, 3, 4, 5, 6], from: 18 * 60, to: 1440, hourly_rate: type?.hourly_rate ?? 0,
+  }] });
+  return (
+    <div style={{ padding: "4px 0 10px" }}>
+      {rules.map((rule) => (
+        <div key={rule.id} className="card" style={{ margin: "8px 12px", padding: 12, display: "grid", gap: 8 }}>
+          <div className="row" style={{ gap: 8 }}>
+            <input placeholder={t("Name, e.g. Evening or Weekend")} value={rule.label} style={{ fontWeight: 600, flex: 1 }} onChange={(e) => update(rule.id, { label: e.target.value })} />
+            <button className="danger" onClick={() => set({ ...studio, price_rules: all.filter((r) => r.id !== rule.id) })} aria-label={t("Delete")}><Trash2 size={17} /></button>
+          </div>
+          <div className="chips">
+            {OPENING_DISPLAY_ORDER.map((d) => (
+              <Chip key={d} title={weekdayShort(d)} translate={false} on={rule.weekdays.includes(d)}
+                onClick={() => update(rule.id, { weekdays: rule.weekdays.includes(d) ? rule.weekdays.filter((x) => x !== d) : [...rule.weekdays, d] })} />
+            ))}
+          </div>
+          <div className="row" style={{ gap: 8, flexWrap: "wrap" }}>
+            <label className="row footnote" style={{ gap: 6 }}>{t("From")}
+              <select value={rule.from} onChange={(e) => update(rule.id, { from: Number(e.target.value) })}>{RULE_TIMES.slice(0, 48).map(([m, label]) => <option key={m} value={m}>{label}</option>)}</select>
+            </label>
+            <label className="row footnote" style={{ gap: 6 }}>{t("To")}
+              <select value={rule.to} onChange={(e) => update(rule.id, { to: Number(e.target.value) })}>{RULE_TIMES.slice(1).map(([m, label]) => <option key={m} value={m}>{label}</option>)}</select>
+            </label>
+          </div>
+          <MoneyInput title="Per hour" amount={rule.hourly_rate} currency={studio.currency} onChange={(hourly_rate) => update(rule.id, { hourly_rate })} />
+          {rule.weekdays.length === 0 && <span className="footnote warning">{t("Pick at least one day.")}</span>}
+        </div>
+      ))}
+      <Item onClick={add}>
+        <Plus size={18} color="var(--accent)" /><span className="label accent">{t("Add a price for certain times (evening, weekend…)")}</span>
+      </Item>
+      {rules.length > 0 && <div className="footnote secondary" style={{ padding: "0 16px" }}>{t("Each booked hour uses the first matching time price; other hours use the normal price. Artists see the prices on your page and in the booking.")}</div>}
+    </div>
   );
 }
 
@@ -293,6 +379,7 @@ function Pricing() {
             <MoneyInput title="Per hour" amount={type.hourly_rate} currency={studio.currency} onChange={(hourly_rate) => updateType(i, { hourly_rate })} />
             <Item><span className="label">{format("Minimum %lld h", type.minimum_hours)}</span><Stepper value={type.minimum_hours} min={1} max={8} onChange={(minimum_hours) => updateType(i, { minimum_hours })} /></Item>
             <ToggleItem title="Engineer included" checked={type.includes_engineer} onChange={(includes_engineer) => updateType(i, { includes_engineer })} />
+            <PriceRules typeId={type.id} />
           </div>
         ))}
         <Item onClick={() => set({ ...studio, session_types: [...studio.session_types, { id: newId(), name: "", details: "", hourly_rate: studio.price_from > 0 ? studio.price_from : 3000, minimum_hours: 1, includes_engineer: false }] })}>
@@ -435,6 +522,7 @@ function Policy() {
         <Item><span className="label">{format("Buffer between sessions: %lld min", p.buffer_minutes)}</span><Stepper value={p.buffer_minutes} min={0} max={120} step={15} onChange={(buffer_minutes) => update({ buffer_minutes })} /></Item>
       </Section>
       <Section header="Booking terms"><InputItem multiline rows={4} placeholder="Overtime, damage, guests, recording rights…" value={p.terms} onChange={(terms) => update({ terms })} /></Section>
+      <ArrivalInfoSection studioId={studio.id} acceptsCash={p.accepts_cash} />
     </>
   );
 }

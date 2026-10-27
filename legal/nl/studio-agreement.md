@@ -21,7 +21,7 @@ De Studio kan een promotie kopen voor een vaste periode. Een uitgelichte studio 
 
 ## 3. Platformkosten
 EasySesh rekent **platformkosten van 10%** van de prijs van elke boeking via EasySesh (sessieprijs inclusief extra's, exclusief terugbetaalde bedragen), tenzij bij de goedkeuring van de Studio een ander tarief (speciale afspraak) is overeengekomen. Het geldende tarief staat bij de inkomsten van de Studio in de app.
-- **Kaartbetalingen:** EasySesh int de betaling bij de artiest en betaalt de Studio de prijs min de kosten uit via Stripe Connect. Uitbetalingen gebeuren pas **nadat de sessie is voltooid**, normaal 2 dagen later.
+- **Kaartbetalingen:** EasySesh int de betaling bij de artiest en betaalt de Studio de prijs min de kosten uit via Stripe Connect. Uitbetalingen gebeuren pas **nadat de sessie is voltooid**, normaal 2 dagen later. Kaartkosten (Stripe) worden door EasySesh betaald uit de platformkosten en worden nooit ingehouden op de uitbetaling aan de Studio.
 - **Contante betalingen:** de artiest betaalt de Studio rechtstreeks. De kosten zijn verschuldigd aan EasySesh zodra de sessie is voltooid.
 - De Studio moet contant geld in de app als ontvangen markeren. Doet zij dat niet, dan geldt het contante geld 3 dagen na de sessie als ontvangen, tenzij de Studio een no-show of probleem heeft gemeld.
 

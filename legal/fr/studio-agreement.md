@@ -21,7 +21,7 @@ Le Studio peut acheter une mise en avant pour une durée fixe. Un studio mis en 
 
 ## 3. Frais de plateforme
 EasySesh facture des **frais de plateforme de 10 %** du prix de chaque réservation effectuée via EasySesh (prix de la session suppléments compris, hors montants remboursés), sauf si un autre taux (accord spécial) a été convenu lors de la validation du Studio. Le taux applicable est affiché dans les revenus du Studio dans l'app.
-- **Paiements par carte :** EasySesh encaisse le paiement de l'artiste et verse au Studio le prix moins les frais via Stripe Connect. Les versements n'ont lieu **qu'après la fin de la session**, normalement 2 jours plus tard.
+- **Paiements par carte :** EasySesh encaisse le paiement de l'artiste et verse au Studio le prix moins les frais via Stripe Connect. Les versements n'ont lieu **qu'après la fin de la session**, normalement 2 jours plus tard. Les frais de paiement par carte (Stripe) sont pris en charge par EasySesh sur ses frais de plateforme et ne sont jamais déduits du versement du Studio.
 - **Paiements en espèces :** l'artiste paie directement le Studio. Les frais deviennent exigibles par EasySesh à la fin de la session.
 - Le Studio doit marquer les espèces comme reçues dans l'app. À défaut, elles sont réputées reçues 3 jours après la session, sauf si le Studio a signalé une absence ou un problème.
 

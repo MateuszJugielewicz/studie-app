@@ -21,7 +21,7 @@ Lo Studio può acquistare una promozione per un periodo fisso. Uno studio promos
 
 ## 3. Commissione di piattaforma
 EasySesh applica una **commissione di piattaforma del 10%** sul prezzo di ogni prenotazione effettuata tramite EasySesh (prezzo della sessione con extra, esclusi gli importi rimborsati), salvo diversa percentuale (accordo speciale) concordata all'approvazione dello Studio. La percentuale applicata è indicata nei guadagni dello Studio nell'app.
-- **Pagamenti con carta:** EasySesh incassa dall'artista e paga allo Studio il prezzo meno la commissione tramite Stripe Connect. I pagamenti avvengono solo **dopo la conclusione della sessione**, di norma 2 giorni dopo.
+- **Pagamenti con carta:** EasySesh incassa dall'artista e paga allo Studio il prezzo meno la commissione tramite Stripe Connect. I pagamenti avvengono solo **dopo la conclusione della sessione**, di norma 2 giorni dopo. Le commissioni sui pagamenti con carta (Stripe) sono a carico di EasySesh, coperte dalla sua commissione di piattaforma, e non vengono mai detratte dal pagamento allo Studio.
 - **Pagamenti in contanti:** l'artista paga direttamente lo Studio. La commissione diventa dovuta a EasySesh alla conclusione della sessione.
 - Lo Studio deve segnare i contanti come ricevuti nell'app. Altrimenti si considerano ricevuti 3 giorni dopo la sessione, salvo che lo Studio abbia segnalato una mancata presenza o un problema.
 

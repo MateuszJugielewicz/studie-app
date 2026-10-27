@@ -21,7 +21,7 @@ Studion kan köpa marknadsföring för en fast period. En marknadsförd studio m
 
 ## 3. Plattformsavgift
 EasySesh tar ut en **plattformsavgift på 10 %** av priset för varje bokning som görs via EasySesh (sessionspris inkl. tillval, exkl. återbetalda belopp), om inte en annan sats (specialavtal) avtalades när Studions ansökan godkändes. Den gällande satsen visas under Studions intäkter i appen.
-- **Kortbetalningar:** EasySesh tar emot betalningen från artisten och betalar ut priset minus avgiften till Studion via Stripe Connect. Utbetalningar sker först **efter att sessionen är genomförd**, normalt 2 dagar senare.
+- **Kortbetalningar:** EasySesh tar emot betalningen från artisten och betalar ut priset minus avgiften till Studion via Stripe Connect. Utbetalningar sker först **efter att sessionen är genomförd**, normalt 2 dagar senare. Kortavgifter (Stripe) betalas av EasySesh ur plattformsavgiften och dras aldrig från Studions utbetalning.
 - **Kontantbetalningar:** artisten betalar Studion direkt. Avgiften förfaller till betalning till EasySesh när sessionen är genomförd.
 - Studion ska markera kontanter som mottagna i appen. Gör den inte det anses kontanterna mottagna 3 dagar efter sessionen, om inte Studion har rapporterat ett uteblivet besök eller problem.
 

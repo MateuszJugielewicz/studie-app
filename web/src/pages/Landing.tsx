@@ -53,7 +53,7 @@ export default function Landing() {
                 <button type="submit" className="btn primary">{t("Find a studio")}</button>
               </form>
               <div className="row wrap" style={{ gap: 20 }}>
-                <Link to="/signup?role=studio" className="link-btn row" style={{ gap: 6 }}>{t("List your studio")}<ArrowRight size={16} /></Link>
+                <Link to="/for-studios" className="link-btn row" style={{ gap: 6 }}>{t("List your studio")}<ArrowRight size={16} /></Link>
                 <span className="subhead secondary">{t("Already have an account?")} <Link to="/signin" className="semibold" style={{ color: "var(--text)", textDecoration: "underline", textUnderlineOffset: 3 }}>{t("Sign in")}</Link></span>
               </div>
             </div>
@@ -106,7 +106,7 @@ export default function Landing() {
               <p className="lead">{t("List your rooms, prices and opening hours. Artists book and pay online, and you're paid out automatically after each session.")}</p>
               <div className="row wrap" style={{ gap: 12 }}>
                 <Link to="/signup?role=studio" className="btn primary large">{t("List your studio")}</Link>
-                <Link to="/signin" className="btn quiet large">{t("Sign in")}</Link>
+                <Link to="/for-studios" className="btn secondary large">{t("See how it works")}</Link>
               </div>
             </div>
             <ul className="check-list card big" style={{ padding: 28 }}>

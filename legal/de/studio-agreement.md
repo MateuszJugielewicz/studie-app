@@ -21,7 +21,7 @@ Das Studio kann eine Werbung für einen festen Zeitraum kaufen. Ein beworbenes S
 
 ## 3. Plattformgebühr
 EasySesh berechnet eine **Plattformgebühr von 10 %** des Preises jeder über EasySesh getätigten Buchung (Session-Preis inkl. Zusatzleistungen, ohne erstattete Beträge), sofern bei der Freigabe des Studios kein anderer Satz (Sonderkonditionen) vereinbart wurde. Der geltende Satz wird bei den Einnahmen des Studios in der App angezeigt.
-- **Kartenzahlungen:** EasySesh zieht die Zahlung beim Artist ein und zahlt dem Studio den Preis abzüglich Gebühr über Stripe Connect aus. Auszahlungen erfolgen erst **nach Abschluss der Session**, normalerweise 2 Tage später.
+- **Kartenzahlungen:** EasySesh zieht die Zahlung beim Artist ein und zahlt dem Studio den Preis abzüglich Gebühr über Stripe Connect aus. Auszahlungen erfolgen erst **nach Abschluss der Session**, normalerweise 2 Tage später. Kartengebühren (Stripe) trägt EasySesh aus seiner Plattformgebühr; sie werden nie von der Auszahlung des Studios abgezogen.
 - **Barzahlungen:** Der Artist zahlt direkt an das Studio. Die Gebühr wird mit Abschluss der Session gegenüber EasySesh fällig.
 - Das Studio muss Bargeld in der App als erhalten markieren. Tut es das nicht, gilt das Bargeld 3 Tage nach der Session als erhalten, sofern das Studio kein Nichterscheinen oder Problem gemeldet hat.
 
