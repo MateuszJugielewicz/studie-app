@@ -124,6 +124,8 @@ td.actions { display: flex; gap: 6px; flex-wrap: wrap; }
 .modal-header { justify-content: space-between; }
 .modal-footer { border-top: 1px solid var(--stroke); border-bottom: none; flex-wrap: wrap; }
 .modal-body { padding: 20px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 14px; }
+/* The body scrolls; its sections keep their full height instead of being squeezed (cards clip their overflow). */
+.modal-body > * { flex-shrink: 0; }
 .photos { display: flex; gap: 8px; overflow-x: auto; }
 .photos img { height: 120px; border-radius: 10px; }
 .video-link { align-self: center; }
