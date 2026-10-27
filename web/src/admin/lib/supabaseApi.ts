@@ -188,9 +188,14 @@ export class SupabaseAdminApi implements AdminApi {
   }
 
   async deleteStudio(studioId: string): Promise<{ removed: boolean; cancelled: number }> {
+    // admin-delete cancels and refunds upcoming bookings, emails the owner and writes the audit log; it
+    // only takes a studio with bookings offline. admin_purge_studio then removes it completely unless
+    // real money went through it (card payments, payouts, paid fee invoices).
     const { data, error } = await this.client.functions.invoke("admin-delete", { body: { studio_id: studioId } });
     if (error) throw new Error(await functionError(error));
-    return data;
+    if (data?.removed) return data;
+    const removed = unwrap<boolean>(await this.client.rpc("admin_purge_studio", { p_studio_id: studioId }));
+    return { ...data, removed };
   }
 
   async studioProblems(studioId: string): Promise<string[]> {

@@ -195,7 +195,7 @@ function StudioModal({ studio, onClose, onChanged }: { studio: Studio; onClose: 
           <ViewAsButton userId={studio.owner_id} title="View as studio" />
           <EmailButton to={[studio.contact?.email, ownerEmail]} title="Email studio" />
           {rankAtLeast(staff.rank, "admin") && (
-            <ActionButton kind="danger" confirm={`Delete ${studio.name}? Upcoming bookings are cancelled and refunded. Studios with past bookings are taken offline instead, so receipts stay valid. The owner's account stays.`}
+            <ActionButton kind="danger" confirm={`Delete ${studio.name} completely? Upcoming bookings are cancelled and refunded. Only a studio with real card payments, payouts or paid invoices is taken offline instead, so those records stay. The owner's account stays.`}
               onClick={async () => { await api.deleteStudio(studio.id); await onChanged(); onClose(); }}>Delete studio</ActionButton>
           )}
         </>
