@@ -52,6 +52,12 @@ export interface AppState {
 
 const Context = createContext<AppState | null>(null);
 
+/** An admin with a filled-in artist profile is shown the artist side of the website. */
+function asArtistIfAdmin(account: UserAccount | null, profile: ArtistProfile | null): UserAccount | null {
+  if (account?.role !== "admin" || !profile?.artist_name.trim()) return account;
+  return { ...account, role: "artist", is_admin: true };
+}
+
 export function AppStateProvider({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false);
   const [account, setAccount] = useState<UserAccount | null>(null);
@@ -67,8 +73,11 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const [appearance, setAppearanceState] = useState<Appearance>(() => read("easysesh.appearance", "system"));
   const [reduceEffects, setReduceEffectsState] = useState<boolean>(() => read("easysesh.reduceEffects", false));
   const [language, setLanguageState] = useState(storedLanguage());
+  // A team member (admin) with an artist profile uses the website as an artist (the database allows it too);
+  // the admin dashboard stays at admin.easysesh.live.
+  const effectiveAccount = useMemo(() => asArtistIfAdmin(account, artistProfile), [account, artistProfile]);
   const accountRef = useRef<UserAccount | null>(null);
-  accountRef.current = account;
+  accountRef.current = effectiveAccount;
 
   const refreshUpdates = useCallback(async () => {
     const current = accountRef.current;
@@ -95,7 +104,11 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 
   const didAuthenticate = useCallback(async (next: UserAccount) => {
     accountRef.current = next;
-    if (next.role === "artist") setArtistProfile(await api.artistProfile(next.id).catch(() => null));
+    if (next.role === "artist" || next.role === "admin") {
+      const profile = await api.artistProfile(next.id).catch(() => null);
+      setArtistProfile(profile);
+      accountRef.current = asArtistIfAdmin(next, profile);
+    }
     if (next.role === "studio_owner") setOwnedStudio(await api.ownedStudio().catch(() => null));
     setAccount(next);
     await Promise.all([refreshUpdates(), refreshBadges()]);
@@ -139,9 +152,10 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   }, [appearance, reduceEffects]);
 
   const value = useMemo<AppState>(() => {
+    const account = effectiveAccount;
     const unseen = account ? changelog.filter((e) => new Date(e.published_at) > new Date(changelogSeenAt ?? account.created_at)) : [];
     return {
-      ready, account, artistProfile, ownedStudio, notifications, unreadMessages,
+      ready, account: effectiveAccount, artistProfile, ownedStudio, notifications, unreadMessages,
       unreadNotifications: notifications.filter((n) => !n.is_read).length,
       warnings, changelog, unseenChangelog: unseen, requiredTermsVersion,
       needsTermsAcceptance: !!account && account.role !== "admin" && (account.accepted_terms_version ?? "") < requiredTermsVersion,
@@ -158,7 +172,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       setReduceEffects(v) { setReduceEffectsState(v); write("easysesh.reduceEffects", v); },
       changeLanguage: (code) => setLanguage(code),
     };
-  }, [ready, account, artistProfile, ownedStudio, notifications, unreadMessages, warnings, changelog, changelogSeenAt, requiredTermsVersion,
+  }, [ready, effectiveAccount, artistProfile, ownedStudio, notifications, unreadMessages, warnings, changelog, changelogSeenAt, requiredTermsVersion,
     needsNewPassword, appearance, reduceEffects, language, didAuthenticate, signOut, refreshBadges, refreshUpdates]);
 
   return <Context.Provider value={value}>{children}</Context.Provider>;

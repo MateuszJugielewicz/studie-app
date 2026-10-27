@@ -144,9 +144,12 @@ export function ViewAsButton({ userId, title = "View as user" }: { userId: strin
 }
 
 /** Opens the Email page with the recipients filled in. */
-export function EmailButton({ to, title = "Email" }: { to: (string | null | undefined)[]; title?: string }) {
+export function EmailButton({ to, title = "Email", subject, body }: { to: (string | null | undefined)[]; title?: string; subject?: string; body?: string }) {
   const navigate = useNavigate();
   const recipients = [...new Set(to.filter((a): a is string => !!a && a.includes("@") && !a.endsWith(".invalid")))];
   if (recipients.length === 0) return null;
-  return <button className="secondary" onClick={() => navigate(`/email?recipient=${encodeURIComponent(recipients.join(", "))}`)}>{title}</button>;
+  const params = new URLSearchParams({ recipient: recipients.join(", ") });
+  if (subject) params.set("subject", subject);
+  if (body) params.set("body", body);
+  return <button className="secondary" onClick={() => navigate(`/email?${params}`)}>{title}</button>;
 }

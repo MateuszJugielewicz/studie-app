@@ -193,6 +193,10 @@ export class SupabaseAdminApi implements AdminApi {
     return data;
   }
 
+  async studioProblems(studioId: string): Promise<string[]> {
+    return unwrap(await this.client.rpc("admin_studio_problems", { p_studio_id: studioId })) ?? [];
+  }
+
   async studioCvr(studioId: string): Promise<string> {
     const row = unwrap<{ cvr: string } | null>(await this.client.from("studio_business_details").select("cvr").eq("studio_id", studioId).maybeSingle());
     return row?.cvr ?? "";

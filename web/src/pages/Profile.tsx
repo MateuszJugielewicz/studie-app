@@ -2,13 +2,14 @@ import { useEffect, useRef, useState } from "react";
 import { Link, Route, Routes, useNavigate } from "react-router-dom";
 import {
   AudioWaveform, Building2, Camera, CalendarDays, Check, ChevronRight, CircleUserRound, FileText, Globe, History, Link2, MapPin, Music2,
-  Megaphone, Pencil, PlayCircle, SlidersHorizontal, UserRound, CircleHelp, Instagram, Youtube, Contact, type LucideIcon,
+  Megaphone, Pencil, PlayCircle, ShieldCheck, SlidersHorizontal, UserRound, CircleHelp, Instagram, Youtube, Contact, type LucideIcon,
 } from "lucide-react";
 import { api, userMessage } from "../lib/api";
 import { Bookings, greeting } from "../lib/core";
 import { compressImage } from "../lib/image";
 import { format, t } from "../lib/i18n";
 import { useApp } from "../lib/state";
+import { adminUrl } from "../lib/hosts";
 import { GENRES, SOCIAL_PLATFORMS, PLATFORM_COLORS, platformTitle, type ArtistProfile, type Booking, type Genre, type SocialPlatform } from "../lib/types";
 import { C, Chip, IconTile, LargeHead, PageHead, PulseDot, Spinner, StatCard, TileLink, Tiles, ToolButton, useToast } from "../components/ui";
 import { ArtistHero, SocialLinks } from "./ArtistPublic";
@@ -78,6 +79,11 @@ function ArtistProfilePage() {
           <TileLink to="/settings/app" title="App settings" subtitle="Language, look, storage" icon={SlidersHorizontal} colors={Tiles.violet} />
           <TileLink to="/support" title="Support" subtitle="Talk to EasySesh" icon={CircleHelp} colors={Tiles.warm} />
         </div>
+        {app.account?.is_admin && (
+          <a href={adminUrl()} className="card row pressable" style={{ padding: 12 }}>
+            <IconTile icon={ShieldCheck} size={32} colors={Tiles.signal} /><span className="grow" style={{ fontWeight: 500 }}>{t("Admin panel")}</span><ChevronRight size={14} className="tertiary" />
+          </a>
+        )}
         <Link to="/legal" className="card row pressable" style={{ padding: 12 }}>
           <IconTile icon={FileText} size={32} colors={Tiles.muted} /><span className="grow" style={{ fontWeight: 500 }}>{t("Terms & privacy")}</span><ChevronRight size={14} className="tertiary" />
         </Link>

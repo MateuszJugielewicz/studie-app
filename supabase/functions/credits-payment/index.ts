@@ -30,8 +30,9 @@ Deno.serve(handler(async (req, body) => {
   if (!Number.isInteger(credits) || credits < MIN_CREDITS || credits > MAX_CREDITS) {
     throw new HttpError(400, `Buy between ${MIN_CREDITS} and ${MAX_CREDITS} credits.`);
   }
-  const { data: profile } = await admin.from("profiles").select("role").eq("id", user.id).maybeSingle();
-  if (!profile || !["artist", "studio_owner"].includes(profile.role)) {
+  // Team members (admins) with an artist profile can buy credits as artists.
+  const { data: isArtist } = await admin.rpc("is_artist_account", { p_user_id: user.id });
+  if (user.role !== "studio_owner" && !isArtist) {
     throw new HttpError(403, "Credits are for artists and studio owners.");
   }
 

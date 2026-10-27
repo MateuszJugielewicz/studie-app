@@ -36,6 +36,8 @@ export interface UserAccount {
   accepted_terms_at?: string | null;
   status_until?: string | null;
   status_reason?: string | null;
+  /** Website only: a team member (admin) who uses EasySesh as an artist too. */
+  is_admin?: boolean;
 }
 
 export type Genre =

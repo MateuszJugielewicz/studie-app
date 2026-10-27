@@ -5,7 +5,7 @@ import { ModerationPanel } from "../moderation";
 import { date, label, money, safeUrl } from "../lib/format";
 import type { Studio } from "../lib/types";
 
-type Tab = "applications" | "approved" | "changes" | "rejected" | "suspended" | "all";
+type Tab = "applications" | "drafts" | "approved" | "changes" | "rejected" | "suspended" | "all";
 const weekdays = ["", "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const hhmm = (m: number) => `${String(Math.floor((m % 1440) / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
 
@@ -20,6 +20,7 @@ export default function StudiosPage() {
   const selected = studios.find((s) => s.id === selectedId) ?? null;
   const filters: Record<Tab, (s: Studio) => boolean> = {
     applications: (s) => s.status === "pending_review",
+    drafts: (s) => s.status === "draft",
     approved: (s) => s.status === "approved",
     changes: (s) => s.status === "changes_requested",
     rejected: (s) => s.status === "rejected",
@@ -40,6 +41,7 @@ export default function StudiosPage() {
         onChange={setTab}
         tabs={[
           { id: "applications", title: "New applications", count: studios.filter(filters.applications).length },
+          { id: "drafts", title: "Not submitted", count: studios.filter(filters.drafts).length },
           { id: "approved", title: "Approved", count: studios.filter(filters.approved).length },
           { id: "changes", title: "Changes requested", count: studios.filter(filters.changes).length },
           { id: "rejected", title: "Rejected", count: studios.filter(filters.rejected).length },
@@ -85,6 +87,59 @@ export default function StudiosPage() {
   );
 }
 
+/** Danish wording of what's missing (studio_validation_problems), for reminders to Danish studios. */
+const PROBLEM_DA: Record<string, string> = {
+  "Add your studio's name.": "Studiets navn",
+  "Write a description of at least 40 characters.": "En beskrivelse af studiet (mindst 40 tegn)",
+  "Add at least one photo.": "Mindst ét billede",
+  "Add the studio's address.": "Studiets adresse",
+  "Place your studio on the map.": "Studiets placering på kortet",
+  "Add a valid email address.": "En gyldig e-mailadresse",
+  "Add a phone number.": "Et telefonnummer",
+  "Set a price for each session type.": "En pris for hver sessionstype",
+  "Set your opening hours.": "Åbningstider",
+  "Pick at least one genre.": "Mindst én genre",
+};
+
+/** A reminder email listing what the studio still has to add before it can be submitted for review. */
+function missingInfoReminder(studio: Studio, problems: string[]): { subject: string; body: string } {
+  const danish = /^(danmark|denmark|dk)$/i.test(studio.address.country?.trim() ?? "") || studio.currency === "DKK";
+  if (danish) {
+    return {
+      subject: `${studio.name}: der mangler lidt, før I kan sende til godkendelse`,
+      body: `Hej ${studio.name}
+
+Tak fordi I har oprettet jeres studie på EasySesh – det ser rigtig godt ud!
+
+Før I kan sende opslaget til godkendelse, mangler der:
+${problems.map((p) => `• ${PROBLEM_DA[p] ?? p}`).join("\n")}
+
+Sådan gør I: Log ind på easysesh.live → Rediger opslag → udfyld det, der mangler → tryk "Send til godkendelse". Så kigger vi det igennem, typisk inden for 1–2 hverdage.
+
+Skriv endelig, hvis I har spørgsmål eller vil have hjælp – så klarer vi det sammen.
+
+Venlig hilsen
+EasySesh`,
+    };
+  }
+  return {
+    subject: `${studio.name}: a few things left before you can submit for review`,
+    body: `Hi ${studio.name}
+
+Thanks for setting up your studio on EasySesh – it's looking great!
+
+Before you can submit your listing for review, it still needs:
+${problems.map((p) => `• ${p.replace(/\.$/, "")}`).join("\n")}
+
+How: sign in at easysesh.live → Edit listing → fill in what's missing → tap "Submit for review". We usually review new studios within 1–2 business days.
+
+Just reply if you have any questions or want a hand – happy to help.
+
+Best,
+EasySesh`,
+  };
+}
+
 function StudioModal({ studio, onClose, onChanged }: { studio: Studio; onClose: () => void; onChanged: () => Promise<void> }) {
   const api = useApi();
   const { data: events } = useLoad(() => api.studioEvents(studio.id), [studio.id]);
@@ -97,6 +152,7 @@ function StudioModal({ studio, onClose, onChanged }: { studio: Studio; onClose: 
   const [promoDays, setPromoDays] = useState(7);
   const [ownerEmail, setOwnerEmail] = useState<string | null>(null);
   const { data: cvr } = useLoad(() => api.studioCvr(studio.id), [studio.id]);
+  const { data: problems } = useLoad(() => api.studioProblems(studio.id), [studio.id, studio.status]);
   const staff = useStaff();
   useEffect(() => { api.accountEmail(studio.owner_id).then(setOwnerEmail).catch(() => setOwnerEmail(null)); }, [api, studio.owner_id]);
   const feeValue = fee.trim() === "" ? null : Number(fee);
@@ -154,6 +210,22 @@ function StudioModal({ studio, onClose, onChanged }: { studio: Studio; onClose: 
         {studio.platform_fee_percent != null && <Badge value="confirmed" text={`Special deal: ${studio.platform_fee_percent}% fee`} />}
         {studio.has_admin_badge && <span className="badge blue">Team</span>}
       </div>
+
+      {studio.status !== "approved" && studio.status !== "suspended" && problems && (
+        problems.length > 0 ? (
+          <div className="card notice">
+            <strong>{studio.status === "draft" ? "Can't be submitted yet – missing:" : "Still missing:"}</strong>
+            <ul style={{ margin: "6px 0 0", paddingLeft: 20 }}>{problems.map((p) => <li key={p}>{p}</li>)}</ul>
+            <div className="muted small">The owner fills this in under Edit listing, then taps "Submit for review".</div>
+            <div className="row gap" style={{ marginTop: 8 }}>
+              <EmailButton to={[studio.contact?.email, ownerEmail]} title="Send reminder email" {...missingInfoReminder(studio, problems)} />
+              <span className="muted small">Opens a ready-made email listing what's missing – you can edit it before sending.</span>
+            </div>
+          </div>
+        ) : studio.status === "draft" ? (
+          <div className="card notice"><strong>Everything is filled in.</strong> <span className="muted">The owner just hasn't tapped "Submit for review" yet.</span></div>
+        ) : null
+      )}
 
       <div className="photos">
         {studio.photo_urls.map((url) => <a key={url} href={safeUrl(url)} target="_blank" rel="noreferrer"><img src={safeUrl(url)} alt="" /></a>)}

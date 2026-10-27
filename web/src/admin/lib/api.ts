@@ -74,6 +74,8 @@ export interface AdminApi {
   deleteStudio(studioId: string): Promise<{ removed: boolean; cancelled: number }>;
   /** The CVR / VAT number from the studio's application ("" when none was given). */
   studioCvr(studioId: string): Promise<string>;
+  /** What the studio still has to fill in before it can be submitted (empty = ready). */
+  studioProblems(studioId: string): Promise<string[]>;
   sendEmail(email: { from: string; to: string; subject: string; body: string }): Promise<void>;
   sentEmails(): Promise<SentEmail[]>;
   /** Owners only: email campaigns (one email per recipient, sent in batches from the panel). */

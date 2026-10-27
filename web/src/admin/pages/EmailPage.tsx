@@ -15,8 +15,9 @@ export default function EmailPage() {
   const [params] = useSearchParams();
   const [to, setTo] = useState(params.get("recipient") ?? "");
   useEffect(() => { const r = params.get("recipient"); if (r) setTo(r); }, [params]);
-  const [subject, setSubject] = useState("");
-  const [body, setBody] = useState("");
+  // A prefilled email (e.g. "Remind about missing info" on a studio) arrives in the address.
+  const [subject, setSubject] = useState(params.get("subject") ?? "");
+  const [body, setBody] = useState(params.get("body") ?? "");
   const [done, setDone] = useState<string | null>(null);
   const sender = from === "other" ? custom.trim().toLowerCase() : from;
 
