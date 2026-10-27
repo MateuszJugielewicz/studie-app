@@ -12,6 +12,8 @@ export const config = {
 export const CONTACT = {
   support: config.supportEmail || "support@easysesh.live",
   general: "easysesh@easysesh.live",
+  instagram: "https://www.instagram.com/easysesh.live",
+  instagramHandle: "@easysesh.live",
 };
 
 /** Platform-wide commercial settings, the same as the apps and supabase/functions/_shared/pricing.ts. */

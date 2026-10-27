@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Mail, MapPin } from "lucide-react";
+import { Instagram, Mail, MapPin } from "lucide-react";
 import { t } from "../lib/i18n";
 import { CONTACT } from "../lib/config";
 import { Footer } from "./Footer";
@@ -64,7 +64,10 @@ export default function About() {
               <h2 className="title-l">{t("Get in touch")}</h2>
               <p className="secondary" style={{ margin: 0 }}>{t("Questions, ideas or feedback? Write to us – we read every message.")}</p>
             </div>
-            <a className="btn secondary large" href={`mailto:${CONTACT.general}`}><Mail size={18} />{CONTACT.general}</a>
+            <div className="row" style={{ gap: 10, flexWrap: "wrap", position: "relative" }}>
+              <a className="btn secondary large" href={`mailto:${CONTACT.general}`}><Mail size={18} />{CONTACT.general}</a>
+              <a className="btn secondary large" href={CONTACT.instagram} target="_blank" rel="noopener noreferrer"><Instagram size={18} />{CONTACT.instagramHandle}</a>
+            </div>
           </div>
         </section>
       </main>

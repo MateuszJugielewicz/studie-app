@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Globe } from "lucide-react";
+import { Globe, Instagram } from "lucide-react";
 import { LANGUAGES, t } from "../lib/i18n";
 import { useApp } from "../lib/state";
 import { Logo } from "../components/ui";
@@ -14,6 +14,9 @@ export function Footer() {
         <div className="stack" style={{ gap: 12, maxWidth: 320 }}>
           <Logo size={22} />
           <span>{t("Book recording studios near you.")}</span>
+          <a className="social-link" href={CONTACT.instagram} target="_blank" rel="noopener noreferrer" aria-label={t("EasySesh on Instagram")}>
+            <Instagram size={18} />{CONTACT.instagramHandle}
+          </a>
         </div>
         <div className="stack" style={{ gap: 10 }}>
           <h4>EasySesh</h4>
@@ -26,6 +29,7 @@ export function Footer() {
           <h4>{t("Contact")}</h4>
           <a href={`mailto:${CONTACT.support}`}>{CONTACT.support}</a>
           <a href={`mailto:${CONTACT.general}`}>{CONTACT.general}</a>
+          <a href={CONTACT.instagram} target="_blank" rel="noopener noreferrer">Instagram</a>
         </div>
         <div className="stack" style={{ gap: 10 }}>
           <h4>{t("Legal")}</h4>
