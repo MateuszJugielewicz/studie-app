@@ -10,8 +10,8 @@ export function setReasonAsker(next: Asker | null) {
   asker = next;
 }
 
-/** Requests that don't change anyone's account. */
-const EXEMPT = /\/rpc\/(admin_dashboard_stats|mark_support_ticket_read|send_support_message|set_support_ticket_status)\b|\/functions\/v1\/admin-send-email\b/;
+/** Requests that don't change anyone's account (reads that are database function calls, which are sent as POST). */
+const EXEMPT = /\/rpc\/(admin_dashboard_stats|admin_studio_problems|promotion_credit_balance|campaign_audience|mark_support_ticket_read|send_support_message|set_support_ticket_status)\b|\/functions\/v1\/admin-send-email\b/;
 
 function actionName(url: string): string {
   const name = url.match(/\/rpc\/([a-z_]+)/)?.[1] ?? url.match(/\/functions\/v1\/([a-z-]+)/)?.[1] ?? url.match(/\/rest\/v1\/([a-z_]+)/)?.[1] ?? "change";
