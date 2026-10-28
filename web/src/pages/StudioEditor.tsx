@@ -12,7 +12,7 @@ import { geocode } from "../lib/location";
 import { PlatformConfig } from "../lib/config";
 import { useApp } from "../lib/state";
 import {
-  ADD_ON_KINDS, CANCELLATION, EQUIPMENT_CATEGORIES, FACILITIES, GENRES, PRICE_UNITS, type CancellationPolicy, type EquipmentCategory, type OpeningHours, type PriceRule, type Studio,
+  ADD_ON_KINDS, CANCELLATION, EQUIPMENT_CATEGORIES, FACILITIES, GENRES, PRICE_UNITS, type CancellationPolicy, type EquipmentCategory, type OpeningHours, type PriceRule, type Studio, type VolumePrice,
 } from "../lib/types";
 import { Chip, ChipPicker, InputItem, Item, Notice, PageHead, Section, Segmented, SelectItem, Spinner, Stepper, ToggleItem, ToolButton, useToast } from "../components/ui";
 import { StudioMap } from "../components/StudioMap";
@@ -363,6 +363,35 @@ function PriceRules({ typeId }: { typeId: string }) {
   );
 }
 
+/** Lower unit prices when more is booked at once (e.g. mixing 738 € per track from 3 tracks). */
+function VolumePrices({ target, targetId, unit }: { target: VolumePrice["target"]; targetId: string; unit: "h" | "tracks" }) {
+  const [studio, set] = useDraft();
+  const all = studio.volume_prices ?? [];
+  const tiers = all.filter((v) => v.target === target && v.target_id === targetId).sort((a, b) => a.min_qty - b.min_qty);
+  const base = target === "session" ? studio.session_types.find((x) => x.id === targetId)?.hourly_rate : studio.add_ons.find((x) => x.id === targetId)?.price;
+  const update = (id: string, patch: Partial<VolumePrice>) => set({ ...studio, volume_prices: all.map((v) => (v.id === id ? { ...v, ...patch } : v)) });
+  const add = () => {
+    const last = tiers[tiers.length - 1];
+    set({ ...studio, volume_prices: [...all, { id: newId(), target, target_id: targetId, min_qty: last ? last.min_qty + 2 : 3, unit_price: last?.unit_price ?? base ?? 0 }] });
+  };
+  const label = (n: number) => (unit === "h" ? format("From %lld hours", n) : format("From %lld tracks", n));
+  return (
+    <div style={{ padding: "0 0 8px" }}>
+      {tiers.map((v) => (
+        <div key={v.id} className="row" style={{ gap: 8, padding: "4px 12px", flexWrap: "wrap" }}>
+          <span className="footnote" style={{ minWidth: 110 }}>{label(v.min_qty)}</span>
+          <Stepper value={v.min_qty} min={2} max={unit === "h" ? 12 : 20} onChange={(min_qty) => update(v.id, { min_qty })} />
+          <div style={{ flex: 1, minWidth: 180 }}><MoneyInput title={unit === "h" ? "Per hour" : "Per track"} amount={v.unit_price} currency={studio.currency} onChange={(unit_price) => update(v.id, { unit_price })} /></div>
+          <button className="danger" onClick={() => set({ ...studio, volume_prices: all.filter((x) => x.id !== v.id) })} aria-label={t("Delete")}><Trash2 size={17} /></button>
+        </div>
+      ))}
+      <Item onClick={add}>
+        <Plus size={18} color="var(--accent)" /><span className="label accent">{t(unit === "h" ? "Lower price when booking more hours" : "Lower price when booking more tracks")}</span>
+      </Item>
+    </div>
+  );
+}
+
 function Pricing() {
   const [studio, set] = useDraft();
   const updateType = (i: number, patch: Partial<Studio["session_types"][number]>) => set({ ...studio, session_types: studio.session_types.map((x, j) => (j === i ? { ...x, ...patch } : x)) });
@@ -380,6 +409,7 @@ function Pricing() {
             <Item><span className="label">{format("Minimum %lld h", type.minimum_hours)}</span><Stepper value={type.minimum_hours} min={1} max={8} onChange={(minimum_hours) => updateType(i, { minimum_hours })} /></Item>
             <ToggleItem title="Engineer included" checked={type.includes_engineer} onChange={(includes_engineer) => updateType(i, { includes_engineer })} />
             <PriceRules typeId={type.id} />
+            <VolumePrices target="session" targetId={type.id} unit="h" />
           </div>
         ))}
         <Item onClick={() => set({ ...studio, session_types: [...studio.session_types, { id: newId(), name: "", details: "", hourly_rate: studio.price_from > 0 ? studio.price_from : 3000, minimum_hours: 1, includes_engineer: false }] })}>
@@ -394,6 +424,7 @@ function Pricing() {
               <button className="danger" onClick={() => set({ ...studio, add_ons: studio.add_ons.filter((x) => x.id !== addOn.id) })} aria-label={t("Delete")}><Trash2 size={17} /></button></Item>
             <MoneyInput title="Price" amount={addOn.price} currency={studio.currency} onChange={(price) => updateAddOn(i, { price })} />
             <div style={{ padding: "8px 12px" }}><Segmented value={addOn.unit} options={PRICE_UNITS.map(([value, label]) => ({ value, label }))} onChange={(unit) => updateAddOn(i, { unit })} /></div>
+            {addOn.unit !== "per_session" && <VolumePrices target="add_on" targetId={addOn.id} unit={addOn.unit === "per_track" ? "tracks" : "h"} />}
           </div>
         ))}
         <Item onClick={() => set({ ...studio, add_ons: [...studio.add_ons, { id: newId(), kind: "mixing", name: "Mixing", price: 5000, unit: "per_track" }] })}>

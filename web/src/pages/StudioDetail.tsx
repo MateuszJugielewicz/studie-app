@@ -9,7 +9,7 @@ import {
 import { api, userMessage } from "../lib/api";
 import {
   availableSlots, Dates, distanceMeters, formatDistance, hoursLabel, Money, OPENING_DISPLAY_ORDER, resolveLink, Studios, studioZone,
-  addDays, startOfDay, weekdayName, type TimeSlot, priceRuleSummary } from "../lib/core";
+  addDays, startOfDay, weekdayName, type TimeSlot, priceRuleSummary, volumeTiers } from "../lib/core";
 import { format, t } from "../lib/i18n";
 import { useLocation, directionsUrl, mapsUrl } from "../lib/location";
 import { useApp } from "../lib/state";
@@ -155,6 +155,12 @@ export default function StudioDetail() {
                     <div className="caption secondary">{format("Min. %lldh", type.minimum_hours)}</div>
                   </div>
                   <div className="bold tabular">{Money.format(type.hourly_rate, studio.currency)}/h</div>
+                  {volumeTiers(studio, "session", type.id).map((v) => (
+                    <div key={v.id} className="row spread footnote secondary" style={{ flexBasis: "100%", gap: 8 }}>
+                      <span>{format("From %lld hours", v.min_qty)}</span>
+                      <span className="tabular">{Money.format(v.unit_price, studio.currency)}/h</span>
+                    </div>
+                  ))}
                   {(studio.price_rules ?? []).filter((r) => r.session_type_id === type.id && r.hourly_rate > 0 && r.weekdays.length).map((r) => (
                     <div key={r.id} className="row spread footnote secondary" style={{ flexBasis: "100%", gap: 8 }}>
                       <span>{r.label || t("Other times")} · {priceRuleSummary(r)}</span>
@@ -167,7 +173,17 @@ export default function StudioDetail() {
             {studio.add_ons.length > 0 && (
               <>
                 <div className="headline" style={{ marginTop: 4 }}>{t("Add-ons")}</div>
-                {studio.add_ons.map((a) => <div key={a.id} className="row spread subhead"><span>{a.name}</span><span className="secondary">{Money.format(a.price, studio.currency)} {t(PRICE_UNITS.find(([k]) => k === a.unit)![1])}</span></div>)}
+                {studio.add_ons.map((a) => (
+                  <div key={a.id}>
+                    <div className="row spread subhead"><span>{a.name}</span><span className="secondary">{Money.format(a.price, studio.currency)} {t(PRICE_UNITS.find(([k]) => k === a.unit)![1])}</span></div>
+                    {a.unit !== "per_session" && volumeTiers(studio, "add_on", a.id).map((v) => (
+                      <div key={v.id} className="row spread footnote secondary">
+                        <span>{format(a.unit === "per_track" ? "From %lld tracks" : "From %lld hours", v.min_qty)}</span>
+                        <span>{Money.format(v.unit_price, studio.currency)} {t(PRICE_UNITS.find(([k]) => k === a.unit)![1])}</span>
+                      </div>
+                    ))}
+                  </div>
+                ))}
               </>
             )}
             {studio.booking_policy.deposit_percent > 0 && <div className="row footnote secondary" style={{ gap: 6 }}><CreditCard size={15} />{format("%lld%% deposit at booking, the rest is charged after your session.", studio.booking_policy.deposit_percent)}</div>}

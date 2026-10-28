@@ -122,6 +122,12 @@ export interface SessionType { id: string; name: string; details: string; hourly
  * (to may be 1440; from > to wraps past midnight). Each booked hour uses the first matching rule.
  */
 export interface PriceRule { id: string; session_type_id: string; label: string; weekdays: number[]; from: number; to: number; hourly_rate: number }
+/**
+ * A lower unit price when more is booked in one booking: a session type's hourly rate from min_qty
+ * hours, or an add-on's price per track (per_track) or per hour (per_hour) from min_qty. The highest
+ * min_qty reached applies.
+ */
+export interface VolumePrice { id: string; target: "session" | "add_on"; target_id: string; min_qty: number; unit_price: number }
 /** One line of a session's price when hours have different rates. */
 export interface RateLine { label: string | null; hourly_rate: number; hours: number; amount: number }
 export type AddOnKind = "engineer" | "producer" | "mixing" | "mastering" | "other";
@@ -155,6 +161,8 @@ export interface Studio {
   id: string;
   /** Time-based hourly rates (see PriceRule). */
   price_rules?: PriceRule[];
+  /** Lower prices when booking more (see VolumePrice). */
+  volume_prices?: VolumePrice[];
   owner_id: string;
   name: string;
   tagline: string;

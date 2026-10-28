@@ -4,7 +4,7 @@ import { PlatformConfig } from "./config";
 import { format, locale, t } from "./i18n";
 import type {
   Booking, BookingStatus, CancellationPolicy, Interval, OpeningHours, Payout, PriceBreakdown, ServiceAddOn, SessionType,
-  SocialLink, Studio, UserRole, BookedAddOn, Genre, Facility, EquipmentCategory, PriceRule, RateLine,
+  SocialLink, Studio, UserRole, BookedAddOn, Genre, Facility, EquipmentCategory, PriceRule, RateLine, VolumePrice,
 } from "./types";
 import { genreTitle } from "./types";
 
@@ -211,10 +211,22 @@ export const Bookings = {
 
 // MARK: Pricing
 
-export function addOnAmount(addOn: ServiceAddOn, quantity: number, hours: number): number {
-  if (addOn.unit === "per_hour") return addOn.price * hours;
+/** The unit price for `quantity` with volume prices (same as the database's volume_price). */
+export function volumePrice(studio: Studio | undefined, target: VolumePrice["target"], targetId: string, quantity: number, fallback: number): number {
+  const tier = (studio?.volume_prices ?? [])
+    .filter((v) => v.target === target && v.target_id === targetId && v.unit_price > 0 && v.min_qty >= 2 && v.min_qty <= quantity)
+    .sort((a, b) => b.min_qty - a.min_qty)[0];
+  return tier?.unit_price ?? fallback;
+}
+
+/** The volume prices for one session type or add-on, smallest quantity first. */
+export const volumeTiers = (studio: Studio, target: VolumePrice["target"], targetId: string) =>
+  (studio.volume_prices ?? []).filter((v) => v.target === target && v.target_id === targetId && v.unit_price > 0 && v.min_qty >= 2).sort((a, b) => a.min_qty - b.min_qty);
+
+export function addOnAmount(addOn: ServiceAddOn, quantity: number, hours: number, studio?: Studio): number {
+  if (addOn.unit === "per_hour") return volumePrice(studio, "add_on", addOn.id, hours, addOn.price) * hours;
   if (addOn.unit === "per_session") return addOn.price;
-  return addOn.price * quantity;
+  return volumePrice(studio, "add_on", addOn.id, quantity, addOn.price) * quantity;
 }
 
 /** Weekday (1 = Sunday … 7 = Saturday) and minutes after midnight of `date` in `zone`. */
@@ -243,7 +255,7 @@ export function sessionPrice(studio: Studio, sessionType: SessionType, hours: nu
       const { weekday, minutes } = weekdayAndMinutes(new Date(start.getTime() + i * HOUR), studioZone(studio));
       rule = rules.find((r) => ruleMatches(r, weekday, minutes));
     }
-    const rate = rule?.hourly_rate ?? sessionType.hourly_rate;
+    const rate = rule?.hourly_rate ?? volumePrice(studio, "session", sessionType.id, hours, sessionType.hourly_rate);
     const label = rule?.label.trim() || null;
     amount += rate;
     const line = lines.find((l) => l.label === label && l.hourly_rate === rate);
@@ -259,7 +271,7 @@ export function quote(studio: Studio, sessionType: SessionType, hours: number, s
   let addOnsAmount = 0;
   for (const addOn of studio.add_ons) {
     const quantity = selected[addOn.id] ?? 0;
-    if (quantity > 0) addOnsAmount += addOnAmount(addOn, quantity, h);
+    if (quantity > 0) addOnsAmount += addOnAmount(addOn, quantity, h, studio);
   }
   const subtotal = sessionAmount + addOnsAmount;
   const serviceFee = Money.percent(subtotal, PlatformConfig.ARTIST_SERVICE_FEE_PERCENT);
@@ -269,7 +281,7 @@ export function quote(studio: Studio, sessionType: SessionType, hours: number, s
   const dueNow = deposit > 0 ? deposit + serviceFee : total;
   const commission = Money.percent(subtotal, PlatformConfig.PLATFORM_FEE_PERCENT);
   return {
-    currency: studio.currency, hourly_rate: sessionType.hourly_rate, hours: h, session_amount: sessionAmount, rate_lines: timed.lines,
+    currency: studio.currency, hourly_rate: volumePrice(studio, "session", sessionType.id, h, sessionType.hourly_rate), hours: h, session_amount: sessionAmount, rate_lines: timed.lines,
     add_ons_amount: addOnsAmount, subtotal, service_fee: serviceFee, total, deposit_amount: deposit, due_now: dueNow,
     due_later: total - dueNow, studio_commission: commission, studio_payout: subtotal - commission,
   };
@@ -280,7 +292,7 @@ export const acceptsCash = (s: Studio) => s.booking_policy.accepts_cash && s.boo
 
 export function bookedAddOns(studio: Studio, selected: Record<string, number>, hours: number): BookedAddOn[] {
   return studio.add_ons.filter((a) => (selected[a.id] ?? 0) > 0)
-    .map((a) => ({ id: a.id, name: a.name, quantity: selected[a.id], amount: addOnAmount(a, selected[a.id], hours) }));
+    .map((a) => ({ id: a.id, name: a.name, quantity: selected[a.id], amount: addOnAmount(a, selected[a.id], hours, studio) }));
 }
 
 export function refundPercent(policy: CancellationPolicy, hoursUntilStart: number): number {

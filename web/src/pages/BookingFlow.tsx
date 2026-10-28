@@ -9,8 +9,7 @@ import {
 import { api, userMessage } from "../lib/api";
 import { config, PlatformConfig } from "../lib/config";
 import {
-  acceptsCash, availableSlots, Bookings, Dates, HOUR, Money, openingWindow, quote, studioZone, zonedTime, dayIn, type TimeSlot,
-} from "../lib/core";
+  acceptsCash, availableSlots, Bookings, Dates, HOUR, Money, openingWindow, quote, studioZone, zonedTime, dayIn, type TimeSlot, volumePrice, volumeTiers } from "../lib/core";
 import { format, t } from "../lib/i18n";
 import { useApp } from "../lib/state";
 import { CANCELLATION, PAYMENT_STATUS_TITLE, PRICE_UNITS, type Booking, type Interval, type PriceBreakdown, type PromoCheck, type ServiceAddOn, type Studio, type StudioOffer } from "../lib/types";
@@ -159,7 +158,7 @@ function BookingDraft({ studio }: { studio: Studio }) {
           </Section>
           {studio.add_ons.length > 0 && (
             <Section header="Add-ons">
-              {studio.add_ons.map((a) => <AddOnRow key={a.id} addOn={a} currency={studio.currency} quantity={addOns[a.id] ?? 0} onChange={(q) => setAddOns({ ...addOns, [a.id]: q })} />)}
+              {studio.add_ons.map((a) => <AddOnRow key={a.id} studio={studio} hours={hours} addOn={a} currency={studio.currency} quantity={addOns[a.id] ?? 0} onChange={(q) => setAddOns({ ...addOns, [a.id]: q })} />)}
             </Section>
           )}
           <Section header="Notes for the studio">
@@ -177,13 +176,17 @@ function BookingDraft({ studio }: { studio: Studio }) {
   );
 }
 
-function AddOnRow({ addOn, currency, quantity, onChange }: { addOn: ServiceAddOn; currency: string; quantity: number; onChange: (q: number) => void }) {
+function AddOnRow({ studio, hours, addOn, currency, quantity, onChange }: { studio: Studio; hours: number; addOn: ServiceAddOn; currency: string; quantity: number; onChange: (q: number) => void }) {
   const perTrack = addOn.unit === "per_track";
+  // With volume prices the price per track (or hour) drops as more is booked.
+  const unitPrice = addOn.unit === "per_session" ? addOn.price : volumePrice(studio, "add_on", addOn.id, perTrack ? Math.max(quantity, 1) : hours, addOn.price);
+  const next = addOn.unit === "per_session" ? undefined : volumeTiers(studio, "add_on", addOn.id).find((v) => v.min_qty > (perTrack ? quantity : hours));
   return (
     <Item>
       <div className="label">
         <div>{addOn.name}</div>
-        <div className="caption secondary">{Money.format(addOn.price, currency)} {t(PRICE_UNITS.find(([k]) => k === addOn.unit)![1])}</div>
+        <div className="caption secondary">{Money.format(unitPrice, currency)} {t(PRICE_UNITS.find(([k]) => k === addOn.unit)![1])}</div>
+        {perTrack && next && <div className="caption secondary">{format("From %lld tracks: %@ each", next.min_qty, Money.format(next.unit_price, currency))}</div>}
         {perTrack && quantity > 0 && <div className="caption accent">{quantity === 1 ? t("1 track") : format("%lld tracks", quantity)}</div>}
       </div>
       {perTrack ? <Stepper value={quantity} min={0} max={20} onChange={onChange} /> : <Toggle checked={quantity > 0} onChange={(on) => onChange(on ? 1 : 0)} label={addOn.name} />}
