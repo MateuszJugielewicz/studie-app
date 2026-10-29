@@ -151,7 +151,7 @@ export default function StudioDetail() {
                 <div key={type.id} style={{ flexWrap: "wrap" }}>
                   <div className="grow">
                     <div className="row semibold" style={{ gap: 6 }}>{type.name}{type.includes_engineer && <UserRound size={16} color="var(--accent)" />}</div>
-                    {type.details && <div className="footnote secondary">{type.details}</div>}
+                    {type.details && <div className="footnote secondary" style={{ whiteSpace: "pre-line" }}>{type.details}</div>}
                     <div className="caption secondary">{format("Min. %lldh", type.minimum_hours)}</div>
                   </div>
                   <div className="bold tabular">{Money.format(type.hourly_rate, studio.currency)}/h</div>
