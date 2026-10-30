@@ -406,7 +406,7 @@ function Pricing() {
               <button className="danger" onClick={() => set({ ...studio, session_types: studio.session_types.filter((x) => x.id !== type.id) })} aria-label={t("Delete")}><Trash2 size={17} /></button></Item>
             <InputItem placeholder="Short description" value={type.details} onChange={(details) => updateType(i, { details })} />
             <MoneyInput title="Per hour" amount={type.hourly_rate} currency={studio.currency} onChange={(hourly_rate) => updateType(i, { hourly_rate })} />
-            <Item><span className="label">{format("Minimum %lld h", type.minimum_hours)}</span><Stepper value={type.minimum_hours} min={1} max={8} onChange={(minimum_hours) => updateType(i, { minimum_hours })} /></Item>
+            <Item><span className="label">{format("Minimum %lld h", type.minimum_hours)}</span><Stepper value={type.minimum_hours} min={1} max={PlatformConfig.MAX_SESSION_HOURS} onChange={(minimum_hours) => updateType(i, { minimum_hours })} /></Item>
             <ToggleItem title="Engineer included" checked={type.includes_engineer} onChange={(includes_engineer) => updateType(i, { includes_engineer })} />
             <PriceRules typeId={type.id} />
             <VolumePrices target="session" targetId={type.id} unit="h" />
