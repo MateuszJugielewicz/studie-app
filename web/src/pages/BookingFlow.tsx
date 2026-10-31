@@ -9,7 +9,7 @@ import {
 import { api, userMessage } from "../lib/api";
 import { config, PlatformConfig } from "../lib/config";
 import {
-  acceptsCash, availableSlots, Bookings, Dates, HOUR, Money, openingWindow, quote, studioZone, zonedTime, dayIn, type TimeSlot, volumePrice, volumeTiers } from "../lib/core";
+  acceptsCash, availableSlots, Bookings, Dates, HOUR, Money, openingWindow, quote, studioZone, zonedTime, dayIn, type TimeSlot, volumePrice, volumeTiers, dayRate, hoursPerDay } from "../lib/core";
 import { format, t } from "../lib/i18n";
 import { useApp } from "../lib/state";
 import { CANCELLATION, PAYMENT_STATUS_TITLE, PRICE_UNITS, type Booking, type Interval, type PriceBreakdown, type PromoCheck, type ServiceAddOn, type Studio, type StudioOffer } from "../lib/types";
@@ -31,22 +31,22 @@ export default function BookingFlow() {
   return <BookingDraft studio={studio} />;
 }
 
-interface Request { studio: Studio; sessionTypeId: string; start: Date; hours: number; addOns: Record<string, number>; notes: string }
+interface Request { studio: Studio; sessionTypeId: string; start: Date; hours: number; days: number; addOns: Record<string, number>; notes: string }
 
 /**
  * The price the booking will actually get. Studio offers and promo codes are applied on the server,
  * so the local quote is shown first and replaced by the server's as soon as it arrives.
  */
-function useQuote(studio: Studio, sessionTypeId: string, hours: number, addOns: Record<string, number>, promoCode?: string | null, start?: Date | null) {
+function useQuote(studio: Studio, sessionTypeId: string, hours: number, addOns: Record<string, number>, promoCode?: string | null, start?: Date | null, days = 1) {
   const sessionType = studio.session_types.find((s) => s.id === sessionTypeId);
-  const local = sessionType ? quote(studio, sessionType, hours, addOns, start) : null;
-  const key = JSON.stringify([sessionTypeId, hours, addOns, promoCode ?? null, start?.toISOString() ?? null]);
+  const local = sessionType ? quote(studio, sessionType, hours, addOns, start, days) : null;
+  const key = JSON.stringify([sessionTypeId, hours, addOns, promoCode ?? null, start?.toISOString() ?? null, days]);
   const [server, setServer] = useState<{ key: string; price: PriceBreakdown } | null>(null);
   useEffect(() => {
     if (!sessionType) return;
     let current = true;
     const timer = window.setTimeout(() => {
-      api.quoteBooking(studio.id, sessionTypeId, hours, addOns, promoCode, start).then((price) => { if (current) setServer({ key, price }); }).catch(() => undefined);
+      api.quoteBooking(studio.id, sessionTypeId, hours, addOns, promoCode, start, days).then((price) => { if (current) setServer({ key, price }); }).catch(() => undefined);
     }, 200);
     return () => { current = false; window.clearTimeout(timer); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -89,6 +89,9 @@ function BookingDraft({ studio }: { studio: Studio }) {
   const [sessionTypeId, setSessionTypeId] = useState(studio.session_types[0]?.id ?? "");
   const sessionType = studio.session_types.find((s) => s.id === sessionTypeId);
   const [hours, setHours] = useState(studio.session_types[0]?.minimum_hours ?? 2);
+  // Day-priced session types: the artist picks a number of days; each day has the studio's set hours.
+  const perDay = sessionType ? dayRate(studio, sessionType.id) : undefined;
+  const [days, setDays] = useState(1);
   const [day, setDay] = useState(new Date());
   const [slot, setSlot] = useState<TimeSlot | null>(null);
   const [addOns, setAddOns] = useState<Record<string, number>>({});
@@ -104,19 +107,36 @@ function BookingDraft({ studio }: { studio: Studio }) {
   useEffect(() => {
     setLoadingSlots(true);
     const start = new Date(dayInstant.getTime() - 36 * HOUR);
-    api.busyIntervals([studio.id], start, new Date(start.getTime() + 72 * HOUR)).then((r) => setBusy(r[studio.id] ?? [])).catch(() => setBusy([])).finally(() => setLoadingSlots(false));
-  }, [dayInstant, studio.id]);
-  useEffect(() => { if (sessionType && hours < sessionType.minimum_hours) setHours(sessionType.minimum_hours); }, [sessionType, hours]);
-  const slots = useMemo(() => availableSlots(studio, dayInstant, hours, busy), [studio, dayInstant, hours, busy]);
+    api.busyIntervals([studio.id], start, new Date(start.getTime() + (72 + 24 * (days - 1)) * HOUR)).then((r) => setBusy(r[studio.id] ?? [])).catch(() => setBusy([])).finally(() => setLoadingSlots(false));
+  }, [dayInstant, studio.id, days]);
+  useEffect(() => {
+    if (perDay) { if (hours !== hoursPerDay(perDay)) setHours(hoursPerDay(perDay)); return; }
+    if (days !== 1) setDays(1);
+    if (sessionType && hours < sessionType.minimum_hours) setHours(sessionType.minimum_hours);
+  }, [sessionType, perDay, hours, days]);
+  const slots = useMemo(() => {
+    const first = availableSlots(studio, dayInstant, hours, busy);
+    if (days <= 1) return first;
+    // Every day must have the same start time free, and nothing may be booked in between (the stay is one booking).
+    const later = Array.from({ length: days - 1 }, (_, i) => {
+      const instant = zonedTime({ y: day.getFullYear(), m: day.getMonth() + 1, d: day.getDate() + i + 1 }, 12 * 60, zone);
+      return new Set(availableSlots(studio, instant, hours, busy).map((s) => Dates.time(s.start, zone)));
+    });
+    return first.filter((s) => {
+      if (!later.every((set) => set.has(Dates.time(s.start, zone)))) return false;
+      const end = new Date(s.start.getTime() + ((days - 1) * 24 + hours) * HOUR);
+      return !busy.some((b) => b.start < end && b.end > s.start);
+    });
+  }, [studio, dayInstant, hours, busy, days, day, zone]);
   useEffect(() => { setSlot((s) => (s && slots.some((x) => x.start.getTime() === s.start.getTime()) ? slots.find((x) => x.start.getTime() === s.start.getTime())! : null)); }, [slots]);
-  const price = useQuote(studio, sessionTypeId, hours, addOns, null, slot?.start);
+  const price = useQuote(studio, sessionTypeId, hours, addOns, null, slot?.start, days);
   const today = dayIn(new Date(), zone);
   const last = new Date(today.y, today.m - 1, today.d + studio.booking_policy.max_advance_days);
 
   if (checkout) return <Checkout request={checkout} onBack={() => setCheckout(null)} />;
 
   const continueButton = (
-    <button className="btn primary block" disabled={!slot || !sessionType} onClick={() => slot && setCheckout({ studio, sessionTypeId, start: slot.start, hours, addOns, notes })}>
+    <button className="btn primary block" disabled={!slot || !sessionType} onClick={() => slot && setCheckout({ studio, sessionTypeId, start: slot.start, hours, days, addOns, notes })}>
       {slot && price ? format("Continue · %@", Money.format(price.total, studio.currency)) : t("Pick a time")}
     </button>
   );
@@ -130,22 +150,33 @@ function BookingDraft({ studio }: { studio: Studio }) {
           <Section header="Session type">
             {studio.session_types.map((s) => (
               <Item key={s.id} onClick={() => setSessionTypeId(s.id)}>
-                <span className="label">{s.name} · {Money.format(s.hourly_rate, studio.currency)}/h</span>
+                <span className="label">{s.name} · {dayRate(studio, s.id) ? format("%@ / day", Money.format(dayRate(studio, s.id)!.day_price, studio.currency)) : `${Money.format(s.hourly_rate, studio.currency)}/h`}</span>
                 {s.id === sessionTypeId && <Check size={18} color="var(--accent)" />}
               </Item>
             ))}
           </Section>
-          <Section header="Duration">
-            <Item><span className="label bold">{format("%lld hours", hours)}</span><Stepper value={hours} min={sessionType?.minimum_hours ?? 1} max={PlatformConfig.MAX_SESSION_HOURS} onChange={setHours} /></Item>
-          </Section>
+          {perDay ? (
+            <Section header="Duration" footer={format("%lld hours per day, starting at the same time each day.", hours)} translate={false}>
+              <Item><span className="label bold">{days === 1 ? t("1 day") : format("%lld days", days)}</span><Stepper value={days} min={1} max={30} onChange={setDays} /></Item>
+              {volumeTiers(studio, "day", perDay.session_type_id).map((v) => (
+                <Item key={v.id}><span className="caption secondary">{format("From %lld days: %@ per day", v.min_qty, Money.format(v.unit_price, studio.currency))}</span></Item>
+              ))}
+            </Section>
+          ) : (
+            <Section header="Duration">
+              <Item><span className="label bold">{format("%lld hours", hours)}</span><Stepper value={hours} min={sessionType?.minimum_hours ?? 1} max={PlatformConfig.MAX_SESSION_HOURS} onChange={setHours} /></Item>
+            </Section>
+          )}
           <section className="section">
             <div className="section-header">{t("Date")}</div>
             <MonthCalendar selected={day} onSelect={(d) => { if (d <= last) setDay(d); }} min={new Date()} />
           </section>
-          <Section header="Start time" footer={slot ? `${Dates.weekdayDayMonth(slot.start)} ${Dates.time(slot.start, zone)} – ${Dates.time(slot.end, zone)}` : undefined} translate={false}>
+          <Section header="Start time" footer={slot ? (days > 1
+              ? `${Dates.weekdayDayMonth(slot.start)} ${Dates.time(slot.start, zone)} – ${Dates.weekdayDayMonth(new Date(slot.start.getTime() + (days - 1) * 24 * HOUR))} ${Dates.time(slot.end, zone)}`
+              : `${Dates.weekdayDayMonth(slot.start)} ${Dates.time(slot.start, zone)} – ${Dates.time(slot.end, zone)}`) : undefined} translate={false}>
             <Item>
               {loadingSlots ? <Spinner /> : slots.length === 0 ? (
-                <span className="secondary">{openingWindow(studio, dayInstant) == null ? t("The studio is closed this day.") : format("No free %lld-hour slots this day. Try fewer hours or another date.", hours)}</span>
+                <span className="secondary">{openingWindow(studio, dayInstant) == null ? t("The studio is closed this day.") : days > 1 ? format("No start time is free on all %lld days. Try fewer days or another date.", days) : format("No free %lld-hour slots this day. Try fewer hours or another date.", hours)}</span>
               ) : (
                 <div className="chips">
                   {slots.map((s) => {
@@ -158,7 +189,7 @@ function BookingDraft({ studio }: { studio: Studio }) {
           </Section>
           {studio.add_ons.length > 0 && (
             <Section header="Add-ons">
-              {studio.add_ons.map((a) => <AddOnRow key={a.id} studio={studio} hours={hours} addOn={a} currency={studio.currency} quantity={addOns[a.id] ?? 0} onChange={(q) => setAddOns({ ...addOns, [a.id]: q })} />)}
+              {studio.add_ons.map((a) => <AddOnRow key={a.id} studio={studio} hours={hours} days={days} addOn={a} currency={studio.currency} quantity={addOns[a.id] ?? 0} onChange={(q) => setAddOns({ ...addOns, [a.id]: q })} />)}
             </Section>
           )}
           <Section header="Notes for the studio">
@@ -176,7 +207,8 @@ function BookingDraft({ studio }: { studio: Studio }) {
   );
 }
 
-function AddOnRow({ studio, hours, addOn, currency, quantity, onChange }: { studio: Studio; hours: number; addOn: ServiceAddOn; currency: string; quantity: number; onChange: (q: number) => void }) {
+function AddOnRow({ studio, hours, days = 1, addOn, currency, quantity, onChange }: { studio: Studio; hours: number; days?: number; addOn: ServiceAddOn; currency: string; quantity: number; onChange: (q: number) => void }) {
+  const chargedPerDay = addOn.unit === "per_session" && (studio.per_day_add_ons ?? []).includes(addOn.id);
   const perTrack = addOn.unit === "per_track";
   // With volume prices the price per track (or hour) drops as more is booked.
   const unitPrice = addOn.unit === "per_session" ? addOn.price : volumePrice(studio, "add_on", addOn.id, perTrack ? Math.max(quantity, 1) : hours, addOn.price);
@@ -185,7 +217,7 @@ function AddOnRow({ studio, hours, addOn, currency, quantity, onChange }: { stud
     <Item>
       <div className="label">
         <div>{addOn.name}</div>
-        <div className="caption secondary">{Money.format(unitPrice, currency)} {t(PRICE_UNITS.find(([k]) => k === addOn.unit)![1])}</div>
+        <div className="caption secondary">{Money.format(unitPrice, currency)} {chargedPerDay ? t("per day") : t(PRICE_UNITS.find(([k]) => k === addOn.unit)![1])}{chargedPerDay && days > 1 ? ` · ${format("%lld days", days)}` : ""}</div>
         {perTrack && next && <div className="caption secondary">{format("From %lld tracks: %@ each", next.min_qty, Money.format(next.unit_price, currency))}</div>}
         {perTrack && quantity > 0 && <div className="caption accent">{quantity === 1 ? t("1 track") : format("%lld tracks", quantity)}</div>}
       </div>
@@ -200,7 +232,9 @@ export function PriceBreakdownView({ price }: { price: PriceBreakdown }) {
   );
   return (
     <div className="stack" style={{ gap: 8, width: "100%" }}>
-      {price.rate_lines && (price.rate_lines.length > 1 || price.rate_lines.some((l) => l.label)) ? price.rate_lines.map((l, i) => (
+      {price.day_rate ? (
+        <div className="row spread secondary"><span>{format("%@ / day", Money.format(price.day_rate, price.currency))} × {price.days === 1 ? t("1 day") : format("%lld days", price.days ?? 1)}</span><span>{Money.format(price.session_amount, price.currency)}</span></div>
+      ) : price.rate_lines && (price.rate_lines.length > 1 || price.rate_lines.some((l) => l.label)) ? price.rate_lines.map((l, i) => (
         <div key={i} className="row spread secondary"><span>{l.label ? `${l.label} · ` : ""}{Money.format(l.hourly_rate, price.currency)} × {l.hours} h</span><span>{Money.format(l.amount, price.currency)}</span></div>
       )) : <div className="row spread secondary"><span>{Money.format(price.hourly_rate, price.currency)} × {price.hours} h</span><span>{Money.format(price.session_amount, price.currency)}</span></div>}
       {price.add_ons_amount > 0 && row("Add-ons", price.add_ons_amount)}
@@ -236,7 +270,7 @@ function Checkout({ request, onBack }: { request: Request; onBack: () => void })
   const [codeInput, setCodeInput] = useState("");
   const [promo, setPromo] = useState<PromoCheck | null>(null);
   const [checking, setChecking] = useState(false);
-  const price = useQuote(studio, request.sessionTypeId, request.hours, request.addOns, promo?.code, request.start)!;
+  const price = useQuote(studio, request.sessionTypeId, request.hours, request.addOns, promo?.code, request.start, request.days)!;
 
   async function applyCode() {
     const code = codeInput.trim();
@@ -253,7 +287,7 @@ function Checkout({ request, onBack }: { request: Request; onBack: () => void })
   async function pay() {
     setWorking(true);
     try {
-      const booking = await api.createBooking(studio.id, sessionType.id, request.start, request.hours, request.addOns, request.notes, promo?.code);
+      const booking = await api.createBooking(studio.id, sessionType.id, request.start, request.hours, request.addOns, request.notes, promo?.code, request.days);
       if (cash) {
         const confirmed = await api.confirmCashBooking(booking.id);
         await app.refreshBadges();
@@ -273,9 +307,11 @@ function Checkout({ request, onBack }: { request: Request; onBack: () => void })
         <div className="stack-lg">
           <Section header="Your session">
             <Item><InfoRow icon={Building2} title={studio.name} translate={false} /></Item>
-            <Item><InfoRow icon={AudioWaveform} title={sessionType.name} value={`${request.hours} h`} translate={false} /></Item>
+            <Item><InfoRow icon={AudioWaveform} title={sessionType.name} value={request.days > 1 ? format("%lld days · %lld h per day", request.days, request.hours) : `${request.hours} h`} translate={false} /></Item>
             <Item><InfoRow icon={CalendarDays} title={Dates.abbreviatedWithTime(request.start, zone).split(",")[0]} translate={false}
-              value={`${Dates.time(request.start, zone)} – ${Dates.time(new Date(request.start.getTime() + request.hours * HOUR), zone)}`} /></Item>
+              value={request.days > 1
+                ? `${Dates.time(request.start, zone)} – ${Dates.weekdayDayMonth(new Date(request.start.getTime() + (request.days - 1) * 24 * HOUR))} ${Dates.time(new Date(request.start.getTime() + request.hours * HOUR), zone)}`
+                : `${Dates.time(request.start, zone)} – ${Dates.time(new Date(request.start.getTime() + request.hours * HOUR), zone)}`} /></Item>
           </Section>
           <Section header="Payment"><Item><PriceBreakdownView price={price} /></Item></Section>
           {!payment && (
@@ -403,7 +439,7 @@ export function BookingConfirmation({ booking }: { booking: Booking }) {
       <div className="card stack" style={{ width: "100%", maxWidth: 480, textAlign: "left", gap: 12 }}>
         <InfoRow icon={Hash} title="Reference" value={booking.reference} />
         <InfoRow icon={Building2} title={booking.studio_name} translate={false} />
-        <InfoRow icon={CalendarDays} title={Dates.weekdayDayMonth(booking.starts_at)} translate={false} />
+        <InfoRow icon={CalendarDays} title={(booking.days ?? 1) > 1 ? `${Dates.weekdayDayMonth(booking.starts_at)} – ${Dates.weekdayDayMonth(booking.ends_at)}` : Dates.weekdayDayMonth(booking.starts_at)} translate={false} />
         <InfoRow icon={Clock} title={`${Dates.time(booking.starts_at)} – ${Dates.time(booking.ends_at)}`} translate={false} />
         <InfoRow icon={cash ? Banknote : CreditCard} title={PAYMENT_STATUS_TITLE[booking.payment_status]} value={Money.format(cash ? booking.price.total : booking.price.due_now, booking.price.currency)} />
       </div>

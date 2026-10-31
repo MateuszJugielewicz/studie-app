@@ -328,19 +328,20 @@ export class Api {
   // MARK: Bookings
   // Booking actions run as database functions; steps that move card money use the Stripe edge functions.
 
-  createBooking(studioId: string, sessionTypeId: string, startsAt: Date, hours: number, addOns: Record<string, number>, notes: string, promoCode?: string | null) {
-    return this.rpc<Booking>("book_session", {
+  createBooking(studioId: string, sessionTypeId: string, startsAt: Date, hours: number, addOns: Record<string, number>, notes: string, promoCode?: string | null, days = 1) {
+    // book_session_days also books several days in a row for day-priced session types.
+    return this.rpc<Booking>("book_session_days", {
       p_studio_id: studioId, p_session_type_id: sessionTypeId, p_starts_at: startsAt.toISOString(), p_hours: hours,
-      p_add_ons: addOnList(addOns), p_notes: notes, p_promo_code: promoCode || null,
+      p_add_ons: addOnList(addOns), p_notes: notes, p_promo_code: promoCode || null, p_days: days,
     });
   }
 
   /** The exact price the booking will get (studio offers and promo code included). */
-  quoteBooking(studioId: string, sessionTypeId: string, hours: number, addOns: Record<string, number>, promoCode?: string | null, startsAt?: Date | null) {
-    // With a start time, time-based prices (evening, weekend…) are included.
+  quoteBooking(studioId: string, sessionTypeId: string, hours: number, addOns: Record<string, number>, promoCode?: string | null, startsAt?: Date | null, days = 1) {
+    // With a start time, time-based prices (evening, weekend…) are included; days prices multi-day bookings.
     return this.rpc<PriceBreakdown>("quote_booking", {
       p_studio_id: studioId, p_session_type_id: sessionTypeId, p_hours: hours, p_add_ons: addOnList(addOns), p_promo_code: promoCode || null,
-      ...(startsAt ? { p_starts_at: startsAt.toISOString() } : {}),
+      p_starts_at: startsAt ? startsAt.toISOString() : null, p_days: days,
     });
   }
 

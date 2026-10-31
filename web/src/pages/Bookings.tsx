@@ -177,7 +177,7 @@ export function BookingDetail() {
             <div className="stack" style={{ gap: 6 }}>
               <div><StatusPill text={BOOKING_STATUS_TITLE[booking.status]} color={bookingStatusColor(booking.status)} /></div>
               <div className="title-m">{isStudio ? booking.artist_name : booking.studio_name}</div>
-              <div className="secondary">{format("%@ · %lld hours", booking.session_type_name, booking.hours)}</div>
+              <div className="secondary">{(booking.days ?? 1) > 1 ? format("%@ · %lld days", booking.session_type_name, booking.days ?? 1) : format("%@ · %lld hours", booking.session_type_name, booking.hours)}</div>
             </div>
           </Item>
           <Item><InfoRow icon={CalendarDays} title={Dates.weekdayDayMonth(booking.starts_at)} translate={false} /></Item>
@@ -420,7 +420,7 @@ function Receipt() {
         </Section>
         <Section header="Booking">
           <Item><InfoRow icon={Building2} title={booking.studio_name} translate={false} /></Item>
-          <Item><InfoRow icon={AudioWaveform} title={booking.session_type_name} value={`${booking.hours} h`} translate={false} /></Item>
+          <Item><InfoRow icon={AudioWaveform} title={booking.session_type_name} value={(booking.days ?? 1) > 1 ? format("%lld days · %lld h per day", booking.days ?? 1, booking.hours) : `${booking.hours} h`} translate={false} /></Item>
           <Item><InfoRow icon={CalendarDays} title={Dates.abbreviatedWithTime(booking.starts_at)} translate={false} /></Item>
           <Item><InfoRow icon={Hash} title="Reference" value={booking.reference} /></Item>
         </Section>

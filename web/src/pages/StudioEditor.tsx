@@ -12,7 +12,7 @@ import { geocode } from "../lib/location";
 import { PlatformConfig } from "../lib/config";
 import { useApp } from "../lib/state";
 import {
-  ADD_ON_KINDS, CANCELLATION, EQUIPMENT_CATEGORIES, FACILITIES, GENRES, PRICE_UNITS, type CancellationPolicy, type EquipmentCategory, type OpeningHours, type PriceRule, type Studio, type VolumePrice,
+  ADD_ON_KINDS, CANCELLATION, EQUIPMENT_CATEGORIES, FACILITIES, GENRES, PRICE_UNITS, type CancellationPolicy, type EquipmentCategory, type OpeningHours, type DayRate, type PriceRule, type Studio, type VolumePrice,
 } from "../lib/types";
 import { Chip, ChipPicker, InputItem, Item, Notice, PageHead, Section, Segmented, SelectItem, Spinner, Stepper, ToggleItem, ToolButton, useToast } from "../components/ui";
 import { StudioMap } from "../components/StudioMap";
@@ -363,30 +363,61 @@ function PriceRules({ typeId }: { typeId: string }) {
   );
 }
 
+/**
+ * Priced per day instead of per hour (e.g. a day rental of 10 hours): artists then pick a number of days.
+ * The session type's hourly price is kept in step (day price ÷ hours) for older apps.
+ */
+function DayPricing({ typeId }: { typeId: string }) {
+  const [studio, set] = useDraft();
+  const all = studio.day_rates ?? [];
+  const rate = all.find((r) => r.session_type_id === typeId);
+  const type = studio.session_types.find((x) => x.id === typeId);
+  const apply = (next: DayRate | null) => {
+    const day_rates = next ? [...all.filter((r) => r.session_type_id !== typeId), next] : all.filter((r) => r.session_type_id !== typeId);
+    const session_types = next ? studio.session_types.map((x) => (x.id === typeId
+      ? { ...x, hourly_rate: Math.round(next.day_price / next.hours_per_day), minimum_hours: next.hours_per_day } : x)) : studio.session_types;
+    set({ ...studio, day_rates, session_types });
+  };
+  return (
+    <>
+      <ToggleItem title="Priced per day" checked={!!rate} onChange={(on) => apply(on
+        ? { session_type_id: typeId, hours_per_day: Math.max(type?.minimum_hours ?? 8, 8), day_price: (type?.hourly_rate ?? 0) * Math.max(type?.minimum_hours ?? 8, 8) } : null)} />
+      {rate && (
+        <>
+          <MoneyInput title="Per day" amount={rate.day_price} currency={studio.currency} onChange={(day_price) => apply({ ...rate, day_price })} />
+          <Item><span className="label">{format("%lld hours per day", rate.hours_per_day)}</span><Stepper value={rate.hours_per_day} min={1} max={PlatformConfig.MAX_SESSION_HOURS} onChange={(hours_per_day) => apply({ ...rate, hours_per_day })} /></Item>
+          <div className="footnote secondary" style={{ padding: "0 16px 6px" }}>{t("Artists choose how many days they want, starting at the same time each day. The studio is reserved for the whole stay.")}</div>
+        </>
+      )}
+    </>
+  );
+}
+
 /** Lower unit prices when more is booked at once (e.g. mixing 738 € per track from 3 tracks). */
-function VolumePrices({ target, targetId, unit }: { target: VolumePrice["target"]; targetId: string; unit: "h" | "tracks" }) {
+function VolumePrices({ target, targetId, unit }: { target: VolumePrice["target"]; targetId: string; unit: "h" | "tracks" | "days" }) {
   const [studio, set] = useDraft();
   const all = studio.volume_prices ?? [];
   const tiers = all.filter((v) => v.target === target && v.target_id === targetId).sort((a, b) => a.min_qty - b.min_qty);
-  const base = target === "session" ? studio.session_types.find((x) => x.id === targetId)?.hourly_rate : studio.add_ons.find((x) => x.id === targetId)?.price;
+  const base = target === "day" ? studio.day_rates?.find((r) => r.session_type_id === targetId)?.day_price
+    : target === "session" ? studio.session_types.find((x) => x.id === targetId)?.hourly_rate : studio.add_ons.find((x) => x.id === targetId)?.price;
   const update = (id: string, patch: Partial<VolumePrice>) => set({ ...studio, volume_prices: all.map((v) => (v.id === id ? { ...v, ...patch } : v)) });
   const add = () => {
     const last = tiers[tiers.length - 1];
     set({ ...studio, volume_prices: [...all, { id: newId(), target, target_id: targetId, min_qty: last ? last.min_qty + 2 : 3, unit_price: last?.unit_price ?? base ?? 0 }] });
   };
-  const label = (n: number) => (unit === "h" ? format("From %lld hours", n) : format("From %lld tracks", n));
+  const label = (n: number) => (unit === "h" ? format("From %lld hours", n) : unit === "days" ? format("From %lld days", n) : format("From %lld tracks", n));
   return (
     <div style={{ padding: "0 0 8px" }}>
       {tiers.map((v) => (
         <div key={v.id} className="row" style={{ gap: 8, padding: "4px 12px", flexWrap: "wrap" }}>
           <span className="footnote" style={{ minWidth: 110 }}>{label(v.min_qty)}</span>
-          <Stepper value={v.min_qty} min={2} max={unit === "h" ? 12 : 20} onChange={(min_qty) => update(v.id, { min_qty })} />
-          <div style={{ flex: 1, minWidth: 180 }}><MoneyInput title={unit === "h" ? "Per hour" : "Per track"} amount={v.unit_price} currency={studio.currency} onChange={(unit_price) => update(v.id, { unit_price })} /></div>
+          <Stepper value={v.min_qty} min={2} max={unit === "h" ? 12 : unit === "days" ? 30 : 20} onChange={(min_qty) => update(v.id, { min_qty })} />
+          <div style={{ flex: 1, minWidth: 180 }}><MoneyInput title={unit === "h" ? "Per hour" : unit === "days" ? "Per day" : "Per track"} amount={v.unit_price} currency={studio.currency} onChange={(unit_price) => update(v.id, { unit_price })} /></div>
           <button className="danger" onClick={() => set({ ...studio, volume_prices: all.filter((x) => x.id !== v.id) })} aria-label={t("Delete")}><Trash2 size={17} /></button>
         </div>
       ))}
       <Item onClick={add}>
-        <Plus size={18} color="var(--accent)" /><span className="label accent">{t(unit === "h" ? "Lower price when booking more hours" : "Lower price when booking more tracks")}</span>
+        <Plus size={18} color="var(--accent)" /><span className="label accent">{t(unit === "h" ? "Lower price when booking more hours" : unit === "days" ? "Lower price when booking more days" : "Lower price when booking more tracks")}</span>
       </Item>
     </div>
   );
@@ -405,11 +436,20 @@ function Pricing() {
             <Item><input placeholder={t("Session name")} value={type.name} style={{ fontWeight: 600 }} onChange={(e) => updateType(i, { name: e.target.value })} />
               <button className="danger" onClick={() => set({ ...studio, session_types: studio.session_types.filter((x) => x.id !== type.id) })} aria-label={t("Delete")}><Trash2 size={17} /></button></Item>
             <InputItem placeholder="Short description" value={type.details} onChange={(details) => updateType(i, { details })} />
-            <MoneyInput title="Per hour" amount={type.hourly_rate} currency={studio.currency} onChange={(hourly_rate) => updateType(i, { hourly_rate })} />
-            <Item><span className="label">{format("Minimum %lld h", type.minimum_hours)}</span><Stepper value={type.minimum_hours} min={1} max={PlatformConfig.MAX_SESSION_HOURS} onChange={(minimum_hours) => updateType(i, { minimum_hours })} /></Item>
+            <DayPricing typeId={type.id} />
+            {!studio.day_rates?.some((r) => r.session_type_id === type.id) && (
+              <>
+                <MoneyInput title="Per hour" amount={type.hourly_rate} currency={studio.currency} onChange={(hourly_rate) => updateType(i, { hourly_rate })} />
+                <Item><span className="label">{format("Minimum %lld h", type.minimum_hours)}</span><Stepper value={type.minimum_hours} min={1} max={PlatformConfig.MAX_SESSION_HOURS} onChange={(minimum_hours) => updateType(i, { minimum_hours })} /></Item>
+              </>
+            )}
             <ToggleItem title="Engineer included" checked={type.includes_engineer} onChange={(includes_engineer) => updateType(i, { includes_engineer })} />
-            <PriceRules typeId={type.id} />
-            <VolumePrices target="session" targetId={type.id} unit="h" />
+            {studio.day_rates?.some((r) => r.session_type_id === type.id) ? <VolumePrices target="day" targetId={type.id} unit="days" /> : (
+              <>
+                <PriceRules typeId={type.id} />
+                <VolumePrices target="session" targetId={type.id} unit="h" />
+              </>
+            )}
           </div>
         ))}
         <Item onClick={() => set({ ...studio, session_types: [...studio.session_types, { id: newId(), name: "", details: "", hourly_rate: studio.price_from > 0 ? studio.price_from : 3000, minimum_hours: 1, includes_engineer: false }] })}>
@@ -425,6 +465,10 @@ function Pricing() {
             <MoneyInput title="Price" amount={addOn.price} currency={studio.currency} onChange={(price) => updateAddOn(i, { price })} />
             <div style={{ padding: "8px 12px" }}><Segmented value={addOn.unit} options={PRICE_UNITS.map(([value, label]) => ({ value, label }))} onChange={(unit) => updateAddOn(i, { unit })} /></div>
             {addOn.unit !== "per_session" && <VolumePrices target="add_on" targetId={addOn.id} unit={addOn.unit === "per_track" ? "tracks" : "h"} />}
+            {addOn.unit === "per_session" && (
+              <ToggleItem title="Charge per day (multi-day bookings)" checked={(studio.per_day_add_ons ?? []).includes(addOn.id)}
+                onChange={(on) => set({ ...studio, per_day_add_ons: on ? [...(studio.per_day_add_ons ?? []), addOn.id] : (studio.per_day_add_ons ?? []).filter((x) => x !== addOn.id) })} />
+            )}
           </div>
         ))}
         <Item onClick={() => set({ ...studio, add_ons: [...studio.add_ons, { id: newId(), kind: "mixing", name: "Mixing", price: 5000, unit: "per_track" }] })}>

@@ -127,7 +127,9 @@ export interface PriceRule { id: string; session_type_id: string; label: string;
  * hours, or an add-on's price per track (per_track) or per hour (per_hour) from min_qty. The highest
  * min_qty reached applies.
  */
-export interface VolumePrice { id: string; target: "session" | "add_on"; target_id: string; min_qty: number; unit_price: number }
+export interface VolumePrice { id: string; target: "session" | "add_on" | "day"; target_id: string; min_qty: number; unit_price: number }
+/** A session type booked per day (e.g. a day rental of 10 hours); volume prices with target "day" lower the day price. */
+export interface DayRate { session_type_id: string; hours_per_day: number; day_price: number }
 /** One line of a session's price when hours have different rates. */
 export interface RateLine { label: string | null; hourly_rate: number; hours: number; amount: number }
 export type AddOnKind = "engineer" | "producer" | "mixing" | "mastering" | "other";
@@ -163,6 +165,10 @@ export interface Studio {
   price_rules?: PriceRule[];
   /** Lower prices when booking more (see VolumePrice). */
   volume_prices?: VolumePrice[];
+  /** Session types booked per day (see DayRate). */
+  day_rates?: DayRate[];
+  /** Per-session add-ons charged once per day of a multi-day booking (e.g. accommodation). */
+  per_day_add_ons?: string[];
   owner_id: string;
   name: string;
   tagline: string;
@@ -225,6 +231,8 @@ export interface PriceBreakdown {
   currency: string; hourly_rate: number; hours: number; session_amount: number; add_ons_amount: number; subtotal: number;
   /** Hours grouped by rate when the session has time-based prices. */
   rate_lines?: RateLine[];
+  /** Multi-day bookings: number of days and the price per day. */
+  days?: number; day_rate?: number | null;
   service_fee: number; total: number; deposit_amount: number; due_now: number; due_later: number;
   studio_commission: number; studio_payout: number;
   /** Discounts (server-computed): studio offers and promo codes. An EasySesh code is a negative service_fee. */
@@ -248,6 +256,8 @@ export interface PromoCheck { code: string; percent_off: number; description: st
 
 export interface Booking {
   id: string;
+  /** Days in a multi-day booking (1 otherwise); hours is per day. */
+  days?: number;
   reference: string;
   artist_id: string;
   studio_id: string;

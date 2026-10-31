@@ -128,3 +128,20 @@ language sql security definer set search_path = public
 as $$
   select * from public.book_session_days(p_studio_id, p_session_type_id, p_starts_at, p_hours, p_add_ons, p_notes, p_promo_code, 1);
 $$;
+
+-- Moving a multi-day booking keeps all its days (each day must fit again).
+do $$
+declare d text;
+begin
+  select replace(pg_get_functiondef('public.reschedule_booking'::regproc), E'\r', '') into d;
+  if position('greatest(v_booking.days, 1)' in d) > 0 then return; end if;
+  d := replace(d, '  v_studio public.studios;', '  v_studio public.studios;
+  i integer;');
+  d := replace(d, 'perform public.check_booking_slot(v_studio, p_starts_at, v_booking.hours, v_booking.id);',
+    'for i in 0 .. greatest(v_booking.days, 1) - 1 loop
+    perform public.check_booking_slot(v_studio, p_starts_at + make_interval(days => i), v_booking.hours, v_booking.id);
+  end loop;');
+  d := replace(d, 'ends_at = p_starts_at + make_interval(hours => v_booking.hours)',
+    'ends_at = p_starts_at + make_interval(days => greatest(v_booking.days, 1) - 1, hours => v_booking.hours)');
+  execute d;
+end $$;

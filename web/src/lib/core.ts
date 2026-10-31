@@ -4,7 +4,7 @@ import { PlatformConfig } from "./config";
 import { format, locale, t } from "./i18n";
 import type {
   Booking, BookingStatus, CancellationPolicy, Interval, OpeningHours, Payout, PriceBreakdown, ServiceAddOn, SessionType,
-  SocialLink, Studio, UserRole, BookedAddOn, Genre, Facility, EquipmentCategory, PriceRule, RateLine, VolumePrice,
+  SocialLink, Studio, UserRole, BookedAddOn, Genre, Facility, EquipmentCategory, PriceRule, RateLine, VolumePrice, DayRate,
 } from "./types";
 import { genreTitle } from "./types";
 
@@ -223,9 +223,16 @@ export function volumePrice(studio: Studio | undefined, target: VolumePrice["tar
 export const volumeTiers = (studio: Studio, target: VolumePrice["target"], targetId: string) =>
   (studio.volume_prices ?? []).filter((v) => v.target === target && v.target_id === targetId && v.unit_price > 0 && v.min_qty >= 2).sort((a, b) => a.min_qty - b.min_qty);
 
-export function addOnAmount(addOn: ServiceAddOn, quantity: number, hours: number, studio?: Studio): number {
-  if (addOn.unit === "per_hour") return volumePrice(studio, "add_on", addOn.id, hours, addOn.price) * hours;
-  if (addOn.unit === "per_session") return addOn.price;
+/** The day rate when this session type is booked per day (same rule as the database). */
+export const dayRate = (studio: Studio, sessionTypeId: string): DayRate | undefined =>
+  (studio.day_rates ?? []).find((r) => r.session_type_id === sessionTypeId && r.day_price > 0);
+
+/** Hours per day of a day-priced session type (1–12). */
+export const hoursPerDay = (rate: DayRate) => Math.min(Math.max(rate.hours_per_day || 8, 1), 12);
+
+export function addOnAmount(addOn: ServiceAddOn, quantity: number, hours: number, studio?: Studio, days = 1): number {
+  if (addOn.unit === "per_hour") return volumePrice(studio, "add_on", addOn.id, hours, addOn.price) * hours * days;
+  if (addOn.unit === "per_session") return addOn.price * ((studio?.per_day_add_ons ?? []).includes(addOn.id) ? days : 1);
   return volumePrice(studio, "add_on", addOn.id, quantity, addOn.price) * quantity;
 }
 
@@ -264,14 +271,18 @@ export function sessionPrice(studio: Studio, sessionType: SessionType, hours: nu
   return { amount, lines };
 }
 
-export function quote(studio: Studio, sessionType: SessionType, hours: number, selected: Record<string, number> = {}, start?: Date | null): PriceBreakdown {
-  const h = Math.max(hours, 1);
-  const timed = sessionPrice(studio, sessionType, h, start);
+export function quote(studio: Studio, sessionType: SessionType, hours: number, selected: Record<string, number> = {}, start?: Date | null, days = 1): PriceBreakdown {
+  // A day-priced session type: the day's hours are fixed and the price is per day (lower with more days).
+  const day = dayRate(studio, sessionType.id);
+  const d = day ? Math.max(days, 1) : 1;
+  const h = day ? hoursPerDay(day) : Math.max(hours, 1);
+  const perDay = day ? volumePrice(studio, "day", sessionType.id, d, day.day_price) : null;
+  const timed = day ? { amount: perDay! * d, lines: [] } : sessionPrice(studio, sessionType, h, start);
   const sessionAmount = timed.amount;
   let addOnsAmount = 0;
   for (const addOn of studio.add_ons) {
     const quantity = selected[addOn.id] ?? 0;
-    if (quantity > 0) addOnsAmount += addOnAmount(addOn, quantity, h, studio);
+    if (quantity > 0) addOnsAmount += addOnAmount(addOn, quantity, h, studio, d);
   }
   const subtotal = sessionAmount + addOnsAmount;
   const serviceFee = Money.percent(subtotal, PlatformConfig.ARTIST_SERVICE_FEE_PERCENT);
@@ -281,7 +292,7 @@ export function quote(studio: Studio, sessionType: SessionType, hours: number, s
   const dueNow = deposit > 0 ? deposit + serviceFee : total;
   const commission = Money.percent(subtotal, PlatformConfig.PLATFORM_FEE_PERCENT);
   return {
-    currency: studio.currency, hourly_rate: volumePrice(studio, "session", sessionType.id, h, sessionType.hourly_rate), hours: h, session_amount: sessionAmount, rate_lines: timed.lines,
+    currency: studio.currency, hourly_rate: volumePrice(studio, "session", sessionType.id, h, sessionType.hourly_rate), hours: h, session_amount: sessionAmount, rate_lines: timed.lines, days: d, day_rate: perDay,
     add_ons_amount: addOnsAmount, subtotal, service_fee: serviceFee, total, deposit_amount: deposit, due_now: dueNow,
     due_later: total - dueNow, studio_commission: commission, studio_payout: subtotal - commission,
   };
@@ -290,9 +301,9 @@ export function quote(studio: Studio, sessionType: SessionType, hours: number, s
 /** Cash is offered when the studio allows it and no card deposit is required. */
 export const acceptsCash = (s: Studio) => s.booking_policy.accepts_cash && s.booking_policy.deposit_percent === 0;
 
-export function bookedAddOns(studio: Studio, selected: Record<string, number>, hours: number): BookedAddOn[] {
+export function bookedAddOns(studio: Studio, selected: Record<string, number>, hours: number, days = 1): BookedAddOn[] {
   return studio.add_ons.filter((a) => (selected[a.id] ?? 0) > 0)
-    .map((a) => ({ id: a.id, name: a.name, quantity: selected[a.id], amount: addOnAmount(a, selected[a.id], hours, studio) }));
+    .map((a) => ({ id: a.id, name: a.name, quantity: selected[a.id], amount: addOnAmount(a, selected[a.id], hours, studio, days) }));
 }
 
 export function refundPercent(policy: CancellationPolicy, hoursUntilStart: number): number {
