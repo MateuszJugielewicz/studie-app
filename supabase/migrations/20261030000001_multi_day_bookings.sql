@@ -145,3 +145,15 @@ begin
     'ends_at = p_starts_at + make_interval(days => greatest(v_booking.days, 1) - 1, hours => v_booking.hours)');
   execute d;
 end $$;
+
+-- Per-day add-ons can also have a quantity (per_track unit = per person), e.g. accommodation per person
+-- per night: price × people × days.
+do $$
+declare d text;
+begin
+  select replace(pg_get_functiondef('public.price_booking(public.studios, text, integer, jsonb, text, uuid, timestamptz, integer)'::regprocedure), E'\r', '') into d;
+  if position('v_qty, (v_addon ->> ''price'')::int) * v_qty * case' in d) > 0 then return; end if;
+  d := replace(d, 'else public.volume_price(p_studio, ''add_on'', v_addon ->> ''id'', v_qty, (v_addon ->> ''price'')::int) * v_qty',
+    'else public.volume_price(p_studio, ''add_on'', v_addon ->> ''id'', v_qty, (v_addon ->> ''price'')::int) * v_qty * case when coalesce(p_studio.per_day_add_ons, ''[]''::jsonb) ? (v_addon ->> ''id'') then p_days else 1 end');
+  execute d;
+end $$;

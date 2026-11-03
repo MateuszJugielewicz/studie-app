@@ -233,7 +233,8 @@ export const hoursPerDay = (rate: DayRate) => Math.min(Math.max(rate.hours_per_d
 export function addOnAmount(addOn: ServiceAddOn, quantity: number, hours: number, studio?: Studio, days = 1): number {
   if (addOn.unit === "per_hour") return volumePrice(studio, "add_on", addOn.id, hours, addOn.price) * hours * days;
   if (addOn.unit === "per_session") return addOn.price * ((studio?.per_day_add_ons ?? []).includes(addOn.id) ? days : 1);
-  return volumePrice(studio, "add_on", addOn.id, quantity, addOn.price) * quantity;
+  // A per-day add-on with a quantity is per person per day (e.g. accommodation).
+  return volumePrice(studio, "add_on", addOn.id, quantity, addOn.price) * quantity * ((studio?.per_day_add_ons ?? []).includes(addOn.id) ? days : 1);
 }
 
 /** Weekday (1 = Sunday … 7 = Saturday) and minutes after midnight of `date` in `zone`. */

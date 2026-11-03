@@ -181,7 +181,7 @@ export default function StudioDetail() {
                 <div className="headline" style={{ marginTop: 4 }}>{t("Add-ons")}</div>
                 {studio.add_ons.map((a) => (
                   <div key={a.id}>
-                    <div className="row spread subhead"><span>{a.name}</span><span className="secondary">{Money.format(a.price, studio.currency)} {a.unit === "per_session" && (studio.per_day_add_ons ?? []).includes(a.id) ? t("per day") : t(PRICE_UNITS.find(([k]) => k === a.unit)![1])}</span></div>
+                    <div className="row spread subhead"><span>{a.name}</span><span className="secondary">{Money.format(a.price, studio.currency)} {(studio.per_day_add_ons ?? []).includes(a.id) && a.unit !== "per_hour" ? t(a.unit === "per_track" ? "per person per day" : "per day") : t(PRICE_UNITS.find(([k]) => k === a.unit)![1])}</span></div>
                     {a.unit !== "per_session" && volumeTiers(studio, "add_on", a.id).map((v) => (
                       <div key={v.id} className="row spread footnote secondary">
                         <span>{format(a.unit === "per_track" ? "From %lld tracks" : "From %lld hours", v.min_qty)}</span>

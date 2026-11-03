@@ -465,8 +465,8 @@ function Pricing() {
             <MoneyInput title="Price" amount={addOn.price} currency={studio.currency} onChange={(price) => updateAddOn(i, { price })} />
             <div style={{ padding: "8px 12px" }}><Segmented value={addOn.unit} options={PRICE_UNITS.map(([value, label]) => ({ value, label }))} onChange={(unit) => updateAddOn(i, { unit })} /></div>
             {addOn.unit !== "per_session" && <VolumePrices target="add_on" targetId={addOn.id} unit={addOn.unit === "per_track" ? "tracks" : "h"} />}
-            {addOn.unit === "per_session" && (
-              <ToggleItem title="Charge per day (multi-day bookings)" checked={(studio.per_day_add_ons ?? []).includes(addOn.id)}
+            {addOn.unit !== "per_hour" && (
+              <ToggleItem title={addOn.unit === "per_track" ? "Per person per day (e.g. accommodation)" : "Charge per day (multi-day bookings)"} checked={(studio.per_day_add_ons ?? []).includes(addOn.id)}
                 onChange={(on) => set({ ...studio, per_day_add_ons: on ? [...(studio.per_day_add_ons ?? []), addOn.id] : (studio.per_day_add_ons ?? []).filter((x) => x !== addOn.id) })} />
             )}
           </div>

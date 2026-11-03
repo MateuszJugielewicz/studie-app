@@ -208,8 +208,10 @@ function BookingDraft({ studio }: { studio: Studio }) {
 }
 
 function AddOnRow({ studio, hours, days = 1, addOn, currency, quantity, onChange }: { studio: Studio; hours: number; days?: number; addOn: ServiceAddOn; currency: string; quantity: number; onChange: (q: number) => void }) {
-  const chargedPerDay = addOn.unit === "per_session" && (studio.per_day_add_ons ?? []).includes(addOn.id);
+  const chargedPerDay = addOn.unit !== "per_hour" && (studio.per_day_add_ons ?? []).includes(addOn.id);
   const perTrack = addOn.unit === "per_track";
+  // A per-day add-on with a quantity counts people (e.g. accommodation per person per night).
+  const perPerson = perTrack && chargedPerDay;
   // With volume prices the price per track (or hour) drops as more is booked.
   const unitPrice = addOn.unit === "per_session" ? addOn.price : volumePrice(studio, "add_on", addOn.id, perTrack ? Math.max(quantity, 1) : hours, addOn.price);
   const next = addOn.unit === "per_session" ? undefined : volumeTiers(studio, "add_on", addOn.id).find((v) => v.min_qty > (perTrack ? quantity : hours));
@@ -217,9 +219,9 @@ function AddOnRow({ studio, hours, days = 1, addOn, currency, quantity, onChange
     <Item>
       <div className="label">
         <div>{addOn.name}</div>
-        <div className="caption secondary">{Money.format(unitPrice, currency)} {chargedPerDay ? t("per day") : t(PRICE_UNITS.find(([k]) => k === addOn.unit)![1])}{chargedPerDay && days > 1 ? ` · ${format("%lld days", days)}` : ""}</div>
-        {perTrack && next && <div className="caption secondary">{format("From %lld tracks: %@ each", next.min_qty, Money.format(next.unit_price, currency))}</div>}
-        {perTrack && quantity > 0 && <div className="caption accent">{quantity === 1 ? t("1 track") : format("%lld tracks", quantity)}</div>}
+        <div className="caption secondary">{Money.format(unitPrice, currency)} {perPerson ? t("per person per day") : chargedPerDay ? t("per day") : t(PRICE_UNITS.find(([k]) => k === addOn.unit)![1])}{chargedPerDay && days > 1 ? ` · ${format("%lld days", days)}` : ""}</div>
+        {perTrack && !perPerson && next && <div className="caption secondary">{format("From %lld tracks: %@ each", next.min_qty, Money.format(next.unit_price, currency))}</div>}
+        {perTrack && quantity > 0 && <div className="caption accent">{perPerson ? (quantity === 1 ? t("1 person") : format("%lld people", quantity)) : quantity === 1 ? t("1 track") : format("%lld tracks", quantity)}</div>}
       </div>
       {perTrack ? <Stepper value={quantity} min={0} max={20} onChange={onChange} /> : <Toggle checked={quantity > 0} onChange={(on) => onChange(on ? 1 : 0)} label={addOn.name} />}
     </Item>
