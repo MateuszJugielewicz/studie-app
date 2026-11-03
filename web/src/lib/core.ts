@@ -6,7 +6,7 @@ import type {
   Booking, BookingStatus, CancellationPolicy, Interval, OpeningHours, Payout, PriceBreakdown, ServiceAddOn, SessionType,
   SocialLink, Studio, UserRole, BookedAddOn, Genre, Facility, EquipmentCategory, PriceRule, RateLine, VolumePrice, DayRate,
 } from "./types";
-import { genreTitle } from "./types";
+import { genreTitle, PRICE_UNITS } from "./types";
 
 // MARK: Money & distance
 
@@ -222,6 +222,24 @@ export function volumePrice(studio: Studio | undefined, target: VolumePrice["tar
 /** The volume prices for one session type or add-on, smallest quantity first. */
 export const volumeTiers = (studio: Studio, target: VolumePrice["target"], targetId: string) =>
   (studio.volume_prices ?? []).filter((v) => v.target === target && v.target_id === targetId && v.unit_price > 0 && v.min_qty >= 2).sort((a, b) => a.min_qty - b.min_qty);
+
+/**
+ * How an add-on's price is counted: per person per day (accommodation, meals), per day, per piece
+ * ("other" add-ons with a quantity, e.g. sandwiches) or the add-on's own unit (per track, hour, session).
+ */
+export function addOnUnitLabel(addOn: ServiceAddOn, studio: Studio): string {
+  const perDay = addOn.unit !== "per_hour" && (studio.per_day_add_ons ?? []).includes(addOn.id);
+  if (perDay) return t(addOn.unit === "per_track" ? "per person per day" : "per day");
+  if (addOn.unit === "per_track" && addOn.kind === "other") return t("per piece");
+  return t(PRICE_UNITS.find(([k]) => k === addOn.unit)?.[1] ?? "");
+}
+
+/** The quantity of an add-on in words: people, pieces or tracks. */
+export function addOnQuantityLabel(addOn: ServiceAddOn, studio: Studio, quantity: number): string {
+  if ((studio.per_day_add_ons ?? []).includes(addOn.id)) return quantity === 1 ? t("1 person") : format("%lld people", quantity);
+  if (addOn.kind === "other") return format("%lld pcs.", quantity);
+  return quantity === 1 ? t("1 track") : format("%lld tracks", quantity);
+}
 
 /** The day rate when this session type is booked per day (same rule as the database). */
 export const dayRate = (studio: Studio, sessionTypeId: string): DayRate | undefined =>
